@@ -64,6 +64,7 @@
 #include "nsStyleConsts.h"
 #include "nsStyleUtil.h"
 #include "nsTransform2D.h"
+#include "mozilla/StaticPrefs_permissions.h"
 #ifdef ACCESSIBILITY
 #  include "nsAccessibilityService.h"
 #endif
@@ -2687,6 +2688,9 @@ void nsImageFrame::BuildDisplayList(nsDisplayListBuilder* aBuilder,
       if (isViewTransition) {
         // Same for view transitions.
         return false;
+      }
+      if(!StaticPrefs::permissions_default_imagePaint()) {
+         return true;
       }
       // XXX(seth): The SizeIsAvailable check here should not be necessary - the
       // intention is that a non-null mImage means we have a size, but there is
