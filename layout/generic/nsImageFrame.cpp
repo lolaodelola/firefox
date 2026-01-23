@@ -2692,7 +2692,7 @@ void nsImageFrame::BuildDisplayList(nsDisplayListBuilder* aBuilder,
         // Same for view transitions.
         return false;
       }
-      if(!StaticPrefs::permissions_default_imagePaint()) {
+      if(!StyleVisibility()->ShouldPaint()) {
          return true;
       }
       // XXX(seth): The SizeIsAvailable check here should not be necessary - the

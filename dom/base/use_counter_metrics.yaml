@@ -17312,6 +17312,20 @@ use.counter.css.page:
     send_in_pings:
       - use-counters
 
+  css_image_painting:
+    type: counter
+    description: >
+      Whether a page used the CSS property image-painting.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=0
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=0
+    notification_emails:
+      - no@mozilla.com
+    expires: never
+    send_in_pings:
+      - use-counters
+
   css_ime_mode:
     type: counter
     description: >
@@ -29278,6 +29292,20 @@ use.counter.css.doc:
     notification_emails:
       - dom-core@mozilla.com
       - emilio@mozilla.com
+    expires: never
+    send_in_pings:
+      - use-counters
+
+  css_image_painting:
+    type: counter
+    description: >
+      Whether a page used the CSS property image-painting.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=0
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=0
+    notification_emails:
+      - no@mozilla.com
     expires: never
     send_in_pings:
       - use-counters

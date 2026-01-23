@@ -1385,6 +1385,10 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleVisibility {
     return mMozBoxCollapse == mozilla::StyleMozBoxCollapse::Legacy;
   }
 
+  bool ShouldPaint() const {
+    return mImagePainting == mozilla::StyleImagePainting::Auto;
+  }
+
   /**
    * Given an image request, returns the orientation that should be used
    * on the image. The returned orientation may differ from the style
@@ -1413,6 +1417,7 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleVisibility {
   mozilla::StyleDirection mDirection;
   mozilla::StyleVisibility mVisible;
   mozilla::StyleImageRendering mImageRendering;
+  mozilla::StyleImagePainting mImagePainting;
   mozilla::StyleWritingModeProperty mWritingMode;
   mozilla::StyleTextOrientation mTextOrientation;
   mozilla::StyleMozBoxCollapse mMozBoxCollapse;

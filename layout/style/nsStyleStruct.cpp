@@ -2781,6 +2781,9 @@ nsChangeHint nsStyleVisibility::CalcDifference(
   if (mImageRendering != aNewData.mImageRendering) {
     hint |= nsChangeHint_RepaintFrame;
   }
+  if (mImagePainting != aNewData.mImagePainting) {
+      hint |= nsChangeHint_RepaintFrame;
+  }
   if (mPrintColorAdjust != aNewData.mPrintColorAdjust) {
     // color-adjust only affects media where dynamic changes can't happen.
     hint |= nsChangeHint_NeutralChange;

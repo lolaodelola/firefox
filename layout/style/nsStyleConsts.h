@@ -534,6 +534,11 @@ enum class StyleScrollBehavior : uint8_t {
   Smooth,
 };
 
+// image-painting
+enum class StyleImagePainting : uint8_t {
+  Auto,
+  AltText,
+};
 }  // namespace mozilla
 
 #endif /* nsStyleConsts_h___ */

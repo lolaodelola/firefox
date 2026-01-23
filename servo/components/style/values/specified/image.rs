@@ -1338,3 +1338,27 @@ pub enum ImageRendering {
     #[cfg(feature = "gecko")]
     Optimizequality,
 }
+
+/// https://drafts.csswg.org/css-images/#propdef-image-painting
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToCss,
+    ToComputedValue,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum ImagePainting {
+    Auto,
+    AltText,
+}

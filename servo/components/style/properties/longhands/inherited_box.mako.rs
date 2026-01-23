@@ -86,6 +86,18 @@ ${helpers.predefined_type(
 )}
 
 ${helpers.single_keyword(
+    "image-painting",
+    "auto alt-text",
+    engines="gecko",
+    gecko_enum_prefix="StyleImagePainting",
+    gecko_ffi_name="mImagePainting",
+    animation_type="discrete",
+    spec="https://drafts.csswg.org/css-image-painting-1",
+    servo_restyle_damage="repaint",
+    affects="paint",
+)}
+
+${helpers.single_keyword(
     "image-orientation",
     "from-image none",
     engines="gecko",

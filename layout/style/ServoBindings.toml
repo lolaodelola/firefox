@@ -601,6 +601,7 @@ cbindgen-types = [
     { gecko = "StyleDProperty", servo = "crate::values::specified::svg::DProperty" },
     { gecko = "StyleVectorEffect", servo = "crate::values::specified::svg::VectorEffect" },
     { gecko = "StyleImageRendering", servo = "crate::values::computed::ImageRendering" },
+    { gecko = "StyleImagePainting", servo = "crate::values::specified::ImagePainting" },
     { gecko = "StylePrintColorAdjust", servo = "crate::values::computed::PrintColorAdjust" },
     { gecko = "StyleForcedColorAdjust", servo = "crate::values::computed::ForcedColorAdjust" },
     { gecko = "StyleForcedColors", servo = "crate::values::specified::color::ForcedColors" },

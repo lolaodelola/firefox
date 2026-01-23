@@ -23,6 +23,7 @@ use std::fmt::{self, Write};
 use style_traits::{CssWriter, ToCss};
 
 pub use specified::ImageRendering;
+pub use specified::ImagePainting;
 
 /// Computed values for an image according to CSS-IMAGES.
 /// <https://drafts.csswg.org/css-images/#image-values>
