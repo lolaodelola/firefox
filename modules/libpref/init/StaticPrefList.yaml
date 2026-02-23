@@ -10044,6 +10044,12 @@
   mirror: always
   rust: true
 
+# Whether prefers alt text is toggled.
+- name: layout.css.prefers-alt-text
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 # Should stray control characters be rendered visibly?
 - name: layout.css.control-characters.visible
   type: RelaxedAtomicBool

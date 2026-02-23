@@ -201,6 +201,23 @@ pub enum DynamicRange {
     High,
 }
 
+fn eval_prefers_alt_text(
+    context: &Context,
+    query_value: Option<PrefersAltText>,
+) -> bool {
+    let user_preference =
+        unsafe { bindings::Gecko_MediaFeatures_PrefersAltText(context.device().document()) };
+    let query_value = match query_value {
+        Some(v) => v,
+        None => return user_preference,
+    };
+
+    match query_value {
+        PrefersAltText::NoPreference => !user_preference,
+        PrefersAltText::AltText => user_preference,
+    }
+}
+
 /// https://drafts.csswg.org/mediaqueries-5/#prefers-reduced-motion
 fn eval_prefers_reduced_motion(
     context: &Context,
@@ -356,6 +373,13 @@ enum Update {
     None,
     Slow,
     Fast,
+}
+
+#[derive(Clone, Copy, Debug, FromPrimitive, Parse, ToCss)]
+#[repr(u8)]
+enum PrefersAltText {
+    NoPreference,
+    AltText,
 }
 
 /// https://drafts.csswg.org/mediaqueries-4/#update
@@ -652,7 +676,7 @@ macro_rules! lnf_int_feature {
 /// to support new types in these entries and (2) ensuring that either
 /// nsPresContext::MediaFeatureValuesChanged is called when the value that
 /// would be returned by the evaluator function could change.
-pub static MEDIA_FEATURES: [QueryFeatureDescription; 60] = [
+pub static MEDIA_FEATURES: [QueryFeatureDescription; 61] = [
     feature!(
         atom!("width"),
         AllowsRanges::Yes,
@@ -782,6 +806,15 @@ pub static MEDIA_FEATURES: [QueryFeatureDescription; 60] = [
         keyword_evaluator!(
             eval_prefers_reduced_transparency,
             PrefersReducedTransparency
+        ),
+        FeatureFlags::empty(),
+    ),
+    feature!(
+        atom!("prefers-alt-text"),
+        AllowsRanges::No,
+        keyword_evaluator!(
+            eval_prefers_alt_text,
+            PrefersAltText
         ),
         FeatureFlags::empty(),
     ),

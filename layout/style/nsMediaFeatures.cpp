@@ -274,6 +274,14 @@ bool Gecko_MediaFeatures_PrefersReducedMotion(const Document* aDocument) {
   return LookAndFeel::GetInt(LookAndFeel::IntID::PrefersReducedMotion, 0) == 1;
 }
 
+bool Gecko_MediaFeatures_PrefersAltText(const Document* aDocument) {
+  if (aDocument->ShouldResistFingerprinting(
+          RFPTarget::CSSPrefersAltText)) {
+    return false;
+  }
+  return StaticPrefs::layout_css_prefers_alt_text();
+}
+
 bool Gecko_MediaFeatures_PrefersReducedTransparency(const Document* aDocument) {
   if (aDocument->ShouldResistFingerprinting(
           RFPTarget::CSSPrefersReducedTransparency)) {

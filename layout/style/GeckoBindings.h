@@ -589,6 +589,7 @@ void Gecko_MediaFeatures_GetDeviceSize(const mozilla::dom::Document*,
 
 float Gecko_MediaFeatures_GetResolution(const mozilla::dom::Document*);
 bool Gecko_MediaFeatures_PrefersReducedMotion(const mozilla::dom::Document*);
+bool Gecko_MediaFeatures_PrefersAltText(const mozilla::dom::Document*);
 bool Gecko_MediaFeatures_PrefersReducedTransparency(
     const mozilla::dom::Document*);
 bool Gecko_MediaFeatures_MacRTL(const mozilla::dom::Document*);

@@ -1040,6 +1040,7 @@ STATIC_ATOMS = [
     Atom("preceding", "preceding"),
     Atom("precedingSibling", "preceding-sibling"),
     Atom("prefersReducedMotion", "prefers-reduced-motion"),
+    Atom("prefersAltText", "prefers-alt-text"),
     Atom("prefersReducedTransparency", "prefers-reduced-transparency"),
     Atom("prefersColorScheme", "prefers-color-scheme"),
     Atom("prefersContrast", "prefers-contrast"),

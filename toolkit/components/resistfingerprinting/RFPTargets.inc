@@ -108,7 +108,8 @@ ITEM_VALUE(MaxTouchPointsCollapse,      73)
 ITEM_VALUE(NavigatorHWConcurrencyTiered,74)
 ITEM_VALUE(WebGLRandomization,          75)
 ITEM_VALUE(EfficientCanvasRandomization, 76)
-
+// `prefers-alt-text` CSS media feature
+ITEM_VALUE(CSSPrefersAltText,     77)
 
 /*
  * In certain cases, we precompute the value of ShouldRFP for e.g. a Document.
