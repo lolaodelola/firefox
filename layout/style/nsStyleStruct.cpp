@@ -2730,7 +2730,8 @@ nsStyleVisibility::nsStyleVisibility(const Document& aDocument)
       mTextOrientation(StyleTextOrientation::Mixed),
       mMozBoxCollapse(StyleMozBoxCollapse::Flex),
       mPrintColorAdjust(StylePrintColorAdjust::Economy),
-      mImageOrientation(StyleImageOrientation::FromImage) {
+      mImageOrientation(StyleImageOrientation::FromImage),
+      mImagePainting(StyleImagePainting::Auto) {
   MOZ_COUNT_CTOR(nsStyleVisibility);
 }
 
@@ -2742,7 +2743,8 @@ nsStyleVisibility::nsStyleVisibility(const nsStyleVisibility& aSource)
       mTextOrientation(aSource.mTextOrientation),
       mMozBoxCollapse(aSource.mMozBoxCollapse),
       mPrintColorAdjust(aSource.mPrintColorAdjust),
-      mImageOrientation(aSource.mImageOrientation) {
+      mImageOrientation(aSource.mImageOrientation),
+      mImagePainting(aSource.mImagePainting) {
   MOZ_COUNT_CTOR(nsStyleVisibility);
 }
 

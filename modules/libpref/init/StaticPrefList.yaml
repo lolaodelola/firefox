@@ -15813,10 +15813,10 @@
   value: 1
   mirror: always
 
-- name: permissions.default.imagePaint
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
+#- name: permissions.default.imagePaint
+#  type: RelaxedAtomicBool
+#  value: true
+#  mirror: always
 
 - name: permissions.default.screen-wake-lock
   type: RelaxedAtomicUint32
