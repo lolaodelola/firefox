@@ -74,7 +74,7 @@ static void logMessage(nsIContent* aContent, const nsAString& aCoordsSpec,
                        int32_t aFlags, const char* aMessageName) {
   nsContentUtils::ReportToConsole(
       aFlags, "Layout: ImageMap"_ns, aContent->OwnerDoc(),
-      nsContentUtils::eLAYOUT_PROPERTIES, aMessageName);
+      PropertiesFile::LAYOUT_PROPERTIES, aMessageName);
 }
 
 void Area::ParseCoords(const nsAString& aSpec) {

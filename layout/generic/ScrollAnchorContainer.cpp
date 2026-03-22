@@ -407,7 +407,7 @@ bool ScrollAnchorContainer::DisablingHeuristic::AdjustmentMade(
 
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Layout"_ns,
                                   aAnchor.Frame()->PresContext()->Document(),
-                                  nsContentUtils::eLAYOUT_PROPERTIES,
+                                  PropertiesFile::LAYOUT_PROPERTIES,
                                   "ScrollAnchoringDisabledInContainer",
                                   arguments);
   return true;

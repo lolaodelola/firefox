@@ -21,10 +21,9 @@ ConsoleReportCollector::ConsoleReportCollector()
 
 void ConsoleReportCollector::AddConsoleReport(
     uint32_t aErrorFlags, const nsACString& aCategory,
-    nsContentUtils::PropertiesFile aPropertiesFile,
-    const nsACString& aSourceFileURI, uint32_t aLineNumber,
-    uint32_t aColumnNumber, const nsACString& aMessageName,
-    const nsTArray<nsString>& aStringParams) {
+    PropertiesFile aPropertiesFile, const nsACString& aSourceFileURI,
+    uint32_t aLineNumber, uint32_t aColumnNumber,
+    const nsACString& aMessageName, const nsTArray<nsString>& aStringParams) {
   // any thread
   MutexAutoLock lock(mMutex);
 
@@ -179,7 +178,7 @@ void ConsoleReportCollector::StealConsoleReports(
 
   for (const PendingReport& report : reports) {
     aReports.AppendElement(net::ConsoleReportCollected(
-        report.mErrorFlags, report.mCategory, report.mPropertiesFile,
+        report.mErrorFlags, report.mCategory, uint32_t(report.mPropertiesFile),
         report.mSourceFileURI, report.mLineNumber, report.mColumnNumber,
         report.mMessageName, report.mStringParams));
   }

@@ -2484,7 +2484,7 @@ void nsCSSBorderRenderer::DrawFallbackSolidCorner(mozilla::Side aSide,
     mPresContext->SetHasWarnedAboutTooLargeDashedOrDottedRadius();
     nsContentUtils::ReportToConsole(
         nsIScriptError::warningFlag, "CSS"_ns, mPresContext->Document(),
-        nsContentUtils::eCSS_PROPERTIES,
+        PropertiesFile::CSS_PROPERTIES,
         mBorderStyles[aSide] == StyleBorderStyle::Dashed
             ? "TooLargeDashedRadius"
             : "TooLargeDottedRadius");

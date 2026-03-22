@@ -44,7 +44,6 @@
 #include "mozilla/dom/workerinternals/Queue.h"
 #include "mozilla/ipc/Endpoint.h"
 #include "mozilla/net/NeckoChannelParams.h"
-#include "nsContentUtils.h"
 #include "nsIChannel.h"
 #include "nsIContentPolicy.h"
 #include "nsID.h"
@@ -446,8 +445,8 @@ class WorkerPrivate final
                    JSErrorReport* aReport);
 
   static void ReportErrorToConsole(
-      uint32_t aErrorFlags, const nsCString& aCategory,
-      nsContentUtils::PropertiesFile aFile, const nsCString& aMessageName,
+      uint32_t aErrorFlags, const nsCString& aCategory, PropertiesFile aFile,
+      const nsCString& aMessageName,
       const nsTArray<nsString>& aParams = nsTArray<nsString>(),
       const mozilla::SourceLocation& aLocation =
           mozilla::JSCallingLocation::Get());

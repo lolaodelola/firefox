@@ -861,7 +861,7 @@ bool BlobURLProtocolHandler::GetDataEntry(
     AutoTArray<nsString, 1> param;
     CopyUTF8toUTF16(aUri, *param.AppendElement());
     nsresult rv = nsContentUtils::FormatLocalizedString(
-        nsContentUtils::eDOM_PROPERTIES, "PartitionKeyDifferentError", param,
+        PropertiesFile::DOM_PROPERTIES, "PartitionKeyDifferentError", param,
         localizedMsg);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return false;

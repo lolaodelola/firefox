@@ -9764,7 +9764,7 @@ nsresult nsHttpChannel::LogConsoleError(const char* aTag) {
 
   nsAutoString errorText;
   nsresult rv = nsContentUtils::GetLocalizedString(
-      nsContentUtils::eNECKO_PROPERTIES, aTag, errorText);
+      PropertiesFile::NECKO_PROPERTIES, aTag, errorText);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIScriptError> error(do_CreateInstance(NS_SCRIPTERROR_CONTRACTID));

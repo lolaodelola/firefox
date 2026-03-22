@@ -19,7 +19,7 @@ nsresult AnimationPerformanceWarning::ToLocalizedStringWithIntParams(
   }
 
   return nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eLAYOUT_PROPERTIES, aKey, strings, aLocalizedString);
+      PropertiesFile::LAYOUT_PROPERTIES, aKey, strings, aLocalizedString);
 }
 
 bool AnimationPerformanceWarning::ToLocalizedString(
@@ -66,7 +66,7 @@ bool AnimationPerformanceWarning::ToLocalizedString(
   }
 
   nsresult rv = nsContentUtils::GetLocalizedString(
-      nsContentUtils::eLAYOUT_PROPERTIES, key, aLocalizedString);
+      PropertiesFile::LAYOUT_PROPERTIES, key, aLocalizedString);
   return NS_SUCCEEDED(rv);
 }
 

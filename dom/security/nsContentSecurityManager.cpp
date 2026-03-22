@@ -150,7 +150,7 @@ void nsContentSecurityManager::ReportBlockedDataURI(nsIURI* aURI,
   const char* stringID =
       aIsRedirect ? "BlockRedirectToDataURI" : "BlockTopLevelDataURINavigation";
   nsresult rv = nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eSECURITY_PROPERTIES, stringID, params, errorText);
+      PropertiesFile::SECURITY_PROPERTIES, stringID, params, errorText);
   if (NS_FAILED(rv)) {
     return;
   }
@@ -1244,7 +1244,7 @@ static nsresult CheckAllowFileProtocolScriptLoad(nsIChannel* aChannel) {
 
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
                                     "FILE_SCRIPT_BLOCKED"_ns, doc,
-                                    nsContentUtils::eSECURITY_PROPERTIES,
+                                    PropertiesFile::SECURITY_PROPERTIES,
                                     "BlockFileScriptWithWrongMimeType", params);
 
     return NS_ERROR_CONTENT_BLOCKED;
@@ -1312,7 +1312,7 @@ static nsresult CheckAllowExtensionProtocolScriptLoad(nsIChannel* aChannel) {
 
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
                                     "EXTENSION_SCRIPT_BLOCKED"_ns, doc,
-                                    nsContentUtils::eSECURITY_PROPERTIES,
+                                    PropertiesFile::SECURITY_PROPERTIES,
                                     "BlockExtensionScriptWithWrongExt", params);
 
     return NS_ERROR_CONTENT_BLOCKED;

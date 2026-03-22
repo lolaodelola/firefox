@@ -99,7 +99,7 @@ class FullscreenRequest : public FullscreenChange {
         FullscreenEventType::Error, mElement));
     MayRejectPromise("Fullscreen request denied");
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                                    Document(), nsContentUtils::eDOM_PROPERTIES,
+                                    Document(), PropertiesFile::DOM_PROPERTIES,
                                     aReason);
   }
 

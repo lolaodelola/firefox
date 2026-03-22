@@ -45,7 +45,7 @@ namespace {
 void SendJSWarning(Document* aDocument, const char* aWarningName,
                    const nsTArray<nsString>& aWarningArgs) {
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "HTML"_ns,
-                                  aDocument, nsContentUtils::eFORMS_PROPERTIES,
+                                  aDocument, PropertiesFile::FORMS_PROPERTIES,
                                   aWarningName, aWarningArgs);
 }
 
@@ -215,12 +215,12 @@ void HandleMailtoSubject(nsCString& aPath) {
     // Get the default subject
     nsAutoString brandName;
     nsresult rv = nsContentUtils::GetLocalizedString(
-        nsContentUtils::eBRAND_PROPERTIES, "brandShortName", brandName);
+        PropertiesFile::BRAND_PROPERTIES, "brandShortName", brandName);
     if (NS_FAILED(rv)) return;
     nsAutoString subjectStr;
-    rv = nsContentUtils::FormatLocalizedString(
-        subjectStr, nsContentUtils::eFORMS_PROPERTIES, "DefaultFormSubject",
-        brandName);
+    rv = nsContentUtils::FormatLocalizedString(subjectStr,
+                                               PropertiesFile::FORMS_PROPERTIES,
+                                               "DefaultFormSubject", brandName);
     if (NS_FAILED(rv)) return;
     aPath.AppendLiteral("subject=");
     nsCString subjectStrEscaped;

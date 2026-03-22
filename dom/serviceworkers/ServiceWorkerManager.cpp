@@ -1598,7 +1598,7 @@ void ServiceWorkerManager::LocalizeAndReportToAllClients(
 
   nsresult rv;
   nsAutoString message;
-  rv = nsContentUtils::FormatLocalizedString(nsContentUtils::eDOM_PROPERTIES,
+  rv = nsContentUtils::FormatLocalizedString(PropertiesFile::DOM_PROPERTIES,
                                              aStringKey, aParamArray, message);
   if (NS_SUCCEEDED(rv)) {
     swm->ReportToAllClients(aScope, message, aFilename, aLine, aLineNumber,

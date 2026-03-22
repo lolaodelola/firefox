@@ -250,7 +250,7 @@ void DeprecationWarningLog(const dom::Document* aDocument,
   nsString& uri = *params.AppendElement();
   (void)aDocument->GetDocumentURI(uri);
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Media"_ns,
-                                  aDocument, nsContentUtils::eDOM_PROPERTIES,
+                                  aDocument, PropertiesFile::DOM_PROPERTIES,
                                   aMsgName, params);
 }
 

@@ -183,7 +183,7 @@ void CookieLogging::LogMessageToConsole(nsIConsoleReportCollector* aCRC,
   }
 
   aCRC->AddConsoleReport(aErrorFlags, aCategory,
-                         nsContentUtils::eNECKO_PROPERTIES, uri, 0, 0, aMsg,
+                         PropertiesFile::NECKO_PROPERTIES, uri, 0, 0, aMsg,
                          aParams);
 }
 

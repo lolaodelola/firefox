@@ -1901,7 +1901,7 @@ nsresult HTMLEditor::BlobReader::OnError(const nsAString& aError) {
   error.AppendElement(aError);
   nsContentUtils::ReportToConsole(
       nsIScriptError::warningFlag, "Editor"_ns, mHTMLEditor->GetDocument(),
-      nsContentUtils::eDOM_PROPERTIES, "EditorFileDropFailed", error);
+      PropertiesFile::DOM_PROPERTIES, "EditorFileDropFailed", error);
   return NS_OK;
 }
 

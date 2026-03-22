@@ -1171,10 +1171,10 @@ Maybe<bool> StorageAccessAPIHelper::CheckCallingContextDecidesStorageAccessAPI(
 
     if (!policy->AllowsFeature(u"storage-access"_ns,
                                dom::Optional<nsAString>())) {
-      nsContentUtils::ReportToConsole(
-          nsIScriptError::errorFlag, nsLiteralCString("requestStorageAccess"),
-          aDocument, nsContentUtils::eDOM_PROPERTIES,
-          "RequestStorageAccessPermissionsPolicy");
+      nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
+                                      nsLiteralCString("requestStorageAccess"),
+                                      aDocument, PropertiesFile::DOM_PROPERTIES,
+                                      "RequestStorageAccessPermissionsPolicy");
       return Some(false);
     }
   }
@@ -1195,10 +1195,10 @@ Maybe<bool> StorageAccessAPIHelper::CheckCallingContextDecidesStorageAccessAPI(
       !aDocument->NodePrincipal()->GetIsOriginPotentiallyTrustworthy()) {
     // Report the error to the console if we are requesting access
     if (aRequestingStorageAccess) {
-      nsContentUtils::ReportToConsole(
-          nsIScriptError::errorFlag, nsLiteralCString("requestStorageAccess"),
-          aDocument, nsContentUtils::eDOM_PROPERTIES,
-          "RequestStorageAccessNotSecureContext");
+      nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
+                                      nsLiteralCString("requestStorageAccess"),
+                                      aDocument, PropertiesFile::DOM_PROPERTIES,
+                                      "RequestStorageAccessNotSecureContext");
     }
     return Some(false);
   }
@@ -1207,10 +1207,10 @@ Maybe<bool> StorageAccessAPIHelper::CheckCallingContextDecidesStorageAccessAPI(
   if (aDocument->NodePrincipal()->GetIsNullPrincipal()) {
     // Report an error to the console for this case if we are requesting access
     if (aRequestingStorageAccess) {
-      nsContentUtils::ReportToConsole(
-          nsIScriptError::errorFlag, nsLiteralCString("requestStorageAccess"),
-          aDocument, nsContentUtils::eDOM_PROPERTIES,
-          "RequestStorageAccessNullPrincipal");
+      nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
+                                      nsLiteralCString("requestStorageAccess"),
+                                      aDocument, PropertiesFile::DOM_PROPERTIES,
+                                      "RequestStorageAccessNullPrincipal");
     }
     return Some(false);
   }
@@ -1225,10 +1225,10 @@ Maybe<bool> StorageAccessAPIHelper::CheckCallingContextDecidesStorageAccessAPI(
 
   if (aRequestingStorageAccess) {
     if (aDocument->StorageAccessSandboxed()) {
-      nsContentUtils::ReportToConsole(
-          nsIScriptError::errorFlag, nsLiteralCString("requestStorageAccess"),
-          aDocument, nsContentUtils::eDOM_PROPERTIES,
-          "RequestStorageAccessSandboxed");
+      nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
+                                      nsLiteralCString("requestStorageAccess"),
+                                      aDocument, PropertiesFile::DOM_PROPERTIES,
+                                      "RequestStorageAccessSandboxed");
       return Some(false);
     }
   }
@@ -1243,10 +1243,10 @@ StorageAccessAPIHelper::CheckSameSiteCallingContextDecidesStorageAccessAPI(
   if (aRequireUserActivation) {
     if (!aDocument->HasValidTransientUserGestureActivation()) {
       // Report an error to the console for this case
-      nsContentUtils::ReportToConsole(
-          nsIScriptError::errorFlag, nsLiteralCString("requestStorageAccess"),
-          aDocument, nsContentUtils::eDOM_PROPERTIES,
-          "RequestStorageAccessUserGesture");
+      nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
+                                      nsLiteralCString("requestStorageAccess"),
+                                      aDocument, PropertiesFile::DOM_PROPERTIES,
+                                      "RequestStorageAccessUserGesture");
       return Some(false);
     }
   }
@@ -1260,7 +1260,7 @@ StorageAccessAPIHelper::CheckSameSiteCallingContextDecidesStorageAccessAPI(
     // Report an error to the console for this case
     nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
                                     nsLiteralCString("requestStorageAccess"),
-                                    aDocument, nsContentUtils::eDOM_PROPERTIES,
+                                    aDocument, PropertiesFile::DOM_PROPERTIES,
                                     "RequestStorageAccessNullPrincipal");
     return Some(false);
   }
@@ -1274,10 +1274,10 @@ StorageAccessAPIHelper::CheckExistingPermissionDecidesStorageAccessAPI(
   MOZ_ASSERT(aDocument);
   if (aDocument->StorageAccessSandboxed()) {
     if (aRequestingStorageAccess) {
-      nsContentUtils::ReportToConsole(
-          nsIScriptError::errorFlag, nsLiteralCString("requestStorageAccess"),
-          aDocument, nsContentUtils::eDOM_PROPERTIES,
-          "RequestStorageAccessSandboxed");
+      nsContentUtils::ReportToConsole(nsIScriptError::errorFlag,
+                                      nsLiteralCString("requestStorageAccess"),
+                                      aDocument, PropertiesFile::DOM_PROPERTIES,
+                                      "RequestStorageAccessSandboxed");
     }
     return Some(false);
   }

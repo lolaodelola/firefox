@@ -440,7 +440,7 @@ void FetchStreamReader::ReportErrorToConsole(JSContext* aCx,
   RefPtr<ConsoleReportCollector> reporter = new ConsoleReportCollector();
   reporter->AddConsoleReport(nsIScriptError::errorFlag,
                              "ReadableStreamReader.read"_ns,
-                             nsContentUtils::eDOM_PROPERTIES, sourceSpec, line,
+                             PropertiesFile::DOM_PROPERTIES, sourceSpec, line,
                              column, "ReadableStreamReadingFailed"_ns, params);
 
   uint64_t innerWindowId = 0;

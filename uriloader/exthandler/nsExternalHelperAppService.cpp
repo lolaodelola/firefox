@@ -1030,7 +1030,7 @@ nsExternalHelperAppService::LoadURI(nsIURI* aURI,
 
     AutoTArray<nsString, 1> params = {NS_ConvertUTF8toUTF16(spec)};
     nsresult rv = nsContentUtils::FormatLocalizedString(
-        nsContentUtils::eSECURITY_PROPERTIES, "SandboxBlockedCustomProtocols",
+        PropertiesFile::SECURITY_PROPERTIES, "SandboxBlockedCustomProtocols",
         params, localizedMsg);
     NS_ENSURE_SUCCESS(rv, rv);
 

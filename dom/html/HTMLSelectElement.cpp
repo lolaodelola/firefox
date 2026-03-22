@@ -683,7 +683,7 @@ void HTMLSelectElement::SetLength(uint32_t aLength, ErrorResult& aRv) {
 
       nsContentUtils::ReportToConsole(
           nsIScriptError::warningFlag, "DOM"_ns, OwnerDoc(),
-          nsContentUtils::eDOM_PROPERTIES,
+          PropertiesFile::DOM_PROPERTIES,
           "SelectOptionsLengthAssignmentWarning", {strOptionsLength, strLimit});
       return;
     }
@@ -1593,7 +1593,7 @@ nsresult HTMLSelectElement::GetValidationMessage(nsAString& aValidationMessage,
     case VALIDITY_STATE_VALUE_MISSING: {
       nsAutoString message;
       nsresult rv = nsContentUtils::GetMaybeLocalizedString(
-          nsContentUtils::eDOM_PROPERTIES, "FormValidationSelectMissing",
+          PropertiesFile::DOM_PROPERTIES, "FormValidationSelectMissing",
           OwnerDoc(), message);
       aValidationMessage = message;
       return rv;

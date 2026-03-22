@@ -820,7 +820,7 @@ void nsHTTPSOnlyUtils::LogLocalizedString(const char* aName,
                                           nsILoadInfo* aLoadInfo, nsIURI* aURI,
                                           bool aUseHttpsFirst) {
   nsAutoString logMsg;
-  nsContentUtils::FormatLocalizedString(nsContentUtils::eSECURITY_PROPERTIES,
+  nsContentUtils::FormatLocalizedString(PropertiesFile::SECURITY_PROPERTIES,
                                         aName, aParams, logMsg);
   LogMessage(logMsg, aFlags, aLoadInfo, aURI, aUseHttpsFirst);
 }

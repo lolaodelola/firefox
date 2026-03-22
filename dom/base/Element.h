@@ -19,12 +19,12 @@
 #include "AttrArray.h"
 #include "ErrorList.h"
 #include "Units.h"
-#include "js/RootingAPI.h"
 #include "mozilla/AlreadyAddRefed.h"
 #include "mozilla/Assertions.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/BasicEvents.h"
 #include "mozilla/CORSMode.h"
+#include "mozilla/ErrorResult.h"
 #include "mozilla/FlushType.h"
 #include "mozilla/Maybe.h"
 #include "mozilla/PseudoStyleType.h"
@@ -40,7 +40,7 @@
 #include "mozilla/dom/NameSpaceConstants.h"
 #include "mozilla/dom/NodeInfo.h"
 #include "mozilla/dom/RustTypes.h"
-#include "mozilla/dom/ShadowRootBinding.h"
+#include "mozilla/dom/ShadowRootBindingFwd.h"
 #include "nsAtom.h"
 #include "nsAttrValue.h"
 #include "nsAttrValueInlines.h"
@@ -50,13 +50,8 @@
 #include "nsError.h"
 #include "nsGkAtoms.h"
 #include "nsHashKeys.h"
-#include "nsIContent.h"
-#include "nsID.h"
-#include "nsINode.h"
 #include "nsLiteralString.h"
 #include "nsRect.h"
-#include "nsString.h"
-#include "nsStringFlags.h"
 #include "nsTHashMap.h"
 #include "nsTLiteralString.h"
 #include "nscore.h"
@@ -149,6 +144,7 @@ enum class CallerType : uint32_t;
 enum class ReferrerPolicy : uint8_t;
 enum class FetchPriority : uint8_t;
 enum class PopoverAttributeState : uint8_t;
+enum class ShadowRootMode : uint8_t;
 }  // namespace dom
 }  // namespace mozilla
 
@@ -1691,11 +1687,11 @@ class Element : public FragmentOrElement {
       Element* aElement, nsCycleCollectionTraversalCallback& aCb);
   static void UnlinkCustomElementRegistry(Element* aElement);
 
-  const Maybe<float> GetLastRememberedBSize() const {
+  Maybe<float> GetLastRememberedBSize() const {
     const nsExtendedDOMSlots* slots = GetExistingExtendedDOMSlots();
     return slots ? slots->mLastRememberedBSize : Nothing();
   }
-  const Maybe<float> GetLastRememberedISize() const {
+  Maybe<float> GetLastRememberedISize() const {
     const nsExtendedDOMSlots* slots = GetExistingExtendedDOMSlots();
     return slots ? slots->mLastRememberedISize : Nothing();
   }
@@ -1706,7 +1702,7 @@ class Element : public FragmentOrElement {
     return GetLastRememberedISize().isSome();
   }
 
-  const Maybe<ContentRelevancy> GetContentRelevancy() const {
+  Maybe<ContentRelevancy> GetContentRelevancy() const {
     const auto* slots = GetExistingExtendedDOMSlots();
     return slots ? slots->mContentRelevancy : Nothing();
   }
@@ -1714,7 +1710,7 @@ class Element : public FragmentOrElement {
     ExtendedDOMSlots()->mContentRelevancy = Some(relevancy);
   }
 
-  const Maybe<bool> GetVisibleForContentVisibility() const {
+  Maybe<bool> GetVisibleForContentVisibility() const {
     const auto* slots = GetExistingExtendedDOMSlots();
     return slots ? slots->mVisibleForContentVisibility : Nothing();
   }

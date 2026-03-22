@@ -40,7 +40,7 @@ static nsresult ReportLengthParseError(const nsString& aValue,
   AutoTArray<nsString, 1> arg = {aValue};
   return nsContentUtils::ReportToConsole(
       nsIScriptError::errorFlag, "MathML"_ns, aDocument,
-      nsContentUtils::eMATHML_PROPERTIES, "LengthParsingError", arg);
+      PropertiesFile::MATHML_PROPERTIES, "LengthParsingError", arg);
 }
 
 static nsresult ReportParseErrorNoTag(const nsString& aValue, nsAtom* aAtom,
@@ -48,7 +48,7 @@ static nsresult ReportParseErrorNoTag(const nsString& aValue, nsAtom* aAtom,
   AutoTArray<nsString, 2> argv = {aValue, nsDependentAtomString(aAtom)};
   return nsContentUtils::ReportToConsole(
       nsIScriptError::errorFlag, "MathML"_ns, &aDocument,
-      nsContentUtils::eMATHML_PROPERTIES, "AttributeParsingErrorNoTag", argv);
+      PropertiesFile::MATHML_PROPERTIES, "AttributeParsingErrorNoTag", argv);
 }
 
 MathMLElement::MathMLElement(

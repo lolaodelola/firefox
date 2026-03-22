@@ -1075,10 +1075,9 @@ bool Sanitizer::AllowElement(
     // Step 3.1.1. The user agent may report a warning to the console that this
     // operation is not supported.
     if (auto* win = mGlobal->GetAsInnerWindow()) {
-      nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
-                                      "Sanitizer"_ns, win->GetDoc(),
-                                      nsContentUtils::eSECURITY_PROPERTIES,
-                                      "SanitizerAllowElementIgnored2");
+      nsContentUtils::ReportToConsole(
+          nsIScriptError::warningFlag, "Sanitizer"_ns, win->GetDoc(),
+          PropertiesFile::SECURITY_PROPERTIES, "SanitizerAllowElementIgnored2");
     }
 
     // Step 3.1.2. Return false.
@@ -1601,7 +1600,7 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
       // Step 1.4.1 If configuration["comments"] is not true, then remove
       // child.
       if (!mComments) {
-        child->RemoveFromParent();
+        child->Remove();
       }
       continue;
     }
@@ -1630,7 +1629,7 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
       // The default config's "elements" allow list does not contain any
       // unsafe elements so we can skip this.
       if (aSafe && IsUnsafeElement(nameAtom, namespaceID)) {
-        child->RemoveFromParent();
+        child->Remove();
         continue;
       }
 
@@ -1655,7 +1654,7 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
           }
         }
 
-        child->RemoveFromParent();
+        child->Remove();
         if (firstChild) {
           next = firstChild;
         }
@@ -1667,7 +1666,7 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
       if (mRemoveElements) {
         if (mRemoveElements->Contains(*elementName)) {
           // Step 1.5.3.1. Remove child.
-          child->RemoveFromParent();
+          child->Remove();
           // Step 1.5.3.2.Continue.
           continue;
         }
@@ -1678,7 +1677,7 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
       if (mElements) {
         if (!mElements->Contains(*elementName)) {
           // Step 1.5.4.1. Remove child.
-          child->RemoveFromParent();
+          child->Remove();
           // Step 1.5.4.2. Continue.
           continue;
         }
@@ -1711,7 +1710,7 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
       }
       if (!found) {
         // Step 1.5.4.1. Remove child.
-        child->RemoveFromParent();
+        child->Remove();
         // Step 1.5.4.2. Continue.
         continue;
       }

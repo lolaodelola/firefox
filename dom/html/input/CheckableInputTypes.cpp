@@ -21,7 +21,7 @@ bool CheckboxInputType::IsValueMissing() const {
 
 nsresult CheckboxInputType::GetValueMissingMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationCheckboxMissing",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationCheckboxMissing",
       mInputElement->OwnerDoc(), aMessage);
 }
 
@@ -29,6 +29,6 @@ nsresult CheckboxInputType::GetValueMissingMessage(nsAString& aMessage) {
 
 nsresult RadioInputType::GetValueMissingMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationRadioMissing",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationRadioMissing",
       mInputElement->OwnerDoc(), aMessage);
 }

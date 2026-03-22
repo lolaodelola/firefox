@@ -1629,7 +1629,7 @@ void LogWarningFullscreenWindowRaise(Element* aElement) {
   nsAutoString localizedMsg;
   nsTArray<nsString> params;
   nsresult rv = nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FullscreenExitWindowFocus", params,
+      PropertiesFile::DOM_PROPERTIES, "FullscreenExitWindowFocus", params,
       localizedMsg);
 
   NS_ENSURE_SUCCESS_VOID(rv);

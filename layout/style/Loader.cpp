@@ -759,7 +759,7 @@ nsresult SheetLoadData::VerifySheetReadyToParse(nsresult aStatus,
       referrer->GetSpec(referrerSpec);
     }
     mLoader->mReporter->AddConsoleReport(
-        flag, "CSS Loader"_ns, nsContentUtils::eCSS_PROPERTIES, referrerSpec, 0,
+        flag, "CSS Loader"_ns, PropertiesFile::CSS_PROPERTIES, referrerSpec, 0,
         0, errorMessage, {sheetUri, contentType16});
     if (flag == nsIScriptError::errorFlag) {
       LOG_WARN(

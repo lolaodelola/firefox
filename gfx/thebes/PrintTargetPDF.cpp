@@ -70,7 +70,7 @@ already_AddRefed<PrintTarget> PrintTargetPDF::CreateOrNull(
 
   nsAutoString creatorName;
   if (NS_SUCCEEDED(nsContentUtils::GetLocalizedString(
-          nsContentUtils::eBRAND_PROPERTIES, "brandFullName", creatorName)) &&
+          PropertiesFile::BRAND_PROPERTIES, "brandFullName", creatorName)) &&
       !creatorName.IsEmpty()) {
     creatorName.Append(u" " MOZILLA_VERSION);
     cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR,

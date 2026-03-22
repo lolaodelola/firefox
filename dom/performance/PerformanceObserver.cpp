@@ -230,7 +230,7 @@ void PerformanceObserver::Observe(const PerformanceObserverInit& aOptions,
     if (!invalidTypesJoined.IsEmpty()) {
       AutoTArray<nsString, 1> params = {invalidTypesJoined};
       mOwner->ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                              nsContentUtils::eDOM_PROPERTIES,
+                              PropertiesFile::DOM_PROPERTIES,
                               "UnsupportedEntryTypesIgnored"_ns, params);
       // (we don't return because we're ignoring and we keep going)
     }
@@ -238,7 +238,7 @@ void PerformanceObserver::Observe(const PerformanceObserverInit& aOptions,
     /* 3.3.1.5.3 */
     if (validEntryTypes.IsEmpty()) {
       mOwner->ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                              nsContentUtils::eDOM_PROPERTIES,
+                              PropertiesFile::DOM_PROPERTIES,
                               "AllEntryTypesIgnored"_ns);
       return;
     }
@@ -280,7 +280,7 @@ void PerformanceObserver::Observe(const PerformanceObserverInit& aOptions,
     if (!typeValid) {
       AutoTArray<nsString, 1> params = {type};
       mOwner->ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                              nsContentUtils::eDOM_PROPERTIES,
+                              PropertiesFile::DOM_PROPERTIES,
                               "UnsupportedEntryTypesIgnored"_ns, params);
       return;
     }

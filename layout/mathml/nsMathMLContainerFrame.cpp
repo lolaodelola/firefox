@@ -1501,7 +1501,7 @@ nsresult nsMathMLContainerFrame::ReportErrorToConsole(
     const char* errorMsgId, const nsTArray<nsString>& aParams) {
   return nsContentUtils::ReportToConsole(
       nsIScriptError::errorFlag, "Layout: MathML"_ns, mContent->OwnerDoc(),
-      nsContentUtils::eMATHML_PROPERTIES, errorMsgId, aParams);
+      PropertiesFile::MATHML_PROPERTIES, errorMsgId, aParams);
 }
 
 nsresult nsMathMLContainerFrame::ReportParseError(const char16_t* aAttribute,

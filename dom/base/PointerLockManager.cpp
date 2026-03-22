@@ -95,7 +95,7 @@ static void DispatchPointerLockError(Document* aTarget, const char* aMessage) {
                                ChromeOnlyDispatch::eNo);
   asyncDispatcher->PostDOMEvent();
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                                  aTarget, nsContentUtils::eDOM_PROPERTIES,
+                                  aTarget, PropertiesFile::DOM_PROPERTIES,
                                   aMessage);
 }
 

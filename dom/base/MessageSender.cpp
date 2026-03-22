@@ -4,6 +4,7 @@
 
 #include "mozilla/dom/MessageSender.h"
 
+#include "mozilla/ErrorResult.h"
 #include "mozilla/dom/MessageBroadcaster.h"
 
 namespace mozilla::dom {

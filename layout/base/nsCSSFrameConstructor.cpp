@@ -1662,7 +1662,7 @@ void nsCSSFrameConstructor::CreateGeneratedContent(
 
         nsAutoString temp;
         nsContentUtils::GetMaybeLocalizedString(
-            nsContentUtils::eFORMS_PROPERTIES, "Submit", mDocument, temp);
+            PropertiesFile::FORMS_PROPERTIES, "Submit", mDocument, temp);
         RefPtr c = CreateGenConTextNode(aState, temp, nullptr);
         aAddChild(c);
         return;
@@ -2408,7 +2408,7 @@ nsIFrame* nsCSSFrameConstructor::ConstructDocElementFrame(
     if (bodyWM != rootWM) {
       nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Layout"_ns,
                                       mDocument,
-                                      nsContentUtils::eLAYOUT_PROPERTIES,
+                                      PropertiesFile::LAYOUT_PROPERTIES,
                                       "PrincipalWritingModePropagationWarning");
     }
     return bodyWM;
@@ -7296,7 +7296,7 @@ void nsCSSFrameConstructor::GetAlternateTextFor(const Element& aElement,
 
     // If there's no "value" attribute either, then use the localized string for
     // "Submit" as the alternate text.
-    nsContentUtils::GetMaybeLocalizedString(nsContentUtils::eFORMS_PROPERTIES,
+    nsContentUtils::GetMaybeLocalizedString(PropertiesFile::FORMS_PROPERTIES,
                                             "Submit", aElement.OwnerDoc(),
                                             aAltText);
   }

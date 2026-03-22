@@ -61,7 +61,7 @@ NS_IMPL_ISUPPORTS(WakeLockListener, nsIDOMMozWakeLockListener)
 static nsCString GetLocalizedWakeLockString(const char* aStringName) {
   nsAutoString localizedString;
   nsresult rv = nsContentUtils::GetLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, aStringName, localizedString);
+      PropertiesFile::DOM_PROPERTIES, aStringName, localizedString);
   if (NS_FAILED(rv)) {
     return nsCString();
   }

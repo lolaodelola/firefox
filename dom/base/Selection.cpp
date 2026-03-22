@@ -4214,7 +4214,7 @@ void Selection::Modify(const nsAString& aAlter, const nsAString& aDirection,
       AutoTArray<nsString, 1> params;
       params.AppendElement(aGranularity);
       nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                                      document, nsContentUtils::eDOM_PROPERTIES,
+                                      document, PropertiesFile::DOM_PROPERTIES,
                                       "SelectionModifyGranualirtyUnsupported",
                                       params);
     }

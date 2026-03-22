@@ -26,7 +26,7 @@ void ReportToConsoleUnsupportedFeature(Document* aDocument,
 
   nsContentUtils::ReportToConsole(
       nsIScriptError::warningFlag, "Feature Policy"_ns, aDocument,
-      nsContentUtils::eSECURITY_PROPERTIES,
+      PropertiesFile::SECURITY_PROPERTIES,
       "FeaturePolicyUnsupportedFeatureName", params);
 }
 
@@ -40,7 +40,7 @@ void ReportToConsoleInvalidEmptyAllowValue(Document* aDocument,
 
   nsContentUtils::ReportToConsole(
       nsIScriptError::warningFlag, "Feature Policy"_ns, aDocument,
-      nsContentUtils::eSECURITY_PROPERTIES,
+      PropertiesFile::SECURITY_PROPERTIES,
       "FeaturePolicyInvalidEmptyAllowValue", params);
 }
 
@@ -54,7 +54,7 @@ void ReportToConsoleInvalidAllowValue(Document* aDocument,
 
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
                                   "Feature Policy"_ns, aDocument,
-                                  nsContentUtils::eSECURITY_PROPERTIES,
+                                  PropertiesFile::SECURITY_PROPERTIES,
                                   "FeaturePolicyInvalidAllowValue", params);
 }
 

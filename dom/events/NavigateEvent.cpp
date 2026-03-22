@@ -135,7 +135,7 @@ static void MaybeReportWarningToConsole(Document* aDocument,
                                NS_ConvertUTF8toUTF16(GetEnumString(aPrevious))};
   nsContentUtils::ReportToConsole(
       nsIScriptError::warningFlag, "DOM"_ns, aDocument,
-      nsContentUtils::eDOM_PROPERTIES,
+      PropertiesFile::DOM_PROPERTIES,
       "PreviousInterceptCallOptionOverriddenWarning", params);
 }
 

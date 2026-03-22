@@ -596,7 +596,7 @@ void nsObjectLoadingContent::MaybeRewriteYoutubeEmbed(nsIURI* aURI,
     msgName = "RewriteYouTubeEmbedPathParams";
   }
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Plugins"_ns,
-                                  doc, nsContentUtils::eDOM_PROPERTIES, msgName,
+                                  doc, PropertiesFile::DOM_PROPERTIES, msgName,
                                   params);
 }
 

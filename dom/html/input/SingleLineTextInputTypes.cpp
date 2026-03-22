@@ -113,7 +113,7 @@ bool URLInputType::HasTypeMismatch() const {
 
 nsresult URLInputType::GetTypeMismatchMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationInvalidURL",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationInvalidURL",
       mInputElement->OwnerDoc(), aMessage);
 }
 
@@ -152,13 +152,13 @@ bool EmailInputType::HasBadInput() const {
 
 nsresult EmailInputType::GetTypeMismatchMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationInvalidEmail",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationInvalidEmail",
       mInputElement->OwnerDoc(), aMessage);
 }
 
 nsresult EmailInputType::GetBadInputMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationInvalidEmail",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationInvalidEmail",
       mInputElement->OwnerDoc(), aMessage);
 }
 

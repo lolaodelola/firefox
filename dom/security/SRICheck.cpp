@@ -85,7 +85,7 @@ static nsresult IsEligible(nsIChannel* aChannel,
   GetReferrerSpec(aChannel, referrer);
   aReporter->AddConsoleReport(
       nsIScriptError::errorFlag, "Sub-resource Integrity"_ns,
-      nsContentUtils::eSECURITY_PROPERTIES, referrer, 0, 0,
+      PropertiesFile::SECURITY_PROPERTIES, referrer, 0, 0,
       "IneligibleResource"_ns, {NS_ConvertUTF8toUTF16(requestSpec)});
   return NS_ERROR_SRI_NOT_ELIGIBLE;
 }
@@ -113,14 +113,14 @@ nsresult SRICheck::IntegrityMetadata(const nsAString& aMetadataList,
     if (aReporter && metadata.IsMalformed()) {
       aReporter->AddConsoleReport(
           nsIScriptError::warningFlag, "Sub-resource Integrity"_ns,
-          nsContentUtils::eSECURITY_PROPERTIES, aSourceFileURI, 0, 0,
+          PropertiesFile::SECURITY_PROPERTIES, aSourceFileURI, 0, 0,
           "MalformedIntegrityHash"_ns, {NS_ConvertUTF8toUTF16(token)});
     } else if (aReporter && !metadata.IsAlgorithmSupported()) {
       nsAutoCString alg;
       metadata.GetAlgorithm(&alg);
       aReporter->AddConsoleReport(
           nsIScriptError::warningFlag, "Sub-resource Integrity"_ns,
-          nsContentUtils::eSECURITY_PROPERTIES, aSourceFileURI, 0, 0,
+          PropertiesFile::SECURITY_PROPERTIES, aSourceFileURI, 0, 0,
           "UnsupportedHashAlg"_ns, {NS_ConvertUTF8toUTF16(alg)});
     }
 
@@ -176,7 +176,7 @@ SRICheckDataVerifier::SRICheckDataVerifier(const SRIMetadata& aMetadata,
     GetReferrerSpec(aChannel, referrer);
     aReporter->AddConsoleReport(nsIScriptError::warningFlag,
                                 "Sub-resource Integrity"_ns,
-                                nsContentUtils::eSECURITY_PROPERTIES, referrer,
+                                PropertiesFile::SECURITY_PROPERTIES, referrer,
                                 0, 0, "NoValidMetadata"_ns, {});
     mInvalidMetadata = true;
     return;  // ignore invalid metadata for forward-compatibility
@@ -264,10 +264,10 @@ nsresult SRICheckDataVerifier::VerifyHash(
       nsAutoCString referrer;
       GetReferrerSpec(aChannel, referrer);
       // if neither succeeded, we can bail out and warn
-      aReporter->AddConsoleReport(
-          nsIScriptError::errorFlag, "Sub-resource Integrity"_ns,
-          nsContentUtils::eSECURITY_PROPERTIES, referrer, 0, 0,
-          "InvalidIntegrityBase64"_ns, {});
+      aReporter->AddConsoleReport(nsIScriptError::errorFlag,
+                                  "Sub-resource Integrity"_ns,
+                                  PropertiesFile::SECURITY_PROPERTIES, referrer,
+                                  0, 0, "InvalidIntegrityBase64"_ns, {});
       return NS_ERROR_SRI_CORRUPT;
     }
     binaryHash.Assign(reinterpret_cast<const char*>(decoded.Elements()),
@@ -292,7 +292,7 @@ nsresult SRICheckDataVerifier::VerifyHash(
     GetReferrerSpec(aChannel, referrer);
     aReporter->AddConsoleReport(nsIScriptError::errorFlag,
                                 "Sub-resource Integrity"_ns,
-                                nsContentUtils::eSECURITY_PROPERTIES, referrer,
+                                PropertiesFile::SECURITY_PROPERTIES, referrer,
                                 0, 0, "InvalidIntegrityLength"_ns, {});
     return NS_ERROR_SRI_CORRUPT;
   }
@@ -366,7 +366,7 @@ nsresult SRICheckDataVerifier::Verify(const SRIMetadata& aMetadata,
 
   aReporter->AddConsoleReport(
       nsIScriptError::errorFlag, "Sub-resource Integrity"_ns,
-      nsContentUtils::eSECURITY_PROPERTIES, referrer, 0, 0,
+      PropertiesFile::SECURITY_PROPERTIES, referrer, 0, 0,
       "IntegrityMismatch3"_ns,
       {NS_ConvertUTF8toUTF16(alg), NS_ConvertUTF8toUTF16(requestSpec),
        NS_ConvertUTF8toUTF16(encodedHash)});

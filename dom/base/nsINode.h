@@ -9,22 +9,17 @@
 
 #include "js/TypeDecls.h"  // for Handle, Value, JSObject, JSContext
 #include "mozilla/DoublyLinkedList.h"
-#include "mozilla/ErrorResult.h"
-#include "mozilla/Likely.h"
-#include "mozilla/LinkedList.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/dom/DOMString.h"
 #include "mozilla/dom/EventTarget.h"  // for base class
-#include "mozilla/dom/NodeBinding.h"
-#include "mozilla/dom/NodeInfo.h"  // member (in nsCOMPtr)
-#include "nsCOMPtr.h"              // for member, local
-#include "nsGkAtoms.h"             // for nsGkAtoms::baseURIProperty
+#include "mozilla/dom/NodeInfo.h"     // member (in nsCOMPtr)
+#include "nsCOMPtr.h"                 // for member, local
+#include "nsGkAtoms.h"                // for nsGkAtoms::baseURIProperty
 #include "nsIMutationObserver.h"
 #include "nsIWeakReference.h"
 #include "nsNodeInfoManager.h"  // for use in NodePrincipal()
 #include "nsPropertyTable.h"    // for typedefs
-#include "nsTHashtable.h"
 
 // Including 'windows.h' will #define GetClassInfo to something else.
 #ifdef XP_WIN
@@ -62,6 +57,9 @@ class EventListenerManager;
 struct StyleSelectorList;
 template <typename T>
 class Maybe;
+template <typename T>
+class LinkedList;
+class ErrorResult;
 class PresShell;
 class TextEditor;
 class WidgetEvent;
@@ -359,24 +357,19 @@ class nsINode : public mozilla::dom::EventTarget {
 
   // XXXbz Maybe we should codegen a class holding these constants and
   // inherit from it...
-  static const auto ELEMENT_NODE = mozilla::dom::Node_Binding::ELEMENT_NODE;
-  static const auto ATTRIBUTE_NODE = mozilla::dom::Node_Binding::ATTRIBUTE_NODE;
-  static const auto TEXT_NODE = mozilla::dom::Node_Binding::TEXT_NODE;
-  static const auto CDATA_SECTION_NODE =
-      mozilla::dom::Node_Binding::CDATA_SECTION_NODE;
-  static const auto ENTITY_REFERENCE_NODE =
-      mozilla::dom::Node_Binding::ENTITY_REFERENCE_NODE;
-  static const auto ENTITY_NODE = mozilla::dom::Node_Binding::ENTITY_NODE;
-  static const auto PROCESSING_INSTRUCTION_NODE =
-      mozilla::dom::Node_Binding::PROCESSING_INSTRUCTION_NODE;
-  static const auto COMMENT_NODE = mozilla::dom::Node_Binding::COMMENT_NODE;
-  static const auto DOCUMENT_NODE = mozilla::dom::Node_Binding::DOCUMENT_NODE;
-  static const auto DOCUMENT_TYPE_NODE =
-      mozilla::dom::Node_Binding::DOCUMENT_TYPE_NODE;
-  static const auto DOCUMENT_FRAGMENT_NODE =
-      mozilla::dom::Node_Binding::DOCUMENT_FRAGMENT_NODE;
-  static const auto NOTATION_NODE = mozilla::dom::Node_Binding::NOTATION_NODE;
-  static const auto MAX_NODE_TYPE = NOTATION_NODE;
+  static const uint16_t ELEMENT_NODE = 1;
+  static const uint16_t ATTRIBUTE_NODE = 2;
+  static const uint16_t TEXT_NODE = 3;
+  static const uint16_t CDATA_SECTION_NODE = 4;
+  static const uint16_t ENTITY_REFERENCE_NODE = 5;
+  static const uint16_t ENTITY_NODE = 6;
+  static const uint16_t PROCESSING_INSTRUCTION_NODE = 7;
+  static const uint16_t COMMENT_NODE = 8;
+  static const uint16_t DOCUMENT_NODE = 9;
+  static const uint16_t DOCUMENT_TYPE_NODE = 10;
+  static const uint16_t DOCUMENT_FRAGMENT_NODE = 11;
+  static const uint16_t NOTATION_NODE = 12;
+  static const uint16_t MAX_NODE_TYPE = NOTATION_NODE;
 
   void* operator new(size_t aSize, nsNodeInfoManager* aManager);
   void* operator new(size_t aSize) = delete;
@@ -535,8 +528,8 @@ class nsINode : public mozilla::dom::EventTarget {
                              JS::Handle<JSObject*> aGivenProto) = 0;
 
  public:
-  mozilla::dom::ParentObject GetParentObject()
-      const;  // Implemented in Document.h
+  // Implemented in Document.h
+  mozilla::dom::ParentObject GetParentObject() const;
 
   /**
    * Returns the first child of a node or the first child of
@@ -1170,8 +1163,10 @@ class nsINode : public mozilla::dom::EventTarget {
    * @return the parent, or null if no parent or the parent is not an nsIContent
    */
   nsIContent* GetParent() const {
-    return MOZ_LIKELY(GetBoolFlag(ParentIsContent)) ? mParent->AsContent()
-                                                    : nullptr;
+    if (GetBoolFlag(ParentIsContent)) [[likely]] {
+      return mParent->AsContent();
+    }
+    return nullptr;
   }
 
   /**
@@ -1186,7 +1181,7 @@ class nsINode : public mozilla::dom::EventTarget {
 
  public:
   nsINode* GetParentOrShadowHostNode() const {
-    if (MOZ_LIKELY(mParent)) {
+    if (mParent) [[likely]] {
       return mParent;
     }
     // We could put this in nsIContentInlines.h or such to avoid this
@@ -1361,8 +1356,7 @@ class nsINode : public mozilla::dom::EventTarget {
    * Removes a mutation observer.
    */
   void RemoveMutationObserver(nsIMutationObserver* aMutationObserver) {
-    nsSlots* s = GetExistingSlots();
-    if (s) {
+    if (nsSlots* s = GetExistingSlots()) {
       s->mMutationObservers.remove(aMutationObserver);
     }
   }
@@ -1654,7 +1648,7 @@ class nsINode : public mozilla::dom::EventTarget {
     if (nsIContent* parent = root->GetParent()) {
       return parent;
     }
-    if (MOZ_UNLIKELY(root->IsInShadowTree())) {
+    if (root->IsInShadowTree()) [[unlikely]] {
       return root->DoGetShadowHost();
     }
     return nullptr;
@@ -2466,17 +2460,6 @@ class nsINode : public mozilla::dom::EventTarget {
   }
 
   nsDOMAttributeMap* GetAttributes();
-
-  // Helper method to remove this node from its parent. This is not exposed
-  // through WebIDL.
-  // Only call this if the node has a parent node.
-  nsresult RemoveFromParent() {
-    nsINode* parent = GetParentNode();
-    mozilla::ErrorResult rv;
-    parent->RemoveChildInternal(
-        *this, MutationEffectOnScript::DropTrustWorthiness, rv);
-    return rv.StealNSResult();
-  }
 
   // ChildNode methods
   inline mozilla::dom::Element* GetPreviousElementSibling() const;

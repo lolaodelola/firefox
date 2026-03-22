@@ -5,18 +5,6 @@
 #ifndef nsGlobalWindowInner_h_
 #define nsGlobalWindowInner_h_
 
-#include "nsHashKeys.h"
-#include "nsPIDOMWindow.h"
-
-// Local Includes
-// Helper Classes
-#include "mozilla/WeakPtr.h"
-#include "nsCOMPtr.h"
-#include "nsCycleCollectionParticipant.h"
-#include "nsTHashMap.h"
-#include "nsWeakReference.h"
-
-// Interfaces Needed
 #include "Units.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/CallState.h"
@@ -27,6 +15,7 @@
 #include "mozilla/StorageAccess.h"
 #include "mozilla/TimeStamp.h"
 #include "mozilla/UniquePtr.h"
+#include "mozilla/WeakPtr.h"
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/dom/ChromeMessageBroadcaster.h"
 #include "mozilla/dom/DebuggerNotificationManager.h"
@@ -39,18 +28,23 @@
 #include "mozilla/dom/StorageEvent.h"
 #include "mozilla/dom/WindowBinding.h"
 #include "mozilla/dom/WindowProxyHolder.h"
+#include "nsCOMPtr.h"
 #include "nsCheapSets.h"
-#include "nsIBrowserDOMWindow.h"
+#include "nsCycleCollectionParticipant.h"
+#include "nsHashKeys.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIPrincipal.h"
 #include "nsIScriptGlobalObject.h"
 #include "nsIScriptObjectPrincipal.h"
-#include "nsSize.h"
+#include "nsPIDOMWindow.h"
+#include "nsTHashMap.h"
 #include "nsThreadUtils.h"
+#include "nsWeakReference.h"
 #include "nsWrapperCacheInlines.h"
 #include "prclist.h"
 
 class nsIArray;
+class nsIBrowserDOMWindow;
 class nsIBaseWindow;
 class nsIContent;
 class nsICookieJarSettings;
@@ -258,8 +252,7 @@ class nsGlobalWindowInner final : public mozilla::dom::EventTarget,
   bool IsEligibleForMessaging() override;
 
   void ReportToConsole(uint32_t aErrorFlags, const nsCString& aCategory,
-                       nsContentUtils::PropertiesFile aFile,
-                       const nsCString& aMessageName,
+                       PropertiesFile aFile, const nsCString& aMessageName,
                        const nsTArray<nsString>& aParams,
                        const mozilla::SourceLocation& aLocation) override;
 

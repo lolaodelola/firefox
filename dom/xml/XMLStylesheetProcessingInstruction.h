@@ -56,13 +56,7 @@ class XMLStylesheetProcessingInstruction final : public ProcessingInstruction,
 
   virtual void SetDataInternal(const nsAString& aData,
                                MutationEffectOnScript aMutationEffectOnScript,
-                               mozilla::ErrorResult& rv) override {
-    CharacterData::SetDataInternal(aData, aMutationEffectOnScript, rv);
-    if (rv.Failed()) {
-      return;
-    }
-    (void)UpdateStyleSheetInternal(nullptr, nullptr, ForceUpdate::Yes);
-  }
+                               mozilla::ErrorResult& rv) override;
 
  protected:
   virtual ~XMLStylesheetProcessingInstruction();

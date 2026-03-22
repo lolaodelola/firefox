@@ -233,7 +233,7 @@ void MediaStreamAudioSourceNode::PrincipalChanged(
 
   if (!enabled && doc) {
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Web Audio"_ns,
-                                    doc, nsContentUtils::eDOM_PROPERTIES,
+                                    doc, PropertiesFile::DOM_PROPERTIES,
                                     CrossOriginErrorString());
   }
 }

@@ -5,6 +5,7 @@
 #include "FileMediaResource.h"
 
 #include "mozilla/AbstractThread.h"
+#include "mozilla/ErrorResult.h"
 #include "mozilla/dom/BlobImpl.h"
 #include "mozilla/dom/BlobURLProtocolHandler.h"
 #include "nsContentUtils.h"

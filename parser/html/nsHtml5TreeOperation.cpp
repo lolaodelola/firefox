@@ -1251,17 +1251,17 @@ nsresult nsHtml5TreeOperation::Perform(nsHtml5TreeOpExecutor* aBuilder,
       nsAutoString message;
       if (otherAtom) {
         rv = nsContentUtils::FormatLocalizedString(
-            message, nsContentUtils::eHTMLPARSER_PROPERTIES, msgId,
+            message, PropertiesFile::HTMLPARSER_PROPERTIES, msgId,
             nsDependentAtomString(atom), nsDependentAtomString(otherAtom));
         NS_ENSURE_SUCCESS(rv, NS_OK);
       } else if (atom) {
         rv = nsContentUtils::FormatLocalizedString(
-            message, nsContentUtils::eHTMLPARSER_PROPERTIES, msgId,
+            message, PropertiesFile::HTMLPARSER_PROPERTIES, msgId,
             nsDependentAtomString(atom));
         NS_ENSURE_SUCCESS(rv, NS_OK);
       } else {
         rv = nsContentUtils::GetLocalizedString(
-            nsContentUtils::eHTMLPARSER_PROPERTIES, msgId, message);
+            PropertiesFile::HTMLPARSER_PROPERTIES, msgId, message);
         NS_ENSURE_SUCCESS(rv, NS_OK);
       }
 

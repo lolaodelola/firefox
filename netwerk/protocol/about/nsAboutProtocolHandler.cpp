@@ -210,7 +210,7 @@ nsAboutProtocolHandler::NewChannel(nsIURI* uri, nsILoadInfo* aLoadInfo,
     nsContentUtils::ReportToConsole(
         nsIScriptError::warningFlag, "Security by Default"_ns,
         nullptr,  // aDocument
-        nsContentUtils::eNECKO_PROPERTIES, "APIDeprecationWarning", params);
+        PropertiesFile::NECKO_PROPERTIES, "APIDeprecationWarning", params);
     (*result)->SetLoadInfo(aLoadInfo);
   }
 

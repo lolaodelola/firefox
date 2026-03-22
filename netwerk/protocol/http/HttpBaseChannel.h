@@ -410,7 +410,7 @@ class HttpBaseChannel : public nsHashPropertyBag,
 
   // nsIConsoleReportCollector
   void AddConsoleReport(uint32_t aErrorFlags, const nsACString& aCategory,
-                        nsContentUtils::PropertiesFile aPropertiesFile,
+                        PropertiesFile aPropertiesFile,
                         const nsACString& aSourceFileURI, uint32_t aLineNumber,
                         uint32_t aColumnNumber, const nsACString& aMessageName,
                         const nsTArray<nsString>& aStringParams) override;

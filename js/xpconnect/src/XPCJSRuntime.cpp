@@ -27,6 +27,7 @@
 #include "nsIMemoryReporter.h"
 #include "nsIObserverService.h"
 #include "mozilla/dom/Document.h"
+#include "mozilla/dom/NodeBinding.h"
 #include "nsIRunnable.h"
 #include "nsPIDOMWindow.h"
 #include "nsPrintfCString.h"

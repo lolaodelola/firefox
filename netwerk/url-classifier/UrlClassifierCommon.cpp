@@ -261,7 +261,7 @@ nsresult UrlClassifierCommon::SetBlockedContent(nsIChannel* channel,
   }
 
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, category, doc,
-                                  nsContentUtils::eNECKO_PROPERTIES, message,
+                                  PropertiesFile::NECKO_PROPERTIES, message,
                                   params);
 
   return NS_OK;

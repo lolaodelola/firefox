@@ -2237,7 +2237,7 @@ void nsContentSecurityUtils::LogMessageToConsole(nsIHttpChannel* aChannel,
   uri->GetSpec(spec);
   AutoTArray<nsString, 1> params = {NS_ConvertUTF8toUTF16(spec)};
   rv = nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eSECURITY_PROPERTIES, aMsg, params, localizedMsg);
+      PropertiesFile::SECURITY_PROPERTIES, aMsg, params, localizedMsg);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return;
   }

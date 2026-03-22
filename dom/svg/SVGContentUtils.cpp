@@ -383,7 +383,7 @@ nsresult SVGContentUtils::ReportToConsole(const Document* doc,
                                           const char* aWarning,
                                           const nsTArray<nsString>& aParams) {
   return nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "SVG"_ns,
-                                         doc, nsContentUtils::eSVG_PROPERTIES,
+                                         doc, PropertiesFile::SVG_PROPERTIES,
                                          aWarning, aParams);
 }
 

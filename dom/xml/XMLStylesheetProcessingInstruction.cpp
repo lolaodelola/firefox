@@ -67,6 +67,16 @@ void XMLStylesheetProcessingInstruction::SetNodeValueInternal(
   }
 }
 
+void XMLStylesheetProcessingInstruction::SetDataInternal(
+    const nsAString& aData, MutationEffectOnScript aMutationEffectOnScript,
+    ErrorResult& rv) {
+  CharacterData::SetDataInternal(aData, aMutationEffectOnScript, rv);
+  if (rv.Failed()) {
+    return;
+  }
+  (void)UpdateStyleSheetInternal(nullptr, nullptr, ForceUpdate::Yes);
+}
+
 // LinkStyle
 
 void XMLStylesheetProcessingInstruction::GetCharset(nsAString& aCharset) {

@@ -12,7 +12,6 @@
 #include "mozilla/dom/ClientInfo.h"
 #include "mozilla/dom/ClientState.h"
 #include "mozilla/dom/ServiceWorkerDescriptor.h"
-#include "nsContentUtils.h"
 #include "nsHashKeys.h"
 #include "nsISupports.h"
 #include "nsRFPService.h"
@@ -29,6 +28,7 @@ class nsICookieJarSettings;
 class nsIPrincipal;
 class nsIURI;
 class nsPIDOMWindowInner;
+enum class PropertiesFile : uint8_t;
 
 namespace mozilla {
 class DOMEventTargetHelper;
@@ -385,8 +385,8 @@ class nsIGlobalObject : public nsISupports {
    *          containing error.
    */
   virtual void ReportToConsole(
-      uint32_t aErrorFlags, const nsCString& aCategory,
-      nsContentUtils::PropertiesFile aFile, const nsCString& aMessageName,
+      uint32_t aErrorFlags, const nsCString& aCategory, PropertiesFile aFile,
+      const nsCString& aMessageName,
       const nsTArray<nsString>& aParams = nsTArray<nsString>(),
       const mozilla::SourceLocation& aLocation =
           mozilla::JSCallingLocation::Get());

@@ -20,7 +20,7 @@ class ConsoleReportCollector final : public nsIConsoleReportCollector {
   ConsoleReportCollector();
 
   void AddConsoleReport(uint32_t aErrorFlags, const nsACString& aCategory,
-                        nsContentUtils::PropertiesFile aPropertiesFile,
+                        PropertiesFile aPropertiesFile,
                         const nsACString& aSourceFileURI, uint32_t aLineNumber,
                         uint32_t aColumnNumber, const nsACString& aMessageName,
                         const nsTArray<nsString>& aStringParams) override;
@@ -53,7 +53,7 @@ class ConsoleReportCollector final : public nsIConsoleReportCollector {
 
   struct PendingReport {
     PendingReport(uint32_t aErrorFlags, const nsACString& aCategory,
-                  nsContentUtils::PropertiesFile aPropertiesFile,
+                  PropertiesFile aPropertiesFile,
                   const nsACString& aSourceFileURI, uint32_t aLineNumber,
                   uint32_t aColumnNumber, const nsACString& aMessageName,
                   const nsTArray<nsString>& aStringParams)
@@ -68,7 +68,7 @@ class ConsoleReportCollector final : public nsIConsoleReportCollector {
 
     const uint32_t mErrorFlags;
     const nsCString mCategory;
-    const nsContentUtils::PropertiesFile mPropertiesFile;
+    const PropertiesFile mPropertiesFile;
     const nsCString mSourceFileURI;
     const uint32_t mLineNumber;
     const uint32_t mColumnNumber;

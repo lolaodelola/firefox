@@ -969,7 +969,7 @@ nsresult HTMLTextAreaElement::GetValidationMessage(
       strTextLength.AppendInt(textLength);
 
       rv = nsContentUtils::FormatMaybeLocalizedString(
-          message, nsContentUtils::eDOM_PROPERTIES, "FormValidationTextTooLong",
+          message, PropertiesFile::DOM_PROPERTIES, "FormValidationTextTooLong",
           OwnerDoc(), strMaxLength, strTextLength);
       aValidationMessage = message;
     } break;
@@ -984,15 +984,14 @@ nsresult HTMLTextAreaElement::GetValidationMessage(
       strTextLength.AppendInt(textLength);
 
       rv = nsContentUtils::FormatMaybeLocalizedString(
-          message, nsContentUtils::eDOM_PROPERTIES,
-          "FormValidationTextTooShort", OwnerDoc(), strMinLength,
-          strTextLength);
+          message, PropertiesFile::DOM_PROPERTIES, "FormValidationTextTooShort",
+          OwnerDoc(), strMinLength, strTextLength);
       aValidationMessage = message;
     } break;
     case VALIDITY_STATE_VALUE_MISSING: {
       nsAutoString message;
       rv = nsContentUtils::GetMaybeLocalizedString(
-          nsContentUtils::eDOM_PROPERTIES, "FormValidationValueMissing",
+          PropertiesFile::DOM_PROPERTIES, "FormValidationValueMissing",
           OwnerDoc(), message);
       aValidationMessage = message;
     } break;

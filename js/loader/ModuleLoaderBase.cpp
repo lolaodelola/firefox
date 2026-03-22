@@ -1068,7 +1068,7 @@ nsresult ModuleLoaderBase::GetResolveFailureMessage(ResolveError aError,
   errorParams.AppendElement(aSpecifier);
 
   nsresult rv = nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, ResolveErrorInfo::GetString(aError),
+      PropertiesFile::DOM_PROPERTIES, ResolveErrorInfo::GetString(aError),
       errorParams, aResult);
   NS_ENSURE_SUCCESS(rv, rv);
   return NS_OK;

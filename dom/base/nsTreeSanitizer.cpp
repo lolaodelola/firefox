@@ -1388,7 +1388,7 @@ void nsTreeSanitizer::SanitizeChildren(nsINode* aRoot) {
           }
         }
         nsIContent* next = node->GetNextNonChildNode(aRoot);
-        node->RemoveFromParent();
+        node->Remove();
         node = next;
         continue;
       }
@@ -1444,7 +1444,7 @@ void nsTreeSanitizer::SanitizeChildren(nsINode* aRoot) {
             break;
           }
         }
-        node->RemoveFromParent();
+        node->Remove();
         node = next;
         continue;
       }
@@ -1476,7 +1476,7 @@ void nsTreeSanitizer::SanitizeChildren(nsINode* aRoot) {
     NS_ASSERTION(!node->GetFirstChild(), "How come non-element node had kids?");
     nsIContent* next = node->GetNextNonChildNode(aRoot);
     if (!mAllowComments && node->IsComment()) {
-      node->RemoveFromParent();
+      node->Remove();
     }
     node = next;
   }

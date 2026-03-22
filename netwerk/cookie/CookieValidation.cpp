@@ -449,7 +449,7 @@ CookieValidation::GetErrorString(nsAString& aResult) {
   RetrieveErrorLogData(&flags, category, key, params);
 
   return nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eNECKO_PROPERTIES_en_US, key.get(), params, aResult);
+      PropertiesFile::NECKO_PROPERTIES_en_US, key.get(), params, aResult);
 }
 
 // static

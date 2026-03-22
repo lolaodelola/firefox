@@ -634,7 +634,7 @@ void nsHTMLDocument::NamedGetter(JSContext* aCx, const nsAString& aName,
     AutoTArray<nsString, 1> params;
     params.AppendElement(aName);
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns, this,
-                                    nsContentUtils::eDOM_PROPERTIES,
+                                    PropertiesFile::DOM_PROPERTIES,
                                     "DocumentShadowingBlockedWarning", params);
     return;
   }

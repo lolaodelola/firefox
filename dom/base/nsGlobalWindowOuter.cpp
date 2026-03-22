@@ -4563,13 +4563,13 @@ void nsGlobalWindowOuter::MakeMessageWithPrincipal(
   nsAutoCString contentDesc;
 
   if (aSubjectPrincipal->GetIsNullPrincipal()) {
-    nsContentUtils::GetLocalizedString(
-        nsContentUtils::eCOMMON_DIALOG_PROPERTIES, aNullMessage, aOutMessage);
+    nsContentUtils::GetLocalizedString(PropertiesFile::COMMON_DIALOG_PROPERTIES,
+                                       aNullMessage, aOutMessage);
   } else {
     auto* addonPolicy = BasePrincipal::Cast(aSubjectPrincipal)->AddonPolicy();
     if (addonPolicy) {
       nsContentUtils::FormatLocalizedString(
-          aOutMessage, nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
+          aOutMessage, PropertiesFile::COMMON_DIALOG_PROPERTIES,
           aContentMessage, addonPolicy->Name());
     } else {
       nsresult rv = NS_ERROR_FAILURE;
@@ -4585,7 +4585,7 @@ void nsGlobalWindowOuter::MakeMessageWithPrincipal(
       if (NS_SUCCEEDED(rv) && !contentDesc.IsEmpty()) {
         NS_ConvertUTF8toUTF16 ucsPrePath(contentDesc);
         nsContentUtils::FormatLocalizedString(
-            aOutMessage, nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
+            aOutMessage, PropertiesFile::COMMON_DIALOG_PROPERTIES,
             aContentMessage, ucsPrePath);
       }
     }
@@ -4593,9 +4593,8 @@ void nsGlobalWindowOuter::MakeMessageWithPrincipal(
 
   if (aOutMessage.IsEmpty()) {
     // We didn't find a host so use the generic heading
-    nsContentUtils::GetLocalizedString(
-        nsContentUtils::eCOMMON_DIALOG_PROPERTIES, aFallbackMessage,
-        aOutMessage);
+    nsContentUtils::GetLocalizedString(PropertiesFile::COMMON_DIALOG_PROPERTIES,
+                                       aFallbackMessage, aOutMessage);
   }
 
   // Just in case
@@ -4826,8 +4825,8 @@ void nsGlobalWindowOuter::PromptOuter(const nsAString& aMessage,
   nsAutoString label;
   label.SetIsVoid(true);
   if (ShouldPromptToBlockDialogs()) {
-    nsContentUtils::GetLocalizedString(
-        nsContentUtils::eCOMMON_DIALOG_PROPERTIES, "ScriptDialogLabel", label);
+    nsContentUtils::GetLocalizedString(PropertiesFile::COMMON_DIALOG_PROPERTIES,
+                                       "ScriptDialogLabel", label);
   }
 
   nsAutoSyncOperation sync(mDoc, SyncOperationBehavior::eSuspendInput);
@@ -6052,7 +6051,7 @@ void nsGlobalWindowOuter::CloseOuter(bool aTrustedCaller) {
         nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
                                         "DOM Window"_ns,
                                         mDoc,  // Better name for the category?
-                                        nsContentUtils::eDOM_PROPERTIES,
+                                        PropertiesFile::DOM_PROPERTIES,
                                         "WindowCloseByScriptBlockedWarning");
 
         return;

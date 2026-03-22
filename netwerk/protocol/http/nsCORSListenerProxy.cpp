@@ -104,7 +104,7 @@ static void LogBlockedRequest(nsIRequest* aRequest, const char* aProperty,
   }
   NS_ConvertUTF8toUTF16 specUTF16(spec);
   rv = nsContentUtils::FormatLocalizedString(
-      nsContentUtils::eSECURITY_PROPERTIES, aProperty, params, blockedMessage);
+      PropertiesFile::SECURITY_PROPERTIES, aProperty, params, blockedMessage);
 
   if (NS_FAILED(rv)) {
     NS_WARNING("Failed to log blocked cross-site request (no formalizedStr");

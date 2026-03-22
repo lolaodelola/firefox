@@ -557,7 +557,7 @@ nsresult CacheLoadHandler::DataReceivedFromCache(
 
   if (!loadContext->mRequest->ScriptTextLength()) {
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "DOM"_ns,
-                                    parentDoc, nsContentUtils::eDOM_PROPERTIES,
+                                    parentDoc, PropertiesFile::DOM_PROPERTIES,
                                     "EmptyWorkerSourceWarning");
   }
 

@@ -421,7 +421,7 @@ static void ReportToConsole(dom::Document* aDocument,
                                                CanBubble::eNo, Cancelable::eNo);
   }
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Media"_ns,
-                                  aDocument, nsContentUtils::eDOM_PROPERTIES,
+                                  aDocument, PropertiesFile::DOM_PROPERTIES,
                                   aConsoleStringId, aParams);
 }
 

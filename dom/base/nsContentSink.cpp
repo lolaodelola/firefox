@@ -601,7 +601,7 @@ void nsContentSink::StartLayout(bool aIgnorePendingSheets) {
   if (aIgnorePendingSheets) {
     nsContentUtils::ReportToConsole(
         nsIScriptError::warningFlag, "Layout"_ns, mDocument,
-        nsContentUtils::eLAYOUT_PROPERTIES, "ForcedLayoutStart");
+        PropertiesFile::LAYOUT_PROPERTIES, "ForcedLayoutStart");
   }
 
   // Notify on all our content.  If none of our presshells have started layout

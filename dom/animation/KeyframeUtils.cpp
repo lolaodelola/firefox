@@ -657,7 +657,7 @@ static void ReportInvalidPropertyValueToConsole(
   params.AppendElement(NS_ConvertUTF8toUTF16(aInvalidPropertyValue));
   aProperty.ToString(*params.AppendElement());
   nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Animation"_ns,
-                                  aDoc, nsContentUtils::eDOM_PROPERTIES,
+                                  aDoc, PropertiesFile::DOM_PROPERTIES,
                                   "InvalidKeyframePropertyValue", params);
 }
 

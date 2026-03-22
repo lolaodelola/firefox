@@ -654,7 +654,7 @@ void KeyEventHandler::ReportKeyConflict(const char16_t* aKey,
   params.AppendElement(id);
   nsContentUtils::ReportToConsole(
       nsIScriptError::warningFlag, "Key dom::Event Handler"_ns, doc,
-      nsContentUtils::eDOM_PROPERTIES, aMessageName, params);
+      PropertiesFile::DOM_PROPERTIES, aMessageName, params);
 }
 
 bool KeyEventHandler::ModifiersMatchMask(

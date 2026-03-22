@@ -89,7 +89,7 @@ void nsHtml5DocumentBuilder::SetDocumentMode(nsHtml5DocumentMode m) {
 
     nsContentUtils::ReportToConsole(
         nsIScriptError::warningFlag, "HTML_PARSER__DOCTYPE"_ns, mDocument,
-        nsContentUtils::eHTMLPARSER_PROPERTIES, errMsgId);
+        PropertiesFile::HTMLPARSER_PROPERTIES, errMsgId);
   }
 }
 

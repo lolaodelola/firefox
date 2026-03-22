@@ -378,7 +378,7 @@ NS_IMETHODIMP PreloaderBase::UsageTimer::Notify(nsITimer* aTimer) {
   NS_GetSanitizedURIStringFromURI(uri, spec);
   nsContentUtils::ReportToConsole(
       nsIScriptError::warningFlag, "DOM"_ns, mDocument,
-      nsContentUtils::eDOM_PROPERTIES, "UnusedLinkPreloadPending",
+      PropertiesFile::DOM_PROPERTIES, "UnusedLinkPreloadPending",
       nsTArray<nsString>({NS_ConvertUTF8toUTF16(spec)}));
   return NS_OK;
 }

@@ -53,7 +53,7 @@ nsresult NumericInputTypeBase::GetRangeOverflowMessage(nsAString& aMessage) {
   nsAutoString maxStr;
   ConvertNumberToString(maximum, Localized::Yes, maxStr);
   return nsContentUtils::FormatMaybeLocalizedString(
-      aMessage, nsContentUtils::eDOM_PROPERTIES,
+      aMessage, PropertiesFile::DOM_PROPERTIES,
       "FormValidationNumberRangeOverflow", mInputElement->OwnerDoc(), maxStr);
 }
 
@@ -64,7 +64,7 @@ nsresult NumericInputTypeBase::GetRangeUnderflowMessage(nsAString& aMessage) {
   nsAutoString minStr;
   ConvertNumberToString(minimum, Localized::Yes, minStr);
   return nsContentUtils::FormatMaybeLocalizedString(
-      aMessage, nsContentUtils::eDOM_PROPERTIES,
+      aMessage, PropertiesFile::DOM_PROPERTIES,
       "FormValidationNumberRangeUnderflow", mInputElement->OwnerDoc(), minStr);
 }
 
@@ -148,13 +148,13 @@ bool NumberInputType::ConvertNumberToString(Decimal aValue,
 
 nsresult NumberInputType::GetValueMissingMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationBadInputNumber",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationBadInputNumber",
       mInputElement->OwnerDoc(), aMessage);
 }
 
 nsresult NumberInputType::GetBadInputMessage(nsAString& aMessage) {
   return nsContentUtils::GetMaybeLocalizedString(
-      nsContentUtils::eDOM_PROPERTIES, "FormValidationBadInputNumber",
+      PropertiesFile::DOM_PROPERTIES, "FormValidationBadInputNumber",
       mInputElement->OwnerDoc(), aMessage);
 }
 

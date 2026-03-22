@@ -294,14 +294,14 @@ void HTMLScriptElement::FreezeExecutionAttrs(const Document* aOwnerDoc) {
 
         nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "HTML"_ns,
                                         OwnerDoc(),
-                                        nsContentUtils::eDOM_PROPERTIES,
+                                        PropertiesFile::DOM_PROPERTIES,
                                         "ScriptSourceInvalidUri", params, loc);
       }
     } else {
       AutoTArray<nsString, 1> params = {u"src"_ns};
       nsContentUtils::ReportToConsole(
           nsIScriptError::warningFlag, "HTML"_ns, OwnerDoc(),
-          nsContentUtils::eDOM_PROPERTIES, "ScriptSourceEmpty", params, loc);
+          PropertiesFile::DOM_PROPERTIES, "ScriptSourceEmpty", params, loc);
     }
 
     // At this point mUri will be null for invalid URLs.

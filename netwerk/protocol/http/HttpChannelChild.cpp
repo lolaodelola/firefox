@@ -919,10 +919,9 @@ void HttpChannelChild::DoOnConsoleReport(
   }
 
   for (ConsoleReportCollected& report : aConsoleReports) {
-    if (report.propertiesFile() <
-        nsContentUtils::PropertiesFile::PropertiesFile_COUNT) {
+    if (report.propertiesFile() < uint32_t(PropertiesFile::COUNT)) {
       AddConsoleReport(report.errorFlags(), report.category(),
-                       nsContentUtils::PropertiesFile(report.propertiesFile()),
+                       PropertiesFile(report.propertiesFile()),
                        report.sourceFileURI(), report.lineNumber(),
                        report.columnNumber(), report.messageName(),
                        report.stringParams());
@@ -1553,7 +1552,7 @@ mozilla::ipc::IPCResult HttpChannelChild::RecvReportLNAToConsole(
 
   // Build the formatted message with stack trace
   nsAutoString formattedMsg;
-  nsContentUtils::FormatLocalizedString(nsContentUtils::eNECKO_PROPERTIES,
+  nsContentUtils::FormatLocalizedString(PropertiesFile::NECKO_PROPERTIES,
                                         PromiseFlatCString(aMessageType).get(),
                                         consoleParams, formattedMsg);
 
@@ -3472,7 +3471,7 @@ HttpChannelChild::LogMimeTypeMismatch(const nsACString& aMessageName,
   params.AppendElement(aContentType);
   nsContentUtils::ReportToConsole(
       aWarning ? nsIScriptError::warningFlag : nsIScriptError::errorFlag,
-      "MIMEMISMATCH"_ns, doc, nsContentUtils::eSECURITY_PROPERTIES,
+      "MIMEMISMATCH"_ns, doc, PropertiesFile::SECURITY_PROPERTIES,
       nsCString(aMessageName).get(), params);
   return NS_OK;
 }
@@ -3492,7 +3491,7 @@ nsresult HttpChannelChild::MaybeLogCOEPError(nsresult aStatus) {
     params.AppendElement(
         u"https://developer.mozilla.org/docs/Web/HTTP/Cross-Origin_Resource_Policy_(CORP)#"_ns);
     nsContentUtils::ReportToConsole(nsIScriptError::errorFlag, "COEP"_ns, doc,
-                                    nsContentUtils::eNECKO_PROPERTIES,
+                                    PropertiesFile::NECKO_PROPERTIES,
                                     "CORPBlocked", params);
   }
 

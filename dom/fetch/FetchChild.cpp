@@ -185,7 +185,7 @@ mozilla::ipc::IPCResult FetchChild::RecvOnFlushConsoleReport(
     for (const auto& report : aReports) {
       mReporter->AddConsoleReport(
           report.errorFlags(), report.category(),
-          static_cast<nsContentUtils::PropertiesFile>(report.propertiesFile()),
+          static_cast<PropertiesFile>(report.propertiesFile()),
           report.sourceFileURI(), report.lineNumber(), report.columnNumber(),
           report.messageName(), report.stringParams());
     }
@@ -217,8 +217,7 @@ mozilla::ipc::IPCResult FetchChild::RecvOnFlushConsoleReport(
         for (const auto& report : reports) {
           reporter->AddConsoleReport(
               report.errorFlags(), report.category(),
-              static_cast<nsContentUtils::PropertiesFile>(
-                  report.propertiesFile()),
+              static_cast<PropertiesFile>(report.propertiesFile()),
               report.sourceFileURI(), report.lineNumber(),
               report.columnNumber(), report.messageName(),
               report.stringParams());

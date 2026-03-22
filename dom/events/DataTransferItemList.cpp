@@ -6,6 +6,7 @@
 
 #include "mozilla/BasePrincipal.h"
 #include "mozilla/ContentEvents.h"
+#include "mozilla/ErrorResult.h"
 #include "mozilla/EventForwards.h"
 #include "mozilla/dom/DataTransferItemListBinding.h"
 #include "mozilla/storage/Variant.h"

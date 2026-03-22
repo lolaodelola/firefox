@@ -53,7 +53,7 @@ MediaStreamTrackAudioSourceNode::Create(
     nsGlobalWindowInner* pWindow = aAudioContext.GetOwnerWindow();
     Document* document = pWindow ? pWindow->GetExtantDoc() : nullptr;
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Web Audio"_ns,
-                                    document, nsContentUtils::eDOM_PROPERTIES,
+                                    document, PropertiesFile::DOM_PROPERTIES,
                                     "MediaStreamAudioSourceNodeDifferentRate");
     // This is not a spec-required exception, just a limitation of our
     // implementation.
@@ -165,7 +165,7 @@ void MediaStreamTrackAudioSourceNode::PrincipalChanged(
 
   if (!enabled && doc) {
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Web Audio"_ns,
-                                    doc, nsContentUtils::eDOM_PROPERTIES,
+                                    doc, PropertiesFile::DOM_PROPERTIES,
                                     CrossOriginErrorString());
   }
 }

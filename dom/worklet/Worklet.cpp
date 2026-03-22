@@ -71,7 +71,7 @@ static bool LoadLocalizedStrings(nsTArray<nsString>& aStrings) {
   for (auto i : errors) {
     nsAutoString message;
     nsresult rv = nsContentUtils::GetLocalizedString(
-        nsContentUtils::eDOM_PROPERTIES, ResolveErrorInfo::GetString(i),
+        PropertiesFile::DOM_PROPERTIES, ResolveErrorInfo::GetString(i),
         message);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       if (NS_WARN_IF(!aStrings.AppendElement(EmptyString(), fallible))) {

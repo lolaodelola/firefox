@@ -323,7 +323,7 @@ void Geolocation::ReallowWithSystemPermissionOrCancel(
   NS_ENSURE_SUCCESS_VOID(rv);
 
   nsAutoString brandName;
-  rv = nsContentUtils::GetLocalizedString(nsContentUtils::eBRAND_PROPERTIES,
+  rv = nsContentUtils::GetLocalizedString(PropertiesFile::BRAND_PROPERTIES,
                                           "brandShortName", brandName);
   NS_ENSURE_SUCCESS_VOID(rv);
   AutoTArray<nsString, 1> formatParams;
@@ -1254,7 +1254,7 @@ bool Geolocation::ShouldBlockInsecureRequests() const {
 
   if (!nsGlobalWindowInner::Cast(win)->IsSecureContext()) {
     nsContentUtils::ReportToConsole(nsIScriptError::errorFlag, "DOM"_ns, doc,
-                                    nsContentUtils::eDOM_PROPERTIES,
+                                    PropertiesFile::DOM_PROPERTIES,
                                     "GeolocationInsecureRequestIsForbidden");
     return true;
   }

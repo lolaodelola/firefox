@@ -52,8 +52,8 @@ void FramingChecker::ReportError(const char* aMessageTag,
   params.AppendElement(NS_ConvertUTF8toUTF16(spec));
 
   httpChannel->AddConsoleReport(nsIScriptError::errorFlag, "X-Frame-Options"_ns,
-                                nsContentUtils::eSECURITY_PROPERTIES, spec, 0,
-                                0, nsDependentCString(aMessageTag), params);
+                                PropertiesFile::SECURITY_PROPERTIES, spec, 0, 0,
+                                nsDependentCString(aMessageTag), params);
 
   // we are notifying observers for testing purposes because there is no event
   // to gather that an iframe load was blocked or not.

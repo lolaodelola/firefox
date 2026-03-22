@@ -520,7 +520,7 @@ void nsPageSequenceFrame::SetPageNumberFormat(const char* aPropName,
   nsAutoString pageNumberFormat;
   // Now go get the Localized Page Formating String
   nsresult rv = nsContentUtils::GetLocalizedString(
-      nsContentUtils::ePRINTING_PROPERTIES, aPropName, pageNumberFormat);
+      PropertiesFile::PRINTING_PROPERTIES, aPropName, pageNumberFormat);
   if (NS_FAILED(rv)) {  // back stop formatting
     pageNumberFormat.AssignASCII(aDefPropVal);
   }

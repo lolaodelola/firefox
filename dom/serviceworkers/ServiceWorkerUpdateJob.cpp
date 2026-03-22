@@ -393,7 +393,7 @@ void ServiceWorkerUpdateJob::ComparisonResult(nsresult aStatus,
     NS_ConvertUTF8toUTF16 reportMaxPrefix(maxPrefix);
 
     rv = nsContentUtils::FormatLocalizedString(
-        message, nsContentUtils::eDOM_PROPERTIES,
+        message, PropertiesFile::DOM_PROPERTIES,
         "ServiceWorkerScopePathMismatch", reportScope, reportMaxPrefix);
     NS_WARNING_ASSERTION(NS_SUCCEEDED(rv), "Failed to format localized string");
     swm->ReportToAllClients(mScope, message, ""_ns, u""_ns, 0, 0,

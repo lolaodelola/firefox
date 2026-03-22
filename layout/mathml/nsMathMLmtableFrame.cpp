@@ -129,7 +129,7 @@ static nsresult ReportParseError(nsIFrame* aFrame, const char16_t* aAttribute,
 
   return nsContentUtils::ReportToConsole(
       nsIScriptError::errorFlag, "Layout: MathML"_ns, content->OwnerDoc(),
-      nsContentUtils::eMATHML_PROPERTIES, "AttributeParsingError", params);
+      PropertiesFile::MATHML_PROPERTIES, "AttributeParsingError", params);
 }
 
 // Each rowalign='top bottom' or columnalign='left right center' (from

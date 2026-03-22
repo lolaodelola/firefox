@@ -107,7 +107,7 @@ static void LogMixedContentMessage(
   AutoTArray<nsString, 1> params;
   CopyUTF8toUTF16(aContentLocation->GetSpecOrDefault(),
                   *params.AppendElement());
-  nsContentUtils::FormatLocalizedString(nsContentUtils::eSECURITY_PROPERTIES,
+  nsContentUtils::FormatLocalizedString(PropertiesFile::SECURITY_PROPERTIES,
                                         messageLookupKey.get(), params,
                                         localizedMsg);
 

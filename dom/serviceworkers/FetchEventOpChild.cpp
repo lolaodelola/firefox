@@ -87,8 +87,8 @@ void AsyncLog(nsIInterceptedChannel* aChannel, const nsACString& aScriptSpec,
 
     reporter->AddConsoleReport(
         nsIScriptError::errorFlag, "Service Worker Interception"_ns,
-        nsContentUtils::eDOM_PROPERTIES, aScriptSpec, aLineNumber,
-        aColumnNumber, aMessageName, params);
+        PropertiesFile::DOM_PROPERTIES, aScriptSpec, aLineNumber, aColumnNumber,
+        aMessageName, params);
   }
 }
 

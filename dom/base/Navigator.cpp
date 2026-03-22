@@ -1087,7 +1087,7 @@ void Navigator::RegisterProtocolHandler(const nsAString& aScheme,
     // console so that web developers have some way to tell what's going wrong.
     nsContentUtils::ReportToConsole(
         nsIScriptError::warningFlag, "DOM"_ns, mWindow->GetDoc(),
-        nsContentUtils::eDOM_PROPERTIES,
+        PropertiesFile::DOM_PROPERTIES,
         "RegisterProtocolHandlerPrivateBrowsingWarning");
     return;
   }
@@ -2211,7 +2211,7 @@ already_AddRefed<Promise> Navigator::RequestMediaKeySystemAccess(
       (void)doc->GetDocumentURI(*uri);
     }
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Media"_ns,
-                                    doc, nsContentUtils::eDOM_PROPERTIES,
+                                    doc, PropertiesFile::DOM_PROPERTIES,
                                     "MediaEMEInsecureContextDeprecatedWarning",
                                     params);
   }
