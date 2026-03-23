@@ -64,9 +64,6 @@ run-if = [
   "crashreporter",
 ]
 
-["browser_UpdatePolicyEnforcer.js"]
-
-
 ["browser_UsageTelemetry.js"]
 https_first_disabled = true
 

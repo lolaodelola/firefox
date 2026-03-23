@@ -21,7 +21,6 @@ const TYPES = {
 const FTL_FILES = [
   "browser/newtab/asrouter.ftl",
   "browser/defaultBrowserNotification.ftl",
-  "browser/policy-messages.ftl",
   "browser/profiles.ftl",
   "browser/termsofuse.ftl",
 ];
@@ -77,18 +76,18 @@ class InfoBarNotification {
    * Async helper to render a Fluent string. If the translation contains `<a
    * data-l10n-name>`, it will parse and inject the associated link contained
    * in the message.
-   * text: the message's text object, including at least a string_id field
-   * attributes: Fluent arguments to be used in substitutions in the string specified by the string_id
    */
-  async _buildMessageFragment(doc, browser, text, attributes) {
+  async _buildMessageFragment(doc, browser, stringId, args) {
     // Get the raw HTML translation
-    const html = await lazy.RemoteL10n.formatLocalizableText(text, attributes);
+    const html = await lazy.RemoteL10n.formatLocalizableText({
+      string_id: stringId,
+      ...(args && { args }),
+    });
 
     // If no inline anchors, just return a span
     if (!html.includes('data-l10n-name="')) {
       return lazy.RemoteL10n.createElement(doc, "span", {
-        content: text,
-        attributes,
+        content: { string_id: stringId, ...(args && { args }) },
       });
     }
 
@@ -134,7 +133,7 @@ class InfoBarNotification {
               lazy.SpecialMessageActions.handleAction(
                 {
                   type: "OPEN_URL",
-                  data: { args: a.href, where: text.args?.where || "tab" },
+                  data: { args: a.href, where: args?.where || "tab" },
                 },
                 browser
               );
@@ -188,12 +187,7 @@ class InfoBarNotification {
 
     let priority = content.priority || notificationContainer.PRIORITY_SYSTEM;
 
-    let labelNode = await this.formatMessageConfig(
-      doc,
-      browser,
-      content.text,
-      content.attributes
-    );
+    let labelNode = await this.formatMessageConfig(doc, browser, content.text);
 
     this.notification = await notificationContainer.appendNotification(
       this.message.id,
@@ -233,16 +227,7 @@ class InfoBarNotification {
     this._maybeAttachPrefObserver();
   }
 
-  /**
-   * Create a clickable anchor node
-   * attributes: Fluent arguments to be used in substitutions in the string specified by the string_id
-   */
-  _createLinkNode(
-    doc,
-    browser,
-    { href, where = "tab", string_id, raw },
-    attributes
-  ) {
+  _createLinkNode(doc, browser, { href, where = "tab", string_id, args, raw }) {
     const a = doc.createElement("a");
     a.href = href;
     a.addEventListener("click", e => {
@@ -256,8 +241,7 @@ class InfoBarNotification {
     if (string_id) {
       // wrap a localized span inside
       const span = lazy.RemoteL10n.createElement(doc, "span", {
-        content: { string_id },
-        attributes,
+        content: { string_id, ...(args && { args }) },
       });
       a.appendChild(span);
     } else {
@@ -267,20 +251,16 @@ class InfoBarNotification {
     return a;
   }
 
-  /**
-   * format a message that may include localizable text
-   * text: the text object of the message. If it is localizable, inlcudes a string_id field
-   * attributes: Fluent arguments to be used in substitutions in the string specified by the string_id
-   */
-  async formatMessageConfig(doc, browser, text, attributes) {
+  async formatMessageConfig(doc, browser, content) {
     const frag = doc.createDocumentFragment();
-    const parts = Array.isArray(text) ? text : [text];
+    const parts = Array.isArray(content) ? content : [content];
+
     for (const part of parts) {
       if (!part) {
         continue;
       }
       if (part.href) {
-        frag.appendChild(this._createLinkNode(doc, browser, part, attributes));
+        frag.appendChild(this._createLinkNode(doc, browser, part));
         continue;
       }
 
@@ -288,11 +268,8 @@ class InfoBarNotification {
         const subFrag = await this._buildMessageFragment(
           doc,
           browser,
-          {
-            string_id: part.string_id,
-            args: part.args,
-          },
-          attributes
+          part.string_id,
+          part.args
         );
         frag.appendChild(subFrag);
         continue;
