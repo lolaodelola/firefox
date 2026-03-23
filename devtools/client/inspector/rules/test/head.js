@@ -352,6 +352,14 @@ var addProperty = async function (
   );
   await onMutations;
 
+  const prop = textProps.at(-1);
+  is(prop.name, name, "The new/last property name has the expected name");
+  is(
+    prop.value + (prop.priority ? " !" + prop.priority : ""),
+    value,
+    "The new/last property value has the expected value"
+  );
+
   if (blurNewProperty) {
     view.styleDocument.activeElement.blur();
   }

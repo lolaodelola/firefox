@@ -36,20 +36,15 @@ add_task(async function () {
 
 async function testTopLeft(inspector, view) {
   const id = "#topleft";
-  const rules = await assertPseudoElementRulesNumbersForSelector(
-    id,
-    inspector,
-    view,
-    {
-      elementRules: 4,
-      firstLineRules: 2,
-      firstLetterRules: 1,
-      selectionRules: 1,
-      markerRules: 0,
-      afterRules: 1,
-      beforeRules: 2,
-    }
-  );
+  await assertPseudoElementRulesNumbersForSelector(id, inspector, view, {
+    elementRules: 4,
+    firstLineRules: 2,
+    firstLetterRules: 1,
+    selectionRules: 1,
+    markerRules: 0,
+    afterRules: 1,
+    beforeRules: 2,
+  });
 
   const gutters = assertHeaders(view);
 
@@ -90,12 +85,9 @@ async function testTopLeft(inspector, view) {
     "About to modify the 'element' rule"
   );
 
-  const elementFirstLineRule = rules.firstLineRules[0];
-  const elementFirstLineRuleView = [
-    ...getPseudoElementContainer(view).children,
-  ].filter(e => {
-    return e._ruleEditor && e._ruleEditor.rule === elementFirstLineRule;
-  })[0]._ruleEditor;
+  // Position for the ::first-line rule
+  const index = 4;
+  const elementFirstLineRule = getRuleViewRuleEditorAt(view, index).rule;
 
   is(
     convertTextPropsToString(elementFirstLineRule.textProps),
@@ -103,34 +95,16 @@ async function testTopLeft(inspector, view) {
     "TopLeft firstLine properties are correct"
   );
 
-  let onAdded = view.once("ruleview-changed");
-  let firstProp = elementFirstLineRuleView.addProperty(
+  const firstProp = await addProperty(
+    view,
+    index,
     "background-color",
     "rgb(0, 255, 0)",
     "",
     true
   );
-  await onAdded;
 
-  onAdded = view.once("ruleview-changed");
-  const secondProp = elementFirstLineRuleView.addProperty(
-    "font-style",
-    "italic",
-    "",
-    true
-  );
-  await onAdded;
-
-  is(
-    firstProp,
-    elementFirstLineRule.textProps[elementFirstLineRule.textProps.length - 2],
-    "First added property is on back of array"
-  );
-  is(
-    secondProp,
-    elementFirstLineRule.textProps[elementFirstLineRule.textProps.length - 1],
-    "Second added property is on back of array"
-  );
+  await addProperty(view, index, "font-style", "italic", "", true);
 
   is(
     await getComputedStyleProperty(id, ":first-line", "background-color"),
@@ -174,14 +148,7 @@ async function testTopLeft(inspector, view) {
     "Added property should not apply to element"
   );
 
-  onAdded = view.once("ruleview-changed");
-  firstProp = elementRuleView.addProperty(
-    "background-color",
-    "rgb(0, 0, 255)",
-    "",
-    true
-  );
-  await onAdded;
+  await addProperty(view, 7, "background-color", "rgb(0, 0, 255)");
 
   is(
     await getComputedStyleProperty(id, null, "background-color"),

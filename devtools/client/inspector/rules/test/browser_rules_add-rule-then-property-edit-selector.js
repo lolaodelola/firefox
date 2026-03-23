@@ -38,7 +38,7 @@ add_task(async function () {
   );
 
   info("Adding a new property to the new rule");
-  await testAddingProperty(view, 1);
+  await addProperty(view, 1, "font-weight", "bold");
 
   info("Editing existing selector field");
   await testEditSelector(view, "span");
@@ -49,15 +49,6 @@ add_task(async function () {
   info("Check new rule and property exist in the modified element");
   await checkModifiedElement(view, "span", 1);
 });
-
-function testAddingProperty(view, index) {
-  const ruleEditor = getRuleViewRuleEditorAt(view, index);
-  ruleEditor.addProperty("font-weight", "bold", "", true);
-  const textProps = ruleEditor.rule.textProps;
-  const lastRule = textProps[textProps.length - 1];
-  is(lastRule.name, "font-weight", "Last rule name is font-weight");
-  is(lastRule.value, "bold", "Last rule value is bold");
-}
 
 async function testEditSelector(view, name) {
   const idRuleEditor = getRuleViewRuleEditorAt(view, 1);
