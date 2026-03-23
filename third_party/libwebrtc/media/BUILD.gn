@@ -455,6 +455,7 @@ if (!build_with_mozilla) {
     "../rtc_base:stringutils",
     "../rtc_base:unique_id_generator",
     "//third_party/abseil-cpp/absl/algorithm:container",
+    "//third_party/abseil-cpp/absl/strings:string_view",
   ]
 }
 }
@@ -484,7 +485,10 @@ rtc_library("rid_description") {
     "base/rid_description.cc",
     "base/rid_description.h",
   ]
-  deps = [ ":codec" ]
+  deps = [
+    ":codec",
+    "//third_party/abseil-cpp/absl/strings:string_view",
+  ]
 }
 
 rtc_library("rtc_simulcast_encoder_adapter") {
