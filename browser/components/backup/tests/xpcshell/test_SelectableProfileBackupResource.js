@@ -233,3 +233,36 @@ add_task(async function test_backup_and_recover_with_custom_avatar() {
   await maybeRemovePath(stagingPath);
   sandbox.restore();
 });
+
+/**
+ * Tests that postRecovery falls back to the default theme when enableTheme
+ * fails for the requested theme (e.g. no network connectivity).
+ */
+add_task(async function test_postRecovery_falls_back_to_default_theme() {
+  let sandbox = sinon.createSandbox();
+
+  const SelectableProfileService = getSelectableProfileService();
+  let enableThemeStub = sandbox
+    .stub(SelectableProfileService, "enableTheme")
+    .onFirstCall()
+    .rejects(new Error("Download failed"))
+    .onSecondCall()
+    .resolves();
+
+  let resource = new SelectableProfileBackupResource();
+  await resource.postRecovery({ themeId: "some-custom-theme-id" });
+
+  Assert.ok(enableThemeStub.calledTwice, "enableTheme should be called twice");
+  Assert.equal(
+    enableThemeStub.firstCall.args[0],
+    "some-custom-theme-id",
+    "First call should try the original theme"
+  );
+  Assert.equal(
+    enableThemeStub.secondCall.args[0],
+    "default-theme@mozilla.org",
+    "Second call should fall back to the default theme"
+  );
+
+  sandbox.restore();
+});
