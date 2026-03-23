@@ -737,7 +737,6 @@ rtc_source_set("rtc_data_sctp_transport_internal") {
   sources = [ "sctp/sctp_transport_internal.h" ]
   deps = [
     ":media_channel",
-    "../api:libjingle_peerconnection_api",
     "../api:priority",
     "../api:rtc_error",
     "../api:sctp_transport_interface",
@@ -762,7 +761,6 @@ if (rtc_build_dcsctp) {
       "../api:data_channel_interface",
       "../api:dtls_transport_interface",
       "../api:field_trials_view",
-      "../api:libjingle_peerconnection_api",
       "../api:priority",
       "../api:rtc_error",
       "../api:sctp_transport_interface",
