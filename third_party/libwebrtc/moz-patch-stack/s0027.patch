@@ -349,7 +349,7 @@ index 351464779d..637d36f900 100644
  rtc_library("neteq_simulator_api") {
    visibility = [ "*" ]
 diff --git a/api/rtp_sender_interface.h b/api/rtp_sender_interface.h
-index db04b9580c..56030c1b33 100644
+index be839285bf..30de427571 100644
 --- a/api/rtp_sender_interface.h
 +++ b/api/rtp_sender_interface.h
 @@ -34,6 +34,8 @@
