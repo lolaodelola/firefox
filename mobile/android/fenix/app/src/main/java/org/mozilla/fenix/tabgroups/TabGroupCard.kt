@@ -250,7 +250,7 @@ fun ThumbnailsGridView(
 }
 
 /**
- * A TabGroup has anywhere from 0 to 4 thumbnail images.
+ * A ExpandedTabGroup has anywhere from 0 to 4 thumbnail images.
  * Renders a thumbnail image if thumbnail image data is available,
  * or an empty box if the thumbnail image data is null.
  *
@@ -287,7 +287,7 @@ private data class TabGroupCardPreviewState(
     val group: TabsTrayItem.TabGroup = TabsTrayItem.TabGroup(
         title = "Tab Group Item",
         theme = TabGroupTheme.default,
-        tabs = hashSetOf(),
+        tabs = mutableListOf(),
         closed = false,
     ),
     val title: String = "Group 1",
@@ -437,7 +437,7 @@ private fun TabGroupCardTablet() {
                 group = TabsTrayItem.TabGroup(
                     title = "Tab Group Item",
                     theme = TabGroupTheme.default,
-                    tabs = hashSetOf(),
+                    tabs = mutableListOf(),
                     closed = false,
                 ),
                 selectionState = TabsTrayItemSelectionState(

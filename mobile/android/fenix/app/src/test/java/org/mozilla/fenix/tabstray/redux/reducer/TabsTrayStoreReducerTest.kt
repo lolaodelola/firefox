@@ -4,12 +4,13 @@
 
 package org.mozilla.fenix.tabstray.redux.reducer
 
-import mozilla.components.browser.state.state.createTab
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mozilla.fenix.tabstray.data.TabsTrayItem
+import org.mozilla.fenix.tabstray.data.TabStorageUpdate
+import org.mozilla.fenix.tabstray.data.createTab
+import org.mozilla.fenix.tabstray.data.createTabGroup
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
 import org.mozilla.fenix.tabstray.redux.action.TabsTrayAction
 import org.mozilla.fenix.tabstray.redux.state.TabSearchState
@@ -17,13 +18,12 @@ import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.syncedtabs.SyncedTabsListItem
 import org.mozilla.fenix.tabstray.syncedtabs.generateFakeTab
 import org.mozilla.fenix.tabstray.syncedtabs.getFakeSyncedTabList
-import kotlin.collections.listOf
 
 class TabsTrayStoreReducerTest {
 
     @Test
     fun `WHEN UpdateInactiveTabs THEN inactive tabs are added`() {
-        val inactiveTabs = listOf(TabsTrayItem.Tab(tab = createTab("https://mozilla.org")))
+        val inactiveTabs = listOf(createTab("https://mozilla.org"))
         val initialState = TabsTrayState()
         val expectedState =
             initialState.copy(inactiveTabs = TabsTrayState.InactiveTabsState(tabs = inactiveTabs))
@@ -55,7 +55,7 @@ class TabsTrayStoreReducerTest {
 
     @Test
     fun `WHEN UpdateNormalTabs THEN normal tabs are added`() {
-        val normalTabs = listOf(TabsTrayItem.Tab(tab = createTab("https://mozilla.org")))
+        val normalTabs = listOf(createTab("https://mozilla.org"))
         val initialState = TabsTrayState()
         val expectedState = initialState.copy(normalTabs = normalTabs)
 
@@ -69,7 +69,7 @@ class TabsTrayStoreReducerTest {
 
     @Test
     fun `WHEN UpdatePrivateTabs THEN private tabs are added`() {
-        val privateTabs = listOf(TabsTrayItem.Tab(tab = createTab("https://mozilla.org", private = true)))
+        val privateTabs = listOf(createTab("https://mozilla.org", private = true))
         val initialState = TabsTrayState()
         val expectedState = initialState.copy(
             privateBrowsing = TabsTrayState.PrivateBrowsingState(
@@ -328,7 +328,7 @@ class TabsTrayStoreReducerTest {
         val initialState = TabsTrayState(
             tabSearchState = TabSearchState(
                 query = "mozilla",
-                searchResults = listOf(TabsTrayItem.Tab(tab = createTab("https://mozilla.org"))),
+                searchResults = listOf(createTab("https://mozilla.org")),
             ),
         )
 
@@ -395,5 +395,35 @@ class TabsTrayStoreReducerTest {
         )
 
         assertFalse(resultState.inactiveTabs.showAutoCloseDialog)
+    }
+
+    @Test
+    fun `WHEN a tab data from storage has updated THEN the state is updated`() {
+        val initialState = TabsTrayState()
+        val expectedId = "12345"
+        val tabGroup = createTabGroup()
+        val expectedNormalTabs = listOf(createTab(url = "normal url"), tabGroup)
+        val expectedInactiveTabs = listOf(createTab(url = "inactive url"))
+        val expectedPrivateTabs = listOf(createTab(url = "private url"))
+        val expectedTabGroups = listOf(tabGroup)
+        val action = TabsTrayAction.TabDataUpdateReceived(
+            tabStorageUpdate = TabStorageUpdate(
+                selectedTabId = expectedId,
+                normalTabs = expectedNormalTabs,
+                inactiveTabs = expectedInactiveTabs,
+                tabGroups = expectedTabGroups,
+                privateTabs = expectedPrivateTabs,
+            ),
+        )
+        val expectedState = TabsTrayState(
+            selectedTabId = expectedId,
+            normalTabs = expectedNormalTabs,
+            inactiveTabs = TabsTrayState.InactiveTabsState(tabs = expectedInactiveTabs),
+            tabGroups = expectedTabGroups,
+            privateBrowsing = TabsTrayState.PrivateBrowsingState(tabs = expectedPrivateTabs),
+        )
+        val resultState = TabsTrayReducer.reduce(state = initialState, action = action)
+
+        assertEquals(expectedState, resultState)
     }
 }

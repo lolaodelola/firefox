@@ -122,7 +122,7 @@ class TabGroupCardTest {
             group = TabsTrayItem.TabGroup(
                 title = "Group 1",
                 theme = TabGroupTheme.Yellow,
-                tabs = hashSetOf(
+                tabs = mutableListOf(
                     createTab(
                         url = ABOUT_HOME_URL,
                     ),

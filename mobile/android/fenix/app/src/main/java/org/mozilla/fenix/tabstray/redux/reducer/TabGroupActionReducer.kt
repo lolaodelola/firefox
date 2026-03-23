@@ -4,6 +4,7 @@
 
 package org.mozilla.fenix.tabstray.redux.reducer
 
+import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 
@@ -38,6 +39,14 @@ object TabGroupActionReducer {
             TabGroupAction.FormDismissed,
             TabGroupAction.SaveClicked,
                  -> state.copy(tabGroupFormState = null)
+
+            is TabGroupAction.TabGroupClicked -> when (state.mode) {
+                is TabsTrayState.Mode.Normal -> state.copy(
+                    backStack = state.backStack + ExpandedTabGroup(group = action.group),
+                )
+
+                is TabsTrayState.Mode.Select -> state
+            }
         }
     }
 }

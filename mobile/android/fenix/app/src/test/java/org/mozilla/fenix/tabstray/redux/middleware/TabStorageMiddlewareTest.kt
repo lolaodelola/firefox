@@ -147,11 +147,12 @@ class TabStorageMiddlewareTest {
             id = tabGroup.id,
             title = tabGroup.title,
             theme = TabGroupTheme.valueOf(tabGroup.theme),
-            tabs = hashSetOf(expectedDisplayTab),
+            tabs = mutableListOf(expectedDisplayTab),
         )
         val expectedState = TabsTrayState(
             normalTabs = listOf(expectedTabGroup),
             tabGroups = listOf(expectedTabGroup),
+            config = TabsTrayState.TabsTrayConfig(tabGroupsEnabled = false),
         )
         val tabFlow = MutableStateFlow(initialState)
         val tabGroupFlow = MutableStateFlow(emptyList<StoredTabGroup>())
