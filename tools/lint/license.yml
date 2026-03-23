@@ -76,6 +76,10 @@ license:
         - '**/jit-test/'
         # Exclude localized strings.xml files for Android.
         - '**/values-*/strings.xml'
+        # Android resource XML files (drawables, layouts, colors,
+        # etc.) don't have license headers.
+        - 'mobile/android/fenix/app/src/main/res/'
+        - 'mobile/android/focus-android/app/src/main/res/'
     extensions:
         - .c
         - .cc
