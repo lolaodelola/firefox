@@ -566,7 +566,6 @@ pub struct DeviceLostClosure {
     pub cleanup_callback: unsafe extern "C" fn(user_data: *mut u8),
     pub user_data: *mut u8,
 }
-unsafe impl Send for DeviceLostClosure {}
 
 impl DeviceLostClosure {
     fn call(self, reason: wgt::DeviceLostReason, message: String) {
@@ -594,8 +593,31 @@ pub unsafe extern "C" fn wgpu_server_set_device_lost_callback(
     self_id: id::DeviceId,
     closure: DeviceLostClosure,
 ) {
-    let closure = Box::new(move |reason, message| closure.call(reason, message));
-    global.device_set_device_lost_closure(self_id, closure);
+    // Create a one-shot channel that the `wgpu_core` callback can use to report
+    // the device loss to the calling thread.
+    let (device_lost_sender, device_lost_receiver) = futures_channel::oneshot::channel();
+
+    // Spawn a task on the calling thread to wait for such a report.
+    moz_task::spawn_local("device lost callback", async move {
+        match device_lost_receiver.await {
+            Ok((reason, message)) => {
+                closure.call(reason, message);
+            }
+            Err(futures_channel::oneshot::Canceled) => {
+                // The device loss closure was never invoked, so
+                // `device_lost_sender` was dropped. Exit this task without
+                // doing anything.
+            }
+        }
+    })
+    .detach();
+
+    global.device_set_device_lost_closure(
+        self_id,
+        Box::new(move |reason, message| {
+            device_lost_sender.send((reason, message)).unwrap();
+        }),
+    );
 }
 
 impl ShaderModuleCompilationMessage {
