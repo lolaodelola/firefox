@@ -1,165 +1,230 @@
-From: =?UTF-8?q?Erik=20Spr=C3=A5ng?= <sprang@webrtc.org>
-Date: Fri, 19 Dec 2025 17:45:43 +0100
-Subject: (cherry-pick-branch-heads/7559) Fix potential crash when using
- encoder speed controller.
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Michael Froman <mfroman@mozilla.com>
+Date: Mon, 23 Mar 2026 18:27:23 -0500
+Subject: (tmp-cherry-pick) Revert "Request refresh frame on resolution scaling
+ changes" (df1ffee26f)
 
-The list of speed controllers needs to be reset when we release the
-encoder - otherwise we end up appending more of them to the list. In
-some cases this may lead to a crash.
+This reverts commit 0ba5208d8f67eb0cecd6fbc31fa7ab6ee4e5d0a6.
 
-Merge note: The _more_configs bots are all failing with the same error
-message. "tools.mb.mb.MBErr: Phase cxx23 doesn't exist for
-win_x86_more_configs on tryserver.webrtc". Looks like the bot config
-for the branch isn't working properly. Since all other bots pass,
-setting No-Try.
+Reason for revert: Suspect this caused the following error in chrome:
 
-(cherry picked from commit 7379b40231e0ffe92a8aad931438c22729080b1f)
+external/wpt/webrtc-encoded-transform/tentative/RTCEncodedFrame-timestamps.html
 
-Bug: webrtc:443906251, chromium:469510023, chromium:470895856
+https://ci.chromium.org/ui/p/chromium/builders/try/win-rel/1282304/overview
+
+Original change's description:
+> Request refresh frame on resolution scaling changes
+>
+> When `scale_resolution_down_to` changes in `ConfigureEncoder`, the input
+> resolution from the source is expected to change. To handle this
+> cleanly, `RequestRefreshFrame` is now called to prompt the source for a
+> frame matching the new constraints.
+>
+> Additionally, the immediate `ReconfigureEncoder` call is deferred if the
+> resolution scaling has changed. The reconfiguration will instead occur
+> upon the arrival of the next frame, ensuring the encoder is initialized
+> with the correct resolution.
+>
+> Fixed: webrtc:467409350
+> Change-Id: Icbd19531a45d130460f4763a945d764df3e5e0d2
+> Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/432660
+> Reviewed-by: Sergey Silkin <ssilkin@webrtc.org>
+> Commit-Queue: Johannes Kron <kron@webrtc.org>
+> Cr-Commit-Position: refs/heads/main@{#46473}
+
+Bug: webrtc:467409350
+No-Presubmit: true
+No-Tree-Checks: true
 No-Try: true
-Change-Id: Icc3a189c3b8ae8566d816d1fb0afff73573ad151
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/435421
-Commit-Queue: Erik Språng <sprang@webrtc.org>
-Reviewed-by: Sergey Silkin <ssilkin@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#46527}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/435521
-Cr-Commit-Position: refs/branch-heads/7559@{#2}
-Cr-Branched-From: f680c1893f3b166b370439da52ae82d02f54969c-refs/heads/main@{#46356}
+Change-Id: I710abf84d42641c291fb3fb36bb0d42551504eae
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/433740
+Bot-Commit: Rubber Stamper <rubber-stamper@appspot.gserviceaccount.com>
+Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
+Cr-Commit-Position: refs/heads/main@{#46482}
 ---
- modules/video_coding/codecs/av1/BUILD.gn      |  1 +
- .../codecs/av1/libaom_av1_encoder.cc          |  4 ++
- .../codecs/av1/libaom_av1_unittest.cc         | 63 +++++++++++++++++++
- 3 files changed, 68 insertions(+)
+ video/video_stream_encoder.cc          |  25 ++----
+ video/video_stream_encoder_unittest.cc | 105 -------------------------
+ 2 files changed, 5 insertions(+), 125 deletions(-)
 
-diff --git a/modules/video_coding/codecs/av1/BUILD.gn b/modules/video_coding/codecs/av1/BUILD.gn
-index 04d2d3c6bc..7403c80041 100644
---- a/modules/video_coding/codecs/av1/BUILD.gn
-+++ b/modules/video_coding/codecs/av1/BUILD.gn
-@@ -172,6 +172,7 @@ if (rtc_include_tests) {
-         "../../svc:scalability_mode_util",
-         "../../svc:scalability_structures",
-         "../../svc:scalable_video_controller",
-+        "../../svc:svc_rate_allocator",
-       ]
+diff --git a/video/video_stream_encoder.cc b/video/video_stream_encoder.cc
+index 18147a3995..b3a7159676 100644
+--- a/video/video_stream_encoder.cc
++++ b/video/video_stream_encoder.cc
+@@ -979,11 +979,8 @@ void VideoStreamEncoder::ConfigureEncoder(VideoEncoderConfig config,
+       }
      }
    }
-diff --git a/modules/video_coding/codecs/av1/libaom_av1_encoder.cc b/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-index 4c865ec142..3f340d675a 100644
---- a/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-+++ b/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-@@ -433,6 +433,7 @@ int LibaomAv1Encoder::InitEncode(const VideoCodec* codec_settings,
-   if (encoder_speed_experiment_.IsDynamicSpeedEnabled()) {
-     LibaomSpeedConfigFactory speed_config_factory(
-         codec_settings->GetVideoEncoderComplexity(), codec_settings->mode);
-+    RTC_DCHECK(speed_controllers_.empty());
- 
-     if (SvcEnabled()) {
-       for (int si = 0; si < svc_params_->number_spatial_layers; ++si) {
-@@ -659,6 +660,7 @@ int32_t LibaomAv1Encoder::Release() {
+-
+-  bool scale_down_to_changed =
+-      scale_resolution_down_to !=
+-      video_source_sink_controller_.scale_resolution_down_to();
+-  if (scale_down_to_changed ||
++  if (scale_resolution_down_to !=
++          video_source_sink_controller_.scale_resolution_down_to() ||
+       active != video_source_sink_controller_.active() ||
+       max_framerate !=
+           video_source_sink_controller_.frame_rate_upper_limit().value_or(-1)) {
+@@ -996,11 +993,10 @@ void VideoStreamEncoder::ConfigureEncoder(VideoEncoderConfig config,
      }
-     inited_ = false;
-   }
-+  speed_controllers_.clear();
-   rates_configured_ = false;
-   return WEBRTC_VIDEO_CODEC_OK;
- }
-@@ -743,6 +745,8 @@ TimeDelta LibaomAv1Encoder::GetFrameInterval(int spatial_index) const {
-     return frame_interval;
+     video_source_sink_controller_.SetActive(active);
+     video_source_sink_controller_.PushSourceSinkSettings();
+-    video_source_sink_controller_.RequestRefreshFrame();
    }
  
-+  RTC_DCHECK_LT(spatial_index, svc_params_->number_spatial_layers);
-+
-   // Allocate a time slice for each spatial layer, proportional to the
-   // fraction of pixels allocated for that layer.
-   // E.g. if QVGA + VGA is used, 20% of the encoder time will be allocated
-diff --git a/modules/video_coding/codecs/av1/libaom_av1_unittest.cc b/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-index fe2b0bf2e4..58c15f801a 100644
---- a/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-+++ b/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-@@ -21,6 +21,7 @@
+   encoder_queue_->PostTask([this, config = std::move(config),
+-                            max_data_payload_length, scale_down_to_changed,
++                            max_data_payload_length,
+                             callback = std::move(callback)]() mutable {
+     RTC_DCHECK_RUN_ON(encoder_queue_.get());
+     RTC_DCHECK(sink_);
+@@ -1052,15 +1048,7 @@ void VideoStreamEncoder::ConfigureEncoder(VideoEncoderConfig config,
+         encoder_configuration_callbacks_.push_back(std::move(callback));
+       }
  
- #include "api/environment/environment.h"
- #include "api/environment/environment_factory.h"
-+#include "api/field_trials.h"
- #include "api/transport/rtp/dependency_descriptor.h"
- #include "api/units/data_rate.h"
- #include "api/units/data_size.h"
-@@ -40,6 +41,7 @@
- #include "modules/video_coding/svc/create_scalability_structure.h"
- #include "modules/video_coding/svc/scalability_mode_util.h"
- #include "modules/video_coding/svc/scalable_video_controller.h"
-+#include "modules/video_coding/svc/svc_rate_allocator.h"
- #include "rtc_base/checks.h"
- #include "test/gmock.h"
- #include "test/gtest.h"
-@@ -171,6 +173,67 @@ TEST(LibaomAv1Test, EncodeDecode) {
-   EXPECT_EQ(decoder.num_output_frames(), decoder.decoded_frame_ids().size());
+-      // Defer the reconfiguration if we know the source resolution is about to
+-      // change. If only framerate changed, we should reconfigure immediately to
+-      // apply settings, as no resolution mismatch will occur on the next frame.
+-      if (!scale_down_to_changed) {
+-        ReconfigureEncoder();
+-      } else {
+-        RTC_LOG(LS_INFO) << "Deferring reconfiguration until next frame due to "
+-                            "pending resolution change.";
+-      }
++      ReconfigureEncoder();
+     } else {
+       InvokeSetParametersCallback(callback, RTCError::OK());
+     }
+@@ -1350,7 +1338,7 @@ void VideoStreamEncoder::ReconfigureEncoder() {
+ 
+   worker_queue_->PostTask(SafeTask(
+       task_safety_.flag(),
+-      [this, alignment, encoder_paused = EncoderPaused(),
++      [this, alignment,
+        encoder_resolutions = std::move(encoder_resolutions)]() {
+         RTC_DCHECK_RUN_ON(worker_queue_);
+         if (alignment != video_source_sink_controller_.resolution_alignment() ||
+@@ -1360,9 +1348,6 @@ void VideoStreamEncoder::ReconfigureEncoder() {
+           video_source_sink_controller_.SetResolutions(
+               std::move(encoder_resolutions));
+           video_source_sink_controller_.PushSourceSinkSettings();
+-          if (!encoder_paused) {
+-            video_source_sink_controller_.RequestRefreshFrame();
+-          }
+         }
+       }));
+ 
+diff --git a/video/video_stream_encoder_unittest.cc b/video/video_stream_encoder_unittest.cc
+index 0730ee12de..8c75752b8d 100644
+--- a/video/video_stream_encoder_unittest.cc
++++ b/video/video_stream_encoder_unittest.cc
+@@ -2705,111 +2705,6 @@ TEST_F(VideoStreamEncoderTest,
+   video_stream_encoder_->Stop();
  }
  
-+TEST(LibaomAv1Test, EncodeDecodeWithSpeedController) {
-+  EnvironmentFactory factory;
-+  factory.Set(std::make_unique<FieldTrials>(
-+      "WebRTC-EncoderSpeed/"
-+      "dynamic_speed:true,av1_camera:high,av1_screenshare:low/"));
-+  const Environment env = factory.Create();
-+
-+  TestAv1Decoder decoder(env, /*decoder_id=*/0);
-+  std::unique_ptr<VideoEncoder> encoder = CreateLibaomAv1Encoder(env);
-+  VideoCodec codec_settings = DefaultCodecSettings();
-+  ASSERT_EQ(encoder->InitEncode(&codec_settings, DefaultEncoderSettings()),
-+            WEBRTC_VIDEO_CODEC_OK);
-+
-+  VideoBitrateAllocation allocation;
-+  allocation.SetBitrate(0, 0, 300000);
-+  encoder->SetRates(VideoEncoder::RateControlParameters(
-+      allocation, codec_settings.maxFramerate));
-+
-+  std::vector<EncodedVideoFrameProducer::EncodedFrame> encoded_frames =
-+      EncodedVideoFrameProducer(*encoder).SetNumInputFrames(4).Encode();
-+  for (size_t frame_id = 0; frame_id < encoded_frames.size(); ++frame_id) {
-+    decoder.Decode(static_cast<int64_t>(frame_id),
-+                   encoded_frames[frame_id].encoded_image);
-+  }
-+
-+  // Check encoder produced some frames for decoder to decode.
-+  ASSERT_THAT(encoded_frames, Not(IsEmpty()));
-+  // Check decoder found all of them valid.
-+  EXPECT_THAT(decoder.decoded_frame_ids(), SizeIs(encoded_frames.size()));
-+  // Check each of them produced an output frame.
-+  EXPECT_EQ(decoder.num_output_frames(), decoder.decoded_frame_ids().size());
-+}
-+
-+TEST(LibaomAv1Test, InitReleaseRepeatedly) {
-+  EnvironmentFactory factory;
-+  factory.Set(FieldTrials::Create(
-+      "WebRTC-EncoderSpeed/"
-+      "dynamic_speed:true,av1_camera:high,av1_screenshare:low/"));
-+  const Environment env = factory.Create();
-+
-+  std::unique_ptr<VideoEncoder> encoder = CreateLibaomAv1Encoder(env);
-+  VideoCodec codec_settings = DefaultCodecSettings();
-+  codec_settings.SetScalabilityMode(ScalabilityMode::kL3T3_KEY);
-+
-+  SvcRateAllocator rate_allocator(codec_settings, env.field_trials());
-+
-+  VideoBitrateAllocation allocation =
-+      rate_allocator.GetAllocation(3'000'000, 30);
-+
-+  for (int i = 0; i < 10; ++i) {
-+    ASSERT_EQ(encoder->InitEncode(&codec_settings, DefaultEncoderSettings()),
-+              WEBRTC_VIDEO_CODEC_OK);
-+    encoder->SetRates(VideoEncoder::RateControlParameters(
-+        allocation, codec_settings.maxFramerate));
-+    EXPECT_THAT(
-+        EncodedVideoFrameProducer(*encoder).SetNumInputFrames(1).Encode(),
-+        Not(IsEmpty()));
-+    EXPECT_EQ(encoder->Release(), WEBRTC_VIDEO_CODEC_OK);
-+  }
-+}
-+
- struct LayerId {
-   friend bool operator==(const LayerId& lhs, const LayerId& rhs) {
-     return std::tie(lhs.spatial_id, lhs.temporal_id) ==
+-TEST_F(VideoStreamEncoderTest,
+-       ConfigureEncoderRequestsRefreshFrameOnScaleResolutionDownToChange) {
+-  MockVideoSourceInterface mock_source;
+-  video_stream_encoder_->SetSource(&mock_source,
+-                                   DegradationPreference::DISABLED);
+-
+-  video_stream_encoder_->OnBitrateUpdatedAndWaitForManagedResources(
+-      kTargetBitrate, kTargetBitrate, 0, 0, 0);
+-
+-  // Initial configuration.
+-  VideoEncoderConfig config;
+-  test::FillEncoderConfiguration(kVideoCodecVP8, 1, &config);
+-  config.simulcast_layers[0].scale_resolution_down_to = {
+-      .width = 640, .height = 360};  // Example resolution
+-  video_stream_encoder_->ConfigureEncoder(config.Copy(), kMaxPayloadLength);
+-
+-  EXPECT_CALL(mock_source, RequestRefreshFrame).Times(1);
+-
+-  // Change scale_resolution_down_to.
+-  config.simulcast_layers[0].scale_resolution_down_to = {
+-      .width = 320, .height = 180};  // Different resolution
+-  video_stream_encoder_->ConfigureEncoder(std::move(config), kMaxPayloadLength);
+-
+-  AdvanceTime(TimeDelta::Millis(0));
+-  video_stream_encoder_->Stop();
+-}
+-
+-TEST_F(VideoStreamEncoderTest,
+-       ConfigureEncoderRequestsRefreshFrameOnScaleResolutionDownByChange) {
+-  MockVideoSourceInterface mock_source;
+-  VideoSinkInterface<VideoFrame>* input_sink = nullptr;
+-  EXPECT_CALL(mock_source, AddOrUpdateSink)
+-      .WillRepeatedly(::testing::SaveArg<0>(&input_sink));
+-  EXPECT_CALL(mock_source, RemoveSink).WillRepeatedly(Return());
+-
+-  video_stream_encoder_->SetSource(&mock_source,
+-                                   DegradationPreference::DISABLED);
+-
+-  video_stream_encoder_->OnBitrateUpdatedAndWaitForManagedResources(
+-      kTargetBitrate, kTargetBitrate, 0, 0, 0);
+-
+-  // Initial configuration.
+-  VideoEncoderConfig config;
+-  test::FillEncoderConfiguration(kVideoCodecVP8, 1, &config);
+-  config.simulcast_layers[0].scale_resolution_down_by = 1.0;
+-  config.video_stream_factory = nullptr;
+-  video_stream_encoder_->ConfigureEncoder(config.Copy(), kMaxPayloadLength);
+-
+-  // Send a frame to establish resolution and trigger initial configuration.
+-  ASSERT_TRUE(input_sink);
+-  input_sink->OnFrame(CreateFrame(1, 1280, 720));
+-  WaitForEncodedFrame(1);
+-
+-  // Expect RequestRefreshFrame when we change scale_resolution_down_by.
+-  EXPECT_CALL(mock_source, RequestRefreshFrame).Times(1);
+-
+-  // Change scale_resolution_down_by.
+-  config.simulcast_layers[0].scale_resolution_down_by = 2.0;
+-  config.video_stream_factory = nullptr;  // Ensure factory is still null
+-  video_stream_encoder_->ConfigureEncoder(std::move(config), kMaxPayloadLength);
+-
+-  // Deplete task queues to ensure the task runs.
+-  video_stream_encoder_->WaitUntilTaskQueueIsIdle();
+-  AdvanceTime(TimeDelta::Millis(0));
+-  video_stream_encoder_->Stop();
+-}
+-
+-TEST_F(VideoStreamEncoderTest,
+-       ConfigureEncoderDefersReconfigurationOnScaleResolutionDownToChange) {
+-  video_stream_encoder_->OnBitrateUpdatedAndWaitForManagedResources(
+-      kTargetBitrate, kTargetBitrate, 0, 0, 0);
+-  video_source_.set_adaptation_enabled(true);
+-
+-  // Initial configuration.
+-  VideoEncoderConfig config;
+-  test::FillEncoderConfiguration(kVideoCodecVP8, 1, &config);
+-  config.simulcast_layers[0].scale_resolution_down_to = {.width = 640,
+-                                                         .height = 360};
+-  video_stream_encoder_->ConfigureEncoder(config.Copy(), kMaxPayloadLength);
+-
+-  // Send a frame to ensure encoder is initialized and active.
+-  int width = 1280;
+-  int height = 720;
+-  video_source_.IncomingCapturedFrame(CreateFrame(1, width, height));
+-  WaitForEncodedFrame(1);
+-
+-  // Reconfiguration deferred until next frame.
+-  int initial_init_count = fake_encoder_.GetNumInitializations();
+-
+-  // Change scale_resolution_down_to.
+-  config.simulcast_layers[0].scale_resolution_down_to = {.width = 320,
+-                                                         .height = 180};
+-  video_stream_encoder_->ConfigureEncoder(std::move(config), kMaxPayloadLength);
+-  AdvanceTime(TimeDelta::Millis(1));
+-
+-  EXPECT_EQ(fake_encoder_.GetNumInitializations(), initial_init_count);
+-
+-  // Frame triggering reconfiguration.
+-  video_source_.IncomingCapturedFrame(CreateFrame(2, width, height));
+-  WaitForEncodedFrame(2);
+-
+-  EXPECT_EQ(fake_encoder_.GetNumInitializations(), initial_init_count + 1);
+-  video_stream_encoder_->Stop();
+-}
+-
+ TEST_F(VideoStreamEncoderTest, SwitchSourceDeregisterEncoderAsSink) {
+   EXPECT_TRUE(video_source_.has_sinks());
+   test::FrameForwarder new_video_source;
