@@ -1392,10 +1392,10 @@ index 133c229ba3..5017d67c1a 100644
    const bool enable_svc_for_simulcast_;
    std::optional<SimulcastToSvcConverter> simulcast_to_svc_converter_;
 diff --git a/rtc_base/BUILD.gn b/rtc_base/BUILD.gn
-index 491a5cc641..6f7d00881e 100644
+index dc3cf7e8f5..71a1c61c86 100644
 --- a/rtc_base/BUILD.gn
 +++ b/rtc_base/BUILD.gn
-@@ -460,6 +460,12 @@ rtc_library("logging") {
+@@ -461,6 +461,12 @@ rtc_library("logging") {
      "//third_party/abseil-cpp/absl/strings:string_view",
    ]
  
