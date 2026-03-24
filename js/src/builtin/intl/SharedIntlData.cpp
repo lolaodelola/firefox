@@ -388,6 +388,13 @@ bool js::intl::SharedIntlData::getAvailableLocales(
     return true;
   };
 
+  if (auto count = availableLocales.Count(); count > 0) {
+    if (!locales.reserve(uint32_t(count))) {
+      ReportOutOfMemory(cx);
+      return false;
+    }
+  }
+
   for (auto locale : availableLocales) {
     auto parsedLangId = LanguageId::fromId(locale);
 
