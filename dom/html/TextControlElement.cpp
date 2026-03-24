@@ -353,7 +353,7 @@ void TextControlElement::ShowSelection() {
   if (!ourSel) {
     return;
   }
-  auto* ps = OwnerDoc()->GetPresShell();
+  RefPtr<PresShell> ps = OwnerDoc()->GetPresShell();
   if (!ps) {
     return;
   }
@@ -377,6 +377,9 @@ void TextControlElement::ShowSelection() {
 
   if (!docSel->IsCollapsed()) {
     docSel->RemoveAllRanges(IgnoreErrors());
+  }
+  if (ps->IsDestroying()) {
+    return;
   }
 
   // If the focus moved to a text control during text selection by pointer
