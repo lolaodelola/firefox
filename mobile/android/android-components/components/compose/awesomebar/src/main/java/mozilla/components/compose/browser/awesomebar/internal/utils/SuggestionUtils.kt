@@ -28,12 +28,9 @@ internal val SportSuggestionStatus.stringResId: Int?
             R.string.mozac_browser_awesomebar_sport_suggestion_canceled
         is SportSuggestionStatus.Final ->
             R.string.mozac_browser_awesomebar_sport_suggestion_final
-        is SportSuggestionStatus.FinalOverTime ->
-            R.string.mozac_browser_awesomebar_sport_suggestion_final_over_time
-        is SportSuggestionStatus.FinalShootOut ->
-            R.string.mozac_browser_awesomebar_sport_suggestion_final_shoot_out
         is SportSuggestionStatus.Forfeit ->
             R.string.mozac_browser_awesomebar_sport_suggestion_forfeited
-        is SportSuggestionStatus.NotNecessary -> null
-        is SportSuggestionStatus.Unknown -> null
+        is SportSuggestionStatus.NotNecessary,
+        SportSuggestionStatus.Unknown,
+        -> null
     }

@@ -77,16 +77,6 @@ sealed class SportSuggestionStatus {
     data object Final : SportSuggestionStatus()
 
     /**
-     * Represents the game status when the game has finished after over time.
-     */
-    data object FinalOverTime : SportSuggestionStatus()
-
-    /**
-     * Represents the game status when the game has finished after a shoot out.
-     */
-    data object FinalShootOut : SportSuggestionStatus()
-
-    /**
      * Represents the game status when the game has been forfeited.
      */
     data object Forfeit : SportSuggestionStatus()

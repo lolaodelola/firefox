@@ -144,9 +144,10 @@ class SportsOnlineSuggestionProvider(
             "In Progress" -> SportSuggestionStatus.InProgress
             "Suspended" -> SportSuggestionStatus.Suspended
             "Canceled" -> SportSuggestionStatus.Canceled
-            "Final" -> SportSuggestionStatus.Final
-            "Final - Over Time" -> SportSuggestionStatus.FinalOverTime
-            "Final - Shoot Out" -> SportSuggestionStatus.FinalShootOut
+            "Final",
+            "Final - Over Time",
+            "Final - Shoot Out",
+            -> SportSuggestionStatus.Final
             "Forfeit" -> SportSuggestionStatus.Forfeit
             "Not Necessary" -> SportSuggestionStatus.NotNecessary
             else -> SportSuggestionStatus.Unknown

@@ -15,7 +15,7 @@ internal class SportSuggestionDataProvider : PreviewParameterProvider<SportSugge
     override val values = sequenceOf(
         SportSuggestionPreviewModel(
             sport = "NBA",
-            status = SportSuggestionStatus.FinalOverTime,
+            status = SportSuggestionStatus.Final,
             statusType = SportSuggestionStatusType.PAST,
             date = SportSuggestionDate.General("28 Oct 2025"),
             awayTeam = SportSuggestionTeam(name = "Lakers", score = 107),

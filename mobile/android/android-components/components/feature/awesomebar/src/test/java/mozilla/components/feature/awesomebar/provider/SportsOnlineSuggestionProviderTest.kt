@@ -301,12 +301,12 @@ class SportsOnlineSuggestionProviderTest {
 
     @Test
     fun `parseStatus returns Final for Final - Over Time`() {
-        assertEquals(SportSuggestionStatus.FinalOverTime, provider.parseStatus("Final - Over Time"))
+        assertEquals(SportSuggestionStatus.Final, provider.parseStatus("Final - Over Time"))
     }
 
     @Test
-    fun `parseStatus returns FinalShootOut for Final - Shoot Out`() {
-        assertEquals(SportSuggestionStatus.FinalShootOut, provider.parseStatus("Final - Shoot Out"))
+    fun `parseStatus returns Final for Final - Shoot Out`() {
+        assertEquals(SportSuggestionStatus.Final, provider.parseStatus("Final - Shoot Out"))
     }
 
     @Test

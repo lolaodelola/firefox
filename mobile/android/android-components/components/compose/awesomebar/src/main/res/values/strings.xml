@@ -35,16 +35,6 @@
     <string name="mozac_browser_awesomebar_sport_suggestion_canceled">Canceled</string>
     <!-- Description for the sport suggestion card when the game is final. -->
     <string name="mozac_browser_awesomebar_sport_suggestion_final">Final</string>
-    <!-- Description for the sport suggestion card when the game is final after over time.
-         "OT" is the abbreviation for "overtime". “Overtime” means the extra period(s) played
-         after regular time when the score is tied to determine a winner. Use the standard sports
-         term and abbreviation for this in your locale.  -->
-    <string name="mozac_browser_awesomebar_sport_suggestion_final_over_time">Final(OT)</string>
-    <!-- Description for the sport suggestion card when the game is final after a penalty shoot out.
-         "SO" is the abbreviation for "shootout". “Shootout” is a tie-breaking method used to
-         determine a winner when a match remains tied after regular play and any extra time.
-         Use the standard sports term and abbreviation for this in your locale.  -->
-    <string name="mozac_browser_awesomebar_sport_suggestion_final_shoot_out">Final(SO)</string>
     <!-- Description for the sport suggestion card when the game was forfeited. -->
     <string name="mozac_browser_awesomebar_sport_suggestion_forfeited">Forfeited</string>
     <!-- Description for the sport suggestion card's date when the game will hold today. -->
