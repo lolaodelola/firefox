@@ -1,6 +1,45 @@
 {
   "data": [
     {
+      "schema": 1774321167312,
+      "derHash": "PnhD+fe1rbfYVy4+mtuQNh480OdmvMdAODD1vqDfJkM=",
+      "attachment": {
+        "hash": "626411fa1a1a96145370b856759aa04362d6b29227bf2a8bc1f1b270867c158a",
+        "size": 1333,
+        "filename": "ZcmQIw3T5sstVqoLKtlSp-iGIreyBs6HuHoKvalPSbw=.pem",
+        "location": "security-state-staging/intermediates/5c22466d-6c50-46d9-aeb5-8a49e5106d5b.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "e04d4e38-55e1-4185-9024-7c8a07e7f90f",
+      "last_modified": 1774324622561
+    },
+    {
+      "schema": 1774321166456,
+      "derHash": "x24j36ABS4habe2ObWTCla9Jkdx4csGviw/vUn4mOSk=",
+      "attachment": {
+        "hash": "f6bed434abd9cba4cb6c693afa5bc3610a074c2273836781b76d16121e42e2a3",
+        "size": 2483,
+        "filename": "DTHIAtHLOR6FmYnWT0BO8a7y7EPc0Efk6Xg5Q2TZgcQ=.pem",
+        "location": "security-state-staging/intermediates/4c021cd3-ee89-4bf0-aea7-1bae269d28c8.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "749cc566-3960-4751-99c3-38dd313dd8ed",
+      "last_modified": 1774324622559
+    },
+    {
+      "schema": 1774321165467,
+      "derHash": "IIK2QbStfyCozufx+4VXHqRhIi/pM9/y+yRu1ax+raI=",
+      "attachment": {
+        "hash": "8334eb6e646f5086918552fdc4c9e388fc154ba3a73f5ec6b734d151cdd4dcd1",
+        "size": 2483,
+        "filename": "A8ZEgZnEvlP5roifoh8jSSc6XIssihwe4GegJOQMMgc=.pem",
+        "location": "security-state-staging/intermediates/e82e926a-6890-44f9-bef0-bd26a51cba97.pem",
+        "mimetype": "application/x-pem-file"
+      },
+      "id": "ea3b6bb6-b87f-4a32-af61-934b7372d338",
+      "last_modified": 1774324622556
+    },
+    {
       "schema": 1774015158385,
       "derHash": "YwbEkfnRzs7e9GQg4ChgGSLAEG3QtIphp0VPntOM1kk=",
       "attachment": {
@@ -17596,24 +17635,6 @@
       "last_modified": 1666727873590
     },
     {
-      "schema": 1666727415821,
-      "derHash": "lW/5zJFIdNnK+WVbzLaWwb5Jolv5KNXEHA9TlaE12Lg=",
-      "subject": "CN=Telekom Security DV RSA CA 21,O=Deutsche Telekom Security GmbH,C=DE",
-      "subjectDN": "MF4xCzAJBgNVBAYTAkRFMScwJQYDVQQKDB5EZXV0c2NoZSBUZWxla29tIFNlY3VyaXR5IEdtYkgxJjAkBgNVBAMMHVRlbGVrb20gU2VjdXJpdHkgRFYgUlNBIENBIDIx",
-      "whitelist": false,
-      "attachment": {
-        "hash": "acb3894c8cbada20f584e21eba9807c60116c18b1ffb053f0d45638c7fbade05",
-        "size": 1752,
-        "filename": "xKFly8BVCDp0QQH2za-7ZzsqYFz305rqc0YqMPtU7Uw=.pem",
-        "location": "security-state-staging/intermediates/5cc07929-0f31-444c-9904-7e3f405702e3.pem",
-        "mimetype": "application/x-pem-file"
-      },
-      "pubKeyHash": "xKFly8BVCDp0QQH2za+7ZzsqYFz305rqc0YqMPtU7Uw=",
-      "crlite_enrolled": false,
-      "id": "1c1cd633-821a-4775-9051-53aaf439c3b3",
-      "last_modified": 1666727873576
-    },
-    {
       "schema": 1666727372257,
       "derHash": "SB5YKiBqfXBAzNoXzyXTSXhaKrlO11UqslTc04sDLsA=",
       "subject": "CN=Microsoft RSA TLS Issuing AOC CA 01,O=Microsoft Corporation,C=US",
@@ -32302,5 +32323,5 @@
       "last_modified": 1559865884636
     }
   ],
-  "timestamp": 1774018622682
+  "timestamp": 1774324622561
 }
