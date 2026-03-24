@@ -82,6 +82,8 @@ class ImageAnalzer:
     def app_setup(self):
         if ON_TRY:
             self.device.shell(f"pm clear {self.package_name}")
+            # Bug 2019204 - Clear Security Hub package to prevent 'not responding' dialogs
+            self.device.shell("pm clear com.google.android.apps.security.securityhub")
         time.sleep(3)
         self.skip_onboarding()
         self.device.enable_notifications(
