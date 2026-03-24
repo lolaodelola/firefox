@@ -1051,23 +1051,6 @@ class HeapSlotArray {
   }
 };
 
-/*
- * This is a hack for RegExpStatics::updateFromMatch. It allows us to do two
- * barriers with only one branch to check if we're in an incremental GC.
- */
-template <class T1, class T2>
-static inline void BarrieredSetPair(Zone* zone, HeapPtr<T1*>& v1, T1* val1,
-                                    HeapPtr<T2*>& v2, T2* val2) {
-  AssertTargetIsNotGray(val1);
-  AssertTargetIsNotGray(val2);
-  if (T1::needPreWriteBarrier(zone)) {
-    v1.pre();
-    v2.pre();
-  }
-  v1.postBarrieredSet(val1);
-  v2.postBarrieredSet(val2);
-}
-
 // Initialize a field in the heap, with appropriate GC write barriers. This adds
 // a store buffer entry for this specific edge if necessary.
 

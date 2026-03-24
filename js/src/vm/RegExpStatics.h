@@ -296,9 +296,8 @@ inline bool RegExpStatics::updateFromMatchPairs(JSContext* cx,
   pendingLazyEvaluation = false;
   this->lazySource = nullptr;
   this->lazyIndex = size_t(-1);
-
-  BarrieredSetPair<JSString, JSLinearString>(cx->zone(), pendingInput, input,
-                                             matchesInput, input);
+  this->pendingInput = input;
+  this->matchesInput = input;
 
   if (!matches.initArrayFrom(newPairs)) {
     ReportOutOfMemory(cx);
