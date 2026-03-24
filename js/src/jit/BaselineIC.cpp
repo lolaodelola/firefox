@@ -1736,10 +1736,8 @@ bool DoSpreadCallFallback(JSContext* cx, BaselineFrame* frame,
     Rooted<ArrayObject*> aobj(cx, &arr.toObject().as<ArrayObject>());
     MOZ_ASSERT(IsPackedArray(aobj));
 
-    HandleValueArray args = HandleValueArray::fromMarkedLocation(
-        aobj->length(), aobj->getDenseElements());
     CallIRGenerator gen(cx, script, pc, stub->state(), frame, 1, callee, thisv,
-                        newTarget, args);
+                        newTarget, aobj);
     switch (gen.tryAttachStub()) {
       case AttachDecision::NoAction:
         break;

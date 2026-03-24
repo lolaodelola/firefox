@@ -18,6 +18,7 @@ import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.suspendCancellableCoroutine
 import mozilla.components.browser.state.selector.selectedTab
@@ -82,6 +83,8 @@ private fun EngineSession?.asPageMetadataExtractor(): PageMetadataExtractor = {
     }
 }
 
+const val HALF_EXPANDED_RATIO = 0.75f
+
 /**
  * Summarization UI entry fragment.
  */
@@ -96,7 +99,20 @@ class SummarizationFragment : BottomSheetDialogFragment() {
             settings = SummarizationSettings.dataStore(requireContext()),
             pageContentExtractor = engineSession.asPageContentExtractor(),
             pageMetadataExtractor = engineSession.asPageMetadataExtractor(),
+            errorReporter = { requireComponents.analytics.crashReporter.submitCaughtException(it) },
         )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val bottomSheet = dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+        bottomSheet?.let { sheet ->
+            val behavior = BottomSheetBehavior.from(sheet)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.isFitToContents = false
+            behavior.halfExpandedRatio = HALF_EXPANDED_RATIO
+            behavior.expandedOffset = 0
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =

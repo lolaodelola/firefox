@@ -8,6 +8,10 @@ const { ChatConversation, MESSAGE_ROLE, ChatMessage } =
     "moz-src:///browser/components/aiwindow/ui/modules/ChatStore.sys.mjs"
   );
 
+const { SecurityProperties } = ChromeUtils.importESModule(
+  "moz-src:///browser/components/aiwindow/models/SecurityProperties.sys.mjs"
+);
+
 const { MEMORIES_FLAG_SOURCE, SYSTEM_PROMPT_TYPE } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/ui/modules/ChatEnums.sys.mjs"
 );
@@ -1110,3 +1114,26 @@ add_task(
     });
   }
 );
+
+add_task(function test_securityProperties_plainObject_normalization() {
+  const conversation = new ChatConversation({
+    securityProperties: { untrustedInput: true },
+  });
+
+  Assert.withSoftAssertions(function (soft) {
+    soft.ok(
+      conversation.securityProperties instanceof SecurityProperties,
+      "securityProperties should be a SecurityProperties instance"
+    );
+    soft.equal(
+      conversation.securityProperties.untrustedInput,
+      true,
+      "untrustedInput should be true when explicitly set"
+    );
+    soft.equal(
+      conversation.securityProperties.privateData,
+      false,
+      "privateData should default to false when missing from input"
+    );
+  });
+});

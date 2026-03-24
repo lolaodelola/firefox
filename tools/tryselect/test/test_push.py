@@ -247,7 +247,7 @@ def test_push_to_try_routing(
         push._is_hg_try.cache_clear()
 
         is_hg_try = "ssh://hg.mozilla.org/try" in url
-        if push_to_vcs and not is_hg_try:
+        if push_to_vcs or not is_hg_try:
             mock_vcs.try_commit.return_value.__enter__ = MagicMock(
                 return_value="abc123"
             )
@@ -271,7 +271,8 @@ def test_push_to_try_routing(
                 mock_vcs.try_commit.assert_called_once()
                 mock_vcs.push.assert_called_once_with(
                     url,
-                    ref="feature-branch",
+                    ref="abc123",
+                    dest_branch="feature-branch",
                     force=True,
                 )
         else:

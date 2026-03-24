@@ -228,7 +228,9 @@ fun TabsTray(
                 onExitSelectModeClick = {
                     tabsTrayStore.dispatch(TabsTrayAction.ExitSelectMode)
                 },
-                onAddToTabGroup = {},
+                onAddToTabGroup = {
+                    // Bug 2017777
+                },
             )
         },
         floatingActionButton = {

@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -30,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -40,7 +38,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.annotation.FlexibleWindowLightDarkPreview
-import org.mozilla.fenix.compose.BottomSheetHandle
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTab
@@ -52,10 +49,7 @@ import org.mozilla.fenix.tabstray.ui.tabpage.TabLayout
 import org.mozilla.fenix.theme.FirefoxTheme
 import mozilla.components.ui.icons.R as iconsR
 
-private const val BOTTOM_SHEET_HANDLER_ALPHA = 0.4F
-
 // todo-bug 2022914: replace these placeholders when strings are ready
-private const val PLACEHOLDER_BOTTOM_SHEET_HANDLE_TAB_GROUP_CONTENT_DESCRIPTION = "Close expanded tab group"
 private const val PLACEHOLDER_SHARE_TAB_GROUP_CONTENT_DESCRIPTION = "Share tab group"
 
 /**
@@ -63,66 +57,37 @@ private const val PLACEHOLDER_SHARE_TAB_GROUP_CONTENT_DESCRIPTION = "Share tab g
  * @param group: [TabsTrayItem.TabGroup] item rendered by the card
  * @param focusedTabId: String id of the tab in focus.  This id may correspond to a tab
  * that is not inside the group.
+ * @param onItemClick Invoked when the user clicks on a [TabsTrayItem] in the group.
+ * @param onTabClose Invoked when the user clicks to close a [TabsTrayItem.Tab] in the group.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpandedTabGroup(group: TabsTrayItem.TabGroup, focusedTabId: String?) {
-    val sheetState = rememberModalBottomSheetState()
-    LaunchedEffect(Unit) {
-        if (!sheetState.isVisible) {
-            sheetState.show()
-        }
-    }
-    ExpandedTabGroup(group = group, focusedTabId = focusedTabId, sheetState = sheetState)
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun ExpandedTabGroup(
+fun ExpandedTabGroup(
     group: TabsTrayItem.TabGroup,
     focusedTabId: String?,
-    sheetState: SheetState,
+    onItemClick: (TabsTrayItem) -> Unit,
+    onTabClose: (TabsTrayItem.Tab) -> Unit,
 ) {
-    ModalBottomSheet(
-        modifier = Modifier.testTag(TabsTrayTestTag.TAB_GROUP_BOTTOM_SHEET_ROOT),
-        sheetState = sheetState,
-        onDismissRequest = {},
-        dragHandle = {
-            BottomSheetHandle(
-                modifier = Modifier
-                    .padding(
-                        all = FirefoxTheme.layout.space.static200,
-                    )
-                    .alpha(BOTTOM_SHEET_HANDLER_ALPHA),
-                onRequestDismiss = {
-                    // todo: handle navigation
-                },
-                contentDescription = PLACEHOLDER_BOTTOM_SHEET_HANDLE_TAB_GROUP_CONTENT_DESCRIPTION,
-            )
-        },
-    ) {
-        ViewTabGroupContent(group = group, focusedTabId = focusedTabId)
-    }
-}
-
-@Composable
-private fun ViewTabGroupContent(group: TabsTrayItem.TabGroup, focusedTabId: String?) {
     Column(
-        modifier = Modifier.padding(
-            start = FirefoxTheme.layout.space.dynamic200,
-            end = FirefoxTheme.layout.space.dynamic200,
-        ),
+        modifier = Modifier
+            .testTag(TabsTrayTestTag.TAB_GROUP_BOTTOM_SHEET_ROOT)
+            .padding(
+                start = FirefoxTheme.layout.space.dynamic200,
+                end = FirefoxTheme.layout.space.dynamic200,
+            ),
     ) {
         Spacer(modifier = Modifier.height(FirefoxTheme.layout.space.static150))
+
         ViewTabGroupHeader(group.title, group.theme.primary)
+
         TabLayout(
             tabs = group.tabs.toList(),
             displayTabsInGrid = true,
             selectedTabId = focusedTabId,
             selectionMode = TabsTrayState.Mode.Normal,
             modifier = Modifier,
-            onTabClose = { item -> }, // todo: handle closing tab
-            onItemClick = { item -> }, // todo: handle navigation
+            onTabClose = onTabClose,
+            onItemClick = onItemClick,
             onItemLongClick = { item -> }, // Ignore long click
             onMove = { _, _, _ -> }, // Ignore moves
             onTabDragStart = { }, // Ignore drags
@@ -190,32 +155,48 @@ private fun ViewTabGroupHeader(title: String, groupColor: Color) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @FlexibleWindowLightDarkPreview
 @Composable
 private fun ExpandedTabGroupPreview(
     @PreviewParameter(ExpandedTabGroupPreviewProvider::class)
     previewState: ExpandedTabGroupPreviewState,
 ) {
+    val sheetState = rememberModalBottomSheetState()
+    LaunchedEffect(Unit) {
+        if (!sheetState.isVisible) {
+            sheetState.show()
+        }
+    }
+
     FirefoxTheme {
         Surface {
-            ExpandedTabGroup(
-                previewState.group,
-                previewState.selectedTabId,
-            )
+            ModalBottomSheet(
+                modifier = Modifier.testTag(TabsTrayTestTag.TAB_GROUP_BOTTOM_SHEET_ROOT),
+                sheetState = sheetState,
+                onDismissRequest = {},
+            ) {
+                ExpandedTabGroup(
+                    group = previewState.group,
+                    focusedTabId = previewState.selectedTabId,
+                    onTabClose = {},
+                    onItemClick = {},
+                )
+            }
         }
     }
 }
 
 private fun generateFakeTabsList(
     tabCount: Int = 10,
-): HashSet<TabsTrayItem.Tab> = List(tabCount) { index ->
+): MutableList<TabsTrayItem.Tab> = MutableList(tabCount) { index ->
     createTab(
         id = "tab$index",
         title = "Tab $index",
         url = "www.mozilla.com",
         private = false,
     )
-}.toHashSet()
+}
 
 private data class ExpandedTabGroupPreviewState(
     val group: TabsTrayItem.TabGroup,

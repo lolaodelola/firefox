@@ -1162,13 +1162,13 @@ class AboutTranslations {
     if (languageLabel) {
       document.l10n.setAttributes(
         detectedLanguageUnsupportedHeading,
-        "about-translations-detected-language-unsupported-heading",
+        "about-translations-detected-language-unsupported-heading-2",
         { language: languageLabel }
       );
     } else {
       document.l10n.setAttributes(
         detectedLanguageUnsupportedHeading,
-        "about-translations-detected-language-unsupported-heading-unknown"
+        "about-translations-detected-language-unsupported-heading-unknown-2"
       );
     }
 

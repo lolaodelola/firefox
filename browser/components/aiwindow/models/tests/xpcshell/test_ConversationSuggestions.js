@@ -16,6 +16,10 @@ const {
   "moz-src:///browser/components/aiwindow/models/ConversationSuggestions.sys.mjs"
 );
 
+const { sanitizeUntrustedContent } = ChromeUtils.importESModule(
+  "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
+);
+
 const { openAIEngine } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs"
 );
@@ -506,15 +510,22 @@ add_task(async function test_generateConversationStartersSidebar_happy_path() {
       2,
       "run should be called with 2 messages"
     );
+
     Assert.ok(
       callArgs.args[1].content.includes(
-        '{"title":"Current Tab","url":"https://current.example.com"}'
+        JSON.stringify({
+          title: sanitizeUntrustedContent("Current Tab"),
+          url: "https://current.example.com",
+        })
       ),
       "Prompt should include current tab info"
     );
     Assert.ok(
       callArgs.args[1].content.includes(
-        '{"title":"Tab 2","url":"https://tab2.example.com"}'
+        JSON.stringify({
+          title: sanitizeUntrustedContent("Tab 2"),
+          url: "https://tab2.example.com",
+        })
       ),
       "Prompt should include other tab info"
     );
@@ -589,13 +600,19 @@ add_task(
       );
       Assert.ok(
         callArgs.args[1].content.includes(
-          '{"title":"Current Tab","url":"https://current.example.com"}'
+          JSON.stringify({
+            title: sanitizeUntrustedContent("Current Tab"),
+            url: "https://current.example.com",
+          })
         ),
         "Prompt should include current tab info"
       );
       Assert.ok(
         callArgs.args[1].content.includes(
-          '{"title":"Tab 2","url":"https://tab2.example.com"}'
+          JSON.stringify({
+            title: sanitizeUntrustedContent("Tab 2"),
+            url: "https://tab2.example.com",
+          })
         ),
         "Prompt should include other tab info"
       );
@@ -671,13 +688,19 @@ add_task(
       );
       Assert.ok(
         callArgs.args[1].content.includes(
-          '{"title":"Current Tab","url":"https://current.example.com"}'
+          JSON.stringify({
+            title: sanitizeUntrustedContent("Current Tab"),
+            url: "https://current.example.com",
+          })
         ),
         "Prompt should include current tab info"
       );
       Assert.ok(
         callArgs.args[1].content.includes(
-          '{"title":"Tab 2","url":"https://tab2.example.com"}'
+          JSON.stringify({
+            title: sanitizeUntrustedContent("Tab 2"),
+            url: "https://tab2.example.com",
+          })
         ),
         "Prompt should include other tab info"
       );
@@ -822,7 +845,10 @@ add_task(async function test_generateConversationStartersSidebar_one_tab() {
     );
     Assert.ok(
       callArgs.args[1].content.includes(
-        '\n{"title":"Only Tab","url":"https://only.example.com"}'
+        JSON.stringify({
+          title: sanitizeUntrustedContent("Only Tab"),
+          url: "https://only.example.com",
+        })
       ),
       "Prompt should include current tab info"
     );
@@ -1005,7 +1031,10 @@ add_task(async function test_generateFollowupPrompts_happy_path() {
     );
     Assert.ok(
       callArgs.messages[1].content.includes(
-        '{"title":"Current Tab","url":"https://current.example.com"}'
+        JSON.stringify({
+          title: sanitizeUntrustedContent("Current Tab"),
+          url: "https://current.example.com",
+        })
       ),
       "Prompt should include current tab info"
     );
@@ -1088,7 +1117,10 @@ add_task(async function test_generateFollowupPrompts_no_memories() {
     );
     Assert.ok(
       callArgs.messages[1].content.includes(
-        '{"title":"Current Tab","url":"https://current.example.com"}'
+        JSON.stringify({
+          title: sanitizeUntrustedContent("Current Tab"),
+          url: "https://current.example.com",
+        })
       ),
       "Prompt should include current tab info"
     );
@@ -1172,7 +1204,10 @@ add_task(async function test_generateFollowupPrompts_no_memories_returned() {
     );
     Assert.ok(
       callArgs.messages[1].content.includes(
-        '{"title":"Current Tab","url":"https://current.example.com"}'
+        JSON.stringify({
+          title: sanitizeUntrustedContent("Current Tab"),
+          url: "https://current.example.com",
+        })
       ),
       "Prompt should include current tab info"
     );

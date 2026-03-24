@@ -75,7 +75,7 @@ add_task(async function test_newtab_last_LinkMenu() {
       SpecialPowers.spawn(
         browser,
         [],
-        () => content.document.getElementById("root").children.length
+        () => content.document.getElementById("root")?.children.length
       ),
     "Should render activity stream content"
   );

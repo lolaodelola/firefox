@@ -124,7 +124,7 @@ object SettingsSelectors {
     )
 
     val OPEN_LINKS_IN_APPS_BUTTON = Selector(
-        strategy = SelectorStrategy.ESPRESSO_BY_TEXT,
+        strategy = SelectorStrategy.UIAUTOMATOR2_BY_TEXT,
         value = "Open links in apps",
         description = "the Open links in apps button",
         groups = listOf("advancedSettingsSection"),

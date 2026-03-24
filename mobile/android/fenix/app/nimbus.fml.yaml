@@ -576,6 +576,51 @@ features:
         type: Boolean
         default: false
 
+  safe-browsing-real-time:
+    description: Control Safe Browsing real-time lookup and simulation.
+    variables:
+      feature-enabled:
+        description: >-
+          If true, this feature is enabled and the below settings override
+          the Gecko defaults. Otherwise, the Gecko defaults are used.
+        type: Boolean
+        default: false
+      global-cache-enabled:
+        description: >-
+          Enables / disables the Safe Browsing Global Cache.
+        type: Boolean
+        default: false
+      real-time-enabled:
+        description: >-
+          Enables / disables Safe Browsing real-time lookup.
+        type: Boolean
+        default: false
+      simulation-enabled:
+        description: >-
+          Enables / disables the real-time request simulator.
+        type: Boolean
+        default: false
+      simulation-hit-probability:
+        description: >-
+          Hit probability for the real-time request simulator.
+        type: Int
+        default: 5
+      simulation-cache-ttl-sec:
+        description: >-
+          Cache TTL in seconds for the real-time request simulator.
+        type: Int
+        default: 300
+      simulation-negative-cache-enabled:
+        description: >-
+          Enables / disables the negative cache for the real-time request simulator.
+        type: Boolean
+        default: false
+      simulation-negative-cache-ttl-sec:
+        description: >-
+          Negative cache TTL in seconds for the real-time request simulator.
+        type: Int
+        default: 300
+
   menu-redesign:
     description: Control the new menu redesign.
     variables:

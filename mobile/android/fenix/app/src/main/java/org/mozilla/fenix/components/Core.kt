@@ -250,6 +250,19 @@ class Core(
                 FxNimbus.features.safeBrowsingV5.value().enableV5
         }
 
+        // Apply Safe Browsing Real-Time settings if the Nimbus feature is enabled.
+        with(FxNimbus.features.safeBrowsingRealTime.value()) {
+            if (featureEnabled) {
+                defaultSettings.safeBrowsingGlobalCacheEnabled = globalCacheEnabled
+                defaultSettings.safeBrowsingRealTimeEnabled = realTimeEnabled
+                defaultSettings.safeBrowsingRealTimeSimulationEnabled = simulationEnabled
+                defaultSettings.safeBrowsingRealTimeSimulationHitProbability = simulationHitProbability
+                defaultSettings.safeBrowsingRealTimeSimulationCacheTTLSec = simulationCacheTtlSec
+                defaultSettings.safeBrowsingRealTimeSimulationNegativeCacheEnabled = simulationNegativeCacheEnabled
+                defaultSettings.safeBrowsingRealTimeSimulationNegativeCacheTTLSec = simulationNegativeCacheTtlSec
+            }
+        }
+
         GeckoEngine(
             context = context,
             defaultSettings = defaultSettings,

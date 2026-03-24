@@ -185,7 +185,7 @@ class TabStorageMiddleware(
                 id = tabGroup.id,
                 theme = safeTheme,
                 title = tabGroup.title,
-                tabs = hashSetOf(),
+                tabs = mutableListOf(),
                 closed = tabGroup.closed,
             )
         }

@@ -1203,7 +1203,7 @@ class UrlbarInputTestUtils {
     if (Services.prefs.getBoolPref("browser.urlbar.trimURLs")) {
       return lazy.UrlbarPrefs.getScotchBonnetPref("trimHttps")
         ? "https://"
-        : "http://"; // eslint-disable-this-line @microsoft/sdl/no-insecure-url
+        : "http://"; // eslint-disable-line @microsoft/sdl/no-insecure-url
     }
     return "";
   }

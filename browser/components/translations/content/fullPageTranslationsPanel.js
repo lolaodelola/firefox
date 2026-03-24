@@ -678,13 +678,13 @@ var FullPageTranslationsPanel = new (class {
       if (language) {
         document.l10n.setAttributes(
           unsupportedHint,
-          "translations-panel-error-unsupported-hint-known",
+          "translations-panel-error-unsupported-hint-known-2",
           { language }
         );
       } else {
         document.l10n.setAttributes(
           unsupportedHint,
-          "translations-panel-error-unsupported-hint-unknown"
+          "translations-panel-error-unsupported-hint-unknown-2"
         );
       }
     }

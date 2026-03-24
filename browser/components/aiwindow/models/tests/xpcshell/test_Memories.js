@@ -4,6 +4,9 @@
 
 do_get_profile();
 
+const { sanitizeUntrustedContent } = ChromeUtils.importESModule(
+  "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
+);
 const { ChatStore, ChatMessage, MESSAGE_ROLE } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/ui/modules/ChatStore.sys.mjs"
 );
@@ -157,11 +160,11 @@ add_task(async function test_buildRecentHistoryCSV_only_search() {
     renderedBrowserHistory,
     `# Website Titles
 Website Title,Importance Score
-Google Search: firefox history | www.google.com,100
+${sanitizeUntrustedContent("Google Search: firefox history | www.google.com", true)},100
 
 # Web Searches
 Search Query,Importance Score
-Google Search: firefox history | www.google.com,1`.trim()
+${sanitizeUntrustedContent("Google Search: firefox history | www.google.com", true)},1`.trim()
   );
 });
 
@@ -196,8 +199,8 @@ add_task(async function test_buildRecentHistoryCSV_only_browsing_history() {
     renderedBrowserHistory,
     `# Website Titles
 Website Title,Importance Score
-Hacker News | news.ycombinator.com,100
-Internet for people, not profit — Mozilla | mozilla.org,100`.trim()
+${sanitizeUntrustedContent("Hacker News | news.ycombinator.com", true)},100
+${sanitizeUntrustedContent("Internet for people, not profit — Mozilla | mozilla.org", true)},100`.trim()
   );
 });
 

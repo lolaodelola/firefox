@@ -2143,7 +2143,7 @@ var SelectTranslationsPanel = new (class {
       if (language) {
         document.l10n.setAttributes(
           unsupportedLanguageMessageBar,
-          "select-translations-panel-unsupported-language-message-known",
+          "select-translations-panel-unsupported-language-message-known-2",
           { language }
         );
       } else {
@@ -2155,7 +2155,7 @@ var SelectTranslationsPanel = new (class {
       // In either case, localize the message for an unknown language.
       document.l10n.setAttributes(
         unsupportedLanguageMessageBar,
-        "select-translations-panel-unsupported-language-message-unknown"
+        "select-translations-panel-unsupported-language-message-unknown-2"
       );
     }
     this.#updateConditionalUIEnabledState();

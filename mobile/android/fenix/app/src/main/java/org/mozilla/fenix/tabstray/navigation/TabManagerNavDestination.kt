@@ -4,8 +4,10 @@
 
 package org.mozilla.fenix.tabstray.navigation
 
+import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.ui.tabsearch.TabSearchScreen
 import org.mozilla.fenix.tabstray.ui.tabstray.TabsTray
+import org.mozilla.fenix.tabgroups.ExpandedTabGroup as ExpandedTabGroupScreen
 
 /**
  * Destinations the user can visit within the Tab Manager
@@ -22,4 +24,11 @@ sealed interface TabManagerNavDestination {
      * [TabManagerNavDestination] representing the [TabSearchScreen].
      */
     data object TabSearch : TabManagerNavDestination
+
+    /**
+     * [TabManagerNavDestination] representing the [ExpandedTabGroupScreen].
+     *
+     * @property group The displayed [TabsTrayItem.TabGroup].
+     */
+    data class ExpandedTabGroup(val group: TabsTrayItem.TabGroup) : TabManagerNavDestination
 }

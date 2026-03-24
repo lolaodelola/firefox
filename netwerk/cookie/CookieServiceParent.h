@@ -40,25 +40,26 @@ class CookieServiceParent : public PCookieServiceParent {
     }
 
     void Initialize(CookieServiceParent* aActor) {
-      MOZ_ASSERT(!mActor && aActor);
+      MOZ_ASSERT(!mProxy && aActor);
 
-      mActor = aActor;
-
-      if (mActor) {
-        MOZ_ASSERT(!mActor->mProcessingCookie);
-        mActor->mProcessingCookie = true;
+      mProxy = aActor->GetLifecycleProxy();
+      if (mProxy && mProxy->Get()) {
+        auto* actor = static_cast<CookieServiceParent*>(mProxy->Get());
+        MOZ_ASSERT(!actor->mProcessingCookie);
+        actor->mProcessingCookie = true;
       }
     }
 
     ~CookieProcessingGuard() {
-      if (mActor) {
-        MOZ_ASSERT(mActor->mProcessingCookie);
-        mActor->mProcessingCookie = false;
+      if (mProxy && mProxy->Get()) {
+        auto* actor = static_cast<CookieServiceParent*>(mProxy->Get());
+        MOZ_ASSERT(actor->mProcessingCookie);
+        actor->mProcessingCookie = false;
       }
     }
 
    private:
-    CookieServiceParent* mActor = nullptr;
+    RefPtr<mozilla::ipc::ActorLifecycleProxy> mProxy;
   };
 
   explicit CookieServiceParent(dom::ContentParent* aContentParent);

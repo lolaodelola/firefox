@@ -493,6 +493,11 @@ class alignas(uintptr_t) JitScript final
   void setBaselineScriptImpl(JSScript* script, BaselineScript* baselineScript);
   void setBaselineScriptImpl(JS::GCContext* gcx, JSScript* script,
                              BaselineScript* baselineScript);
+  void maybeRemoveFromCompileQueue(JSScript* script) {
+    if (isBaselineQueued()) {
+      script->realm()->removeFromCompileQueue(script);
+    }
+  }
 
  public:
   // Methods for getting/setting/clearing a BaselineScript*.
@@ -510,6 +515,7 @@ class alignas(uintptr_t) JitScript final
   }
   void setBaselineScript(JSScript* script, BaselineScript* baselineScript) {
     MOZ_ASSERT(!hasBaselineScript());
+    maybeRemoveFromCompileQueue(script);
     setBaselineScriptImpl(script, baselineScript);
     MOZ_ASSERT(hasBaselineScript());
   }
@@ -531,6 +537,7 @@ class alignas(uintptr_t) JitScript final
   }
   void setIsBaselineCompiling(JSScript* script) {
     MOZ_ASSERT(baselineScript_ == nullptr);
+    maybeRemoveFromCompileQueue(script);
     setBaselineScriptImpl(script, BaselineCompilingScriptPtr);
   }
   void clearIsBaselineCompiling(JSScript* script) {

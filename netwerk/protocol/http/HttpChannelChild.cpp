@@ -2887,6 +2887,7 @@ CacheEntryWriteHandleChild::OpenAlternativeOutputStream(
   }
 
   RefPtr<AltDataOutputStreamChild> stream = new AltDataOutputStreamChild();
+  stream->AddIPDLReference();
 
   if (!gNeckoChild->SendPAltDataOutputStreamConstructor(
           stream, nsCString(aType), aPredictedSize, Nothing(),
@@ -2894,7 +2895,6 @@ CacheEntryWriteHandleChild::OpenAlternativeOutputStream(
     return NS_ERROR_FAILURE;
   }
 
-  stream->AddIPDLReference();
   stream.forget(_retval);
   return NS_OK;
 }
@@ -2914,13 +2914,13 @@ HttpChannelChild::GetCacheEntryWriteHandle(nsICacheEntryWriteHandle** _retval) {
   MOZ_ASSERT(neckoTarget);
 
   RefPtr<CacheEntryWriteHandleChild> handle = new CacheEntryWriteHandleChild();
+  handle->AddIPDLReference();
 
   if (!gNeckoChild->SendPCacheEntryWriteHandleConstructor(handle,
                                                           WrapNotNull(this))) {
     return NS_ERROR_FAILURE;
   }
 
-  handle->AddIPDLReference();
   handle.forget(_retval);
   return NS_OK;
 }

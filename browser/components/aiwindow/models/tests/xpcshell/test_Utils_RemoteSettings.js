@@ -20,6 +20,8 @@ const PREF_API_KEY = "browser.smartwindow.apiKey";
 const PREF_ENDPOINT = "browser.smartwindow.endpoint";
 const PREF_MODEL = "browser.smartwindow.model";
 const PREF_MODEL_CHOICE = "browser.smartwindow.firstrun.modelChoice";
+const PREF_PROMPT = "browser.smartwindow.customPrompts";
+const CUSTOM_PROMPT = "Hello from custom prompt!";
 
 const API_KEY = "fake-key";
 const ENDPOINT = "https://api.fake-endpoint.com/v1";
@@ -89,6 +91,52 @@ add_task(async function test_loadConfig_basic_with_real_snapshot() {
     Assert.equal(config.version, "2.0", "Should load version 2.0");
   } finally {
     sb.restore();
+  }
+});
+
+add_task(async function test_prompt_override_via_pref() {
+  Services.prefs.setStringPref(PREF_API_KEY, API_KEY);
+  Services.prefs.setStringPref(PREF_ENDPOINT, ENDPOINT);
+  const CUSTOM_PROMPT_INPUT = JSON.stringify({
+    [MODEL_FEATURES.CHAT]: CUSTOM_PROMPT,
+  });
+  Services.prefs.setStringPref(PREF_PROMPT, CUSTOM_PROMPT_INPUT);
+
+  const sb = sinon.createSandbox();
+  try {
+    const fakeEngine = {
+      runWithGenerator() {
+        throw new Error("not used");
+      },
+    };
+    sb.stub(openAIEngine, "_createEngine").resolves(fakeEngine);
+
+    sb.stub(openAIEngine, "getRemoteClient").returns({
+      get: sb.stub().resolves(REAL_REMOTE_SETTINGS_SNAPSHOT),
+    });
+
+    const engine = new openAIEngine();
+
+    await engine.loadConfig(MODEL_FEATURES.CHAT, MAJOR_VERSION_2);
+
+    Assert.equal(
+      engine.feature,
+      MODEL_FEATURES.CHAT,
+      "Feature should be set correctly"
+    );
+    Assert.ok(engine.model, "Model should be loaded from remote settings");
+
+    const config = engine.getConfig(MODEL_FEATURES.CHAT);
+    Assert.ok(config, "Config should be loaded");
+    const prompt = await engine.loadPrompt(MODEL_FEATURES.CHAT);
+    Assert.equal(
+      prompt,
+      CUSTOM_PROMPT,
+      "Custom prompt should be loaded from pref"
+    );
+  } finally {
+    sb.restore();
+    Services.prefs.clearUserPref(PREF_PROMPT);
   }
 });
 

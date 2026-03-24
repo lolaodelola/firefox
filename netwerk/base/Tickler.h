@@ -40,7 +40,7 @@
 #  include "nsISupports.h"
 #  include "nsIThread.h"
 #  include "nsITimer.h"
-#  include "nsWeakReference.h"
+#  include "mozilla/ThreadSafeWeakPtr.h"
 #  include "prio.h"
 
 class nsIPrefBranch;
@@ -58,9 +58,9 @@ namespace net {
      0x4af9,             \
      {0x9f, 0x7e, 0x9e, 0x83, 0x2d, 0xa3, 0x75, 0x4e}}
 
-class Tickler final : public nsSupportsWeakReference {
+class Tickler final : public SupportsThreadSafeWeakPtr<Tickler> {
  public:
-  NS_DECL_THREADSAFE_ISUPPORTS
+  MOZ_DECLARE_REFCOUNTED_TYPENAME(Tickler)
   NS_INLINE_DECL_STATIC_IID(NS_TICKLER_IID)
 
   // These methods are main thread only
@@ -77,6 +77,7 @@ class Tickler final : public nsSupportsWeakReference {
  private:
   ~Tickler();
 
+  friend class SupportsThreadSafeWeakPtr<Tickler>;
   friend class TicklerTimer;
   Mutex mLock MOZ_UNANNOTATED;
   nsCOMPtr<nsIThread> mThread;

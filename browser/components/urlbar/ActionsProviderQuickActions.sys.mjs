@@ -95,7 +95,7 @@ class ProviderQuickActions extends ActionsProvider {
   async getActions({ input, includesExactMatch = false }) {
     await lazy.QuickActionsLoaderDefault.ensureLoaded();
 
-    let results = this.#prefixes.get(input) ?? new Set();
+    let results = new Set(this.#prefixes.get(input));
 
     if (includesExactMatch) {
       let actions = this.#keywords.get(input);

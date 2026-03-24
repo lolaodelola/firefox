@@ -180,14 +180,22 @@ describe("AI Window session restore", () => {
       );
 
       await TestUtils.waitForCondition(
-        () => !AIWindowUI.isSidebarOpen(win),
-        "Sidebar should close when switching to new tab"
+        () => AIWindowUI.isSidebarOpen(win),
+        "Sidebar should remain open when switching to new tab with no state"
       );
 
       findStub.resetHistory();
 
       // Simulate clicking the Ask button on the new tab — should open a fresh chat.
-      AIWindowUI.toggleSidebar(win);
+      // First close the sidebar if it's open, then open it to simulate user interaction
+      if (AIWindowUI.isSidebarOpen(win)) {
+        AIWindowUI.closeSidebar(win);
+        await TestUtils.waitForCondition(
+          () => !AIWindowUI.isSidebarOpen(win),
+          "Sidebar should close first"
+        );
+      }
+      AIWindowUI.openSidebar(win);
 
       await TestUtils.waitForCondition(
         () => AIWindowUI.isSidebarOpen(win),

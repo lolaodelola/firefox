@@ -218,7 +218,7 @@ private fun TabGroupNameTextField(
         onValueChange = onTabGroupNameChange,
         label = {
             Text(
-                text = stringResource(R.string.tab_group_name_label),
+                text = stringResource(R.string.create_tab_group_name_label),
                 style = FirefoxTheme.typography.caption,
             )
         },

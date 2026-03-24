@@ -856,8 +856,8 @@ class CorePS {
 #endif
 #ifdef USE_LUL_STACKWALK
     delete sInstance->mLul;
-    delete mMaybeBandwidthCounter;
 #endif
+    delete mMaybeBandwidthCounter;
   }
 
  public:

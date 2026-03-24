@@ -41,6 +41,9 @@ export function parseConversationRow(row) {
     createdDate: row.getResultByName("created_date"),
     updatedDate: row.getResultByName("updated_date"),
     status: row.getResultByName("status"),
+    securityProperties: parseJSONOrNull(
+      row.getResultByName("security_properties")
+    ),
   });
 }
 

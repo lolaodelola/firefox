@@ -3,9 +3,10 @@
 
 "use strict";
 
-const { getCurrentTabMetadata } = ChromeUtils.importESModule(
-  "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
-);
+const { getCurrentTabMetadata, sanitizeUntrustedContent } =
+  ChromeUtils.importESModule(
+    "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
+  );
 
 const { PageDataService } = ChromeUtils.importESModule(
   "moz-src:///browser/components/pagedata/PageDataService.sys.mjs"
@@ -45,7 +46,11 @@ add_task(async function test_getCurrentTabMetadata_basic() {
     const metadata = await getCurrentTabMetadata();
 
     is(metadata.url, url, "Should return the correct URL");
-    is(metadata.title, "Test Page Title", "Should return the correct title");
+    is(
+      metadata.title,
+      sanitizeUntrustedContent("Test Page Title"),
+      "Should return the correct title"
+    );
     Assert.strictEqual(
       typeof metadata.description,
       "string",
@@ -80,7 +85,7 @@ add_task(async function test_getCurrentTabMetadata_no_description() {
     is(metadata.url, url, "Should return the correct URL");
     is(
       metadata.title,
-      "Page Without Description",
+      sanitizeUntrustedContent("Page Without Description"),
       "Should return the correct title"
     );
     is(
@@ -152,7 +157,11 @@ add_task(async function test_getCurrentTabMetadata_with_cached_data() {
     const metadata = await getCurrentTabMetadata();
 
     is(metadata.url, url, "Should return the correct URL");
-    is(metadata.title, "Cached Test Page", "Should return the correct title");
+    is(
+      metadata.title,
+      sanitizeUntrustedContent("Cached Test Page"),
+      "Should return the correct title"
+    );
 
     // Unlock the entry in cleanup
     PageDataService.unlockEntry(browser, url);

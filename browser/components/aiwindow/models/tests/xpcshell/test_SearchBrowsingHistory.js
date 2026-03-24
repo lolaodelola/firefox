@@ -16,6 +16,10 @@ const { sinon } = ChromeUtils.importESModule(
   "resource://testing-common/Sinon.sys.mjs"
 );
 
+const { sanitizeUntrustedContent } = ChromeUtils.importESModule(
+  "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
+);
+
 let sb;
 
 // setup
@@ -98,7 +102,11 @@ add_task(async function test_basic_history_fetch_and_shape() {
   const byUrl = new Map(allRowsObj.results.map(r => [r.url, r]));
   for (const { url, title } of seeded) {
     Assert.ok(byUrl.has(url), `Has entry for ${url}`);
-    Assert.equal(byUrl.get(url).title, title, `Title matches for ${url}`);
+    Assert.equal(
+      byUrl.get(url).title,
+      sanitizeUntrustedContent(title),
+      `Title matches for ${url}`
+    );
   }
 
   // check visitDate iso string

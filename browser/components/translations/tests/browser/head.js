@@ -3382,7 +3382,7 @@ class SelectTranslationsTestUtils {
     );
     SharedTranslationsTestUtils._assertL10nId(
       unsupportedLanguageMessageBar,
-      "select-translations-panel-unsupported-language-message-known"
+      "select-translations-panel-unsupported-language-message-known-2"
     );
     SharedTranslationsTestUtils._assertHasFocus(tryAnotherSourceMenuList);
     SharedTranslationsTestUtils._assertTabIndexOrder([

@@ -13,6 +13,7 @@ const {
   constructRelevantMemoriesContextMessage,
   parseContentWithTokens,
   detectTokens,
+  sanitizeUntrustedContent,
 } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
 );
@@ -128,7 +129,7 @@ add_task(async function test_getCurrentTabMetadata_returns_browser_info() {
     );
     Assert.equal(
       result.title,
-      "Example Article",
+      sanitizeUntrustedContent("Example Article"),
       "Should return title from contentTitle"
     );
     Assert.equal(
@@ -162,7 +163,7 @@ add_task(
 
       Assert.equal(
         result.title,
-        "Document Title Fallback",
+        sanitizeUntrustedContent("Document Title Fallback"),
         "Should fall back to documentTitle when contentTitle is empty"
       );
     } finally {
@@ -200,7 +201,7 @@ add_task(
       );
       Assert.equal(
         mapping.title,
-        "Document Title Fallback",
+        sanitizeUntrustedContent("Document Title Fallback"),
         "Should include title"
       );
       Assert.equal(mapping.description, "", "Should include description");

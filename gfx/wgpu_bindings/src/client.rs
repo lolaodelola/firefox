@@ -916,8 +916,15 @@ pub extern "C" fn wgpu_client_create_shader_module(
 }
 
 #[no_mangle]
-pub extern "C" fn wgpu_client_on_submitted_work_done(client: &Client, queue_id: id::QueueId) {
-    let message = Message::QueueOnSubmittedWorkDone(queue_id);
+pub extern "C" fn wgpu_client_on_submitted_work_done(
+    client: &Client,
+    device_id: id::DeviceId,
+    queue_id: id::QueueId,
+) {
+    let message = Message::QueueOnSubmittedWorkDone {
+        device_id,
+        queue_id,
+    };
     client.queue_message(&message);
 }
 

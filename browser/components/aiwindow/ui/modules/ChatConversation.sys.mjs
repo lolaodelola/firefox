@@ -11,6 +11,7 @@ import {
 import {
   constructRelevantMemoriesContextMessage,
   constructRealTimeInfoInjectionMessage,
+  sanitizeUntrustedContent,
 } from "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs";
 
 import { getRoleLabel } from "./ChatUtils.sys.mjs";
@@ -105,8 +106,15 @@ export class ChatConversation extends EventEmitter {
 
     // NOTE: Destructuring params.status causes a linter error
     this.status = params.status || CONVERSATION_STATUS.ACTIVE;
-    this.securityProperties =
-      params.securityProperties ?? new SecurityProperties();
+    if (params.securityProperties instanceof SecurityProperties) {
+      this.securityProperties = params.securityProperties;
+    } else if (params.securityProperties != null) {
+      this.securityProperties = SecurityProperties.fromJSON(
+        params.securityProperties
+      );
+    } else {
+      this.securityProperties = new SecurityProperties();
+    }
   }
 
   handleChunk(chunk, currentMessage, parserState) {
@@ -569,7 +577,10 @@ export class ChatConversation extends EventEmitter {
 
       if (contextMentions?.length) {
         const contextUrls = contextMentions
-          .map(mention => `- ${mention.label} (${mention.url})`)
+          .map(
+            mention =>
+              `- URL: ${mention.url}\n  Title: ${sanitizeUntrustedContent(mention.label)}`
+          )
           .join("\n");
         realTimeInfoMapping.contextUrls = contextUrls;
         const contextMentionsPrompt = await engineInstance.loadPrompt(

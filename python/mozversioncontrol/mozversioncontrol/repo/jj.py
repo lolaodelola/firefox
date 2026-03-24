@@ -340,10 +340,13 @@ class JujutsuRepository(Repository):
         self,
         remote: Optional[str] = None,
         ref: Optional[str] = None,
+        dest_branch: Optional[str] = None,
         force: bool = False,
     ):
         if ref and not remote:
             raise ValueError("Cannot specify ref without specifying remote")
+        if dest_branch and not ref:
+            raise ValueError("Cannot specify dest_branch without specifying ref")
 
         args = ["git", "push"]
         if remote:
@@ -365,6 +368,8 @@ class JujutsuRepository(Repository):
             args.extend(["--remote", remote])
         if ref:
             args.extend(["-r", ref])
+        if dest_branch:
+            args.extend(["-b", dest_branch])
         self._run(*args)
 
     def push_to_try(

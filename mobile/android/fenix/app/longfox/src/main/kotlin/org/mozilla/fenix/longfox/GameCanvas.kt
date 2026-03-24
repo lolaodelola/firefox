@@ -1,0 +1,94 @@
+/*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this
+* file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+package org.mozilla.fenix.longfox
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import org.mozilla.fenix.longfox.GameState.Companion.CELL_SIZE_DP
+
+/**
+ * A canvas that draws the fox game.
+ * The canvas is sized to fit the container, with a fixed cell size.
+ * It gets all the required drawables and resizes them to square bitmaps that match the cell size.
+ * Then it passes the assets into the separately defined drawscope functions for the fox's
+ * body, head, tail and food.
+ *
+ * @param state the current game state
+ * @param onSize a callback that is called when the canvas is resized
+ */
+@Composable
+fun GameCanvas(state: GameState, onSize: (Size) -> Unit) {
+    val context = LocalContext.current
+    val cellSize = state.cellSize.toInt()
+
+    val kitHead = remember(cellSize) {
+        if (cellSize > 0) {
+            ContextCompat.getDrawable(context, R.drawable.kit_head)
+                ?.toBitmap(cellSize, cellSize)
+                ?.asImageBitmap()
+        } else {
+            null
+        }
+    }
+
+    val kitTail = remember(cellSize) {
+        if (cellSize > 0) {
+            ContextCompat.getDrawable(context, R.drawable.kit_tail)
+                ?.toBitmap(cellSize, cellSize)
+                ?.asImageBitmap()
+        } else {
+            null
+        }
+    }
+
+    val cookie = remember(cellSize) {
+        if (cellSize > 0) {
+            ContextCompat.getDrawable(context, R.drawable.cookie)
+                ?.toBitmap(cellSize, cellSize)
+                ?.asImageBitmap()
+        } else {
+            null
+        }
+    }
+
+    val shouldersPath = remember { Path() }
+    val bottomPath = remember { Path() }
+
+    Canvas(
+        modifier = Modifier
+            .background(color = Color.Black)
+            .size((CELL_SIZE_DP * state.numCellsWide).dp),
+    ) {
+        onSize(size)
+        drawHead(state, kitHead)
+        drawBody(state, shouldersPath, bottomPath)
+        drawTail(state, kitTail)
+        drawFood(state, cookie)
+    }
+}
+
+@Preview
+@Composable
+fun GameCanvasPreview() {
+    MaterialTheme {
+        GameCanvas(GameState(size = Size(600f, 1000f)), onSize = { _ -> })
+    }
+}

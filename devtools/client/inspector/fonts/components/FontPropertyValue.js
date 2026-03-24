@@ -226,11 +226,14 @@ class FontPropertyValue extends PureComponent {
       e.target.select();
     }
 
+    const initialValue =
+      this.props.value !== null ? this.props.value : this.props.defaultValue;
     this.setState(prevState => {
       return {
         ...prevState,
         interactive: true,
-        initialValue: this.props.value,
+        initialValue,
+        value: initialValue,
       };
     });
   }

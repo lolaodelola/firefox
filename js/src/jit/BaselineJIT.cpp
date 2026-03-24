@@ -721,6 +721,24 @@ bool jit::BaselineCompileFromBaselineInterpreter(JSContext* cx,
   MOZ_CRASH("Unexpected status");
 }
 
+#ifdef DEBUG
+void BaselineCompileQueue::assertInvariants() const {
+  // The queue always contains |numQueued| JSScript* pointers,
+  // followed by |Capacity - numQueued| null pointers.
+  MOZ_ASSERT(numQueued_ <= JitOptions.baselineQueueCapacity);
+  MOZ_ASSERT(JitOptions.baselineQueueCapacity <= MaxCapacity);
+  for (uint32_t i = 0; i < numQueued_; i++) {
+    MOZ_ASSERT(queue_[i]);
+    if (queue_[i]->hasJitScript()) {
+      MOZ_ASSERT(queue_[i]->jitScript()->isBaselineQueued());
+    }
+  }
+  for (uint32_t i = numQueued_; i < MaxCapacity; i++) {
+    MOZ_ASSERT(!queue_[i]);
+  }
+}
+#endif
+
 void BaselineCompileQueue::trace(JSTracer* trc) {
   assertInvariants();
   for (uint32_t i = 0; i < numQueued_; i++) {

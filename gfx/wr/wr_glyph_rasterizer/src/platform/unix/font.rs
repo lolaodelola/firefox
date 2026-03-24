@@ -1153,14 +1153,7 @@ impl FontContext {
 
         match font.render_mode {
             FontRenderMode::Alpha => {
-                // Bug 1910291: Android used preblend() historically, changing to
-                // preblend_grayscale() causes reftest failures. Keep the old
-                // behavior for now; revisit when adjusting Android gamma defaults.
-                if cfg!(target_os = "android") {
-                    gamma_lut.preblend(pixels, font.color);
-                } else {
-                    gamma_lut.preblend_grayscale(pixels, font.color);
-                }
+                gamma_lut.preblend_grayscale(pixels, font.color);
             }
             FontRenderMode::Subpixel => {
                 gamma_lut.preblend(pixels, font.color);

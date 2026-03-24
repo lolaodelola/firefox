@@ -989,6 +989,32 @@ add_atomic_task(
   }
 );
 
+add_atomic_task(async function test_securityProperties_roundTrip_mixedFlags() {
+  const conversation = new ChatConversation({
+    securityProperties: { privateData: false, untrustedInput: true },
+  });
+  conversation.title = "partially tainted conversation";
+
+  // Provide at least one message so the insert has valid data
+  // to bind in `updateConversation()`. Empty array causes constraint error.
+  conversation.addUserMessage("test content", "https://www.firefox.com");
+  await gChatStore.updateConversation(conversation);
+
+  const restored = await gChatStore.findConversationById(conversation.id);
+
+  Assert.ok(restored, "conversation should restore from DB");
+  Assert.withSoftAssertions(function (soft) {
+    soft.ok(
+      restored.securityProperties.untrustedInput,
+      "untrustedInput should be true after restore"
+    );
+    soft.ok(
+      !restored.securityProperties.privateData,
+      "privateData should be false after restore"
+    );
+  });
+});
+
 add_atomic_task(
   async function test_ChatStorage_deleteAllUrlsFromMessages_marksAllContextMentionsHistoryDeleted() {
     const conversation = new ChatConversation({
@@ -1103,3 +1129,33 @@ add_atomic_task(
     Assert.equal(conversations.length, 0, "should still be empty after delete");
   }
 );
+
+add_atomic_task(async function test_securityProperties_upsert_updatesFlags() {
+  const conversation = new ChatConversation({});
+  conversation.title = "conversation that becomes tainted";
+
+  // Provide at least one message so the insert has valid data
+  // to bind in `updateConversation()`. Empty array causes constraint error.
+  conversation.addUserMessage("test content", "https://www.firefox.com");
+  await gChatStore.updateConversation(conversation);
+
+  // Simulate flags being set during conversation lifetime
+  conversation.securityProperties.setUntrustedInput();
+  conversation.securityProperties.setPrivateData();
+  conversation.securityProperties.commit();
+  await gChatStore.updateConversation(conversation);
+
+  const restored = await gChatStore.findConversationById(conversation.id);
+
+  Assert.ok(restored, "conversation should restore from DB");
+  Assert.withSoftAssertions(function (soft) {
+    soft.ok(
+      restored.securityProperties.untrustedInput,
+      "untrustedInput should be true after upsert"
+    );
+    soft.ok(
+      restored.securityProperties.privateData,
+      "privateData should be true after upsert"
+    );
+  });
+});

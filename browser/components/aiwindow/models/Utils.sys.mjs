@@ -515,7 +515,28 @@ export class openAIEngine {
    */
   getConfig(feature) {
     const targetFeature = feature || this.feature;
-    return this.#configs?.[targetFeature] || null;
+    // load custom prompt pref if exists
+    // custom prompts should be entered as { feature_name: prompt }
+    const prefPromptRaw = Services.prefs.getStringPref(
+      "browser.smartwindow.customPrompts",
+      ""
+    );
+    let prefPrompt = null;
+    if (prefPromptRaw) {
+      try {
+        prefPrompt = JSON.parse(prefPromptRaw);
+      } catch (e) {
+        console.warn(
+          "browser.smartwindow.customPrompts contains invalid JSON. Expecting: { feature: prompt }",
+          e
+        );
+      }
+    }
+    const prefPromptMapping = prefPrompt?.[targetFeature]
+      ? { prompts: prefPrompt[targetFeature] }
+      : null;
+
+    return prefPromptMapping || this.#configs?.[targetFeature] || null;
   }
 
   /**

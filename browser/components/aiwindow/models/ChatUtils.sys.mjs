@@ -12,7 +12,8 @@
 const MAX_METADATA_LENGTH = 100;
 
 /**
- * Truncate untrusted metadata text to guard against prompt injection.
+ * Truncates and spotlights untrusted metadata text to guard against prompt injection by adding an
+ *  (Untrusted webpage data) tag.
  *
  * Important! Changing this function requires a security review.
  *
@@ -27,17 +28,36 @@ const MAX_METADATA_LENGTH = 100;
  * the security flags to NOT mark these as untrusted when the text is truncated.
  * This is useful since page titles are used very frequently in chat conversations.
  *
+ * In addition, spotlighting this text helps the model to identify webpage data is untrusted.
+ * We note that the spotlighting tokens added are are only a part of the delimiting. Prompts
+ * have also been updated to include instructions about how to treat untrusted data.
+ *
  * @param {string} text
+ * @param {boolean} truncateOnly
  * @returns {string}
  */
-export function truncateUntrustedMetadata(text) {
+export function sanitizeUntrustedContent(text, truncateOnly = false) {
   if (!text) {
     return "";
   }
-  if (text.length <= MAX_METADATA_LENGTH) {
-    return text;
+
+  let fixedText = text;
+  // truncating text with ...
+  if (text.length > MAX_METADATA_LENGTH) {
+    fixedText = fixedText.slice(0, MAX_METADATA_LENGTH) + "\u2026";
   }
-  return text.slice(0, MAX_METADATA_LENGTH) + "\u2026";
+  if (truncateOnly) {
+    return fixedText;
+  }
+
+  // light smoothing (escape "'s, collapse whitespace)
+  fixedText = fixedText
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\s+/g, " ");
+
+  // adding spotlighting tokens
+  return `"${fixedText}" (Untrusted webpage data)`;
 }
 
 const lazy = {};
@@ -89,7 +109,7 @@ export async function getCurrentTabMetadata(depsOverride) {
   }
 
   const url = browser.currentURI?.spec || "";
-  const title = truncateUntrustedMetadata(
+  const title = sanitizeUntrustedContent(
     browser.contentTitle || browser.documentTitle || ""
   );
 

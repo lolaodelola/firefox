@@ -56,21 +56,12 @@ class BaselineCompileQueue {
     return true;
   }
 
-  MOZ_ALWAYS_INLINE
-  void assertInvariants() const {
-    // The queue always contains |numQueued| JSScript* pointers,
-    // followed by |Capacity - numQueued| null pointers.
 #ifdef DEBUG
-    MOZ_ASSERT(numQueued_ <= JitOptions.baselineQueueCapacity);
-    MOZ_ASSERT(JitOptions.baselineQueueCapacity <= MaxCapacity);
-    for (uint32_t i = 0; i < numQueued_; i++) {
-      MOZ_ASSERT(queue_[i]);
-    }
-    for (uint32_t i = numQueued_; i < MaxCapacity; i++) {
-      MOZ_ASSERT(!queue_[i]);
-    }
+  void assertInvariants() const;
+#else
+  void assertInvariants() const {}
 #endif
-  }
+
   void trace(JSTracer* trc);
   void remove(JSScript* script);
 };

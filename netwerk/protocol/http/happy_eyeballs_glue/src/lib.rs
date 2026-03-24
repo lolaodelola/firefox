@@ -388,8 +388,10 @@ impl HappyEyeballs {
             Some(happy_eyeballs::Output::Succeeded) => {
                 *ret_event = Output::Succeeded;
             }
-            Some(happy_eyeballs::Output::Failed) => {
-                *ret_event = Output::Failed;
+            Some(happy_eyeballs::Output::Failed(reason)) => {
+                *ret_event = Output::Failed {
+                    reason: reason.into(),
+                };
             }
             None => {
                 *ret_event = Output::None;
@@ -536,8 +538,25 @@ pub enum Output {
         id: u64,
     },
     Succeeded,
-    Failed,
+    Failed {
+        reason: FailureReason,
+    },
     None,
+}
+
+#[repr(C)]
+pub enum FailureReason {
+    DnsResolution = 0,
+    Connection = 1,
+}
+
+impl From<happy_eyeballs::FailureReason> for FailureReason {
+    fn from(v: happy_eyeballs::FailureReason) -> Self {
+        match v {
+            happy_eyeballs::FailureReason::DnsResolution => Self::DnsResolution,
+            happy_eyeballs::FailureReason::Connection => Self::Connection,
+        }
+    }
 }
 
 #[no_mangle]

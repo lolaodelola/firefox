@@ -43,6 +43,10 @@ data class GameState(
     val numCells: Int = 12,
 ) {
 
+    companion object {
+        const val CELL_SIZE_DP = 20f
+    }
+
     val numCellsWide = numCells
     val numCellsTall = numCellsWide
     val cellSize = (size.minDimension / numCellsWide).toInt().toFloat()
@@ -75,7 +79,7 @@ data class GameState(
 
         val collidedWithSelf = newHead in fox.drop(1)
         val collidedWithEdge = !withinBounds(newHead)
-        val collidedWithFood = newHead == food
+        val collidedWithFood = newHead == food || food in fox
         val isGameOver = collidedWithSelf || collidedWithEdge
 
         return if (collidedWithFood && !isGameOver) {

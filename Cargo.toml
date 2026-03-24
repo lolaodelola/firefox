@@ -9,6 +9,8 @@ members = [
   "js/src/rust",
   "netwerk/base/idna_glue",
   "netwerk/test/http3server",
+  "security/lockstore/lockstore_ffi",
+  "security/lockstore/lockstore_rs",
   "security/manager/ssl/tests/unit/pkcs11testmodule",
   "security/manager/ssl/tests/unit/test_trust_anchors",
   "services/app-services-tools/embedded-uniffi-bindgen",

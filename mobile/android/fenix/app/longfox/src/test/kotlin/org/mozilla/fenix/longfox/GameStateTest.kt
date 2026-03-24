@@ -189,6 +189,24 @@ class GameStateTest {
     }
 
     @Test
+    fun `food is eaten immediately if it spawns under the fox`() {
+        val foodPosition = GridPoint(5, 4)
+        val state = state(
+            direction = Direction.DOWN,
+            fox = listOf(GridPoint(5, 5), foodPosition, GridPoint(5, 3)), // Head, body, tail
+            food = foodPosition,
+        )
+        assertEquals(0, state.score)
+
+        // The next move will be to (5,6), away from the food.
+        // But the food is already under the fox, so it should be eaten.
+        val nextState = state.moveFox()
+
+        assertEquals(1, nextState.score)
+        assertEquals(state.fox.size + 1, nextState.fox.size)
+    }
+
+    @Test
     fun `no game over when eating food at grid edge`() {
         val state = state(
             direction = Direction.RIGHT,

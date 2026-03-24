@@ -144,7 +144,7 @@ private fun TabGroupRowPreview() {
         tabGroup = TabsTrayItem.TabGroup(
             title = "Tab Group",
             theme = TabGroupTheme.default,
-            tabs = hashSetOf(tab, tab2, tab3, tab4),
+            tabs = mutableListOf(tab, tab2, tab3, tab4),
             closed = false,
         ),
         onClick = {},

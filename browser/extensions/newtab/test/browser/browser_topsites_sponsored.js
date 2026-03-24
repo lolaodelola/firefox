@@ -18,17 +18,31 @@ async function newtabWithSponsoredTopsites(callback = () => {}) {
   let browser = tab.linkedBrowser;
   await waitForPreloaded(browser);
 
-  // Wait for React to render something
+  // Force TopSitesFeed to re-broadcast its state to the now-connected content
+  // process. The initial broadcast from add_setup may have fired before this
+  // tab's content process was registered to receive messages.
+  Services.prefs.setBoolPref(
+    "browser.newtabpage.activity-stream.showSponsoredTopSites",
+    false
+  );
+  Services.prefs.setBoolPref(
+    "browser.newtabpage.activity-stream.showSponsoredTopSites",
+    true
+  );
+
+  // Wait for the re-broadcast to conclude and for sponsored topsites to render.
   await BrowserTestUtils.waitForCondition(
     () =>
       SpecialPowers.spawn(
         browser,
         [],
-        () => content.document.getElementById("root").children.length
+        () =>
+          content.document.querySelector(
+            '.top-sites [data-is-sponsored-link="true"]'
+          ) !== null
       ),
-    "Should render activity stream content"
+    "Should find sponsored topsites after pref re-broadcast"
   );
-
   await SpecialPowers.spawn(browser, [], callback);
 
   BrowserTestUtils.removeTab(tab);

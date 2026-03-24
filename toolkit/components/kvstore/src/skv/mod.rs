@@ -16,16 +16,20 @@ mod abort;
 pub mod checker;
 pub mod connection;
 mod coordinator;
-mod database;
+pub mod database;
 mod functions;
 mod importer;
 mod interface;
-mod key;
+pub mod key;
 mod maintenance;
 mod schema;
 mod sql;
 pub mod store;
-mod value;
+pub mod value;
+
+pub use database::{Database, DatabaseError, GetOptions};
+pub use key::Key;
+pub use value::Value;
 
 use interface::KeyValueService;
 

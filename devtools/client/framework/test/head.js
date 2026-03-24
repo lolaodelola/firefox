@@ -46,7 +46,7 @@ async function getSupportedToolIds(tab) {
 }
 
 function toggleAllTools(state) {
-  for (const [, tool] of gDevTools._tools) {
+  for (const [, tool] of gDevTools.tools) {
     if (!tool.visibilityswitch) {
       continue;
     }

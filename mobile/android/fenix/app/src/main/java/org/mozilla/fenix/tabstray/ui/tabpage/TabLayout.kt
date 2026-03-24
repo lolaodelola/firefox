@@ -335,7 +335,7 @@ private fun LazyGridItemScope.TabGridItemContent(
                 TabGroupCard(
                     group = tabsTrayItem,
                     selectionState = selectionState,
-                    clickHandler = TabsTrayItemClickHandler(onClick = {}),
+                    clickHandler = TabsTrayItemClickHandler(onClick = onItemClick),
                     thumbnailSizePx = groupThumbnailSizePx,
                 )
             }
@@ -691,7 +691,7 @@ private fun generateFakeTabsList(
             createTabGroup(
                 title = "Group $index",
                 theme = TabGroupTheme.Pink,
-                tabs = hashSetOf(
+                tabs = mutableListOf(
                     createTab(
                         id = "groupTab1",
                         url = "www.mozilla.com",

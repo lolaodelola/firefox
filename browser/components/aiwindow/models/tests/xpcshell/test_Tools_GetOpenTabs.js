@@ -4,6 +4,10 @@
 
 do_get_profile();
 
+const { sanitizeUntrustedContent } = ChromeUtils.importESModule(
+  "moz-src:///browser/components/aiwindow/models/ChatUtils.sys.mjs"
+);
+
 const { getOpenTabs } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/models/Tools.sys.mjs"
 );
@@ -86,7 +90,11 @@ add_task(async function test_getOpenTabs_basic() {
 
     Assert.equal(tabs.length, 3, "Should return all 3 tabs");
     Assert.equal(tabs[0].url, "https://firefox.com", "Most recent tab first");
-    Assert.equal(tabs[0].title, "Firefox", "Title should match");
+    Assert.equal(
+      tabs[0].title,
+      sanitizeUntrustedContent("Firefox"),
+      "Title should match"
+    );
     // @todo Bug2009194
     // Assert.equal(
     //   tabs[0].description,
@@ -300,7 +308,11 @@ add_task(async function test_getOpenTabs_return_structure() {
     );
 
     Assert.equal(tab.url, "https://test.com", "url value correct");
-    Assert.equal(tab.title, "Test Page", "title value correct");
+    Assert.equal(
+      tab.title,
+      sanitizeUntrustedContent("Test Page"),
+      "title value correct"
+    );
     // @todo Bug2009194
     // Assert.equal(
     //   tab.description,

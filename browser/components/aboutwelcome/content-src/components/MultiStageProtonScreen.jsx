@@ -708,6 +708,7 @@ export class ProtonScreen extends React.PureComponent {
         pos={content.position || "center"}
         tabIndex="-1"
         aria-labelledby="mainContentHeader"
+        aria-describedby="mainContentInner"
         ref={input => {
           this.mainContentHeader = input;
         }}
@@ -774,7 +775,11 @@ export class ProtonScreen extends React.PureComponent {
                   this.props.addonIconURL
                 )
               : null}
-            <div className="main-content-inner" style={combinedStyles}>
+            <div
+              className="main-content-inner"
+              id="mainContentInner"
+              style={combinedStyles}
+            >
               {content.logo && content.fullscreen
                 ? this.renderPicture(content.logo)
                 : null}

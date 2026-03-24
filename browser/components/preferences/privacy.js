@@ -210,7 +210,6 @@ Preferences.addAll([
 
   // Firefox VPN
   { id: "browser.ipProtection.enabled", type: "bool" },
-  { id: "browser.ipProtection.added", type: "bool" },
   { id: "browser.ipProtection.entitlementCache", type: "string" },
   { id: "browser.ipProtection.features.siteExceptions", type: "bool" },
   { id: "browser.ipProtection.features.autoStart", type: "bool" },
@@ -921,12 +920,8 @@ if (SECURITY_PRIVACY_STATUS_CARD_ENABLED) {
 }
 
 Preferences.addSetting({
-  id: "ipProtectionEnabled",
-  pref: "browser.ipProtection.enabled",
-});
-Preferences.addSetting({
   id: "ipProtectionVisible",
-  pref: "browser.ipProtection.added",
+  pref: "browser.ipProtection.enabled",
 });
 Preferences.addSetting({
   id: "ipProtectionNotOptedIn",
@@ -935,35 +930,15 @@ Preferences.addSetting({
 });
 Preferences.addSetting({
   id: "ipProtectionNotOptedInSection",
-  deps: [
-    "ipProtectionEnabled",
-    "ipProtectionVisible",
-    "ipProtectionNotOptedIn",
-  ],
-  visible: ({
-    ipProtectionEnabled,
-    ipProtectionVisible,
-    ipProtectionNotOptedIn,
-  }) =>
-    ipProtectionEnabled.value &&
-    ipProtectionVisible.value &&
-    ipProtectionNotOptedIn.value,
+  deps: ["ipProtectionVisible", "ipProtectionNotOptedIn"],
+  visible: ({ ipProtectionVisible, ipProtectionNotOptedIn }) =>
+    ipProtectionVisible.value && ipProtectionNotOptedIn.value,
 });
 Preferences.addSetting({
   id: "getStartedButton",
-  deps: [
-    "ipProtectionEnabled",
-    "ipProtectionVisible",
-    "ipProtectionNotOptedIn",
-  ],
-  visible: ({
-    ipProtectionEnabled,
-    ipProtectionVisible,
-    ipProtectionNotOptedIn,
-  }) =>
-    ipProtectionEnabled.value &&
-    ipProtectionVisible.value &&
-    ipProtectionNotOptedIn.value,
+  deps: ["ipProtectionVisible", "ipProtectionNotOptedIn"],
+  visible: ({ ipProtectionVisible, ipProtectionNotOptedIn }) =>
+    ipProtectionVisible.value && ipProtectionNotOptedIn.value,
   onUserClick() {
     IPProtection.getPanel(window.browsingContext.topChromeWindow)?.enroll({
       entrypoint: "vpn_integration_settings",
@@ -979,18 +954,15 @@ Preferences.addSetting({
 Preferences.addSetting({
   id: "ipProtectionExceptions",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionSiteExceptionsFeatureEnabled",
     "ipProtectionNotOptedIn",
   ],
   visible: ({
-    ipProtectionEnabled,
     ipProtectionVisible,
     ipProtectionSiteExceptionsFeatureEnabled,
     ipProtectionNotOptedIn,
   }) =>
-    ipProtectionEnabled.value &&
     ipProtectionVisible.value &&
     ipProtectionSiteExceptionsFeatureEnabled.value &&
     !ipProtectionNotOptedIn.value,
@@ -999,7 +971,6 @@ Preferences.addSetting({
 Preferences.addSetting({
   id: "ipProtectionExceptionAllListButton",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionSiteExceptionsFeatureEnabled",
     "ipProtectionNotOptedIn",
@@ -1021,12 +992,10 @@ Preferences.addSetting({
     };
   },
   visible: ({
-    ipProtectionEnabled,
     ipProtectionVisible,
     ipProtectionSiteExceptionsFeatureEnabled,
     ipProtectionNotOptedIn,
   }) =>
-    ipProtectionEnabled.value &&
     ipProtectionVisible.value &&
     ipProtectionSiteExceptionsFeatureEnabled.value &&
     !ipProtectionNotOptedIn.value,
@@ -1072,18 +1041,15 @@ Preferences.addSetting({
 Preferences.addSetting({
   id: "ipProtectionAutoStart",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionAutoStartFeatureEnabled",
     "ipProtectionNotOptedIn",
   ],
   visible: ({
-    ipProtectionEnabled,
     ipProtectionVisible,
     ipProtectionAutoStartFeatureEnabled,
     ipProtectionNotOptedIn,
   }) =>
-    ipProtectionEnabled.value &&
     ipProtectionVisible.value &&
     ipProtectionAutoStartFeatureEnabled.value &&
     !ipProtectionNotOptedIn.value,
@@ -1092,58 +1058,41 @@ Preferences.addSetting({
   id: "ipProtectionAutoStartCheckbox",
   pref: "browser.ipProtection.autoStartEnabled",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionAutoStart",
     "ipProtectionNotOptedIn",
   ],
-  visible: ({
-    ipProtectionEnabled,
-    ipProtectionVisible,
-    ipProtectionNotOptedIn,
-  }) =>
-    ipProtectionEnabled.value &&
-    ipProtectionVisible.value &&
-    !ipProtectionNotOptedIn.value,
+  visible: ({ ipProtectionVisible, ipProtectionNotOptedIn }) =>
+    ipProtectionVisible.value && !ipProtectionNotOptedIn.value,
 });
 Preferences.addSetting({
   id: "ipProtectionAutoStartPrivateCheckbox",
   pref: "browser.ipProtection.autoStartPrivateEnabled",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionAutoStart",
     "ipProtectionNotOptedIn",
   ],
-  visible: ({
-    ipProtectionEnabled,
-    ipProtectionVisible,
-    ipProtectionNotOptedIn,
-  }) =>
-    ipProtectionEnabled.value &&
-    ipProtectionVisible.value &&
-    !ipProtectionNotOptedIn.value,
+  visible: ({ ipProtectionVisible, ipProtectionNotOptedIn }) =>
+    ipProtectionVisible.value && !ipProtectionNotOptedIn.value,
 });
 Preferences.addSetting({
   id: "ipProtectionBandwidthVisible",
-  deps: ["ipProtectionEnabled", "ipProtectionVisible"],
+  deps: ["ipProtectionVisible"],
   pref: "browser.ipProtection.bandwidth.enabled",
 });
 Preferences.addSetting({
   id: "ipProtectionBandwidthSection",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionBandwidthVisible",
     "ipProtectionNotOptedIn",
   ],
   visible: ({
-    ipProtectionEnabled,
     ipProtectionVisible,
     ipProtectionBandwidthVisible,
     ipProtectionNotOptedIn,
   }) =>
-    ipProtectionEnabled.value &&
     ipProtectionVisible.value &&
     ipProtectionBandwidthVisible.value &&
     !ipProtectionNotOptedIn.value,
@@ -1151,19 +1100,16 @@ Preferences.addSetting({
 Preferences.addSetting({
   id: "ipProtectionBandwidth",
   deps: [
-    "ipProtectionEnabled",
     "ipProtectionVisible",
     "ipProtectionBandwidthVisible",
     "ipProtectionBandwidthSection",
     "ipProtectionNotOptedIn",
   ],
   visible: ({
-    ipProtectionEnabled,
     ipProtectionVisible,
     ipProtectionBandwidthVisible,
     ipProtectionNotOptedIn,
   }) =>
-    ipProtectionEnabled.value &&
     ipProtectionVisible.value &&
     ipProtectionBandwidthVisible.value &&
     !ipProtectionNotOptedIn.value,
@@ -1191,19 +1137,9 @@ Preferences.addSetting({
 });
 Preferences.addSetting({
   id: "ipProtectionLinks",
-  deps: [
-    "ipProtectionEnabled",
-    "ipProtectionVisible",
-    "ipProtectionNotOptedIn",
-  ],
-  visible: ({
-    ipProtectionEnabled,
-    ipProtectionVisible,
-    ipProtectionNotOptedIn,
-  }) =>
-    ipProtectionEnabled.value &&
-    ipProtectionVisible.value &&
-    !ipProtectionNotOptedIn.value,
+  deps: ["ipProtectionVisible", "ipProtectionNotOptedIn"],
+  visible: ({ ipProtectionVisible, ipProtectionNotOptedIn }) =>
+    ipProtectionVisible.value && !ipProtectionNotOptedIn.value,
 });
 
 // Study opt out

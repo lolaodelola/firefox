@@ -25,11 +25,6 @@ if (!window.IS_STORYBOOK) {
   XPCOMUtils = ChromeUtils.importESModule(
     "resource://gre/modules/XPCOMUtils.sys.mjs"
   ).XPCOMUtils;
-  XPCOMUtils.defineLazyPreferenceGetter(
-    lazy,
-    "virtualListEnabledPref",
-    "browser.firefox-view.virtual-list.enabled"
-  );
   ChromeUtils.defineLazyGetter(lazy, "relativeTimeFormat", () => {
     return new Services.intl.RelativeTimeFormat(undefined, {
       style: "narrow",
@@ -221,7 +216,7 @@ export class FxviewTabListBase extends MozLitElement {
 
   async focusIndex(index) {
     // Focus link or button of item
-    if (lazy.virtualListEnabledPref) {
+    if (index >= 0 && index < this.rowEls?.length) {
       let row = this.rootVirtualListEl.getItem(index);
       if (!row) {
         return;
@@ -238,9 +233,6 @@ export class FxviewTabListBase extends MozLitElement {
       await this.requestVirtualListUpdate();
       row.scrollIntoView({ block: "center" });
       row.focus();
-    } else if (index >= 0 && index < this.rowEls?.length) {
-      this.rowEls[index].focus();
-      this.activeIndex = index;
     }
   }
 
@@ -323,20 +315,11 @@ export class FxviewTabListBase extends MozLitElement {
         role="list"
         @keydown=${this.handleFocusElementInRow}
       >
-        ${when(
-          lazy.virtualListEnabledPref,
-          () => html`
-            <virtual-list
-              .activeIndex=${this.activeIndex}
-              .items=${this.tabItems}
-              .template=${this.itemTemplate}
-            ></virtual-list>
-          `,
-          () =>
-            html`${this.tabItems.map((tabItem, i) =>
-              this.itemTemplate(tabItem, i)
-            )}`
-        )}
+        <virtual-list
+          .activeIndex=${this.activeIndex}
+          .items=${this.tabItems}
+          .template=${this.itemTemplate}
+        ></virtual-list>
       </div>
       <slot name="menu"></slot>
     `;

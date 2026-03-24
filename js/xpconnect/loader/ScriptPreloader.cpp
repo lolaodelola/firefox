@@ -1061,18 +1061,22 @@ already_AddRefed<JS::Stencil> ScriptPreloader::GetCachedStencil(
     RefPtr<JS::Stencil> stencil =
         mChildCache->GetCachedStencilInternal(cx, options, path);
     if (stencil) {
+#ifndef ANDROID
       glean::script_preloader::requests
           .EnumGet(glean::script_preloader::RequestsLabel::eHitchild)
           .Add();
+#endif
       return stencil.forget();
     }
   }
 
   RefPtr<JS::Stencil> stencil = GetCachedStencilInternal(cx, options, path);
+#ifndef ANDROID
   glean::script_preloader::requests
       .EnumGet(stencil ? glean::script_preloader::RequestsLabel::eHit
                        : glean::script_preloader::RequestsLabel::eMiss)
       .Add();
+#endif
 
   return stencil.forget();
 }

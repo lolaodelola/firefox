@@ -29,6 +29,16 @@ add_task(async function testRestoreDefaultsBtn_visible() {
     "Wait for the button to be added to the page"
   );
 
+  await SpecialPowers.spawn(browser, [], () => {
+    Object.defineProperty(content.gHomePane, "isResetDefaultsButtonEnabled", {
+      get() {
+        return true;
+      },
+      configurable: true,
+    });
+    content.gHomePane.toggleRestoreDefaultsBtn();
+  });
+
   await BrowserTestUtils.waitForCondition(
     () =>
       SpecialPowers.spawn(
@@ -119,6 +129,16 @@ add_task(async function testRestoreDefaultsBtn_hidden() {
       ),
     "Wait for the button to be added to the page"
   );
+
+  await SpecialPowers.spawn(browser, [], () => {
+    Object.defineProperty(content.gHomePane, "isResetDefaultsButtonEnabled", {
+      get() {
+        return true;
+      },
+      configurable: true,
+    });
+    content.gHomePane.toggleRestoreDefaultsBtn();
+  });
 
   await BrowserTestUtils.waitForCondition(
     () =>

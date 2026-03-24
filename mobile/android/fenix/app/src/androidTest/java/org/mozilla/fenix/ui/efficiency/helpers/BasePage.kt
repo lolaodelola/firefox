@@ -461,7 +461,7 @@ abstract class BasePage(
                 val obj = mDevice.findObject(UiSelector().className(selector.value))
                 if (!obj.exists()) null else obj
             }
-
+            // TODO: Does the same thing as UIAUTOMATOR_WITH_TEXT, should be updated to use BySelectors instead of UiSelector
             SelectorStrategy.UIAUTOMATOR2_BY_TEXT -> {
                 val obj = mDevice.findObject(UiSelector().text(selector.value))
                 if (!obj.exists()) null else obj
