@@ -187,7 +187,7 @@ class ApiLintPlugin : Plugin<Project> {
                     task.dependsOn(apiGenerate)
                     task.from(apiFileProvider)
                     task.into(currentApiFileProvider.map { it.asFile.parentFile })
-                    task.rename { extension.apiOutputFileName.get() }
+                    task.rename { currentApiFileProvider.get().asFile.name }
                 }
             }
         }
