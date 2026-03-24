@@ -14,7 +14,7 @@ const PropTypes = require("resource://devtools/client/shared/vendor/react-prop-t
 
 const {
   toFixed,
-} = require("resource://devtools/client/inspector/fonts/utils/font-utils.js");
+} = require("resource://devtools/shared/inspector/font-utils.js");
 
 class FontPropertyValue extends PureComponent {
   static get propTypes() {
