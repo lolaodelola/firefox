@@ -136,7 +136,6 @@ class TRRService : public TRRServiceBase,
   // or false if mPrivateURI already had that value.
   bool MaybeSetPrivateURI(const nsACString& aURI) override;
   void ClearEntireCache();
-  void MaybeSpeculativeConnectToTRR();
 
   virtual void ReadEtcHostsFile() override;
   void AddEtcHosts(const nsTArray<nsCString>&);

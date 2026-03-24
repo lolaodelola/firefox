@@ -144,7 +144,6 @@ void TRRService::AddObserver(nsIObserver* aObserver,
     observerService->AddObserver(aObserver, NS_DNS_SUFFIX_LIST_UPDATED_TOPIC,
                                  true);
     observerService->AddObserver(aObserver, "xpcom-shutdown-threads", true);
-    observerService->AddObserver(aObserver, "application-foreground", true);
   }
 }
 
@@ -661,8 +660,6 @@ TRRService::Observe(nsISupports* aSubject, const char* aTopic,
         mConfirmation.HandleEvent(ConfirmationEvent::NetworkUp);
       }
     }
-  } else if (!strcmp(aTopic, "application-foreground")) {
-    MaybeSpeculativeConnectToTRR();
   } else if (!strcmp(aTopic, "xpcom-shutdown-threads")) {
     mShutdown = true;
     // If a confirmation is still in progress we record the event.
@@ -695,20 +692,6 @@ void TRRService::RebuildSuffixList(nsTArray<nsCString>&& aSuffixList) {
     LOG(("TRRService adding %s to suffix list", item.get()));
     mDNSSuffixDomains.Insert(item);
   }
-}
-
-void TRRService::MaybeSpeculativeConnectToTRR() {
-  if (!StaticPrefs::network_trr_preconnect_on_foreground() || !Enabled()) {
-    return;
-  }
-
-  RefPtr<nsHttpConnectionInfo> ci = TRRConnectionInfo();
-  if (!ci) {
-    return;
-  }
-
-  Unused << nsHttpHandler::gHttpHandler->SpeculativeConnect(ci, nullptr, 0,
-                                                            nullptr);
 }
 
 void TRRService::ConfirmationContext::SetState(
