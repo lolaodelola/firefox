@@ -332,6 +332,16 @@ internal class ReleaseMetricController(
         Component.FEATURE_AWESOMEBAR to AwesomeBarFacts.Items.SEARCH_TERM_SUGGESTION_CLICKED -> {
             Awesomebar.searchTermSuggestionClicked.record(NoExtras())
         }
+        Component.FEATURE_AWESOMEBAR to AwesomeBarFacts.Items.OPTIMIZED_SUGGESTION_CARD_DISPLAYED -> {
+            Awesomebar.optimizedSuggestionCardDisplayed.record(
+                Awesomebar.OptimizedSuggestionCardDisplayedExtra(cardType = value),
+            )
+        }
+        Component.FEATURE_AWESOMEBAR to AwesomeBarFacts.Items.OPTIMIZED_SUGGESTION_CARD_CLICKED -> {
+            Awesomebar.optimizedSuggestionCardClicked.record(
+                Awesomebar.OptimizedSuggestionCardClickedExtra(cardType = value),
+            )
+        }
         Component.FEATURE_CONTEXTMENU to ContextMenuFacts.Items.TEXT_SELECTION_OPTION -> {
             when (metadata?.get("textSelectionOption")?.toString()) {
                 CONTEXT_MENU_COPY -> ContextualMenu.copyTapped.record(NoExtras())

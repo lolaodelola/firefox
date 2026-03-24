@@ -7,6 +7,8 @@ package mozilla.components.feature.awesomebar.provider
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.delay
 import mozilla.components.concept.awesomebar.AwesomeBar
+import mozilla.components.feature.awesomebar.facts.emitOptimizedSuggestionCardClickedFact
+import mozilla.components.feature.awesomebar.facts.emitOptimizedSuggestionCardDisplayedFact
 import mozilla.components.feature.search.SearchUseCases
 import java.text.NumberFormat
 import java.util.Locale
@@ -15,6 +17,7 @@ import kotlin.math.abs
 
 const val DEFAULT_STOCK_SUGGESTION_LIMIT = 1
 const val ARTIFICIAL_DELAY = 350L
+const val SUGGESTION_CARD_TYPE = "stocks"
 
 /**
  * [AwesomeBar.SuggestionProvider] implementation that provides suggestions based on online stocks.
@@ -54,6 +57,11 @@ class StocksOnlineSuggestionProvider(
             .mapNotNull { it.toSuggestionOrNull(locale) }
             .take(maxNumberOfSuggestions)
             .toList()
+            .also {
+                if (it.isNotEmpty()) {
+                    emitOptimizedSuggestionCardDisplayedFact(SUGGESTION_CARD_TYPE)
+                }
+            }
     }
 
     private fun AwesomeBar.StockItem.toSuggestionOrNull(locale: Locale): AwesomeBar.StockSuggestion? {
@@ -65,7 +73,10 @@ class StocksOnlineSuggestionProvider(
 
         return if (hasRequiredFields && formattedLastPrice != null && parsedChange != null) {
             AwesomeBar.StockSuggestion(
-                onSuggestionClicked = { searchUseCase.invoke(query) },
+                onSuggestionClicked = {
+                    emitOptimizedSuggestionCardClickedFact(SUGGESTION_CARD_TYPE)
+                    searchUseCase.invoke(query)
+                },
                 provider = this@StocksOnlineSuggestionProvider,
                 score = Int.MAX_VALUE,
                 query = query,

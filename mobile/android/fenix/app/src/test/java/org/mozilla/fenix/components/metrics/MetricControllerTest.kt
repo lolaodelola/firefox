@@ -876,6 +876,30 @@ class MetricControllerTest {
         assertNotNull(Awesomebar.recentSearchSuggestionsDisplayed.testGetValue())
         assertNotNull(Awesomebar.recentSearchSuggestionsDisplayed.testGetValue()!![0].extra)
         assertEquals("4", Awesomebar.recentSearchSuggestionsDisplayed.testGetValue()!![0].extra!!["count"])
+
+        // Verify optimized suggestion cards displayed
+        assertNull(Awesomebar.optimizedSuggestionCardDisplayed.testGetValue())
+        fact = Fact(Component.FEATURE_AWESOMEBAR, Action.DISPLAY, AwesomeBarFacts.Items.OPTIMIZED_SUGGESTION_CARD_DISPLAYED, "test")
+
+        with(controller) {
+            fact.process()
+        }
+
+        assertNotNull(Awesomebar.optimizedSuggestionCardDisplayed.testGetValue())
+        assertNotNull(Awesomebar.optimizedSuggestionCardDisplayed.testGetValue()!![0].extra)
+        assertEquals("test", Awesomebar.optimizedSuggestionCardDisplayed.testGetValue()!![0].extra!!["card_type"])
+
+        // Verify optimized suggestion cards clicked
+        assertNull(Awesomebar.optimizedSuggestionCardClicked.testGetValue())
+        fact = Fact(Component.FEATURE_AWESOMEBAR, Action.CLICK, AwesomeBarFacts.Items.OPTIMIZED_SUGGESTION_CARD_CLICKED, "test")
+
+        with(controller) {
+            fact.process()
+        }
+
+        assertNotNull(Awesomebar.optimizedSuggestionCardClicked.testGetValue())
+        assertNotNull(Awesomebar.optimizedSuggestionCardClicked.testGetValue()!![0].extra)
+        assertEquals("test", Awesomebar.optimizedSuggestionCardClicked.testGetValue()!![0].extra!!["card_type"])
     }
 
     @Test
