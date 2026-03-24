@@ -1,165 +1,329 @@
-From: =?UTF-8?q?Erik=20Spr=C3=A5ng?= <sprang@webrtc.org>
-Date: Fri, 19 Dec 2025 17:45:43 +0100
-Subject: (cherry-pick-branch-heads/7559) Fix potential crash when using
- encoder speed controller.
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Michael Froman <mfroman@mozilla.com>
+Date: Mon, 23 Mar 2026 19:04:49 -0500
+Subject: (tmp-cherry-pick) Revert "Allow injecting media channel into
+ VideoRtpReceiver" (a0d1f0f352)
 
-The list of speed controllers needs to be reset when we release the
-encoder - otherwise we end up appending more of them to the list. In
-some cases this may lead to a crash.
+This reverts commit f0edfc399074da2c0b6a3fe866462fa464addf5c.
 
-Merge note: The _more_configs bots are all failing with the same error
-message. "tools.mb.mb.MBErr: Phase cxx23 doesn't exist for
-win_x86_more_configs on tryserver.webrtc". Looks like the bot config
-for the branch isn't working properly. Since all other bots pass,
-setting No-Try.
+Reason for revert: Breaks downstream project
 
-(cherry picked from commit 7379b40231e0ffe92a8aad931438c22729080b1f)
+Original change's description:
+> Allow injecting media channel into VideoRtpReceiver
+>
+> This aligns VideoRtpReceiver and AudioRtpReceiver by allowing the
+> media channel to be passed directly during construction. This
+> dependency injection is necessary preparation for creating senders
+> and receivers from within the RtpTransceiver class.
+>
+> Also create parity between the audio and video receiver
+> constructors by removing the explicit `is_unified_plan` boolean from
+> `AudioRtpReceiver`.
+>
+> Key changes:
+> * Update `VideoRtpReceiver` to accept an optional
+>   VideoMediaReceiveChannelInterface` in the constructor.
+> * Refactor `AudioRtpReceiver` constructors to not have the
+>   `is_unified_plan` argument in constructors that are only used with
+>   unified plan. Leave one dedicated constructor for planb.
+> * Update call sites in `RtpTransmissionManager` and unit tests.
+>
+> Bug: webrtc:42222804
+> Change-Id: Ifa82f5ac4087b048f5e6d78284a4e79678c8e3b6
+> Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/433841
+> Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
+> Reviewed-by: Harald Alvestrand <hta@webrtc.org>
+> Cr-Commit-Position: refs/heads/main@{#46499}
 
-Bug: webrtc:443906251, chromium:469510023, chromium:470895856
+Bug: webrtc:42222804
+No-Presubmit: true
+No-Tree-Checks: true
 No-Try: true
-Change-Id: Icc3a189c3b8ae8566d816d1fb0afff73573ad151
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/435421
-Commit-Queue: Erik Språng <sprang@webrtc.org>
-Reviewed-by: Sergey Silkin <ssilkin@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#46527}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/435521
-Cr-Commit-Position: refs/branch-heads/7559@{#2}
-Cr-Branched-From: f680c1893f3b166b370439da52ae82d02f54969c-refs/heads/main@{#46356}
+Change-Id: I1c52e87c05fec0e4cbab002d2d381d584e8349cf
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/434720
+Reviewed-by: Harald Alvestrand <hta@webrtc.org>
+Auto-Submit: Fredrik Solenberg <solenberg@webrtc.org>
+Commit-Queue: Harald Alvestrand <hta@webrtc.org>
+Bot-Commit: Rubber Stamper <rubber-stamper@appspot.gserviceaccount.com>
+Cr-Commit-Position: refs/heads/main@{#46505}
 ---
- modules/video_coding/codecs/av1/BUILD.gn      |  1 +
- .../codecs/av1/libaom_av1_encoder.cc          |  4 ++
- .../codecs/av1/libaom_av1_unittest.cc         | 63 +++++++++++++++++++
- 3 files changed, 68 insertions(+)
+ pc/BUILD.gn                        |  1 -
+ pc/audio_rtp_receiver.cc           | 41 ++++++++----------------------
+ pc/audio_rtp_receiver.h            | 19 +++-----------
+ pc/audio_rtp_receiver_unittest.cc  | 13 +++++-----
+ pc/rtp_sender_receiver_unittest.cc |  3 ++-
+ pc/rtp_transmission_manager.cc     |  3 ++-
+ pc/video_rtp_receiver.cc           | 18 +++++--------
+ pc/video_rtp_receiver.h            | 13 ++++------
+ pc/video_rtp_receiver_unittest.cc  |  2 +-
+ 9 files changed, 36 insertions(+), 77 deletions(-)
 
-diff --git a/modules/video_coding/codecs/av1/BUILD.gn b/modules/video_coding/codecs/av1/BUILD.gn
-index 04d2d3c6bc..7403c80041 100644
---- a/modules/video_coding/codecs/av1/BUILD.gn
-+++ b/modules/video_coding/codecs/av1/BUILD.gn
-@@ -172,6 +172,7 @@ if (rtc_include_tests) {
-         "../../svc:scalability_mode_util",
-         "../../svc:scalability_structures",
-         "../../svc:scalable_video_controller",
-+        "../../svc:svc_rate_allocator",
-       ]
-     }
-   }
-diff --git a/modules/video_coding/codecs/av1/libaom_av1_encoder.cc b/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-index 4c865ec142..3f340d675a 100644
---- a/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-+++ b/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-@@ -433,6 +433,7 @@ int LibaomAv1Encoder::InitEncode(const VideoCodec* codec_settings,
-   if (encoder_speed_experiment_.IsDynamicSpeedEnabled()) {
-     LibaomSpeedConfigFactory speed_config_factory(
-         codec_settings->GetVideoEncoderComplexity(), codec_settings->mode);
-+    RTC_DCHECK(speed_controllers_.empty());
- 
-     if (SvcEnabled()) {
-       for (int si = 0; si < svc_params_->number_spatial_layers; ++si) {
-@@ -659,6 +660,7 @@ int32_t LibaomAv1Encoder::Release() {
-     }
-     inited_ = false;
-   }
-+  speed_controllers_.clear();
-   rates_configured_ = false;
-   return WEBRTC_VIDEO_CODEC_OK;
- }
-@@ -743,6 +745,8 @@ TimeDelta LibaomAv1Encoder::GetFrameInterval(int spatial_index) const {
-     return frame_interval;
-   }
- 
-+  RTC_DCHECK_LT(spatial_index, svc_params_->number_spatial_layers);
-+
-   // Allocate a time slice for each spatial layer, proportional to the
-   // fraction of pixels allocated for that layer.
-   // E.g. if QVGA + VGA is used, 20% of the encoder time will be allocated
-diff --git a/modules/video_coding/codecs/av1/libaom_av1_unittest.cc b/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-index fe2b0bf2e4..58c15f801a 100644
---- a/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-+++ b/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-@@ -21,6 +21,7 @@
- 
- #include "api/environment/environment.h"
- #include "api/environment/environment_factory.h"
-+#include "api/field_trials.h"
- #include "api/transport/rtp/dependency_descriptor.h"
- #include "api/units/data_rate.h"
- #include "api/units/data_size.h"
-@@ -40,6 +41,7 @@
- #include "modules/video_coding/svc/create_scalability_structure.h"
- #include "modules/video_coding/svc/scalability_mode_util.h"
- #include "modules/video_coding/svc/scalable_video_controller.h"
-+#include "modules/video_coding/svc/svc_rate_allocator.h"
- #include "rtc_base/checks.h"
- #include "test/gmock.h"
- #include "test/gtest.h"
-@@ -171,6 +173,67 @@ TEST(LibaomAv1Test, EncodeDecode) {
-   EXPECT_EQ(decoder.num_output_frames(), decoder.decoded_frame_ids().size());
+diff --git a/pc/BUILD.gn b/pc/BUILD.gn
+index 7c80ed5c96..1343247560 100644
+--- a/pc/BUILD.gn
++++ b/pc/BUILD.gn
+@@ -1857,7 +1857,6 @@ rtc_library("video_rtp_receiver") {
+     "../rtc_base:macromagic",
+     "../rtc_base:threading",
+     "../rtc_base/system:no_unique_address",
+-    "//third_party/abseil-cpp/absl/strings:string_view",
+   ]
  }
  
-+TEST(LibaomAv1Test, EncodeDecodeWithSpeedController) {
-+  EnvironmentFactory factory;
-+  factory.Set(std::make_unique<FieldTrials>(
-+      "WebRTC-EncoderSpeed/"
-+      "dynamic_speed:true,av1_camera:high,av1_screenshare:low/"));
-+  const Environment env = factory.Create();
-+
-+  TestAv1Decoder decoder(env, /*decoder_id=*/0);
-+  std::unique_ptr<VideoEncoder> encoder = CreateLibaomAv1Encoder(env);
-+  VideoCodec codec_settings = DefaultCodecSettings();
-+  ASSERT_EQ(encoder->InitEncode(&codec_settings, DefaultEncoderSettings()),
-+            WEBRTC_VIDEO_CODEC_OK);
-+
-+  VideoBitrateAllocation allocation;
-+  allocation.SetBitrate(0, 0, 300000);
-+  encoder->SetRates(VideoEncoder::RateControlParameters(
-+      allocation, codec_settings.maxFramerate));
-+
-+  std::vector<EncodedVideoFrameProducer::EncodedFrame> encoded_frames =
-+      EncodedVideoFrameProducer(*encoder).SetNumInputFrames(4).Encode();
-+  for (size_t frame_id = 0; frame_id < encoded_frames.size(); ++frame_id) {
-+    decoder.Decode(static_cast<int64_t>(frame_id),
-+                   encoded_frames[frame_id].encoded_image);
-+  }
-+
-+  // Check encoder produced some frames for decoder to decode.
-+  ASSERT_THAT(encoded_frames, Not(IsEmpty()));
-+  // Check decoder found all of them valid.
-+  EXPECT_THAT(decoder.decoded_frame_ids(), SizeIs(encoded_frames.size()));
-+  // Check each of them produced an output frame.
-+  EXPECT_EQ(decoder.num_output_frames(), decoder.decoded_frame_ids().size());
-+}
-+
-+TEST(LibaomAv1Test, InitReleaseRepeatedly) {
-+  EnvironmentFactory factory;
-+  factory.Set(FieldTrials::Create(
-+      "WebRTC-EncoderSpeed/"
-+      "dynamic_speed:true,av1_camera:high,av1_screenshare:low/"));
-+  const Environment env = factory.Create();
-+
-+  std::unique_ptr<VideoEncoder> encoder = CreateLibaomAv1Encoder(env);
-+  VideoCodec codec_settings = DefaultCodecSettings();
-+  codec_settings.SetScalabilityMode(ScalabilityMode::kL3T3_KEY);
-+
-+  SvcRateAllocator rate_allocator(codec_settings, env.field_trials());
-+
-+  VideoBitrateAllocation allocation =
-+      rate_allocator.GetAllocation(3'000'000, 30);
-+
-+  for (int i = 0; i < 10; ++i) {
-+    ASSERT_EQ(encoder->InitEncode(&codec_settings, DefaultEncoderSettings()),
-+              WEBRTC_VIDEO_CODEC_OK);
-+    encoder->SetRates(VideoEncoder::RateControlParameters(
-+        allocation, codec_settings.maxFramerate));
-+    EXPECT_THAT(
-+        EncodedVideoFrameProducer(*encoder).SetNumInputFrames(1).Encode(),
-+        Not(IsEmpty()));
-+    EXPECT_EQ(encoder->Release(), WEBRTC_VIDEO_CODEC_OK);
-+  }
-+}
-+
- struct LayerId {
-   friend bool operator==(const LayerId& lhs, const LayerId& rhs) {
-     return std::tie(lhs.spatial_id, lhs.temporal_id) ==
+diff --git a/pc/audio_rtp_receiver.cc b/pc/audio_rtp_receiver.cc
+index 3194f0ba1a..5e08b3e150 100644
+--- a/pc/audio_rtp_receiver.cc
++++ b/pc/audio_rtp_receiver.cc
+@@ -42,48 +42,27 @@ AudioRtpReceiver::AudioRtpReceiver(
+     Thread* worker_thread,
+     absl::string_view receiver_id,
+     std::vector<std::string> stream_ids,
+-    VoiceMediaReceiveChannelInterface* voice_channel)
++    bool is_unified_plan,
++    VoiceMediaReceiveChannelInterface* voice_channel /*= nullptr*/)
+     : AudioRtpReceiver(worker_thread,
+                        receiver_id,
+                        CreateStreamsFromIds(std::move(stream_ids)),
+-                       voice_channel,
+-                       RemoteAudioSource::OnAudioChannelGoneAction::kSurvive) {}
++                       is_unified_plan,
++                       voice_channel) {}
+ 
+ AudioRtpReceiver::AudioRtpReceiver(
+     Thread* worker_thread,
+     absl::string_view receiver_id,
+     const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+     bool is_unified_plan,
+-    VoiceMediaReceiveChannelInterface* voice_channel)
+-    : AudioRtpReceiver(worker_thread,
+-                       receiver_id,
+-                       streams,
+-                       voice_channel,
+-                       RemoteAudioSource::OnAudioChannelGoneAction::kEnd) {
+-  RTC_DCHECK(!is_unified_plan);
+-}
+-
+-AudioRtpReceiver::AudioRtpReceiver(
+-    Thread* worker_thread,
+-    absl::string_view receiver_id,
+-    const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-    VoiceMediaReceiveChannelInterface* voice_channel)
+-    : AudioRtpReceiver(worker_thread,
+-                       receiver_id,
+-                       streams,
+-                       voice_channel,
+-                       RemoteAudioSource::OnAudioChannelGoneAction::kSurvive) {}
+-
+-AudioRtpReceiver::AudioRtpReceiver(
+-    Thread* worker_thread,
+-    absl::string_view receiver_id,
+-    const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-    VoiceMediaReceiveChannelInterface* voice_channel,
+-    RemoteAudioSource::OnAudioChannelGoneAction source_gone_action)
++    VoiceMediaReceiveChannelInterface* voice_channel /*= nullptr*/)
+     : worker_thread_(worker_thread),
+       id_(receiver_id),
+-      source_(make_ref_counted<RemoteAudioSource>(worker_thread,
+-                                                  source_gone_action)),
++      source_(make_ref_counted<RemoteAudioSource>(
++          worker_thread,
++          is_unified_plan
++              ? RemoteAudioSource::OnAudioChannelGoneAction::kSurvive
++              : RemoteAudioSource::OnAudioChannelGoneAction::kEnd)),
+       track_(AudioTrackProxyWithInternal<AudioTrack>::Create(
+           Thread::Current(),
+           AudioTrack::Create(receiver_id, source_))),
+diff --git a/pc/audio_rtp_receiver.h b/pc/audio_rtp_receiver.h
+index fa6a061b7a..14c9a72266 100644
+--- a/pc/audio_rtp_receiver.h
++++ b/pc/audio_rtp_receiver.h
+@@ -54,22 +54,16 @@ class AudioRtpReceiver : public ObserverInterface,
+   AudioRtpReceiver(Thread* worker_thread,
+                    absl::string_view receiver_id,
+                    std::vector<std::string> stream_ids,
++                   bool is_unified_plan,
+                    VoiceMediaReceiveChannelInterface* voice_channel = nullptr);
+-  // Note: This is a PlanB-only constructor.
+   // TODO(https://crbug.com/webrtc/9480): Remove this when streams() is removed.
+   AudioRtpReceiver(
+       Thread* worker_thread,
+       absl::string_view receiver_id,
+       const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-      bool is_unified_plan,  // must always be set to false.
++      bool is_unified_plan,
+       VoiceMediaReceiveChannelInterface* media_channel = nullptr);
+-  // TODO(https://crbug.com/webrtc/9480): Remove this when streams() is removed.
+-  AudioRtpReceiver(
+-      Thread* worker_thread,
+-      absl::string_view receiver_id,
+-      const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-      VoiceMediaReceiveChannelInterface* media_channel = nullptr);
+-  ~AudioRtpReceiver() override;
++  virtual ~AudioRtpReceiver();
+ 
+   // ObserverInterface implementation
+   void OnChanged() override;
+@@ -125,13 +119,6 @@ class AudioRtpReceiver : public ObserverInterface,
+       scoped_refptr<FrameTransformerInterface> frame_transformer) override;
+ 
+  private:
+-  AudioRtpReceiver(
+-      Thread* worker_thread,
+-      absl::string_view receiver_id,
+-      const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-      VoiceMediaReceiveChannelInterface* media_channel,
+-      RemoteAudioSource::OnAudioChannelGoneAction source_gone_action);
+-
+   void RestartMediaChannel(std::optional<uint32_t> ssrc)
+       RTC_RUN_ON(&signaling_thread_checker_);
+   void RestartMediaChannel_w(std::optional<uint32_t> ssrc,
+diff --git a/pc/audio_rtp_receiver_unittest.cc b/pc/audio_rtp_receiver_unittest.cc
+index 0471003fae..375b8a4faf 100644
+--- a/pc/audio_rtp_receiver_unittest.cc
++++ b/pc/audio_rtp_receiver_unittest.cc
+@@ -41,10 +41,10 @@ class AudioRtpReceiverTest : public ::testing::Test {
+  protected:
+   AudioRtpReceiverTest()
+       : worker_(Thread::Current()),
+-        receiver_(
+-            make_ref_counted<AudioRtpReceiver>(worker_,
+-                                               std::string(),
+-                                               std::vector<std::string>())) {
++        receiver_(make_ref_counted<AudioRtpReceiver>(worker_,
++                                                     std::string(),
++                                                     std::vector<std::string>(),
++                                                     false)) {
+     EXPECT_CALL(receive_channel_, SetRawAudioSink(kSsrc, _));
+     EXPECT_CALL(receive_channel_, SetBaseMinimumPlayoutDelayMs(kSsrc, _));
+   }
+@@ -109,8 +109,9 @@ TEST(AudioRtpReceiver, OnChangedNotificationsAfterConstruction) {
+   test::RunLoop loop;
+   auto* thread = Thread::Current();  // Points to loop's thread.
+   MockVoiceMediaReceiveChannelInterface receive_channel;
+-  auto receiver = make_ref_counted<AudioRtpReceiver>(
+-      thread, std::string(), std::vector<std::string>(), &receive_channel);
++  auto receiver = make_ref_counted<AudioRtpReceiver>(thread, std::string(),
++                                                     std::vector<std::string>(),
++                                                     true, &receive_channel);
+ 
+   EXPECT_CALL(receive_channel, SetDefaultRawAudioSink(_)).Times(1);
+   EXPECT_CALL(receive_channel, SetDefaultOutputVolume(kDefaultVolume)).Times(1);
+diff --git a/pc/rtp_sender_receiver_unittest.cc b/pc/rtp_sender_receiver_unittest.cc
+index 1824d9122b..e8389e9e6a 100644
+--- a/pc/rtp_sender_receiver_unittest.cc
++++ b/pc/rtp_sender_receiver_unittest.cc
+@@ -279,7 +279,8 @@ class RtpSenderReceiverTest
+   void CreateAudioRtpReceiver(
+       std::vector<scoped_refptr<MediaStreamInterface>> streams = {}) {
+     audio_rtp_receiver_ = make_ref_counted<AudioRtpReceiver>(
+-        Thread::Current(), kAudioTrackId, streams);
++        Thread::Current(), kAudioTrackId, streams,
++        /*is_unified_plan=*/true);
+     audio_rtp_receiver_->SetMediaChannel(voice_media_receive_channel());
+     audio_rtp_receiver_->SetupMediaChannel(kAudioSsrc);
+     audio_track_ = audio_rtp_receiver_->audio_track();
+diff --git a/pc/rtp_transmission_manager.cc b/pc/rtp_transmission_manager.cc
+index ed46652b0e..77d9668e28 100644
+--- a/pc/rtp_transmission_manager.cc
++++ b/pc/rtp_transmission_manager.cc
+@@ -303,7 +303,8 @@ RtpTransmissionManager::CreateReceiver(MediaType media_type,
+     receiver = RtpReceiverProxyWithInternal<RtpReceiverInternal>::Create(
+         signaling_thread(), worker_thread(),
+         make_ref_counted<AudioRtpReceiver>(worker_thread(), receiver_id,
+-                                           std::vector<std::string>({})));
++                                           std::vector<std::string>({}),
++                                           IsUnifiedPlan()));
+     NoteUsageEvent(UsageEvent::AUDIO_ADDED);
+   } else {
+     RTC_DCHECK_EQ(media_type, MediaType::VIDEO);
+diff --git a/pc/video_rtp_receiver.cc b/pc/video_rtp_receiver.cc
+index 622efd006a..4006cc2657 100644
+--- a/pc/video_rtp_receiver.cc
++++ b/pc/video_rtp_receiver.cc
+@@ -17,7 +17,6 @@
+ #include <utility>
+ #include <vector>
+ 
+-#include "absl/strings/string_view.h"
+ #include "api/crypto/frame_decryptor_interface.h"
+ #include "api/dtls_transport_interface.h"
+ #include "api/frame_transformer_interface.h"
+@@ -41,24 +40,19 @@
+ 
+ namespace webrtc {
+ 
+-VideoRtpReceiver::VideoRtpReceiver(
+-    Thread* worker_thread,
+-    absl::string_view receiver_id,
+-    std::vector<std::string> stream_ids,
+-    VideoMediaReceiveChannelInterface* media_channel)
++VideoRtpReceiver::VideoRtpReceiver(Thread* worker_thread,
++                                   std::string receiver_id,
++                                   std::vector<std::string> stream_ids)
+     : VideoRtpReceiver(worker_thread,
+                        receiver_id,
+-                       CreateStreamsFromIds(std::move(stream_ids)),
+-                       media_channel) {}
++                       CreateStreamsFromIds(std::move(stream_ids))) {}
+ 
+ VideoRtpReceiver::VideoRtpReceiver(
+     Thread* worker_thread,
+-    absl::string_view receiver_id,
+-    const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-    VideoMediaReceiveChannelInterface* media_channel)
++    const std::string& receiver_id,
++    const std::vector<scoped_refptr<MediaStreamInterface>>& streams)
+     : worker_thread_(worker_thread),
+       id_(receiver_id),
+-      media_channel_(media_channel),
+       source_(make_ref_counted<VideoRtpTrackSource>(&source_callback_)),
+       track_(VideoTrackProxyWithInternal<VideoTrack>::Create(
+           Thread::Current(),
+diff --git a/pc/video_rtp_receiver.h b/pc/video_rtp_receiver.h
+index 9eec89741d..6bf8c50891 100644
+--- a/pc/video_rtp_receiver.h
++++ b/pc/video_rtp_receiver.h
+@@ -17,7 +17,6 @@
+ #include <string>
+ #include <vector>
+ 
+-#include "absl/strings/string_view.h"
+ #include "api/crypto/frame_decryptor_interface.h"
+ #include "api/dtls_transport_interface.h"
+ #include "api/frame_transformer_interface.h"
+@@ -47,18 +46,16 @@ class VideoRtpReceiver : public RtpReceiverInternal {
+   // An SSRC of 0 will create a receiver that will match the first SSRC it
+   // sees. Must be called on signaling thread.
+   VideoRtpReceiver(Thread* worker_thread,
+-                   absl::string_view receiver_id,
+-                   std::vector<std::string> streams_ids,
+-                   VideoMediaReceiveChannelInterface* media_channel = nullptr);
++                   std::string receiver_id,
++                   std::vector<std::string> streams_ids);
+   // TODO(hbos): Remove this when streams() is removed.
+   // https://crbug.com/webrtc/9480
+   VideoRtpReceiver(
+       Thread* worker_thread,
+-      absl::string_view receiver_id,
+-      const std::vector<scoped_refptr<MediaStreamInterface>>& streams,
+-      VideoMediaReceiveChannelInterface* media_channel = nullptr);
++      const std::string& receiver_id,
++      const std::vector<scoped_refptr<MediaStreamInterface>>& streams);
+ 
+-  ~VideoRtpReceiver() override;
++  virtual ~VideoRtpReceiver();
+ 
+   scoped_refptr<VideoTrackInterface> video_track() const { return track_; }
+ 
+diff --git a/pc/video_rtp_receiver_unittest.cc b/pc/video_rtp_receiver_unittest.cc
+index 15b23a6d08..b5131ad1aa 100644
+--- a/pc/video_rtp_receiver_unittest.cc
++++ b/pc/video_rtp_receiver_unittest.cc
+@@ -81,7 +81,7 @@ class VideoRtpReceiverTest : public testing::Test {
+         channel_(VideoOptions()),
+         receiver_(make_ref_counted<VideoRtpReceiver>(
+             worker_thread_.get(),
+-            "receiver",
++            std::string("receiver"),
+             std::vector<std::string>({"stream"}))) {
+     worker_thread_->Start();
+     SetMediaChannel(&channel_);
