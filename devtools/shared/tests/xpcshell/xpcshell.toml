@@ -82,3 +82,5 @@ skip-if = [
 ["test_sprintfjs.js"]
 
 ["test_stack.js"]
+
+["test_toFixed.js"]

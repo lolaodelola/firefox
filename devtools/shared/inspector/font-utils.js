@@ -20,6 +20,6 @@ module.exports = {
       throw new Error(`Input: "${number}" is not a number.`);
     }
 
-    return Math.floor(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+    return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
   },
 };
