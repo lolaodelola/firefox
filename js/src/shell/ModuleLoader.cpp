@@ -528,15 +528,12 @@ JSObject* ModuleLoader::loadAndParse(JSContext* cx, HandleString pathArg,
       return nullptr;
     }
 
-    auto* bytesArray = FileAsTypedArray(cx, resolvedPath);
-    if (!bytesArray) {
+    auto* typedArray = FileAsImmutableTypedArray(cx, resolvedPath);
+    if (!typedArray) {
       return nullptr;
     }
-    JS::Rooted<JS::Value> defaultExport(cx, ObjectValue(*bytesArray));
+    JS::Rooted<JS::Value> defaultExport(cx, ObjectValue(*typedArray));
 
-    // TODO: The spec requires that the ArrayBuffer be immutable.
-    // Immutable ArrayBuffers (see bug 1952253) are still only a Stage 2.7
-    // proposal, once they are Stage 3, we can fix this.
     module = JS::CreateDefaultExportSyntheticModule(cx, defaultExport);
     if (!module) {
       return nullptr;

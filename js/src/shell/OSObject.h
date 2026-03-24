@@ -40,6 +40,9 @@ JSString* ResolvePath(JSContext* cx, JS::HandleString filenameStr,
 
 JSObject* FileAsTypedArray(JSContext* cx, JS::HandleString pathnameStr);
 
+JSObject* FileAsImmutableTypedArray(JSContext* cx,
+                                    JS::HandleString pathnameStr);
+
 /**
  * Return the current working directory as a UTF-8 encoded string.
  *

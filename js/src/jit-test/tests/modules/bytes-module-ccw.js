@@ -1,13 +1,19 @@
 // |jit-test| skip-if: getBuildConfiguration("release_or_beta"); --enable-import-bytes; --enable-arraybuffer-immutable
 
-let buf = new ArrayBuffer(4);
-let view = new Uint8Array(buf);
+// Same test as "modules/bytes-module.js", but this time using a CCW Uint8Array.
+
+let g = newGlobal({
+    newCompartment: true,
+});
+
+let buf = new g.ArrayBuffer(4);
+let view = new g.Uint8Array(buf);
 view[0] = 0x41;
 view[1] = 0x42;
 view[2] = 0x43;
 view[3] = 0x44;
 
-let immutable = new Uint8Array(buf.sliceToImmutable());
+let immutable = new g.Uint8Array(buf.sliceToImmutable());
 
 let m = parseModule(immutable, "bytes-module.js", "bytes");
 let a = registerModule("bytes-module", m);
@@ -23,7 +29,7 @@ moduleLink(b);
 moduleEvaluate(b);
 
 assertEq(importedUint8 === immutable, true);
-assertEq(importedUint8 instanceof Uint8Array, true);
+assertEq(importedUint8 instanceof g.Uint8Array, true);
 assertEq(importedUint8.length, view.length);
 assertEq(importedUint8.buffer.immutable, true);
 

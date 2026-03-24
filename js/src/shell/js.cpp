@@ -5737,19 +5737,16 @@ static bool ParseModule(JSContext* cx, unsigned argc, Value* vp) {
     }
 
     case JS::ModuleType::Bytes: {
-      if (!args[0].isObject() ||
-          !JS::IsArrayBufferObject(&args[0].toObject())) {
+      JSObject* obj = args[0].isObject() ? &args[0].toObject() : nullptr;
+      auto typedArray = JS::TypedArray<JS::Scalar::Uint8>::unwrap(obj);
+      if (!typedArray || !typedArray.isImmutable()) {
         const char* typeName = InformalValueTypeName(args[0]);
-        JS_ReportErrorASCII(cx, "expected ArrayBuffer for bytes module, got %s",
-                            typeName);
+        JS_ReportErrorASCII(
+            cx, "expected immutable Uint8Array for bytes module, got %s",
+            typeName);
         return false;
       }
 
-      /*
-       * NOTE: The spec requires checking that the ArrayBuffer is immutable.
-       * Immutable ArrayBuffers (see bug 1952253) are still only a Stage 2.7
-       * proposal. This check will be added in a future update.
-       */
       module = JS::CreateDefaultExportSyntheticModule(cx, args[0]);
       break;
     }
