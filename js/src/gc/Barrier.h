@@ -1108,106 +1108,65 @@ template struct JS_PUBLIC_API StableCellHasher<JSObject*>;
 template struct JS_PUBLIC_API StableCellHasher<JSScript*>;
 #endif
 
-template <typename T>
-struct StableCellHasher<PreBarriered<T>> {
-  using Key = PreBarriered<T>;
-  using Lookup = T;
-
-  static bool maybeGetHash(const Lookup& l, HashNumber* hashOut) {
-    return StableCellHasher<T>::maybeGetHash(l, hashOut);
+// Declare a StableCellHasher specialization to allow use of barriered pointers
+// as keys in a hash table without requiring rekeying when GC cells are
+// moved. Barriers are skipped for hash table lookup.
+//
+// Barriered pointers with GC lifetime are not suitable for use as hashtable
+// keys.
+#define DEFINE_STABLE_CELL_HASHER(BarrieredPtr)                     \
+  template <typename T>                                              \
+  struct StableCellHasher<BarrieredPtr<T>> {                         \
+    using Key = BarrieredPtr<T>;                                     \
+    using Lookup = T;                                                \
+                                                                     \
+    static_assert(!Key::hasOption(gc::BarrierOption_HasGCLifetime)); \
+                                                                     \
+    static bool maybeGetHash(const Lookup& l, HashNumber* hashOut) { \
+      return StableCellHasher<T>::maybeGetHash(l, hashOut);          \
+    }                                                                \
+    static bool ensureHash(const Lookup& l, HashNumber* hashOut) {   \
+      return StableCellHasher<T>::ensureHash(l, hashOut);            \
+    }                                                                \
+    static HashNumber hash(const Lookup& l) {                        \
+      return StableCellHasher<T>::hash(l);                           \
+    }                                                                \
+    static bool match(const Key& k, const Lookup& l) {               \
+      return StableCellHasher<T>::match(k.unbarrieredGet(), l);      \
+    }                                                                \
   }
-  static bool ensureHash(const Lookup& l, HashNumber* hashOut) {
-    return StableCellHasher<T>::ensureHash(l, hashOut);
-  }
-  static HashNumber hash(const Lookup& l) {
-    return StableCellHasher<T>::hash(l);
-  }
-  static bool match(const Key& k, const Lookup& l) {
-    return StableCellHasher<T>::match(k, l);
-  }
-};
 
-template <typename T>
-struct StableCellHasher<HeapPtr<T>> {
-  using Key = HeapPtr<T>;
-  using Lookup = T;
+DEFINE_STABLE_CELL_HASHER(PreBarriered);
+DEFINE_STABLE_CELL_HASHER(HeapPtr);
+DEFINE_STABLE_CELL_HASHER(WeakHeapPtr);
 
-  static bool maybeGetHash(const Lookup& l, HashNumber* hashOut) {
-    return StableCellHasher<T>::maybeGetHash(l, hashOut);
+#undef DEFINE_STABLE_CELL_HASHER
+
+// Declare a hasher struct to allow use of barriered pointers as keys in a
+// rekeyable hash table. Barriers are skipped for hash table lookup and rekey.
+#define DEFINE_BARRIERED_PTR_HASHER(Name, BarrieredPtr)                   \
+  template <class T>                                                       \
+  struct Name {                                                            \
+    using Key = BarrieredPtr<T>;                                           \
+    using Lookup = T;                                                      \
+                                                                           \
+    static_assert(!Key::hasOption(gc::BarrierOption_HasGCLifetime));       \
+                                                                           \
+    static HashNumber hash(Lookup l) { return DefaultHasher<T>::hash(l); } \
+    static bool match(const Key& k, Lookup l) {                            \
+      return k.unbarrieredGet() == l;                                      \
+    }                                                                      \
+    static void rekey(Key& k, const Key& newKey) {                         \
+      k.unbarrieredSet(newKey.unbarrieredGet());                           \
+    }                                                                      \
   }
-  static bool ensureHash(const Lookup& l, HashNumber* hashOut) {
-    return StableCellHasher<T>::ensureHash(l, hashOut);
-  }
-  static HashNumber hash(const Lookup& l) {
-    return StableCellHasher<T>::hash(l);
-  }
-  static bool match(const Key& k, const Lookup& l) {
-    return StableCellHasher<T>::match(k, l);
-  }
-};
 
-template <typename T>
-struct StableCellHasher<WeakHeapPtr<T>> {
-  using Key = WeakHeapPtr<T>;
-  using Lookup = T;
+DEFINE_BARRIERED_PTR_HASHER(PreBarrieredHasher, PreBarriered);
+DEFINE_BARRIERED_PTR_HASHER(HeapPtrHasher, HeapPtr);
+DEFINE_BARRIERED_PTR_HASHER(WeakHeapPtrHasher, WeakHeapPtr);
+DEFINE_BARRIERED_PTR_HASHER(UnsafeBarePtrHasher, UnsafeBarePtr);
 
-  static bool maybeGetHash(const Lookup& l, HashNumber* hashOut) {
-    return StableCellHasher<T>::maybeGetHash(l, hashOut);
-  }
-  static bool ensureHash(const Lookup& l, HashNumber* hashOut) {
-    return StableCellHasher<T>::ensureHash(l, hashOut);
-  }
-  static HashNumber hash(const Lookup& l) {
-    return StableCellHasher<T>::hash(l);
-  }
-  static bool match(const Key& k, const Lookup& l) {
-    return StableCellHasher<T>::match(k.unbarrieredGet(), l);
-  }
-};
-
-/* Useful for hashtables with a HeapPtr as key. */
-template <class T>
-struct HeapPtrHasher {
-  using Key = HeapPtr<T>;
-  using Lookup = T;
-
-  static HashNumber hash(Lookup obj) { return DefaultHasher<T>::hash(obj); }
-  static bool match(const Key& k, Lookup l) { return k.get() == l; }
-  static void rekey(Key& k, const Key& newKey) { k.unbarrieredSet(newKey); }
-};
-
-template <class T>
-struct PreBarrieredHasher {
-  using Key = PreBarriered<T>;
-  using Lookup = T;
-
-  static HashNumber hash(Lookup obj) { return DefaultHasher<T>::hash(obj); }
-  static bool match(const Key& k, Lookup l) { return k.get() == l; }
-  static void rekey(Key& k, const Key& newKey) { k.unbarrieredSet(newKey); }
-};
-
-/* Useful for hashtables with a WeakHeapPtr as key. */
-template <class T>
-struct WeakHeapPtrHasher {
-  using Key = WeakHeapPtr<T>;
-  using Lookup = T;
-
-  static HashNumber hash(Lookup obj) { return DefaultHasher<T>::hash(obj); }
-  static bool match(const Key& k, Lookup l) { return k.unbarrieredGet() == l; }
-  static void rekey(Key& k, const Key& newKey) {
-    k.set(newKey.unbarrieredGet());
-  }
-};
-
-template <class T>
-struct UnsafeBarePtrHasher {
-  using Key = UnsafeBarePtr<T>;
-  using Lookup = T;
-
-  static HashNumber hash(const Lookup& l) { return DefaultHasher<T>::hash(l); }
-  static bool match(const Key& k, Lookup l) { return k.get() == l; }
-  static void rekey(Key& k, const Key& newKey) { k.set(newKey.get()); }
-};
+#undef DEFINE_BARRIERED_PTR_HASHER
 
 // Set up descriptive type aliases.
 template <class T>
@@ -1247,23 +1206,16 @@ struct DefineComparisonOps<js::HeapSlot> : std::true_type {
 
 namespace mozilla {
 
-template <class T>
-struct DefaultHasher<js::HeapPtr<T>> : js::HeapPtrHasher<T> {};
+#define DEFINE_DEFAULT_HASHER(BarrieredPtr, Hasher) \
+  template <class T>                                 \
+  struct DefaultHasher<BarrieredPtr<T>> : Hasher<T> {}
 
-template <class T>
-struct DefaultHasher<js::GCPtr<T>> {
-  // Not implemented. GCPtr can't be used as a hash table key because it has a
-  // post barrier but doesn't support relocation.
-};
+DEFINE_DEFAULT_HASHER(js::HeapPtr, js::HeapPtrHasher);
+DEFINE_DEFAULT_HASHER(js::PreBarriered, js::PreBarrieredHasher);
+DEFINE_DEFAULT_HASHER(js::WeakHeapPtr, js::WeakHeapPtrHasher);
+DEFINE_DEFAULT_HASHER(js::UnsafeBarePtr, js::UnsafeBarePtrHasher);
 
-template <class T>
-struct DefaultHasher<js::PreBarriered<T>> : js::PreBarrieredHasher<T> {};
-
-template <class T>
-struct DefaultHasher<js::WeakHeapPtr<T>> : js::WeakHeapPtrHasher<T> {};
-
-template <class T>
-struct DefaultHasher<js::UnsafeBarePtr<T>> : js::UnsafeBarePtrHasher<T> {};
+#undef DEFINE_DEFAULT_HASHER
 
 }  // namespace mozilla
 
