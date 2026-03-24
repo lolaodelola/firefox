@@ -7667,6 +7667,11 @@ criteria = "safe-to-deploy"
 delta = "28.0.0 -> 28.0.0@git:43f48b43ee8b31289f65c3d6c80444897fa1c80e"
 importable = false
 
+[[audits.wgpu-naga-bridge]]
+who = "Erich Gubler <erichdongubler@gmail.com>"
+criteria = "safe-to-deploy"
+version = "28.0.0"
+
 [[audits.wgpu-types]]
 who = "Dzmitry Malyshau <kvark@fastmail.com>"
 criteria = "safe-to-deploy"
