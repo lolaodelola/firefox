@@ -24,8 +24,8 @@ static const JSClass global_class = {
     &JS::DefaultGlobalClassOps,
 };
 
-MOZ_RUNINIT static JS::PersistentRootedObject trusted_glob;
-MOZ_RUNINIT static JS::PersistentRootedObject trusted_fun;
+constinit static JS::PersistentRootedObject trusted_glob;
+constinit static JS::PersistentRootedObject trusted_fun;
 
 static bool CallTrusted(JSContext* cx, unsigned argc, JS::Value* vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);

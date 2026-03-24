@@ -109,8 +109,7 @@ static std::atomic<PerfModeType> PerfMode = PerfModeType::None;
 // profiling is enabled.
 MOZ_RUNINIT static js::Mutex PerfMutex(mutexid::PerfSpewer);
 
-MOZ_RUNINIT static PersistentRooted<
-    GCVector<JitCode*, 0, js::SystemAllocPolicy>>
+static PersistentRooted<GCVector<JitCode*, 0, js::SystemAllocPolicy>>
     jitCodeVector;
 MOZ_RUNINIT static ProfilerJitCodeVector profilerData;
 

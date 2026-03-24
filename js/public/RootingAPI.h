@@ -1595,7 +1595,7 @@ class PersistentRooted : public detail::RootedTraits<T>::PersistentBase,
  public:
   using ElementType = T;
 
-  PersistentRooted() : ptr(SafelyInitialized<T>::create()) {}
+  constexpr PersistentRooted() : ptr(SafelyInitialized<T>::create()) {}
 
   template <
       typename RootHolder,
