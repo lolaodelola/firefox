@@ -3,6 +3,11 @@
 
 "use strict";
 
+Services.scriptloader.loadSubScript(
+  new URL("head_smart_window.js", gTestPath).href,
+  this
+);
+
 describe("settings ai features / Smart Window memories", () => {
   let doc, win;
 
@@ -14,73 +19,11 @@ describe("settings ai features / Smart Window memories", () => {
         ["browser.smartwindow.tos.consentTime", 1770830464],
       ],
     });
-    await openPreferencesViaOpenPreferencesAPI("general", { leaveOpen: true });
-    doc = gBrowser.selectedBrowser.contentDocument;
-    win = doc.ownerGlobal;
   });
 
   afterEach(() => {
     BrowserTestUtils.removeTab(gBrowser.selectedTab);
   });
-
-  async function openAiFeaturePanel() {
-    const paneLoaded = waitForPaneChange("ai");
-    const categoryButton = doc.getElementById("category-ai-features");
-    categoryButton.scrollIntoView();
-    EventUtils.synthesizeMouseAtCenter(categoryButton, {}, win);
-    await paneLoaded;
-  }
-
-  async function openSmartWindowPanel() {
-    await openAiFeaturePanel();
-    const personalizeButton = doc.getElementById(
-      "personalizeSmartWindowButton"
-    );
-    personalizeButton.scrollIntoView();
-    const paneLoaded = waitForPaneChange("personalizeSmartWindow");
-    EventUtils.synthesizeMouseAtCenter(personalizeButton, {}, win);
-    await paneLoaded;
-  }
-
-  async function openManageMemoriesPanel() {
-    await openSmartWindowPanel();
-    const manageButton = doc.getElementById("manageMemoriesButton");
-    manageButton.scrollIntoView();
-    const paneLoaded = waitForPaneChange("manageMemories");
-    EventUtils.synthesizeMouseAtCenter(manageButton, {}, win);
-    await paneLoaded;
-  }
-
-  async function populateMemories() {
-    const { MemoryStore } = ChromeUtils.importESModule(
-      "moz-src:///browser/components/aiwindow/services/MemoryStore.sys.mjs"
-    );
-
-    let memoryOne = await MemoryStore.addMemory({
-      memory_summary: "Lorem ipsum dolor sit amet 1",
-      category: "interests",
-      intent: "general",
-      score: 5,
-    });
-    let memoryTwo = await MemoryStore.addMemory({
-      memory_summary: "Lorem ipsum dolor sit amet 2",
-      category: "habits",
-      intent: "general",
-      score: 4,
-    });
-
-    registerCleanupFunction(async () => {
-      for (const { id } of [memoryOne, memoryTwo]) {
-        try {
-          await MemoryStore.hardDeleteMemory(id);
-        } catch (err) {
-          console.error("Failed to delete memory:", id, err);
-        }
-      }
-    });
-
-    return { MemoryStore, memories: [memoryOne, memoryTwo] };
-  }
 
   it("toggles chat and browsing memory controls and shows correct empty states", async () => {
     await SpecialPowers.pushPrefEnv({
@@ -90,7 +33,7 @@ describe("settings ai features / Smart Window memories", () => {
       ],
     });
 
-    await openSmartWindowPanel();
+    ({ doc, win } = await openSmartWindowPanel());
 
     const chatCheckbox = doc.getElementById("learnFromChatActivity");
     Assert.ok(!chatCheckbox.checked, "Chat checkbox is unchecked initially");
@@ -174,7 +117,7 @@ describe("settings ai features / Smart Window memories", () => {
     const { MemoryStore, memories } = await populateMemories();
     const testMemory = memories[0];
 
-    await openManageMemoriesPanel();
+    ({ doc, win } = await openManageMemoriesPanel());
 
     const memoriesList = doc.getElementById("memoriesList");
     await memoriesList.updateComplete;

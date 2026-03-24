@@ -591,3 +591,101 @@ smart_window:
     notification_emails:
       - mlucks@mozilla.com
     expires: never
+
+  memories_nuke:
+    type: event
+    description: |
+      User clicks on “Delete all” button for memories
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009612
+    data_reviews:
+      - https://phabricator.services.mozilla.com/D288768
+    data_sensitivity:
+      - interaction
+    notification_emails:
+      - gcardieri@mozilla.com
+    expires: never
+
+  settings_memories:
+    type: event
+    description: |
+      User interacts with the checkboxes to change memories settings
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009612
+    data_reviews:
+      - https://phabricator.services.mozilla.com/D288768
+    data_sensitivity:
+      - interaction
+    notification_emails:
+      - gcardieri@mozilla.com
+    expires: never
+    extra_keys:
+      type:
+        type: string
+        description: >
+          chat or browsing
+      enabled:
+        type: boolean
+        description: >
+          Boolean indicating if that type of memory was enabled or disabled
+
+  settings_model:
+    type: event
+    description: |
+      User selects a different model from the settings page
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009612
+    data_reviews:
+      - https://phabricator.services.mozilla.com/D288768
+    data_sensitivity:
+      - interaction
+    notification_emails:
+      - gcardieri@mozilla.com
+    expires: never
+    extra_keys:
+      previous_model:
+        type: string
+        description: >
+          The model that was previously selected
+      new_model:
+        type: string
+        description: >
+          The new model that was selected
+
+  memories_panel_displayed:
+    type: event
+    description: |
+      User opens the memories preferences panel
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009612
+    data_reviews:
+      - https://phabricator.services.mozilla.com/D288768
+    data_sensitivity:
+      - interaction
+    notification_emails:
+      - gcardieri@mozilla.com
+    expires: never
+    extra_keys:
+      source:
+        type: string
+        description: >
+          Where the panel was opened from
+      memories:
+        type: quantity
+        unit: count
+        description: >
+          Number of memories available
+
+  model:
+    type: string
+    description: |
+      Records the model selected by the user, or “custom-model”
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009612
+    data_reviews:
+      - https://phabricator.services.mozilla.com/D288768
+    data_sensitivity:
+      - interaction
+    notification_emails:
+      - gcardieri@mozilla.com
+    expires: never

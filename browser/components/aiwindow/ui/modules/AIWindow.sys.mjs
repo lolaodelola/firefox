@@ -45,6 +45,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
   SearchUIUtils: "moz-src:///browser/components/search/SearchUIUtils.sys.mjs",
   MemoriesSchedulers:
     "moz-src:///browser/components/aiwindow/models/memories/MemoriesSchedulers.sys.mjs",
+  SmartWindowTelemetry:
+    "moz-src:///browser/components/aiwindow/ui/modules/SmartWindowTelemetry.sys.mjs",
 });
 
 XPCOMUtils.defineLazyPreferenceGetter(
@@ -111,6 +113,7 @@ export const AIWindow = {
     ChromeUtils.defineLazyGetter(AIWindow, "chatStore", () => lazy.ChatStore);
     Services.obs.addObserver(this, lazy.ONLOGOUT_NOTIFICATION);
     Services.obs.addObserver(this, "tabstrip-orientation-change");
+    lazy.SmartWindowTelemetry.init();
     this._initialized = true;
 
     // On startup/restart, if the first window initialized is an
