@@ -76,13 +76,21 @@ using namespace mozilla::a11y;
 }
 
 - (id)representedView {
-  if (![self isRoot]) {
-    // Only support represented views in root, for now ;)
+  if (!mGeckoAccessible || !mGeckoAccessible->IsLocal()) {
+    // We only support representedView on local accessibles that
+    // might have associated native widgets.
     return nil;
   }
 
-  return static_cast<AccessibleWrap*>(mGeckoAccessible->AsLocal())
-      ->GetNativeWidget();
+  id view = static_cast<AccessibleWrap*>(mGeckoAccessible->AsLocal())
+                ->GetNativeWidget();
+
+  if (![view hasMozAccessible]) {
+    // The NSView does not have a reciprocal relationship.
+    return nil;
+  }
+
+  return view;
 }
 
 - (BOOL)isRoot {

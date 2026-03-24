@@ -85,6 +85,10 @@
 #include "mozilla/widget/Screen.h"
 #include <algorithm>
 
+#ifdef ACCESSIBILITY
+#  include "mozilla/a11y/DocAccessible.h"
+#endif
+
 #undef DEBUG_UPDATE
 #undef INVALIDATE_DEBUGGING  // flash areas as they are invalidated
 
@@ -1479,8 +1483,16 @@ void nsCocoaWindow::LookUpDictionary(
 }
 
 #ifdef ACCESSIBILITY
-already_AddRefed<a11y::LocalAccessible> nsCocoaWindow::GetDocumentAccessible() {
+already_AddRefed<a11y::LocalAccessible> nsCocoaWindow::GetWindowAccessible() {
   if (!mozilla::a11y::ShouldA11yBeEnabled()) return nullptr;
+
+  if (GetWindowType() == WindowType::Popup &&
+      GetPopupType() != PopupType::Panel) {
+    // If we are a non-panel popup, like a menu or tooltip, we want to return
+    // null. We rely on the gecko tree hierarchy instead of the native widget
+    // one to expose this accessible.
+    return nullptr;
+  }
 
   // mAccessible might be dead if accessibility was previously disabled and is
   // now being enabled again.
@@ -1494,6 +1506,14 @@ already_AddRefed<a11y::LocalAccessible> nsCocoaWindow::GetDocumentAccessible() {
   // need to fetch the accessible anew, because it has gone away.
   // cache the accessible in our weak ptr
   RefPtr<a11y::LocalAccessible> acc = GetRootAccessible();
+  if (GetWindowType() == WindowType::Popup) {
+    // If we're a popup panel, we want to return the accessible for the
+    // content of the panel, not the accessible for the document.
+    if (nsIFrame* popupFrame = GetFrame()) {
+      acc = acc->AsDoc()->GetAccessible(popupFrame->GetContent());
+    }
+  }
+
   mAccessible = do_GetWeakReference(acc.get());
 
   return acc.forget();
@@ -4301,8 +4321,7 @@ nsresult nsCocoaWindow::RestoreHiDPIMode() {
 
   nsAutoRetainCocoaObject kungFuDeathGrip(self);
   RefPtr<nsCocoaWindow> geckoChild(mGeckoChild);
-  RefPtr<a11y::LocalAccessible> accessible =
-      geckoChild->GetDocumentAccessible();
+  RefPtr<a11y::LocalAccessible> accessible = geckoChild->GetWindowAccessible();
   if (!accessible) return nil;
 
   accessible->GetNativeInterface((void**)&nativeAccessible);
@@ -4323,6 +4342,10 @@ nsresult nsCocoaWindow::RestoreHiDPIMode() {
 
 - (id)representedView {
   return self;
+}
+
+- (BOOL)hasMozAccessible {
+  return [self accessible] != nil;
 }
 
 - (BOOL)isRoot {
@@ -4399,16 +4422,13 @@ nsresult nsCocoaWindow::RestoreHiDPIMode() {
   if (!mozilla::a11y::ShouldA11yBeEnabled())
     return [super accessibilityAttributeValue:attribute];
 
-  id<mozAccessible> accessible = [self accessible];
-
-  // if we're the root (topmost) accessible, we need to return our native
-  // AXParent as we traverse outside to the hierarchy of whoever embeds us.
-  // thus, fall back on NSView's default implementation for this attribute.
-  if ([attribute isEqualToString:NSAccessibilityParentAttribute] &&
-      [accessible isRoot]) {
-    id parentAccessible = [super accessibilityAttributeValue:attribute];
-    return parentAccessible;
+  if ([attribute isEqualToString:NSAccessibilityParentAttribute]) {
+    // Ensure native accessibles with corresponding mozAccessibles reference
+    // their native parent, not their mozAccessible parent.
+    return [super accessibilityAttributeValue:attribute];
   }
+
+  id<mozAccessible> accessible = [self accessible];
 
   return [accessible accessibilityAttributeValue:attribute];
 
@@ -7917,6 +7937,14 @@ static const NSString* kStateCollectionBehavior = @"collectionBehavior";
 - (id)accessibilityAttributeValue:(NSString*)attribute {
   NS_OBJC_BEGIN_TRY_BLOCK_RETURN;
 
+  if ([self isKindOfClass:[PopupWindow class]]) {
+    if ([attribute isEqualToString:NSAccessibilityRoleAttribute]) {
+      // If this is a popup window give it a proper role so VoiceOver
+      // picks it up correctly.
+      return NSAccessibilityPopoverRole;
+    }
+  }
+
   id retval = [super accessibilityAttributeValue:attribute];
 
   // The following works around a problem with Text-to-Speech on OS X 10.7.
@@ -7962,6 +7990,15 @@ static const NSString* kStateCollectionBehavior = @"collectionBehavior";
   return retval;
 
   NS_OBJC_END_TRY_BLOCK_RETURN(nil);
+}
+
+- (BOOL)isAccessibilityElement {
+  if (!mozilla::a11y::ShouldA11yBeEnabled())
+    return [super isAccessibilityElement];
+
+  // If the main child view does not have a gecko accessible associated with it,
+  // this window should not be present in the accessible tree.
+  return [self.mainChildView hasMozAccessible];
 }
 
 - (void)releaseJSObjects {

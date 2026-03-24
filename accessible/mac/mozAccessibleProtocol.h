@@ -36,6 +36,9 @@
 - (BOOL)hasRepresentedView;
 - (id)representedView;
 
+// The object has an associated gecko accessible.
+- (BOOL)hasMozAccessible;
+
 /*** general ***/
 
 // returns the accessible at the specified point.

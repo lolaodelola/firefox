@@ -383,7 +383,7 @@ class nsCocoaWindow final : public nsIWidget {
   void HandleMainThreadCATransaction();
 
 #ifdef ACCESSIBILITY
-  already_AddRefed<mozilla::a11y::LocalAccessible> GetDocumentAccessible();
+  already_AddRefed<mozilla::a11y::LocalAccessible> GetWindowAccessible();
 #endif
 
   bool WidgetPaintsBackground() override { return true; }
