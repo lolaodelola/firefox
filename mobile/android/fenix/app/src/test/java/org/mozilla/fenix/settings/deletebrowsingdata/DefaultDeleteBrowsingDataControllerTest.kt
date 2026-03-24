@@ -4,6 +4,7 @@
 
 package org.mozilla.fenix.settings.deletebrowsingdata
 
+import io.mockk.Ordering
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coJustRun
@@ -18,8 +19,10 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import mozilla.components.browser.state.action.CustomTabListAction
 import mozilla.components.browser.state.action.EngineAction
 import mozilla.components.browser.state.action.RecentlyClosedAction
+import mozilla.components.browser.state.action.TabListAction
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.Engine
 import mozilla.components.concept.engine.translate.ModelManagementOptions
@@ -88,8 +91,12 @@ class DefaultDeleteBrowsingDataControllerTest {
     fun deleteBrowsingHistory() = runTest(testDispatcher) {
         controller.deleteBrowsingHistory()
 
-        coVerify {
+        coVerify(ordering = Ordering.ORDERED) {
             historyStorage.deleteEverything()
+
+            store.dispatch(TabListAction.RemoveAllNormalTabsAction)
+            store.dispatch(TabListAction.RemoveAllPrivateTabsAction)
+            store.dispatch(CustomTabListAction.RemoveAllCustomTabsAction)
             store.dispatch(EngineAction.PurgeHistoryAction)
             store.dispatch(RecentlyClosedAction.RemoveAllClosedTabAction)
         }
