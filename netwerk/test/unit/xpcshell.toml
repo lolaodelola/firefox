@@ -1629,6 +1629,11 @@ skip-if = [
 
 ["test_trr_flags.js"]
 
+["test_trr_foreground_preconnect.js"]
+run-if = [
+  "!socketprocess_networking", # confirmation state isn't passed cross-process
+]
+
 ["test_trr_http3_first.js"]
 skip-if = [
   "os == 'android'",
