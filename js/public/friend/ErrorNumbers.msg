@@ -851,6 +851,7 @@ MSG_DEF(JSMSG_SET_NEGATIVE_SIZE,                         0, JSEXN_RANGEERR, "Set
 // Decorators
 MSG_DEF(JSMSG_DECORATOR_INVALID_RETURN_TYPE, 0, JSEXN_TYPEERR, "Invalid value returned from decorator")
 MSG_DEF(JSMSG_DECORATOR_FUZZING_UNSAFE, 0, JSEXN_ERR, "Decorators and accessors are not compatible with --fuzzing-safe")
+MSG_DEF(JSMSG_DECORATOR_COMPUTED_NYI, 0, JSEXN_ERR, "Computed properties with decorators/accessors are not yet supported")
 
 // Temporal
 MSG_DEF(JSMSG_TEMPORAL_INVALID_UNIT_RANGE,          0, JSEXN_RANGEERR, "smallestUnit must not be larger than largestUnit")

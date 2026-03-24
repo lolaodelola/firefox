@@ -7714,6 +7714,14 @@ bool GeneralParser<ParseHandler, Unit>::classMember(
                            &propAtom),
       false);
 
+#ifdef ENABLE_DECORATORS
+  if (!propAtom &&
+      (decorators || propType == PropertyType::FieldWithAccessor)) {
+    error(JSMSG_DECORATOR_COMPUTED_NYI);
+    return false;
+  }
+#endif
+
   if (propType == PropertyType::Field ||
       propType == PropertyType::FieldWithAccessor) {
     if (isStatic) {
