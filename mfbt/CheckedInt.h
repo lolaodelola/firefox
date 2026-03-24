@@ -176,8 +176,8 @@ struct NegateImpl<T, true> {
       return CheckedInt<T>(aVal.mValue, false);
     }
     /* For some T, arithmetic ops automatically promote to a wider type, so
-     * explitly do the narrowing cast here.  The narrowing cast is valid because
-     * we did the check for min value above. */
+     * explicitly do the narrowing cast here.  The narrowing cast is valid
+     * because we did the check for min value above. */
     return CheckedInt<T>(T(-aVal.mValue), true);
   }
 };
