@@ -20,6 +20,7 @@ kind-dependencies:
 
 only-for-build-platforms:
     - linux64-shippable/opt
+    - linux64-aarch64-shippable/opt
 
 tasks:
     test-update-integrity:

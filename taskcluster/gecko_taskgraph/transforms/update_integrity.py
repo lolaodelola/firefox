@@ -58,7 +58,13 @@ def add_to_installer(config, jobs):
 def add_additional_fetches_and_command(config, jobs):
     """Adds fetch entries for the "from" installers and partial MARs."""
     for job in jobs:
-        if job["attributes"]["build_platform"].startswith("linux64"):
+        # checked before `linux64` to avoid `linux64-aarch64` ending up with
+        # `linux64` information
+        if job["attributes"]["build_platform"].startswith("linux64-aarch64"):
+            platform = "linux"
+            build_target = "Linux_aarch64-gcc3"
+            installer_suffix = "tar.xz"
+        elif job["attributes"]["build_platform"].startswith("linux64"):
             platform = "linux"
             build_target = "Linux_x86_64-gcc3"
             installer_suffix = "tar.xz"
