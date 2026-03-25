@@ -5,7 +5,7 @@
  * Tests for Smartbar telemetry in the Smart Window.
  *
  * These tests verify that urlbar engagement and abandonment telemetry
- * includes the correct location extra key when using the smartbar.
+ * includes the correct extra keys when using the smartbar.
  */
 
 "use strict";
@@ -56,6 +56,8 @@ async function submitSmartbar(browser, { action, submitType } = {}) {
     }
   );
 }
+
+// TODO (bug 2025792): Add tests for `extra_key`s `bounce` and `disable`.
 
 add_task(async function test_smartbar_telemetry_navigate_submit_enter() {
   await resetTelemetry();
@@ -154,7 +156,7 @@ add_task(async function test_smartbar_telemetry_search_submit() {
   await BrowserTestUtils.closeWindow(win);
 });
 
-add_task(async function test_smartbar_telemetry_engagement_location() {
+add_task(async function test_smartbar_telemetry_engagement_extra_keys() {
   await resetTelemetry();
   const sb = this.sinon.createSandbox();
 
@@ -180,6 +182,18 @@ add_task(async function test_smartbar_telemetry_engagement_location() {
       "fullpage",
       "Engagement event includes the correct location extra key"
     );
+    Assert.ok(
+      smartbarEvent.extra.chat_id,
+      "Engagement event includes chat_id extra key"
+    );
+    Assert.ok(
+      "intent" in smartbarEvent.extra,
+      "Engagement event includes intent extra key"
+    );
+    Assert.ok(
+      "model" in smartbarEvent.extra,
+      "Engagement event includes model extra key"
+    );
 
     await BrowserTestUtils.closeWindow(win);
   } finally {
@@ -187,7 +201,7 @@ add_task(async function test_smartbar_telemetry_engagement_location() {
   }
 });
 
-add_task(async function test_smartbar_telemetry_abandonment_location() {
+add_task(async function test_smartbar_telemetry_abandonment_extra_keys() {
   await resetTelemetry();
 
   const { win, sidebarBrowser } = await openAIWindowWithSidebar();
@@ -210,6 +224,18 @@ add_task(async function test_smartbar_telemetry_abandonment_location() {
     smartbarEvent.extra.location,
     "sidebar",
     "Abandonment event includes the correct location extra key"
+  );
+  Assert.ok(
+    smartbarEvent.extra.chat_id,
+    "Abandonment event includes chat_id extra key"
+  );
+  Assert.ok(
+    "intent" in smartbarEvent.extra,
+    "Abandonment event includes intent extra key"
+  );
+  Assert.ok(
+    "model" in smartbarEvent.extra,
+    "Abandonment event includes model extra key"
   );
 
   await BrowserTestUtils.closeWindow(win);

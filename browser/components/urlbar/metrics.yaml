@@ -182,18 +182,34 @@ urlbar:
           queried.
           The possible values are: `history`, `none`.
         type: string
+      chat_id: &chat_id
+        description: >
+          UUID for this smart window session. Unique identifier for each chat
+          conversation. Only set when sap is `smartbar`.
+        type: string
+      intent: &intent
+        description: >
+          What was the detected intent for the request: navigate, search,
+          chat, or empty string. Only set when sap is `smartbar`.
+        type: string
+      model: &model
+        description: >
+          Model selected by the user. Only set when sap is `smartbar`.
+        type: string
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1800414
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1805717
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1842247
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1917992
       - https://bugzilla.mozilla.org/show_bug.cgi?id=2003067
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009615
     data_reviews:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1800414#c2
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1805717#c4
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1842247#c3
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1917992
       - https://bugzilla.mozilla.org/show_bug.cgi?id=2003067
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009615
     data_sensitivity:
       - interaction
     notification_emails:
@@ -310,10 +326,15 @@ urlbar:
         description: >
           The view time threshold for bounce detection, in seconds.
         type: quantity
+      chat_id: *chat_id
+      intent: *intent
+      model: *model
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1959741
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009615
     data_reviews:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1959741
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009615
     data_sensitivity:
       - interaction
     notification_emails:
@@ -407,10 +428,15 @@ urlbar:
           `suggest`
           More values may be added in the future.
         type: string
+      chat_id: *chat_id
+      intent: *intent
+      model: *model
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1960836
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009615
     data_reviews:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1960836
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2009615
     data_sensitivity:
       - interaction
     notification_emails:
@@ -708,6 +734,9 @@ urlbar:
           queried.
           The possible values are: `history`, `none`.
         type: string
+      chat_id: *chat_id
+      intent: *intent
+      model: *model
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1797265
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1805717

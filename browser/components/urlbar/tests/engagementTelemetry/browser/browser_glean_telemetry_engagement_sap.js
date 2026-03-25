@@ -58,3 +58,30 @@ add_task(async function urlbar_addonpage() {
     assert: () => assertEngagementTelemetry([{ sap: "urlbar_addonpage" }]),
   });
 });
+
+add_task(async function urlbar_no_smartbar_extra_keys() {
+  await doUrlbarTest({
+    trigger: () => doEnter(),
+    assert: () => {
+      const values = Glean.urlbar.engagement.testGetValue() ?? [];
+      for (const value of values) {
+        Assert.ok(
+          !("location" in value.extra),
+          "Non-smartbar engagement should not include location"
+        );
+        Assert.ok(
+          !("chat_id" in value.extra),
+          "Non-smartbar engagement should not include chat_id"
+        );
+        Assert.ok(
+          !("intent" in value.extra),
+          "Non-smartbar engagement should not include intent"
+        );
+        Assert.ok(
+          !("model" in value.extra),
+          "Non-smartbar engagement should not include model"
+        );
+      }
+    },
+  });
+});

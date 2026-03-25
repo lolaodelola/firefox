@@ -2258,6 +2258,7 @@ export class SmartbarInput extends HTMLElement {
     this.controller.engagementEvent.startTrackingBounceEvent(browser, event, {
       result,
       element,
+      location: this.sapLocation,
       searchString: this._lastSearchString,
       selType: this.controller.engagementEvent.typeFromElement(result, element),
       searchSource: this.getSearchSource(event),

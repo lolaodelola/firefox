@@ -7,7 +7,7 @@ import { AppConstants } from "resource://gre/modules/AppConstants.sys.mjs";
 /**
  * @import {BrowserSearchTelemetry} from "moz-src:///browser/components/search/BrowserSearchTelemetry.sys.mjs"
  * @import {ProvidersManager} from "moz-src:///browser/components/urlbar/UrlbarProvidersManager.sys.mjs"
- * @import {SapLocation} from "moz-src:///browser/components/urlbar/content/SmartbarInput.mjs"
+ * @import {SapLocation, SmartbarInput} from "moz-src:///browser/components/urlbar/content/SmartbarInput.mjs"
  * @import {UrlbarView} from "moz-src:///browser/components/urlbar/UrlbarView.sys.mjs"
  */
 
@@ -1034,6 +1034,7 @@ class TelemetryEvent {
       selIndex: internalDetails.selIndex,
       selType: internalDetails.selType,
       location: internalDetails.location,
+      ...this.#getOptionalSmartbarTelemetry(internalDetails.searchSource),
     });
 
     if (!internalDetails.isSessionOngoing) {
@@ -1141,6 +1142,13 @@ class TelemetryEvent {
    * @param {SapLocation} [details.location]
    *   The location where the interaction occurred.
    *   Required when sap is "smartbar".
+   * @param {string} [details.chatId]
+   *   UUID for this smart window session. Unique identifier for each chat
+   *   conversation. Only set when sap is `smartbar`.
+   * @param {string} [details.intent]
+   *   The detected intent for the input. Only set when sap is `smartbar`.
+   * @param {string} [details.model]
+   *   Model selected by the user. Only set when sap is `smartbar`.
    */
   #recordSearchEngagementTelemetry(
     method,
@@ -1157,6 +1165,9 @@ class TelemetryEvent {
       selType,
       viewTime = 0,
       location = null,
+      chatId = "",
+      intent = "",
+      model = "",
     }
   ) {
     let sap = this.#searchSourceToSap(searchSource);
@@ -1244,7 +1255,9 @@ class TelemetryEvent {
           results,
           actions,
           available_semantic_sources,
-          ...(location ? { location } : {}),
+          ...(sap === "smartbar"
+            ? { location, chat_id: chatId, intent, model }
+            : {}),
         };
         lazy.logger.info(`engagement event:`, eventInfo);
         Glean.urlbar.engagement.record(eventInfo);
@@ -1264,7 +1277,9 @@ class TelemetryEvent {
           results,
           actions,
           available_semantic_sources,
-          ...(location ? { location } : {}),
+          ...(sap === "smartbar"
+            ? { location, chat_id: chatId, intent, model }
+            : {}),
         };
         lazy.logger.info(`abandonment event:`, eventInfo);
         Glean.urlbar.abandonment.record(eventInfo);
@@ -1293,7 +1308,9 @@ class TelemetryEvent {
           selected_result,
           results,
           feature: "suggest",
-          ...(location ? { location } : {}),
+          ...(sap === "smartbar"
+            ? { location, chat_id: chatId, intent, model }
+            : {}),
         };
         lazy.logger.info(`disable event:`, eventInfo);
         Glean.urlbar.disable.record(eventInfo);
@@ -1322,7 +1339,9 @@ class TelemetryEvent {
           threshold: lazy.UrlbarPrefs.get(
             "events.bounce.maxSecondsFromLastSearch"
           ),
-          ...(location ? { location } : {}),
+          ...(sap === "smartbar"
+            ? { location, chat_id: chatId, intent, model }
+            : {}),
         };
         lazy.logger.info(`bounce event:`, eventInfo);
         Glean.urlbar.bounce.record(eventInfo);
@@ -1332,6 +1351,30 @@ class TelemetryEvent {
         console.error(`Unknown telemetry event method: ${method}`);
       }
     }
+  }
+
+  /**
+   * Returns Smart Window telemetry data for SAP `smartbar`.
+   *
+   * @param {string} searchSource
+   *   The search source identifier.
+   * @returns {{ chatId: string, intent: string, model: string } | null}
+   *   Telemetry for the smartbar.
+   */
+  #getOptionalSmartbarTelemetry(searchSource) {
+    const isSmartbar = this.#searchSourceToSap(searchSource) === "smartbar";
+    if (!isSmartbar) {
+      return null;
+    }
+    // If SAP is `smartbar` we can safely cast to type `SmartbarInput`.
+    const input = /** @type {SmartbarInput} */ (
+      /** @type {unknown} */ (this._controller.input)
+    );
+    return {
+      chatId: input.conversationTelemetryInfo?.chat_id ?? "",
+      intent: input.smartbarAction ?? "",
+      model: input.modelName ?? "",
+    };
   }
 
   /**
@@ -1872,6 +1915,8 @@ class TelemetryEvent {
       searchMode: details.searchMode,
       selIndex: details.selIndex,
       selType: details.selType,
+      location: details.location,
+      ...this.#getOptionalSmartbarTelemetry(details.searchSource),
     });
 
     this._lastSearchDetailsForDisableSuggestTracking = null;
@@ -2012,6 +2057,8 @@ class TelemetryEvent {
       selIndex: details.selIndex,
       selType: details.selType,
       viewTime: viewTime / 1000,
+      location: details.location,
+      ...this.#getOptionalSmartbarTelemetry(details.searchSource),
     });
   }
 }
