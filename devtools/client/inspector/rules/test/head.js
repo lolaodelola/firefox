@@ -1594,7 +1594,7 @@ function checkRuleViewContent(view, expectedElements) {
 function _getRuleViewElements(view) {
   const elementsInView = [];
   for (const el of view.element.children) {
-    if (el.classList.contains("registered-properties")) {
+    if (el.id == "registered-properties-container") {
       // We don't check @property content for now
       continue;
     }

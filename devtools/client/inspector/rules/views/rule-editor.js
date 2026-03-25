@@ -167,6 +167,7 @@ class RuleEditor extends EventEmitter {
     this.element.dataset.ruleId = this.rule.domRule.actorID;
     this.element.setAttribute("uneditable", !this.isEditable);
     this.element.setAttribute("unmatched", this.rule.isUnmatched);
+    this.element.setAttribute("role", "article");
 
     // This is used by tests
     this.element._ruleEditor = this;
