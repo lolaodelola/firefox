@@ -100,7 +100,7 @@ sRGBColor ScrollbarDrawingWin11::ComputeScrollbarThumbColor(
                             : NS_RGBA(133, 133, 133, 255);
   }();
   ElementState state = aElementState;
-  if (!IsScrollbarWidthThin(aStyle)) {
+  if (!IsScrollbarWidthThin(aFrame)) {
     // non-thin scrollbars get hover feedback by changing thumb shape, so we
     // only provide active feedback (and we use the hover state for that as it's
     // more subtle).
@@ -244,7 +244,7 @@ bool ScrollbarDrawingWin11::DoPaintScrollbarThumb(
   const auto style = ScrollbarStyle(aFrame);
   const bool hovered =
       ScrollbarDrawing::IsParentScrollbarHoveredOrActive(aFrame) ||
-      (style != Style::Overlay && IsScrollbarWidthThin(aStyle));
+      (style != Style::Overlay && IsScrollbarWidthThin(aFrame));
   const bool horizontal = aScrollbarKind == ScrollbarKind::Horizontal;
   if (style == Style::ThickThumb) {
     constexpr float kHoveredThumbRatio =

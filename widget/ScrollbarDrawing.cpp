@@ -65,8 +65,8 @@ bool ScrollbarDrawing::IsParentScrollbarHoveredOrActive(nsIFrame* aFrame) {
 }
 
 /*static*/
-bool ScrollbarDrawing::IsScrollbarWidthThin(const ComputedStyle& aStyle) {
-  auto scrollbarWidth = aStyle.StyleUIReset()->ScrollbarWidth();
+bool ScrollbarDrawing::IsScrollbarWidthThin(const nsIFrame* aFrame) {
+  auto scrollbarWidth = nsLayoutUtils::ScrollbarWidthFor(aFrame);
   return scrollbarWidth == StyleScrollbarWidth::Thin;
 }
 
@@ -100,8 +100,7 @@ LayoutDeviceIntCoord ScrollbarDrawing::GetScrollbarSize(
 
 LayoutDeviceIntCoord ScrollbarDrawing::GetScrollbarSize(
     const nsPresContext* aPresContext, nsIFrame* aFrame) {
-  auto* style = nsLayoutUtils::StyleForScrollbar(aFrame);
-  auto width = style->StyleUIReset()->ScrollbarWidth();
+  auto width = nsLayoutUtils::ScrollbarWidthFor(aFrame);
   auto overlay =
       nsLayoutUtils::UseOverlayScrollbars(aFrame) ? Overlay::Yes : Overlay::No;
   return GetScrollbarSize(aPresContext, width, overlay);

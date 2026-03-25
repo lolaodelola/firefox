@@ -60,7 +60,7 @@ LayoutDeviceIntSize ScrollbarDrawingWin::GetMinimumWidgetSize(
 const ComputedStyle* GetCustomScrollbarStyle(nsIFrame* aFrame) {
   const ComputedStyle* style = nsLayoutUtils::StyleForScrollbar(aFrame);
   if (style->StyleUI()->HasCustomScrollbars() ||
-      ScrollbarDrawing::IsScrollbarWidthThin(*style)) {
+      ScrollbarDrawing::IsScrollbarWidthThin(aFrame)) {
     return style;
   }
   bool useDarkScrollbar = !StaticPrefs::widget_disable_dark_scrollbar() &&

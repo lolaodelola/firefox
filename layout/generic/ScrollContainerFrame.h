@@ -1006,6 +1006,12 @@ class ScrollContainerFrame : public nsContainerFrame,
   nsExpirationState* GetExpirationState() { return &mActivityExpirationState; }
 
   bool UseOverlayScrollbars() const;
+
+  // NOTE: |aStyle| needs to be the computed styles for this scroll container,
+  // not for the scrollbars.
+  StyleScrollbarWidth ScrollbarWidth(
+      const ComputedStyle* aStyle = nullptr) const;
+
   bool IsLastSnappedTarget(const nsIFrame* aFrame) const;
 
   // If aBuilder is non-null, returns the value cached on aBuilder. Pass null

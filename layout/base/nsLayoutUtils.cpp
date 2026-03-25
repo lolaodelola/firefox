@@ -9861,6 +9861,24 @@ bool nsLayoutUtils::UseOverlayScrollbars(const nsIFrame* aScrollbarPart) {
   return aScrollbarPart->PresContext()->UseOverlayScrollbars();
 }
 
+/* static */
+StyleScrollbarWidth nsLayoutUtils::ScrollbarWidthFor(
+    const nsIFrame* aScrollbarPart) {
+  const auto* style = StyleForScrollbar(aScrollbarPart);
+  nsIContent* content = GetOriginatingElementForScrollbarPart(aScrollbarPart);
+  if (nsIFrame* primaryFrame = content->GetPrimaryFrame()) {
+    ScrollContainerFrame* scrollContainerFrame = do_QueryFrame(primaryFrame);
+    if (!scrollContainerFrame) {
+      scrollContainerFrame =
+          primaryFrame->PresShell()->GetRootScrollContainerFrame();
+    }
+    if (scrollContainerFrame) {
+      return scrollContainerFrame->ScrollbarWidth(style);
+    }
+  }
+  return style->StyleUIReset()->ComputedScrollbarWidth();
+}
+
 enum class FramePosition : uint8_t {
   Unknown,
   InView,

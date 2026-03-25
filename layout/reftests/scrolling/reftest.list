@@ -166,5 +166,11 @@ pref(layout.css.fake-webkit-scrollbar.enabled,true) test-pref(ui.useOverlayScrol
 pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(ui.useOverlayScrollbars,1) test-pref(layout.testing.overlay-scrollbars.always-visible,false) test-pref(ui.scrollbarFadeBeginDelay,0) == webkit-scrollbar-dynamic-remove.html webkit-scrollbar-dynamic-remove-ref.html
 # Test case where -webkit-scrollbar has `width` but with `display: none` and the scroll container has `scrollbar-width: none`.
 pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(ui.useOverlayScrollbars,1) == webkit-scrollbar-display-none-with-scrollbar-width-none.html webkit-scrollbar-display-none-ref.html
-# TODO: Bug 2014011: Test case where -webkit-scrollbar has `width` but with `display: none`, thus the scrollbars SHOULD NOT be visible.
-pref(layout.css.fake-webkit-scrollbar.enabled,true) test-pref(layout.testing.overlay-scrollbars.always-visible,false) test-pref(ui.scrollbarFadeBeginDelay,0) pref(ui.useOverlayScrollbars,1) != webkit-scrollbar-display-none.html webkit-scrollbar-display-none-ref.html
+# Test case where -webkit-scrollbar has `width` but with `display: none`, thus the scrollbars SHOULD NOT be visible.
+pref(layout.css.fake-webkit-scrollbar.enabled,true) test-pref(layout.testing.overlay-scrollbars.always-visible,false) test-pref(ui.scrollbarFadeBeginDelay,0) pref(ui.useOverlayScrollbars,1) == webkit-scrollbar-display-none.html webkit-scrollbar-display-none-ref.html
+pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(layout.css.scrollbar-width-thin.disabled,false) == webkit-scrollbar-display-none-scrollbar-width-thin.html webkit-scrollbar-display-none-scrollbar-width-thin-ref.html
+pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(layout.css.scrollbar-width-thin.disabled,true) == webkit-scrollbar-display-none-scrollbar-width-thin.html scrollbar-width-auto.html
+# Dynamically change from ::-webkit-scrollbar { display: none } to ::-webkit-scrollbar { display: block }.
+pref(layout.css.fake-webkit-scrollbar.enabled,true) == webkit-scrollbar-display-none-dynamic.html scrollbar-width-auto.html
+# Dynamically change from ::-webkit-scrollbar { display: block } to ::-webkit-scrollbar { display: none }.
+pref(layout.css.fake-webkit-scrollbar.enabled,true) == webkit-scrollbar-display-none-dynamic-2.html webkit-scrollbar-display-none-ref.html

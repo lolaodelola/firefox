@@ -316,9 +316,7 @@ nsSize nsScrollbarFrame::ScrollbarMinSize() const {
 }
 
 StyleScrollbarWidth nsScrollbarFrame::ScrollbarWidth() const {
-  return nsLayoutUtils::StyleForScrollbar(this)
-      ->StyleUIReset()
-      ->ScrollbarWidth();
+  return nsLayoutUtils::ScrollbarWidthFor(this);
 }
 
 nscoord nsScrollbarFrame::ScrollbarTrackSize() const {
