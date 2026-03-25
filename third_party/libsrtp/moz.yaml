@@ -32,6 +32,9 @@ vendoring:
   exclude:
     - "**"
 
+  patches:
+    - 00_use_consistent_printf_types.patch
+
   include:
     - srtp
     - crypto
