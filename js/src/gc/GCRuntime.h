@@ -18,6 +18,7 @@
 #include "gc/GCMarker.h"
 #include "gc/GCParallelTask.h"
 #include "gc/IteratorUtils.h"
+#include "gc/LightLock.h"
 #include "gc/Memory.h"
 #include "gc/Nursery.h"
 #include "gc/Scheduling.h"
@@ -1054,6 +1055,8 @@ class GCRuntime {
   MainThreadData<JS::Zone*> systemZone;
 
   MainThreadData<JS::GCContext> mainThreadContext;
+
+  LightLockRuntime lightLockRuntime;
 
  private:
   // For parent runtimes, a zone containing atoms that is shared by child

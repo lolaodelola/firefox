@@ -62,6 +62,7 @@
   _(GCDelayedMarkingLock, 500)        \
   _(BufferAllocator, 500)             \
   _(GeckoProfilerScriptSources, 500)  \
+  _(GCLightLock, 500)                 \
                                       \
   _(SharedImmutableStringsCache, 600) \
   _(IrregexpLazyStatic, 600)          \

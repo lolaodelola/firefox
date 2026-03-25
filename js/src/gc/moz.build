@@ -36,6 +36,7 @@ UNIFIED_SOURCES += [
     "GCAPI.cpp",
     "GCParallelTask.cpp",
     "Heap.cpp",
+    "LightLock.cpp",
     "Marking.cpp",
     "Nursery.cpp",
     "ParallelMarking.cpp",
