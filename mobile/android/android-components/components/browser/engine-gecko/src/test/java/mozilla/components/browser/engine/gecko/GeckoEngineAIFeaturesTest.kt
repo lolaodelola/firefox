@@ -43,7 +43,7 @@ class GeckoEngineAIFeaturesTest {
         var onSuccessCalled = false
         var onErrorCalled = false
 
-        val features = mapOf("translations" to AIFeature(id = "translations", isEnabled = true, isAllowed = true))
+        val features = mapOf("translations" to AIFeature(id = "translations", isEnabled = true, isAllowed = true, isBlocked = false))
 
         val onSuccess: (Map<String, AIFeature>) -> Unit = { onSuccessCalled = true }
         val onError: (AIFeaturesError) -> Unit = { onErrorCalled = true }

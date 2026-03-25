@@ -142,6 +142,7 @@ package org.mozilla.geckoview {
     ctor @VisibleForTesting protected AIFeature();
     field @NonNull public final String id;
     field public final boolean isAllowed;
+    field public final boolean isBlocked;
     field public final boolean isEnabled;
   }
 

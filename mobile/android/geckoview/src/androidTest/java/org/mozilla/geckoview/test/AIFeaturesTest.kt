@@ -29,6 +29,7 @@ class AIFeaturesTest : BaseSessionTest() {
         assertEquals("Translations feature id should match", "translations", translations.id)
         assertTrue("Translations feature is enabled", translations.isEnabled)
         assertTrue("Translations feature is allowed", translations.isAllowed)
+        assertFalse("Translations feature is not blocked", translations.isBlocked)
     }
 
     @Test

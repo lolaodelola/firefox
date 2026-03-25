@@ -145,8 +145,11 @@ public class AIFeaturesController {
     /** Whether the feature is enabled to use. */
     public final boolean isEnabled;
 
-    /** Whether the feature is possible to use. For example, by device support or policy. */
+    /** Whether the feature is possible to use. */
     public final boolean isAllowed;
+
+    /** Whether the feature is blocked from being used. */
+    public final boolean isBlocked;
 
     /** For testing purposes only. */
     @VisibleForTesting
@@ -154,6 +157,7 @@ public class AIFeaturesController {
       this.id = "";
       this.isEnabled = false;
       this.isAllowed = false;
+      this.isBlocked = false;
     }
 
     /**
@@ -165,6 +169,7 @@ public class AIFeaturesController {
       this.id = builder.mId;
       this.isEnabled = builder.mIsEnabled;
       this.isAllowed = builder.mIsAllowed;
+      this.isBlocked = builder.mIsBlocked;
     }
 
     /** Builder for {@link AIFeature}. */
@@ -172,6 +177,7 @@ public class AIFeaturesController {
       private final @NonNull String mId;
       private boolean mIsEnabled;
       private boolean mIsAllowed;
+      private boolean mIsBlocked;
 
       /**
        * The unique id for the AI feature.
@@ -199,13 +205,26 @@ public class AIFeaturesController {
       /**
        * If the feature is allowed.
        *
-       * @param isAllowed Whether the feature is allowed by policy or support.
+       * @param isAllowed Whether the feature is allowed to use.
        * @return This builder instance.
        */
       @AnyThread
       /* package */ @NonNull
       Builder isAllowed(final boolean isAllowed) {
         this.mIsAllowed = isAllowed;
+        return this;
+      }
+
+      /**
+       * If the feature is blocked.
+       *
+       * @param isBlocked Whether the feature is blocked from use.
+       * @return This builder instance.
+       */
+      @AnyThread
+      /* package */ @NonNull
+      Builder isBlocked(final boolean isBlocked) {
+        this.mIsBlocked = isBlocked;
         return this;
       }
 
@@ -234,9 +253,12 @@ public class AIFeaturesController {
         if (featureId == null) {
           return null;
         }
-        final var isEnabled = bundle.getBoolean("isEnabled");
-        final var isAllowed = bundle.getBoolean("isAllowed");
-        return new Builder(featureId).isEnabled(isEnabled).isAllowed(isAllowed).build();
+
+        return new Builder(featureId)
+            .isEnabled(bundle.getBoolean("isEnabled"))
+            .isAllowed(bundle.getBoolean("isAllowed"))
+            .isBlocked(bundle.getBoolean("isBlocked"))
+            .build();
       } catch (final Exception e) {
         Log.w(LOGTAG, "Could not deserialize AIFeature object: " + e);
         return null;
@@ -251,6 +273,8 @@ public class AIFeaturesController {
           + isEnabled
           + ", isAllowed="
           + isAllowed
+          + ", isBlocked="
+          + isBlocked
           + " }";
     }
   }

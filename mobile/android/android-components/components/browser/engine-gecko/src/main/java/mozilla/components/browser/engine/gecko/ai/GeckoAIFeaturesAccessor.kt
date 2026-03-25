@@ -96,6 +96,7 @@ internal class DefaultGeckoAIFeaturesAccessor : GeckoAIFeaturesAccessor {
                             id = feature.id,
                             isEnabled = feature.isEnabled,
                             isAllowed = feature.isAllowed,
+                            isBlocked = feature.isBlocked,
                         )
                     },
                 )

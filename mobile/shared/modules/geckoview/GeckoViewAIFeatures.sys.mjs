@@ -42,6 +42,7 @@ export const GeckoViewAIFeatures = {
               featureId,
               isEnabled: feature.isEnabled,
               isAllowed: feature.isAllowed,
+              isBlocked: feature.isBlocked,
             };
           }),
         });
