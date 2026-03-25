@@ -80,6 +80,10 @@ const kConditionalCSSTestCases = [
     data: `@media (min-width: 300px) { #bar { display: none } }`,
     sanitized: ``,
   },
+  {
+    data: `@keyframes foo { to { opacity: 0 } }`,
+    sanitized: `@keyframes foo { to { opacity: 0 } }`,
+  },
 ];
 
 function run_test() {
