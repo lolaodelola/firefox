@@ -5,6 +5,28 @@
 "use strict";
 
 /**
+ * Test aria-brailleLabel
+ */
+
+addAccessibleTask(
+  `<button id="button" aria-braillelabel="***"><img alt="3 out of 5 stars" src="three_stars.png"></button>
+	<p id="p">This here is text without braille label</p>`,
+  async (browser, accDoc) => {
+    let button = getNativeInterface(accDoc, "button");
+    is(
+      button.getAttributeValue("AXBrailleLabel"),
+      "***",
+      `Test: Correct braille label`
+    );
+    let p = getNativeInterface(accDoc, "p");
+    ok(
+      !p.attributeNames.includes("AXBrailleLabel"),
+      "The AXBrailleLabel selector should be blocked for nodes without aria-braillelabel specified"
+    );
+  }
+);
+
+/**
  * Test aria-brailleRoleDescription
  */
 addAccessibleTask(
