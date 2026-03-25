@@ -326,7 +326,6 @@
 
       if (this.hasActiveTab || isSessionRestore) {
         this.#activate();
-        gBrowser.setIsSplitViewActive(this.hasActiveTab, this.#tabs);
       }
       // Attempt to update uriCount metric using the resulting tabs collection,
       // as tabs may not be added to the splitview if they are pinned etc.
@@ -403,7 +402,6 @@
 
       // We need to re-activate after removing one of the split view tabs
       this.#activate();
-      gBrowser.setIsSplitViewActive(true, this.#tabs);
     }
 
     /**
@@ -455,7 +453,6 @@
      */
     on_TabSelect(event) {
       this.hasActiveTab = event.target.splitview === this;
-      gBrowser.setIsSplitViewActive(this.hasActiveTab, this.#tabs);
       if (this.hasActiveTab) {
         this.#activate();
       } else {
