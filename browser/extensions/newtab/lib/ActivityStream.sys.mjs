@@ -51,7 +51,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
   TelemetryFeed: "resource://newtab/lib/TelemetryFeed.sys.mjs",
   TimerFeed: "resource://newtab/lib/Widgets/TimerFeed.sys.mjs",
   TopSitesFeed: "resource://newtab/lib/TopSitesFeed.sys.mjs",
-  TopStoriesFeed: "resource://newtab/lib/TopStoriesFeed.sys.mjs",
   WallpaperFeed: "resource://newtab/lib/Wallpapers/WallpaperFeed.sys.mjs",
   WeatherFeed: "resource://newtab/lib/WeatherFeed.sys.mjs",
 });
@@ -288,6 +287,64 @@ export const PREFS_CONFIG = new Map([
     {
       title: "Show sponsored top sites",
       value: true,
+    },
+  ],
+  [
+    "feeds.system.topstories",
+    {
+      title:
+        "System pref that fetches content recommendations from a configurable content provider",
+      // Dynamically determine if Pocket should be shown for a geo / locale
+      getValue: ({ geo, locale }) => {
+        // If we don't have geo, we don't want to flash the screen with stories while geo loads.
+        // Best to display nothing until geo is ready.
+        if (!geo) {
+          return false;
+        }
+        const preffedRegionsBlockString =
+          lazy.NimbusFeatures.pocketNewtab.getVariable("regionStoriesBlock") ||
+          "";
+        const preffedRegionsString =
+          lazy.NimbusFeatures.pocketNewtab.getVariable("regionStoriesConfig") ||
+          "";
+        const preffedLocaleListString =
+          lazy.NimbusFeatures.pocketNewtab.getVariable("localeListConfig") ||
+          "";
+        const preffedBlockRegions = preffedRegionsBlockString
+          .split(",")
+          .map(s => s.trim());
+        const preffedRegions = preffedRegionsString
+          .split(",")
+          .map(s => s.trim());
+        const preffedLocales = preffedLocaleListString
+          .split(",")
+          .map(s => s.trim());
+        const locales = {
+          US: ["en-CA", "en-GB", "en-US"],
+          CA: ["en-CA", "en-GB", "en-US"],
+          GB: ["en-CA", "en-GB", "en-US"],
+          AU: ["en-CA", "en-GB", "en-US"],
+          NZ: ["en-CA", "en-GB", "en-US"],
+          IN: ["en-CA", "en-GB", "en-US"],
+          IE: ["en-CA", "en-GB", "en-US"],
+          ZA: ["en-CA", "en-GB", "en-US"],
+          CH: ["de"],
+          BE: ["de"],
+          DE: ["de"],
+          AT: ["de"],
+          IT: ["it"],
+          FR: ["fr"],
+          ES: ["es-ES"],
+          PL: ["pl"],
+          JP: ["ja", "ja-JP-mac"],
+        }[geo];
+
+        const regionBlocked = preffedBlockRegions.includes(geo);
+        const localeEnabled = locale && preffedLocales.includes(locale);
+        const regionEnabled =
+          preffedRegions.includes(geo) && !!locales && locales.includes(locale);
+        return !regionBlocked && (localeEnabled || regionEnabled);
+      },
     },
   ],
   [
@@ -1544,61 +1601,6 @@ const FEEDS_DATA = [
     factory: () => new lazy.HighlightsFeed(),
     title: "Fetches content recommendations from places db",
     value: false,
-  },
-  {
-    name: "system.topstories",
-    factory: () =>
-      new lazy.TopStoriesFeed(PREFS_CONFIG.get("discoverystream.config")),
-    title:
-      "System pref that fetches content recommendations from a configurable content provider",
-    // Dynamically determine if Pocket should be shown for a geo / locale
-    getValue: ({ geo, locale }) => {
-      // If we don't have geo, we don't want to flash the screen with stories while geo loads.
-      // Best to display nothing until geo is ready.
-      if (!geo) {
-        return false;
-      }
-      const preffedRegionsBlockString =
-        lazy.NimbusFeatures.pocketNewtab.getVariable("regionStoriesBlock") ||
-        "";
-      const preffedRegionsString =
-        lazy.NimbusFeatures.pocketNewtab.getVariable("regionStoriesConfig") ||
-        "";
-      const preffedLocaleListString =
-        lazy.NimbusFeatures.pocketNewtab.getVariable("localeListConfig") || "";
-      const preffedBlockRegions = preffedRegionsBlockString
-        .split(",")
-        .map(s => s.trim());
-      const preffedRegions = preffedRegionsString.split(",").map(s => s.trim());
-      const preffedLocales = preffedLocaleListString
-        .split(",")
-        .map(s => s.trim());
-      const locales = {
-        US: ["en-CA", "en-GB", "en-US"],
-        CA: ["en-CA", "en-GB", "en-US"],
-        GB: ["en-CA", "en-GB", "en-US"],
-        AU: ["en-CA", "en-GB", "en-US"],
-        NZ: ["en-CA", "en-GB", "en-US"],
-        IN: ["en-CA", "en-GB", "en-US"],
-        IE: ["en-CA", "en-GB", "en-US"],
-        ZA: ["en-CA", "en-GB", "en-US"],
-        CH: ["de"],
-        BE: ["de"],
-        DE: ["de"],
-        AT: ["de"],
-        IT: ["it"],
-        FR: ["fr"],
-        ES: ["es-ES"],
-        PL: ["pl"],
-        JP: ["ja", "ja-JP-mac"],
-      }[geo];
-
-      const regionBlocked = preffedBlockRegions.includes(geo);
-      const localeEnabled = locale && preffedLocales.includes(locale);
-      const regionEnabled =
-        preffedRegions.includes(geo) && !!locales && locales.includes(locale);
-      return !regionBlocked && (localeEnabled || regionEnabled);
-    },
   },
   {
     name: "systemtick",

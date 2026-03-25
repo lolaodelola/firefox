@@ -102,11 +102,6 @@ describe("DiscoveryStreamFeed", () => {
       PersistentCache,
     });
 
-    sandbox
-      .stub(global.Services.prefs, "getBoolPref")
-      .withArgs("browser.newtabpage.activity-stream.discoverystream.enabled")
-      .returns(true);
-
     // Feed
     feed = new DiscoveryStreamFeed();
     feed.store = createStore(combineReducers(reducers), {
@@ -116,7 +111,6 @@ describe("DiscoveryStreamFeed", () => {
             enabled: false,
           }),
           [ENDPOINTS_PREF_NAME]: DUMMY_ENDPOINT,
-          "discoverystream.enabled": true,
           "feeds.section.topstories": true,
           "feeds.system.topstories": true,
           "system.showSponsored": false,
@@ -400,7 +394,6 @@ describe("DiscoveryStreamFeed", () => {
               enabled: true,
             }),
             [ENDPOINTS_PREF_NAME]: DUMMY_ENDPOINT,
-            "discoverystream.enabled": true,
             "discoverystream.region-basic-layout": true,
             "system.showSponsored": false,
           },
@@ -423,7 +416,6 @@ describe("DiscoveryStreamFeed", () => {
               enabled: true,
             }),
             [ENDPOINTS_PREF_NAME]: DUMMY_ENDPOINT,
-            "discoverystream.enabled": true,
             "discoverystream.region-basic-layout": false,
             "system.showSponsored": false,
           },
@@ -446,7 +438,6 @@ describe("DiscoveryStreamFeed", () => {
               enabled: false,
             }),
             [ENDPOINTS_PREF_NAME]: DUMMY_ENDPOINT,
-            "discoverystream.enabled": true,
             "discoverystream.hardcoded-basic-layout": true,
             "system.showSponsored": false,
           },
@@ -473,7 +464,6 @@ describe("DiscoveryStreamFeed", () => {
               enabled: false,
             }),
             [ENDPOINTS_PREF_NAME]: DUMMY_ENDPOINT,
-            "discoverystream.enabled": true,
             "discoverystream.spocs-endpoint":
               "https://spocs.getpocket.com/spocs2",
             "system.showSponsored": false,
@@ -2199,24 +2189,6 @@ describe("DiscoveryStreamFeed", () => {
   });
 
   describe("#onAction: DISCOVERY_STREAM_CONFIG_CHANGE", () => {
-    it("should call this.loadLayout if config.enabled changes to true ", async () => {
-      sandbox.stub(feed.cache, "set").returns(Promise.resolve());
-      // First initialize
-      await feed.onAction({ type: at.INIT });
-      assert.isFalse(feed.loaded);
-
-      // force clear cached pref value
-      feed._prefCache = {};
-      setPref(CONFIG_PREF_NAME, { enabled: true });
-
-      sandbox.stub(feed, "resetCache").returns(Promise.resolve());
-      sandbox.stub(feed, "loadLayout").returns(Promise.resolve());
-      await feed.onAction({ type: at.DISCOVERY_STREAM_CONFIG_CHANGE });
-
-      assert.calledOnce(feed.loadLayout);
-      assert.calledOnce(feed.resetCache);
-      assert.isTrue(feed.loaded);
-    });
     it("should clear the cache if a config change happens and config.enabled is true", async () => {
       sandbox.stub(feed.cache, "set").returns(Promise.resolve());
       // force clear cached pref value
@@ -2240,25 +2212,6 @@ describe("DiscoveryStreamFeed", () => {
       assert.calledWithMatch(feed.store.dispatch, {
         type: at.DISCOVERY_STREAM_LAYOUT_RESET,
       });
-    });
-    it("should not call this.loadLayout if config.enabled changes to false", async () => {
-      sandbox.stub(feed.cache, "set").returns(Promise.resolve());
-      // force clear cached pref value
-      feed._prefCache = {};
-      setPref(CONFIG_PREF_NAME, { enabled: true });
-
-      await feed.onAction({ type: at.INIT });
-      assert.isTrue(feed.loaded);
-
-      feed._prefCache = {};
-      setPref(CONFIG_PREF_NAME, { enabled: false });
-      sandbox.stub(feed, "resetCache").returns(Promise.resolve());
-      sandbox.stub(feed, "loadLayout").returns(Promise.resolve());
-      await feed.onAction({ type: at.DISCOVERY_STREAM_CONFIG_CHANGE });
-
-      assert.notCalled(feed.loadLayout);
-      assert.calledOnce(feed.resetCache);
-      assert.isFalse(feed.loaded);
     });
   });
 

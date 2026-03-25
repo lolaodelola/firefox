@@ -17,7 +17,6 @@ import { SystemTickFeed } from "lib/SystemTickFeed.sys.mjs";
 import { TelemetryFeed } from "lib/TelemetryFeed.sys.mjs";
 import { FaviconFeed } from "lib/FaviconFeed.sys.mjs";
 import { TopSitesFeed } from "lib/TopSitesFeed.sys.mjs";
-import { TopStoriesFeed } from "lib/TopStoriesFeed.sys.mjs";
 import { HighlightsFeed } from "lib/HighlightsFeed.sys.mjs";
 import { DiscoveryStreamFeed } from "lib/DiscoveryStreamFeed.sys.mjs";
 
@@ -49,7 +48,6 @@ describe("ActivityStream", () => {
       TelemetryFeed,
       FaviconFeed,
       TopSitesFeed,
-      TopStoriesFeed,
       HighlightsFeed,
       DiscoveryStreamFeed,
 
@@ -185,10 +183,6 @@ describe("ActivityStream", () => {
     });
     it("should create a HighlightsFeed feed", () => {
       const feed = as.feeds.get("feeds.section.highlights")();
-      assert.ok(feed, "feed should exist");
-    });
-    it("should create a TopStoriesFeed feed", () => {
-      const feed = as.feeds.get("feeds.system.topstories")();
       assert.ok(feed, "feed should exist");
     });
     it("should create a AboutPreferences feed", () => {

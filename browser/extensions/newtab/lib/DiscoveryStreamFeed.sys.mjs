@@ -67,7 +67,6 @@ const PREF_SPOC_COUNTS = "discoverystream.placements.spocs.counts";
 const PREF_SPOC_POSITIONS = "discoverystream.spoc-positions";
 const PREF_MERINO_FEED_EXPERIMENT =
   "browser.newtabpage.activity-stream.discoverystream.merino-feed-experiment";
-const PREF_ENABLED = "discoverystream.enabled";
 const PREF_HARDCODED_BASIC_LAYOUT = "discoverystream.hardcoded-basic-layout";
 const PREF_SPOCS_ENDPOINT = "discoverystream.spocs-endpoint";
 const PREF_SPOCS_ENDPOINT_QUERY = "discoverystream.spocs-endpoint-query";
@@ -121,6 +120,7 @@ const PREF_PRIVATE_PING_ENABLED = "telemetry.privatePing.enabled";
 const PREF_SURFACE_ID = "telemetry.surfaceId";
 const PREF_CLIENT_LAYOUT_ENABLED =
   "discoverystream.sections.clientLayout.enabled";
+const DISCOVERY_STREAM_ENABLED = true;
 
 let getHardcodedLayout;
 
@@ -169,9 +169,7 @@ export class DiscoveryStreamFeed {
         e
       );
     }
-    this._prefCache.config.enabled =
-      this._prefCache.config.enabled &&
-      this.store.getState().Prefs.values[PREF_ENABLED];
+    this._prefCache.config.enabled = DISCOVERY_STREAM_ENABLED;
 
     return this._prefCache.config;
   }
@@ -2447,7 +2445,6 @@ export class DiscoveryStreamFeed {
   async onPrefChangedAction(action) {
     switch (action.data.name) {
       case PREF_CONFIG:
-      case PREF_ENABLED:
       case PREF_HARDCODED_BASIC_LAYOUT:
       case PREF_SPOCS_ENDPOINT:
       case PREF_SPOCS_ENDPOINT_QUERY:
