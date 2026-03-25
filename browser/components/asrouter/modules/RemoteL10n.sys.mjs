@@ -212,15 +212,18 @@ export class _RemoteL10n {
       L10nRegistry.getInstance().removeSources(["cfr"]);
     }
 
-    return new DOMLocalization([
-      "branding/brand.ftl",
-      "browser/defaultBrowserNotification.ftl",
-      "browser/newtab/asrouter.ftl",
-      "browser/policy-messages.ftl",
-      "browser/profiles.ftl",
-      "browser/termsofuse.ftl",
-      "toolkit/branding/brandings.ftl",
-    ]);
+    return new DOMLocalization(
+      [
+        "branding/brand.ftl",
+        "browser/defaultBrowserNotification.ftl",
+        "browser/newtab/asrouter.ftl",
+        "browser/policy-messages.ftl",
+        "browser/profiles.ftl",
+        "browser/termsofuse.ftl",
+        "toolkit/branding/brandings.ftl",
+      ],
+      false
+    );
   }
 
   get l10n() {

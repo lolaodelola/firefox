@@ -49,7 +49,9 @@ has-custom-attr =
           fs
         );
         l10nReg.registerSources([source]);
-        mockL10n = new DOMLocalization(["/mock.ftl"], l10nReg, ["en-US"]);
+        mockL10n = new DOMLocalization(["/mock.ftl"], false, l10nReg, [
+          "en-US",
+        ]);
         mockL10n.addResourceIds(["/mock.ftl"]);
 
         defaultTemplate = html`

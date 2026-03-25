@@ -38,10 +38,6 @@
     color: HighlightText;
     outline: none;
   }
-
-  &:empty::before {
-    content: attr(placeholder);
-  }
 }
 
 .datetime-calendar-button {

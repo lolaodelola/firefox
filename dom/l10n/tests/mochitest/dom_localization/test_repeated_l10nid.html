@@ -22,6 +22,7 @@ key2 = Visit <a data-l10n-name="link">this link<a/>.
   addLoadEvent(async () => {
     const domLoc = new DOMLocalization(
       ["/mock.ftl"],
+      false,
       l10nReg,
       ["en-US"],
     );

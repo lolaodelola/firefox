@@ -22,6 +22,7 @@ key2 = Value for <a>Key 2<a/>.
   addLoadEvent(async () => {
     const domLoc = new DOMLocalization(
       ["/mock.ftl"],
+      false,
       l10nReg,
       ["en-US"],
     );

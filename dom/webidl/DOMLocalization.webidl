@@ -30,11 +30,17 @@ interface DOMLocalization : Localization {
    *    - aResourceids       - a list of localization resource URIs
    *                           which will provide messages for this
    *                           Localization instance.
+   *    - aSync              - Specifies if the initial state of the DOMLocalization
+   *                           and the underlying Localization API is synchronous.
+   *                           This enables a number of synchronous methods on the
+   *                           Localization API and uses it for `TranslateElements`
+   *                           making the method return a synchronusly resolved promise.
    *    - aRegistry            - optional custom L10nRegistry to be used by this Localization instance.
    *    - aLocales             - custom set of locales to be used for this Localization.
    */
   [Throws]
   constructor(sequence<L10nResourceId> aResourceIds,
+              optional boolean aSync = false,
               optional L10nRegistry aRegistry,
               optional sequence<UTF8String> aLocales);
 

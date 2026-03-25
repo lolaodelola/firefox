@@ -2881,10 +2881,10 @@ this.VideoControlsImplWidget = class {
       </div>`,
       "application/xml"
     );
-    this.l10n = new this.window.DOMLocalization([
-      "branding/brand.ftl",
-      "toolkit/global/videocontrols.ftl",
-    ]);
+    this.l10n = new this.window.DOMLocalization(
+      ["branding/brand.ftl", "toolkit/global/videocontrols.ftl"],
+      true
+    );
     this.l10n.connectRoot(this.shadowRoot);
     if (this.prefs["media.videocontrols.keyboard-tab-to-all-controls"]) {
       // Make all of the individual controls tabbable.
