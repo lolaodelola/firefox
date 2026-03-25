@@ -64,12 +64,12 @@ NS_INTERFACE_MAP_END
 
 // Note: explicit casts necessary to avoid
 //       warning C4307: '*' : integral constant overflow
-#define ONE_DAY_USEC                            \
+#define ONE_DAY                                 \
   PRTime(PR_USEC_PER_SEC) * PRTime(60)  /*sec*/ \
       * PRTime(60) /*min*/ * PRTime(24) /*hours*/
-#define EXPIRATION_DEFAULT_USEC ONE_DAY_USEC* PRTime(30)
-#define EXPIRATION_SLACK_USEC ONE_DAY_USEC
-#define EXPIRATION_MAX_USEC ONE_DAY_USEC* PRTime(365) /*year*/
+#define EXPIRATION_DEFAULT ONE_DAY* PRTime(30)
+#define EXPIRATION_SLACK ONE_DAY
+#define EXPIRATION_MAX ONE_DAY* PRTime(365) /*year*/
 
 const size_t RTCCertificateCommonNameLength = 16;
 const size_t RTCCertificateMinRsaSize = 1024;
@@ -140,7 +140,7 @@ class GenerateRTCCertificateTask : public GenerateAsymmetricKeyTask {
     }
 
     PRTime now = PR_Now();
-    PRTime notBefore = now - EXPIRATION_SLACK_USEC;
+    PRTime notBefore = now - EXPIRATION_SLACK;
     mExpires += now;
 
     UniqueCERTValidity validity(CERT_CreateValidity(notBefore, mExpires));
@@ -265,7 +265,7 @@ static PRTime ReadExpires(JSContext* aCx, const ObjectOrString& aOptions,
   // then we won't get the |expires| value.  Either will be caught later.
   RTCCertificateExpiration expiration;
   if (!aOptions.IsObject()) {
-    return EXPIRATION_DEFAULT_USEC;
+    return EXPIRATION_DEFAULT;
   }
   JS::Rooted<JS::Value> value(aCx, JS::ObjectValue(*aOptions.GetAsObject()));
   if (!expiration.Init(aCx, value)) {
@@ -274,12 +274,12 @@ static PRTime ReadExpires(JSContext* aCx, const ObjectOrString& aOptions,
   }
 
   if (!expiration.mExpires.WasPassed()) {
-    return EXPIRATION_DEFAULT_USEC;
+    return EXPIRATION_DEFAULT;
   }
   static const uint64_t max =
-      static_cast<uint64_t>(EXPIRATION_MAX_USEC / PR_USEC_PER_MSEC);
+      static_cast<uint64_t>(EXPIRATION_MAX / PR_USEC_PER_MSEC);
   if (expiration.mExpires.Value() > max) {
-    return EXPIRATION_MAX_USEC;
+    return EXPIRATION_MAX;
   }
   return static_cast<PRTime>(expiration.mExpires.Value() * PR_USEC_PER_MSEC);
 }
@@ -444,9 +444,6 @@ already_AddRefed<RTCCertificate> RTCCertificate::ReadStructuredClone(
     return nullptr;
   }
   RefPtr<RTCCertificate> cert = new RTCCertificate(aGlobal);
-  if (authType == ssl_kea_null || authType >= ssl_kea_size) {
-    return nullptr;
-  }
   cert->mAuthType = static_cast<SSLKEAType>(authType);
 
   uint32_t high, low;
@@ -454,10 +451,6 @@ already_AddRefed<RTCCertificate> RTCCertificate::ReadStructuredClone(
     return nullptr;
   }
   cert->mExpires = static_cast<PRTime>(high) << 32 | low;
-  // make sure mExpires is not more than EXPIRATION_MAX_USEC
-  if (cert->mExpires <= 0 || cert->mExpires > EXPIRATION_MAX_USEC) {
-    return nullptr;
-  }
 
   if (!cert->ReadPrivateKey(aReader) || !cert->ReadCertificate(aReader)) {
     return nullptr;

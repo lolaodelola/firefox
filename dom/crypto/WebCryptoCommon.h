@@ -143,9 +143,7 @@ inline bool ReadBuffer(JSStructuredCloneReader* aReader,
                        CryptoBuffer& aBuffer) {
   uint32_t length, zero;
   bool ret = JS_ReadUint32Pair(aReader, &length, &zero);
-  // WriteBuffer always a zero to the second value, so sanity
-  // check zero is actually 0.
-  if (!ret || zero != 0) {
+  if (!ret) {
     return false;
   }
 
