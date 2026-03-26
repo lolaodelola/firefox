@@ -83,29 +83,8 @@ NS_IMETHODIMP
 nsMathMLmrootFrame::TransmitAutomaticData() {
   bool isRootWithIndex = GetContent()->IsMathMLElement(nsGkAtoms::mroot);
   if (isRootWithIndex) {
-    // 1. The REC says:
-    //    The <mroot> element increments scriptlevel by 2, and sets displaystyle
-    //    to "false", within index, but leaves both attributes unchanged within
-    //    base.
-    // 2. The TeXbook (Ch 17. p.141) says \sqrt is compressed
-    if (!StaticPrefs::mathml_math_shift_enabled()) {
-      UpdatePresentationDataFromChildAt(1, 1,
-                                        MathMLPresentationFlag::Compressed,
-                                        MathMLPresentationFlag::Compressed);
-      UpdatePresentationDataFromChildAt(0, 0,
-                                        MathMLPresentationFlag::Compressed,
-                                        MathMLPresentationFlag::Compressed);
-    }
-
     PropagateFrameFlagFor(mFrames.LastChild(),
                           NS_FRAME_MATHML_SCRIPT_DESCENDANT);
-  } else {
-    // The TeXBook (Ch 17. p.141) says that \sqrt is cramped
-    if (!StaticPrefs::mathml_math_shift_enabled()) {
-      UpdatePresentationDataFromChildAt(0, -1,
-                                        MathMLPresentationFlag::Compressed,
-                                        MathMLPresentationFlag::Compressed);
-    }
   }
 
   return NS_OK;
