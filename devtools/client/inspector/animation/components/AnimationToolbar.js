@@ -5,7 +5,9 @@
 "use strict";
 
 const {
+  createElement,
   createFactory,
+  Fragment,
   PureComponent,
 } = require("resource://devtools/client/shared/vendor/react.mjs");
 const dom = require("resource://devtools/client/shared/vendor/react-dom-factories.js");
@@ -54,22 +56,28 @@ class AnimationToolbar extends PureComponent {
       {
         className: "animation-toolbar devtools-toolbar",
       },
-      RewindButton({
-        rewindAnimationsCurrentTime,
-      }),
-      PauseResumeButton({
-        animations,
-        setAnimationsPlayState,
-      }),
       PlaybackRateSelector({
         playBackRateMultiplier,
         setAnimationsPlaybackRateMultiplier,
       }),
-      CurrentTimeLabel({
-        addAnimationsCurrentTimeListener,
-        removeAnimationsCurrentTimeListener,
-        timeScale,
-      })
+      animations.length
+        ? createElement(
+            Fragment,
+            null,
+            RewindButton({
+              rewindAnimationsCurrentTime,
+            }),
+            PauseResumeButton({
+              animations,
+              setAnimationsPlayState,
+            }),
+            CurrentTimeLabel({
+              addAnimationsCurrentTimeListener,
+              removeAnimationsCurrentTimeListener,
+              timeScale,
+            })
+          )
+        : null
     );
   }
 }
