@@ -396,7 +396,8 @@ void FontFaceImpl::UpdateOwnerKeepAlive() {
     MOZ_DIAGNOSTIC_ASSERT(!mKeepingOwnerAlive);
     return;
   }
-  const bool shouldKeepOwnerAlive = mStatus == FontFaceLoadStatus::Loading;
+  const bool shouldKeepOwnerAlive =
+      mStatus == FontFaceLoadStatus::Loading && !!mOwner->GetParentObject();
   if (shouldKeepOwnerAlive == mKeepingOwnerAlive) {
     return;
   }
