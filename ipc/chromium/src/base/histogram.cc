@@ -9,7 +9,6 @@
 
 #include "base/histogram.h"
 
-#include <math.h>
 
 #include <string>
 

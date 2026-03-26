@@ -4,7 +4,6 @@
 
 #include "nsAnimationManager.h"
 
-#include <math.h>
 
 #include <algorithm>  // std::stable_sort
 
