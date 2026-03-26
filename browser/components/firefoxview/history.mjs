@@ -152,20 +152,6 @@ class HistoryInView extends ViewPage {
     }
   }
 
-  async forgetAboutThisSite() {
-    let host = Services.io.newURI(this.triggerNode.url).host;
-    let baseDomain;
-    try {
-      baseDomain = Services.eTLD.getBaseDomainFromHost(host);
-    } catch (e) {
-      // If there is no baseDomain we fall back to host
-    }
-    await this.getWindow().gDialogBox.open(
-      "chrome://browser/content/places/clearDataForSite.xhtml",
-      { host, hostOrBaseDomain: baseDomain ?? host }
-    );
-  }
-
   onSecondaryAction(e) {
     this.triggerNode = e.originalTarget;
     this.panelList.toggle(e.detail.originalEvent);
@@ -258,11 +244,6 @@ class HistoryInView extends ViewPage {
         <panel-item
           @click=${this.deleteFromHistory}
           data-l10n-id="firefoxview-history-context-delete"
-          data-l10n-attrs="accesskey"
-        ></panel-item>
-        <panel-item
-          @click=${this.forgetAboutThisSite}
-          data-l10n-id="firefoxview-history-context-forget-site"
           data-l10n-attrs="accesskey"
         ></panel-item>
         <hr />
