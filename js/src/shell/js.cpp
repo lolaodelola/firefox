@@ -13252,6 +13252,7 @@ bool InitOptionParser(OptionParser& op) {
                         "Disable Explicit Resource Management") ||
       !op.addBoolOption('\0', "enable-temporal", "Enable Temporal") ||
       !op.addBoolOption('\0', "enable-import-bytes", "Enable import bytes") ||
+      !op.addBoolOption('\0', "enable-import-text", "Enable import text") ||
       !op.addBoolOption('\0', "enable-promise-allkeyed",
                         "Enable Promise.allKeyed") ||
       !op.addBoolOption('\0', "enable-arraybuffer-immutable",
@@ -13331,6 +13332,9 @@ bool SetGlobalOptionsPreJSInit(const OptionParser& op) {
   }
   if (op.getBoolOption("enable-import-bytes")) {
     JS::Prefs::setAtStartup_experimental_import_bytes(true);
+  }
+  if (op.getBoolOption("enable-import-text")) {
+    JS::Prefs::setAtStartup_experimental_import_text(true);
   }
   if (op.getBoolOption("enable-promise-allkeyed")) {
     JS::Prefs::setAtStartup_experimental_promise_allkeyed(true);
