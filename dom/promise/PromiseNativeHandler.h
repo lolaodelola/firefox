@@ -5,7 +5,6 @@
 #ifndef mozilla_dom_PromiseNativeHandler_h
 #define mozilla_dom_PromiseNativeHandler_h
 
-#include <functional>
 
 #include "js/TypeDecls.h"
 #include "js/Value.h"

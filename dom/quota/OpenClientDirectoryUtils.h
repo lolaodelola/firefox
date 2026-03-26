@@ -5,7 +5,6 @@
 #ifndef DOM_QUOTA_OPENCLIENTDIRECTORYUTILS_H_
 #define DOM_QUOTA_OPENCLIENTDIRECTORYUTILS_H_
 
-#include <functional>
 
 #include "mozilla/MozPromise.h"
 #include "mozilla/RefPtr.h"
