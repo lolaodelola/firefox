@@ -147,7 +147,6 @@ void MediaStreamTrackAudioSourceNode::PrincipalChanged(
   bool enabled = subsumes;
   track->SetInt32Parameter(MediaStreamTrackAudioSourceNodeEngine::ENABLE,
                            enabled);
-  fprintf(stderr, "NOW: %s", enabled ? "enabled" : "disabled");
 
   if (!enabled && doc) {
     nsContentUtils::ReportToConsole(nsIScriptError::warningFlag, "Web Audio"_ns,
