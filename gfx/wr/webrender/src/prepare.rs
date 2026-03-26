@@ -1684,10 +1684,12 @@ fn write_brush_segment_description(
         }
 
         let (local_clip_rect, radius, mode) = match clip_node.item.kind {
-            ClipItemKind::RoundedRectangle { rect, radius, mode } => {
+            ClipItemKind::RoundedRectangle { size, radius, mode } => {
+                let rect = LayoutRect::from_origin_and_size(clip_instance.clip_rect_origin, size);
                 (rect, Some(radius), mode)
             }
-            ClipItemKind::Rectangle { rect, mode } => {
+            ClipItemKind::Rectangle { size, mode } => {
+                let rect = LayoutRect::from_origin_and_size(clip_instance.clip_rect_origin, size);
                 (rect, None, mode)
             }
             ClipItemKind::BoxShadow { ref source } => {

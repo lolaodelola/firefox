@@ -224,12 +224,13 @@ impl<'a> SceneBuilder<'a> {
                     clips.push(ClipItemEntry {
                         key: ClipItemKey {
                             kind: ClipItemKeyKind::rounded_rect(
-                                prim_info.rect,
+                                prim_info.rect.size(),
                                 border_radius,
                                 ClipMode::ClipOut,
                             ),
                         },
                         spatial_node_index,
+                        clip_rect_origin: prim_info.rect.min,
                     });
 
                     (shadow_rect, shadow_radius)
@@ -239,12 +240,13 @@ impl<'a> SceneBuilder<'a> {
                         clips.push(ClipItemEntry {
                             key: ClipItemKey {
                                 kind: ClipItemKeyKind::rounded_rect(
-                                    shadow_rect,
+                                    shadow_rect.size(),
                                     shadow_radius,
                                     ClipMode::ClipOut,
                                 ),
                             },
                             spatial_node_index,
+                            clip_rect_origin: shadow_rect.min,
                         });
                     }
 
@@ -255,12 +257,13 @@ impl<'a> SceneBuilder<'a> {
             clips.push(ClipItemEntry {
                 key: ClipItemKey {
                     kind: ClipItemKeyKind::rounded_rect(
-                        final_prim_rect,
+                        final_prim_rect.size(),
                         clip_radius,
                         ClipMode::Clip,
                     ),
                 },
                 spatial_node_index,
+                clip_rect_origin: final_prim_rect.min,
             });
 
             self.add_primitive(
@@ -282,12 +285,13 @@ impl<'a> SceneBuilder<'a> {
             extra_clips.push(ClipItemEntry {
                 key: ClipItemKey {
                     kind: ClipItemKeyKind::rounded_rect(
-                        prim_info.rect,
+                        prim_info.rect.size(),
                         border_radius,
                         prim_clip_mode,
                     ),
                 },
                 spatial_node_index,
+                clip_rect_origin: prim_info.rect.min,
             });
 
             // Get the local rect of where the shadow will be drawn,
@@ -312,6 +316,7 @@ impl<'a> SceneBuilder<'a> {
                     ),
                 },
                 spatial_node_index,
+                clip_rect_origin: shadow_rect.min,
             };
 
             let prim_info = match clip_mode {
