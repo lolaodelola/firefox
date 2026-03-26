@@ -400,97 +400,6 @@ function assertDNRTelemetryMetricsDefined(metrics) {
   );
 }
 
-function assertDNRTelemetryMirrored({
-  gleanMetric,
-  gleanLabel,
-  unifiedName,
-  unifiedType,
-}) {
-  assertDNRTelemetryMetricsDefined([
-    { metric: gleanMetric, label: gleanLabel },
-  ]);
-  const gleanData = gleanLabel
-    ? Glean.extensionsApisDnr[gleanMetric][gleanLabel].testGetValue()
-    : Glean.extensionsApisDnr[gleanMetric].testGetValue();
-
-  if (!unifiedName) {
-    Assert.ok(
-      false,
-      `Unexpected missing unifiedName parameter on call to assertDNRTelemetryMirrored`
-    );
-    return;
-  }
-
-  let unifiedData;
-
-  switch (unifiedType) {
-    case "histogram": {
-      let found = false;
-      try {
-        const histogram = Services.telemetry.getHistogramById(unifiedName);
-        found = !!histogram;
-      } catch (err) {
-        Cu.reportError(err);
-      }
-      Assert.ok(found, `Expect an histogram named ${unifiedName} to be found`);
-      unifiedData = Services.telemetry.getSnapshotForHistograms("main", false)
-        .parent[unifiedName];
-      break;
-    }
-    case "keyedScalar": {
-      const snapshot = Services.telemetry.getSnapshotForKeyedScalars(
-        "main",
-        false
-      );
-      if (unifiedName in (snapshot?.parent || {})) {
-        unifiedData = snapshot.parent[unifiedName][gleanLabel];
-      }
-      break;
-    }
-    case "scalar": {
-      const snapshot = Services.telemetry.getSnapshotForScalars("main", false);
-      if (unifiedName in (snapshot?.parent || {})) {
-        unifiedData = snapshot.parent[unifiedName];
-      }
-      break;
-    }
-    default:
-      Assert.ok(
-        false,
-        `Unexpected unifiedType ${unifiedType} on call to assertDNRTelemetryMirrored`
-      );
-      return;
-  }
-
-  if (gleanData == undefined) {
-    Assert.deepEqual(
-      unifiedData,
-      undefined,
-      `Expect mirrored unified telemetry ${unifiedType} ${unifiedName} has no samples as Glean ${gleanMetric}`
-    );
-  } else {
-    switch (unifiedType) {
-      case "histogram": {
-        Assert.deepEqual(
-          valueSum(unifiedData.values),
-          valueSum(gleanData.values),
-          `Expect mirrored unified telemetry ${unifiedType} ${unifiedName} has samples mirrored from Glean ${gleanMetric}`
-        );
-        break;
-      }
-      case "scalar":
-      case "keyedScalar": {
-        Assert.deepEqual(
-          unifiedData,
-          gleanData,
-          `Expect mirrored unified telemetry ${unifiedType} ${unifiedName} has samples mirrored from Glean ${gleanMetric}`
-        );
-        break;
-      }
-    }
-  }
-}
-
 function assertDNRTelemetryMetricsNoSamples(metrics, msg) {
   assertDNRTelemetryMetricsDefined(metrics);
   for (const metricDetails of metrics) {
@@ -504,16 +413,6 @@ function assertDNRTelemetryMetricsNoSamples(metrics, msg) {
       undefined,
       `Expect no sample for Glean metric extensionApisDnr.${metric} (${msg}): ${gleanData}`
     );
-
-    if (metricDetails.mirroredName) {
-      const { mirroredName, mirroredType } = metricDetails;
-      assertDNRTelemetryMirrored({
-        gleanMetric: metric,
-        gleanLabel: label,
-        unifiedName: mirroredName,
-        unifiedType: mirroredType,
-      });
-    }
   }
 }
 
@@ -532,16 +431,6 @@ function assertDNRTelemetryMetricsGetValueEq(metrics, msg) {
         label ? `.${label}` : ""
       } (${msg})`
     );
-
-    if (metricDetails.mirroredName) {
-      const { mirroredName, mirroredType } = metricDetails;
-      assertDNRTelemetryMirrored({
-        gleanMetric: metric,
-        gleanLabel: label,
-        unifiedName: mirroredName,
-        unifiedType: mirroredType,
-      });
-    }
   }
 }
 
@@ -581,14 +470,5 @@ function assertDNRTelemetryMetricsSamplesCount(metrics, msg) {
       !gleanData.values["0"],
       `No sample for Glean metric extensionsApisDnr.${metric} should be collected for the bucket "0"`
     );
-
-    if (metricDetails.mirroredName) {
-      const { mirroredName, mirroredType } = metricDetails;
-      assertDNRTelemetryMirrored({
-        gleanMetric: metric,
-        unifiedName: mirroredName,
-        unifiedType: mirroredType,
-      });
-    }
   }
 }
