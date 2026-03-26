@@ -20,10 +20,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 /**
- * [ReviewPromptMiddleware] tests that require Robolectric (to use [FenixGleanTestRule]).
+ * [ReviewPromptMiddleware] tests that use [FenixGleanTestRule].
  */
 @RunWith(RobolectricTestRunner::class)
-class ReviewPromptMiddlewareRobolectricTest {
+class ReviewPromptMiddlewareGleanTest {
 
     @get:Rule
     val gleanTestRule = FenixGleanTestRule(testContext)
