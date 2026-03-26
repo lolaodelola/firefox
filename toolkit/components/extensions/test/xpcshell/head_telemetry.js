@@ -278,18 +278,19 @@ function assertGleanMetricsSamplesCount({
   );
 }
 
-function assertGleanLabeledCounter({
+function assertGleanLabeledMetric({
   metricId,
   gleanMetric,
   gleanMetricLabels,
   expectedLabelsValue,
   ignoreNonExpectedLabels,
   ignoreUnknownLabels,
+  preprocessLabelValueFn,
   message,
 }) {
   const { GleanLabeled } = globalThis;
   const msg = message ? `(${message})` : "";
-  if (!Array.isArray(gleanMetricLabels) || !gleanMetricLabels.length) {
+  if (!Array.isArray(gleanMetricLabels)) {
     throw new Error(
       `Missing mandatory gleanMetricLabels property ${msg}: ${gleanMetricLabels}`
     );
@@ -301,17 +302,35 @@ function assertGleanLabeledCounter({
     );
   }
 
+  let actualLabeledValues = gleanMetric.testGetValue();
+
   for (const label of gleanMetricLabels) {
     const expectedLabelValue = expectedLabelsValue[label];
     if (ignoreNonExpectedLabels && !(label in expectedLabelsValue)) {
       continue;
     }
+
+    // NOTE: no need for optional chaining on accessing actualLabeledValue,
+    // GleanLabeled testGetValue calls will return an empty object when there
+    // is no data.
+    let actualLabelValue = actualLabeledValues[label];
+    if (actualLabelValue != null && preprocessLabelValueFn) {
+      // Optionally preprocess the actual labeled values to make it easier
+      // to assert the expected values that the callers actually cares about.
+      actualLabelValue = preprocessLabelValueFn(actualLabelValue);
+    }
     Assert.deepEqual(
-      gleanMetric[label].testGetValue(),
+      actualLabelValue,
       expectedLabelValue,
-      `Expect Glean "${metricId}" metric label "${label}" to be ${
-        expectedLabelValue > 0 ? expectedLabelValue : "empty"
-      }`
+      `Got expected value Glean "${metricId}" metric label "${label}"`
+    );
+  }
+
+  if (gleanMetricLabels.length === 0) {
+    Assert.deepEqual(
+      actualLabeledValues,
+      {},
+      `Expect GleanLabeled "${metricId}" to be empty`
     );
   }
 
@@ -324,7 +343,7 @@ function assertGleanLabeledCounter({
   }
 }
 
-function assertGleanLabeledCounterEmpty({
+function assertGleanLabeledMetricEmpty({
   metricId,
   gleanMetric,
   gleanMetricLabels,
@@ -332,7 +351,7 @@ function assertGleanLabeledCounterEmpty({
 }) {
   // All empty labels passed to the other helpers to make it
   // assert that all labels are empty.
-  assertGleanLabeledCounter({
+  assertGleanLabeledMetric({
     metricId,
     gleanMetric,
     gleanMetricLabels,
@@ -341,7 +360,7 @@ function assertGleanLabeledCounterEmpty({
   });
 }
 
-function assertGleanLabeledCounterNotEmpty({
+function assertGleanLabeledMetricNotEmpty({
   metricId,
   gleanMetric,
   expectedNotEmptyLabels,

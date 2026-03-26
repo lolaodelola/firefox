@@ -43,7 +43,7 @@ add_task(async function test_eventpage_idle() {
     gleanMetric: Glean.extensionsTiming.eventPageRunningTime,
     gleanMetricConstructor: GleanCustomDistribution,
   });
-  assertGleanLabeledCounterEmpty({
+  assertGleanLabeledMetricEmpty({
     metricId: "eventPageIdleResult",
     gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
     gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
@@ -148,7 +148,7 @@ add_task(async function test_eventpage_idle() {
     category: "suspend",
     categories: HISTOGRAM_EVENTPAGE_IDLE_RESULT_CATEGORIES,
   });
-  assertGleanLabeledCounterNotEmpty({
+  assertGleanLabeledMetricNotEmpty({
     metricId: "eventPageIdleResult",
     gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
     expectedNotEmptyLabels: ["suspend"],
@@ -178,7 +178,7 @@ add_task(
 
     assertHistogramEmpty(WEBEXT_EVENTPAGE_IDLE_RESULT_COUNT);
     assertKeyedHistogramEmpty(WEBEXT_EVENTPAGE_IDLE_RESULT_COUNT_BY_ADDONID);
-    assertGleanLabeledCounterEmpty({
+    assertGleanLabeledMetricEmpty({
       metricId: "eventPageIdleResult",
       gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
       gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
@@ -231,7 +231,7 @@ add_task(
     //   }
     // );
 
-    // assertGleanLabeledCounterNotEmpty({
+    // assertGleanLabeledMetricNotEmpty({
     //   metricId: "eventPageIdleResult",
     //   gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
     //   expectedNotEmptyLabels: ["reset_parentapicall"],
@@ -412,7 +412,7 @@ add_task(
 
     assertHistogramEmpty(WEBEXT_EVENTPAGE_IDLE_RESULT_COUNT);
     assertKeyedHistogramEmpty(WEBEXT_EVENTPAGE_IDLE_RESULT_COUNT_BY_ADDONID);
-    assertGleanLabeledCounterEmpty({
+    assertGleanLabeledMetricEmpty({
       metricId: "eventPageIdleResult",
       gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
       gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
@@ -463,7 +463,7 @@ add_task(
     //   category: "reset_event",
     //   categories: HISTOGRAM_EVENTPAGE_IDLE_RESULT_CATEGORIES,
     // });
-    // assertGleanLabeledCounterNotEmpty({
+    // assertGleanLabeledMetricNotEmpty({
     //   metricId: "eventPageIdleResult",
     //   gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
     //   expectedNotEmptyLabels: ["reset_event"],
@@ -642,7 +642,7 @@ add_task(
 
     assertHistogramEmpty(WEBEXT_EVENTPAGE_IDLE_RESULT_COUNT);
     assertKeyedHistogramEmpty(WEBEXT_EVENTPAGE_IDLE_RESULT_COUNT_BY_ADDONID);
-    assertGleanLabeledCounterEmpty({
+    assertGleanLabeledMetricEmpty({
       metricId: "eventPageIdleResult",
       gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
       gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
@@ -690,7 +690,7 @@ add_task(
       categories: HISTOGRAM_EVENTPAGE_IDLE_RESULT_CATEGORIES,
     });
 
-    assertGleanLabeledCounter({
+    assertGleanLabeledMetric({
       metricId: "eventPageIdleResult",
       gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
       gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
