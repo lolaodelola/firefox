@@ -5896,18 +5896,28 @@ void ScrollContainerFrame::ScrollbarCurPosChanged(bool aDoScroll) {
 
 void ScrollContainerFrame::DisableOverlayScrollbars() {
   nsContentUtils::AddScriptRunner(NS_NewRunnableFunction(
-      "ScrollContainerFrame::DisableOverlayScrollbars", [&] {
-        if (mScrollbarActivity) {
-          mScrollbarActivity->ActivityStarted();
+      "ScrollContainerFrame::DisableOverlayScrollbars",
+      [weakFrame = WeakFrame{this}] {
+        if (!weakFrame.IsAlive()) {
+          return;
+        }
+        auto* self = static_cast<ScrollContainerFrame*>(weakFrame.GetFrame());
+        if (self->mScrollbarActivity) {
+          self->mScrollbarActivity->ActivityStarted();
         }
       }));
 }
 
 void ScrollContainerFrame::EnableOverlayScrollbars() {
   nsContentUtils::AddScriptRunner(NS_NewRunnableFunction(
-      "ScrollContainerFrame::EnableOverlayScrollbars", [&] {
-        if (mScrollbarActivity) {
-          mScrollbarActivity->ActivityStopped();
+      "ScrollContainerFrame::EnableOverlayScrollbars",
+      [weakFrame = WeakFrame{this}] {
+        if (!weakFrame.IsAlive()) {
+          return;
+        }
+        auto* self = static_cast<ScrollContainerFrame*>(weakFrame.GetFrame());
+        if (self->mScrollbarActivity) {
+          self->mScrollbarActivity->ActivityStopped();
         }
       }));
 }
