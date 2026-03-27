@@ -20,11 +20,11 @@ appmenuitem-banner-update-restart =
     .label = Update available — restart now
 
 appmenuitem-new-tab =
-    .label = New Tab
+    .label = New tab
 appmenuitem-new-window =
-    .label = New Window
+    .label = New window
 appmenuitem-new-private-window =
-    .label = New Private Window
+    .label = New private window
 appmenuitem-history =
   .label = History
 appmenuitem-downloads =
@@ -32,19 +32,19 @@ appmenuitem-downloads =
 appmenuitem-passwords =
     .label = Passwords
 appmenuitem-extensions-and-themes =
-    .label = Extensions and Themes
+    .label = Extensions and themes
 appmenuitem-extensions =
     .label = Extensions
 appmenuitem-print =
   .label = Print…
 appmenuitem-find-in-page =
-    .label = Find in Page…
+    .label = Find in page…
 appmenuitem-translate =
-    .label = Translate Page…
+    .label = Translate page…
 appmenuitem-zoom =
     .value = Zoom
 appmenuitem-more-tools =
-    .label = More Tools
+    .label = More tools
 appmenuitem-help =
     .label = Help
 appmenuitem-exit2 =
@@ -68,11 +68,11 @@ appmenuitem-settings =
 ## Zoom and Fullscreen Controls
 
 appmenuitem-zoom-enlarge =
-  .label = Zoom In
+  .label = Zoom in
 appmenuitem-zoom-reduce =
-  .label = Zoom Out
+  .label = Zoom out
 appmenuitem-fullscreen =
-  .label = Full Screen
+  .label = Full screen
 
 ## Firefox Account toolbar button and Sync panel in App menu.
 
@@ -124,7 +124,7 @@ appmenu-fxa-setup-sync =
     .label = Turn On Syncing…
 appmenu-fxa-setup-sync-new = Turn On
 appmenuitem-save-page =
-    .label = Save Page As…
+    .label = Save page as…
 
 appmenuitem-fxa-sync-off-title = Sync is off
 appmenuitem-fxa-sync-off-description = Protect and access your bookmarks, passwords, and more anywhere.
@@ -305,7 +305,7 @@ appmenu-developer-tools-subheader = Browser tools
 appmenu-developer-tools-extensions =
     .label = Extensions for developers
 appmenuitem-report-broken-site =
-  .label = Report Broken Site
+  .label = Report broken site
 
 ## Panel for privacy and security products
 
