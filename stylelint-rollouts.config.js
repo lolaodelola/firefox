@@ -309,6 +309,8 @@ module.exports = [
       "toolkit/content/resetProfile.css",
       "toolkit/content/tests/widgets/videomask.css",
       "toolkit/content/widgets/infobar.css",
+      "toolkit/content/widgets/moz-page-nav/moz-page-nav-button.css",
+      "toolkit/content/widgets/moz-page-nav/moz-page-nav.css",
       "toolkit/content/xul.css",
       "toolkit/crashreporter/content/crashes.css",
       "toolkit/mozapps/extensions/content/aboutaddons.css",
