@@ -532,6 +532,13 @@ class GCRuntime {
       Handle<FinalizationRecordObject*> record);
   void queueFinalizationRegistryForCleanup(FinalizationQueueObject* queue);
 
+  mozilla::LinkedList<JS::detail::WeakCacheBase>& weakCaches() {
+    return weakCaches_.ref();
+  }
+  void registerWeakCache(JS::detail::WeakCacheBase* cache) {
+    weakCaches().insertBack(cache);
+  }
+
   void setFullCompartmentChecks(bool enable);
 
   // Get the marking tracer used on the main thread.
@@ -1341,28 +1348,6 @@ class GCRuntime {
   MainThreadOrGCTaskData<AllocKind> foregroundFinalizedAllocKind;
   MainThreadData<mozilla::Maybe<SortedArenaList>> foregroundFinalizedArenas;
 
-#ifdef DEBUG
-  /*
-   * List of objects to mark at the beginning of a GC for testing purposes. May
-   * also contain string directives to change mark color or wait until different
-   * phases of the GC.
-   *
-   * This is a WeakCache because not everything in this list is guaranteed to
-   * end up marked (eg if you insert an object from an already-processed sweep
-   * group in the middle of an incremental GC). Also, the mark queue is not
-   * used during shutdown GCs. In either case, unmarked objects may need to be
-   * discarded.
-   */
-  JS::WeakCache<GCVector<HeapPtr<JS::Value>, 0, SystemAllocPolicy>>
-      testMarkQueue;
-
-  /* Position within the test mark queue. */
-  size_t queuePos = 0;
-
-  /* The test marking queue might want to be marking a particular color. */
-  mozilla::Maybe<js::gc::MarkColor> queueMarkColor;
-#endif
-
   friend class SweepGroupsIter;
 
   /*
@@ -1537,6 +1522,11 @@ class GCRuntime {
   // GC. This is accessed off main thread when sweeping WeakCaches.
   MainThreadOrGCTaskData<gc::StoreBuffer> storeBuffer_;
 
+  // List of non-ephemeron weak containers to sweep during
+  // beginSweepingSweepGroup. Must come before testMarkQueue.
+  MainThreadOrGCTaskData<mozilla::LinkedList<JS::detail::WeakCacheBase>>
+      weakCaches_;
+
   mozilla::TimeStamp lastLastDitchTime;
 
   // The last time per-zone allocation rates were updated.
@@ -1544,6 +1534,28 @@ class GCRuntime {
 
   // Total collector time since per-zone allocation rates were last updated.
   MainThreadData<mozilla::TimeDuration> collectorTimeSinceAllocRateUpdate;
+
+#ifdef DEBUG
+  /*
+   * List of objects to mark at the beginning of a GC for testing purposes. May
+   * also contain string directives to change mark color or wait until different
+   * phases of the GC.
+   *
+   * This is a WeakCache because not everything in this list is guaranteed to
+   * end up marked (eg if you insert an object from an already-processed sweep
+   * group in the middle of an incremental GC). Also, the mark queue is not
+   * used during shutdown GCs. In either case, unmarked objects may need to be
+   * discarded.
+   */
+  JS::WeakCache<GCVector<HeapPtr<JS::Value>, 0, SystemAllocPolicy>>
+      testMarkQueue;
+
+  /* Position within the test mark queue. */
+  size_t queuePos = 0;
+
+  /* The test marking queue might want to be marking a particular color. */
+  mozilla::Maybe<js::gc::MarkColor> queueMarkColor;
+#endif
 
   friend class MarkingValidator;
   friend class AutoEnterIteration;

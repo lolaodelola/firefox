@@ -487,9 +487,6 @@ GCRuntime::GCRuntime(JSRuntime* rt)
       sweepZone(nullptr),
       abortSweepAfterCurrentGroup(false),
       sweepMarkResult(IncrementalProgress::NotFinished),
-#ifdef DEBUG
-      testMarkQueue(rt),
-#endif
       startedCompacting(false),
       zonesCompacted(0),
 #ifdef DEBUG
@@ -530,7 +527,12 @@ GCRuntime::GCRuntime(JSRuntime* rt)
       decommitTask(this),
       nursery_(this),
       storeBuffer_(rt),
-      lastAllocRateUpdateTime(TimeStamp::Now()) {
+      lastAllocRateUpdateTime(TimeStamp::Now())
+#ifdef DEBUG
+      ,
+      testMarkQueue(rt)
+#endif
+{
 }
 
 bool js::gc::SplitStringBy(const char* text, char delimiter,

@@ -603,20 +603,6 @@ struct JSRuntime {
   const JSClass* maybeWindowProxyClass() const { return windowProxyClass_; }
   void setWindowProxyClass(const JSClass* clasp) { windowProxyClass_ = clasp; }
 
- private:
-  // List of non-ephemeron weak containers to sweep during
-  // beginSweepingSweepGroup.
-  js::MainThreadData<mozilla::LinkedList<JS::detail::WeakCacheBase>>
-      weakCaches_;
-
- public:
-  mozilla::LinkedList<JS::detail::WeakCacheBase>& weakCaches() {
-    return weakCaches_.ref();
-  }
-  void registerWeakCache(JS::detail::WeakCacheBase* cachep) {
-    weakCaches().insertBack(cachep);
-  }
-
   template <typename T>
   struct GlobalObjectWatchersLinkAccess {
     static const mozilla::DoublyLinkedListElement<T>& Get(const T* aThis) {
