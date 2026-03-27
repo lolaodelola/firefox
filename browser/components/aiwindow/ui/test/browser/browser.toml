@@ -73,7 +73,9 @@ support-files = [
 
 ["browser_aiwindow_smartbar_keyboard_navigation.js"]
 
-["browser_aiwindow_smartbar_mentions.js"]
+["browser_aiwindow_smartbar_context_chips.js"]
+
+["browser_aiwindow_smartbar_inline_mentions.js"]
 
 ["browser_aiwindow_smartbar_telemetry.js"]
 

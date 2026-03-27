@@ -2,10 +2,10 @@
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
 /**
- * Tests for Smartbar mentions functionality.
+ * Tests for Smartbar inline @mention functionality.
  *
- * These tests verify that users can trigger and insert mention suggestions into
- * the Smartbar editor.
+ * These tests verify that users can trigger and insert inline mention
+ * suggestions into the Smartbar editor via the @ trigger.
  */
 
 "use strict";
@@ -154,44 +154,6 @@ add_task(async function test_mentions_insert_on_enter() {
   await BrowserTestUtils.synthesizeKey("KEY_Enter", {}, browser);
   const hasMention = await waitForMentionInserted(browser);
   Assert.ok(hasMention, "Editor should contain a mention after pressing Enter");
-
-  await BrowserTestUtils.closeWindow(win);
-});
-
-add_task(async function test_mentions_insert_from_context_button() {
-  const win = await openAIWindow();
-  const browser = win.gBrowser.selectedBrowser;
-
-  await SpecialPowers.spawn(browser, [], async () => {
-    const aiWindowElement = content.document.querySelector("ai-window");
-    const smartbar = aiWindowElement.shadowRoot.querySelector(
-      "#ai-window-smartbar"
-    );
-    const contextButton = smartbar.querySelector("context-icon-button");
-    const button = contextButton.shadowRoot.querySelector("moz-button");
-    button.click();
-
-    const panelList = smartbar.querySelector("smartwindow-panel-list");
-    const panel = panelList.shadowRoot.querySelector("panel-list");
-    await ContentTaskUtils.waitForMutationCondition(
-      panel,
-      { childList: true, subtree: true },
-      () => panel.querySelector("panel-item:not(.panel-section-header)")
-    );
-    const firstItem = panel.querySelector(
-      "panel-item:not(.panel-section-header)"
-    );
-    firstItem.click();
-
-    const chipContainer = smartbar.querySelector(
-      ".smartbar-context-chips-header"
-    );
-    Assert.equal(
-      chipContainer.websites.length,
-      1,
-      "Context mention should be in smartbar header in fullpage mode"
-    );
-  });
 
   await BrowserTestUtils.closeWindow(win);
 });
@@ -393,228 +355,6 @@ add_task(async function test_maxResults_total_limit() {
   providerStub.returns(DEFAULT_PROVIDER_STUB_RETURN);
 });
 
-add_task(async function test_default_context_chip_sidebar_mode() {
-  const win = await openAIWindow();
-  const browser = win.gBrowser.selectedBrowser;
-
-  await SpecialPowers.spawn(browser, [], async () => {
-    const aiWindowElement = content.document.querySelector("ai-window");
-    const smartbar = aiWindowElement.shadowRoot.querySelector(
-      "#ai-window-smartbar"
-    );
-    // TODO (Bug 2017728): Update this test to open the sidebar via AIWindowUI.openSidebar()
-    smartbar.isSidebarMode = true;
-
-    const chipContainer = smartbar.querySelector(
-      ".smartbar-context-chips-header"
-    );
-    Assert.ok(chipContainer, "Website chip container exists");
-
-    await ContentTaskUtils.waitForMutationCondition(
-      chipContainer,
-      { childList: true, subtree: true },
-      () =>
-        Array.isArray(chipContainer.websites) &&
-        chipContainer.websites.length === 1
-    );
-
-    Assert.equal(
-      chipContainer.websites[0].url,
-      "chrome://browser/content/aiwindow/aiWindow.html",
-      "Default chip url matches current tab URL"
-    );
-  });
-
-  await BrowserTestUtils.closeWindow(win);
-});
-
-add_task(async function test_no_default_context_chip_fullpage_mode() {
-  const win = await openAIWindow();
-  const browser = win.gBrowser.selectedBrowser;
-
-  await SpecialPowers.spawn(browser, [], async () => {
-    const aiWindowElement = content.document.querySelector("ai-window");
-    const smartbar = aiWindowElement.shadowRoot.querySelector(
-      "#ai-window-smartbar"
-    );
-
-    const chipContainer = smartbar.querySelector(
-      ".smartbar-context-chips-header"
-    );
-    Assert.equal(
-      chipContainer.websites.length,
-      0,
-      "No default context mention should be in smartbar header in fullpage mode"
-    );
-  });
-
-  await BrowserTestUtils.closeWindow(win);
-});
-
-add_task(async function test_context_mentions_added_smartbar_header_fullpage() {
-  const win = await openAIWindow();
-  const browser = win.gBrowser.selectedBrowser;
-
-  await SpecialPowers.spawn(browser, [], async () => {
-    const aiWindowElement = content.document.querySelector("ai-window");
-    const smartbar = aiWindowElement.shadowRoot.querySelector(
-      "#ai-window-smartbar"
-    );
-    const contextButton = smartbar.querySelector("context-icon-button");
-    const button = contextButton.shadowRoot.querySelector("moz-button");
-    button.click();
-
-    const panelList = smartbar.querySelector("smartwindow-panel-list");
-    const panel = panelList.shadowRoot.querySelector("panel-list");
-    await ContentTaskUtils.waitForMutationCondition(
-      panel,
-      { childList: true, subtree: true },
-      () => panel.querySelector("panel-item:not(.panel-section-header)")
-    );
-
-    const chipContainer = smartbar.querySelector(
-      ".smartbar-context-chips-header"
-    );
-    const firstItem = panel.querySelector(
-      "panel-item:not(.panel-section-header)"
-    );
-    firstItem.click();
-
-    Assert.equal(
-      chipContainer.websites.length,
-      1,
-      "Context mention should be added to smartbar header in fullpage mode"
-    );
-  });
-
-  await BrowserTestUtils.closeWindow(win);
-});
-
-add_task(async function test_context_mentions_added_smartbar_header_sidebar() {
-  const { win, sidebarBrowser } = await openAIWindowWithSidebar();
-
-  await SpecialPowers.spawn(sidebarBrowser, [], async () => {
-    const smartbar = await ContentTaskUtils.waitForCondition(() => {
-      const aiWindowElement = content.document.querySelector("ai-window");
-      return aiWindowElement?.shadowRoot?.querySelector("#ai-window-smartbar");
-    }, "Sidebar smartbar should be loaded");
-    const contextButton = smartbar.querySelector("context-icon-button");
-    const button = contextButton.shadowRoot.querySelector("moz-button");
-
-    const chipContainer = smartbar.querySelector(
-      ".smartbar-context-chips-header"
-    );
-    Assert.equal(
-      chipContainer.websites.length,
-      1,
-      "Should have default tab mention in smartbar header in sidebar mode"
-    );
-    button.click();
-
-    const panelList = smartbar.querySelector("smartwindow-panel-list");
-    const panel = panelList.shadowRoot.querySelector("panel-list");
-    await ContentTaskUtils.waitForMutationCondition(
-      panel,
-      { childList: true, subtree: true },
-      () => panel.querySelector("panel-item:not(.panel-section-header)")
-    );
-    const firstItem = panel.querySelector(
-      "panel-item:not(.panel-section-header)"
-    );
-    firstItem.click();
-
-    Assert.equal(
-      chipContainer.websites.length,
-      2,
-      "Context mention should be added to smartbar header in sidebar mode"
-    );
-  });
-
-  await BrowserTestUtils.closeWindow(win);
-});
-
-add_task(
-  async function test_context_mentions_not_duplicated_in_smartbar_header() {
-    const win = await openAIWindow();
-    const browser = win.gBrowser.selectedBrowser;
-
-    await SpecialPowers.spawn(browser, [], async () => {
-      const aiWindowElement = content.document.querySelector("ai-window");
-      const smartbar = aiWindowElement.shadowRoot.querySelector(
-        "#ai-window-smartbar"
-      );
-      const chipContainer = smartbar.querySelector(
-        ".smartbar-context-chips-header"
-      );
-
-      smartbar.addContextMention({
-        type: "tab",
-        url: "https://example.com/1",
-        label: "Page 1",
-      });
-      smartbar.addContextMention({
-        type: "tab",
-        url: "https://example.com/1",
-        label: "Page 1",
-      });
-
-      Assert.equal(
-        chipContainer.websites.length,
-        1,
-        "Duplicate context mention should not be added to smartbar header"
-      );
-    });
-
-    await BrowserTestUtils.closeWindow(win);
-  }
-);
-
-add_task(
-  async function test_context_mentions_can_be_removed_from_smartbar_header() {
-    const win = await openAIWindow();
-    const browser = win.gBrowser.selectedBrowser;
-
-    await SpecialPowers.spawn(browser, [], async () => {
-      const aiWindowElement = content.document.querySelector("ai-window");
-      const smartbar = aiWindowElement.shadowRoot.querySelector(
-        "#ai-window-smartbar"
-      );
-
-      const testUrl = "https://example.com/";
-      smartbar.addContextMention({
-        type: "tab",
-        url: testUrl,
-        label: "Removable Page",
-      });
-      const chipContainer = smartbar.querySelector(
-        ".smartbar-context-chips-header"
-      );
-      Assert.equal(
-        chipContainer.websites.length,
-        1,
-        "Should have context mention in smartbar header"
-      );
-      await ContentTaskUtils.waitForMutationCondition(
-        chipContainer.shadowRoot,
-        { childList: true, subtree: true },
-        () => chipContainer.shadowRoot.querySelector("ai-website-chip")
-      );
-      const websiteChip =
-        chipContainer.shadowRoot.querySelector("ai-website-chip");
-      const removeButton = websiteChip.shadowRoot.querySelector(".chip-remove");
-      removeButton.click();
-
-      Assert.equal(
-        chipContainer.websites.length,
-        0,
-        "Context mention should be removed from smartbar header"
-      );
-    });
-
-    await BrowserTestUtils.closeWindow(win);
-  }
-);
-
 add_task(async function test_suggestions_closes_when_mentions_panel_opens() {
   const win = await openAIWindow();
   const browser = win.gBrowser.selectedBrowser;
@@ -704,22 +444,6 @@ add_task(async function test_suggestions_show_after_inline_mentions_removed() {
   await promiseSmartbarSuggestionsOpen(browser, async () => {
     await BrowserTestUtils.synthesizeKey("KEY_Backspace", {}, browser);
   });
-
-  await BrowserTestUtils.closeWindow(win);
-});
-
-add_task(async function test_inline_mention_does_not_create_context_chip() {
-  const win = await openAIWindow();
-  const browser = win.gBrowser.selectedBrowser;
-
-  await insertInlineMention(browser);
-
-  const chips = await getSmartbarContextChips(browser);
-  Assert.equal(
-    chips.length,
-    0,
-    "Inline @mention should not create a context chip in the smartbar header"
-  );
 
   await BrowserTestUtils.closeWindow(win);
 });

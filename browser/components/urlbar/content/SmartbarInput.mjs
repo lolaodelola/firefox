@@ -1414,6 +1414,8 @@ export class SmartbarInput extends HTMLElement {
         selType: "ask_button",
         result: null,
       });
+      this.#contextWebsites = [];
+      this.#updateContextChips();
       return true;
     }
 
