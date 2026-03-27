@@ -152,6 +152,7 @@ export class SidebarBookmarks extends SidebarPage {
 
   onPrimaryAction(e) {
     navigateToLink(e, e.originalTarget.url, { forceNewTab: false });
+    Glean.sidebar.link.bookmarks.add(1);
   }
 
   handleContextMenuEvent(e) {

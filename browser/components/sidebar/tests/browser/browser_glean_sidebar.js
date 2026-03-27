@@ -939,3 +939,72 @@ add_task(async function test_synced_tabs_link_glean_probe() {
   sandbox.restore();
   cleanUpExtraTabs();
 });
+
+add_task(async function test_bookmarks_link_glean_probe() {
+  await SpecialPowers.pushPrefEnv({
+    set: [["sidebar.updatedBookmarks.enabled", true]],
+  });
+  await SidebarController.waitUntilStable();
+  Services.fog.testResetFOG();
+
+  const TEST_URL = "http://mochi.test:8888/browser/";
+  const bookmark = await PlacesUtils.bookmarks.insert({
+    parentGuid: PlacesUtils.bookmarks.toolbarGuid,
+    url: TEST_URL,
+    title: "Test Bookmark",
+  });
+
+  await SidebarController.show("viewBookmarksSidebar");
+  const { contentDocument, contentWindow } = SidebarController.browser;
+  const component = await TestUtils.waitForCondition(
+    () => contentDocument.querySelector("sidebar-bookmarks"),
+    "sidebar-bookmarks component is rendered."
+  );
+  await component.updateComplete;
+
+  const bookmarkList = component.bookmarkList;
+  await BrowserTestUtils.waitForMutationCondition(
+    bookmarkList.shadowRoot,
+    { childList: true, subtree: true },
+    () => bookmarkList.folderEls[0]
+  );
+
+  const toolbarFolder = bookmarkList.folderEls[0];
+  if (!toolbarFolder.open) {
+    toolbarFolder.querySelector("summary").click();
+    await BrowserTestUtils.waitForMutationCondition(
+      toolbarFolder,
+      { attributes: true },
+      () => toolbarFolder.open
+    );
+  }
+
+  const nestedList = toolbarFolder.querySelector("sidebar-bookmark-list");
+  await BrowserTestUtils.waitForMutationCondition(
+    nestedList.shadowRoot,
+    { childList: true, subtree: true },
+    () => nestedList.rowEls[0]
+  );
+
+  const row = Array.from(nestedList.rowEls).find(r => r.url === TEST_URL);
+  Assert.ok(row, "The test bookmark row was found.");
+
+  const loaded = BrowserTestUtils.waitForLocationChange(gBrowser, TEST_URL);
+
+  AccessibilityUtils.setEnv({ focusableRule: false });
+  EventUtils.synthesizeMouseAtCenter(row.mainEl, {}, contentWindow);
+  AccessibilityUtils.resetEnv();
+  await loaded;
+
+  Assert.equal(
+    Glean.sidebar.link.bookmarks.testGetValue(),
+    1,
+    "One bookmark link click was recorded."
+  );
+
+  await PlacesUtils.bookmarks.remove(bookmark.guid);
+  SidebarController.hide();
+  cleanUpExtraTabs();
+  await SpecialPowers.popPrefEnv();
+  await SidebarController.waitUntilStable();
+});
