@@ -137,6 +137,15 @@ class AndroidProfileRun(TestingMixin, BaseScript, MozbaseMixin, AndroidMixin):
         dirs = self.query_abs_dirs()
         self.xre_path = dirs["abs_xre_dir"]
 
+        # Fix JAVA_HOME if it contains unexpanded variable
+        java_home = os.environ.get("JAVA_HOME", "")
+        if "$MOZ_FETCHES_DIR" in java_home:
+            moz_fetches_dir = os.environ.get("MOZ_FETCHES_DIR", "")
+            if moz_fetches_dir:
+                java_home = java_home.replace("$MOZ_FETCHES_DIR", moz_fetches_dir)
+                os.environ["JAVA_HOME"] = java_home
+                self.info(f"Fixed JAVA_HOME to: {java_home}")
+
     def install(self):
         """
         Install APKs on the device.
