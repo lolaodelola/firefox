@@ -18,3 +18,18 @@ macosx64-jdk-repack:
             - 'python/mozboot/**/*android*'
         toolchain-artifact: project/gecko/jdk/jdk-macos.tar.zst
         toolchain-alias: macosx64-jdk
+
+macosx64-android-sdk-repack:
+    description: "Android SDK (macOS) repack toolchain build"
+    treeherder:
+        symbol: TL(android-sdk-macos)
+    run:
+        using: toolchain-script
+        script: repack-android-sdk-macos.sh
+        resources:
+            - 'python/mozboot/**/*android*'
+        toolchain-artifact: project/gecko/android-sdk/android-sdk-macos.tar.zst
+        toolchain-alias: android-sdk-macos
+    fetches:
+        toolchain:
+            - macosx64-jdk-repack
