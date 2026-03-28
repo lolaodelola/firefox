@@ -268,11 +268,6 @@ namespace ChromeUtils {
 #endif // NIGHTLY_BUILD
 
   /**
-   * See js/xpconnect/loader/ScriptPreloaderNotification.h for more details.
-   */
-  undefined ensureScriptPreloaderCacheIsSent();
-
-  /**
    * Clears the entire resource cache (stylesheets, JavaScripts, and images).
    */
   [Throws]

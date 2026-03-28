@@ -36,7 +36,6 @@
 #include "mozilla/ProfilerMarkers.h"
 #include "mozilla/RemoteMediaManagerChild.h"
 #include "mozilla/ScopeExit.h"
-#include "mozilla/ScriptPreloaderNotification.h"
 #include "mozilla/ScrollingMetrics.h"
 #include "mozilla/SharedStyleSheetCache.h"
 #include "mozilla/SpinEventLoopUntil.h"
@@ -1374,11 +1373,6 @@ void ChromeUtils::ClearRecentJSDevError(GlobalObject&) {
   runtime->ClearRecentDevError();
 }
 #endif  // NIGHTLY_BUILD
-
-/* static */
-void ChromeUtils::EnsureScriptPreloaderCacheIsSent(GlobalObject& aGlobal) {
-  mozilla::EnsureScriptPreloaderCacheIsSent();
-}
 
 void ChromeUtils::ClearMessagingLayerSecurityStateByPrincipal(
     GlobalObject&, nsIPrincipal* aPrincipal, ErrorResult& aRv) {

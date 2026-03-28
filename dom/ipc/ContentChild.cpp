@@ -3477,30 +3477,10 @@ mozilla::ipc::IPCResult ContentChild::RecvAddDynamicScalars(
   return IPC_OK();
 }
 
-void ContentChild::MaybeSendStartLoadingUntrusted(nsIURI* aURI) {
-  if (mHasStartedLoadingUntrusted) {
-    return;
-  }
-
-  // NOTE: about:blank can be an untrusted page, but it cannot be the first
-  //       untrusted page.
-  if (NS_IsAboutBlank(aURI) || aURI->SchemeIs("chrome") ||
-      aURI->SchemeIs("resource") || aURI->SchemeIs("moz-src")) {
-    return;
-  }
-
-  mHasStartedLoadingUntrusted = true;
-
-  nsCOMPtr<nsIObserverService> obs(services::GetObserverService());
-  obs->NotifyObservers(nullptr, "start-loading-untrusted", nullptr);
-}
-
 mozilla::ipc::IPCResult ContentChild::RecvCrossProcessRedirect(
     RedirectToRealChannelArgs&& aArgs,
     nsTArray<Endpoint<extensions::PStreamFilterParent>>&& aEndpoints,
     CrossProcessRedirectResolver&& aResolve) {
-  MaybeSendStartLoadingUntrusted(aArgs.uri());
-
   nsCOMPtr<nsILoadInfo> loadInfo;
   nsresult rv = mozilla::ipc::LoadInfoArgsToLoadInfo(
       aArgs.loadInfo(), NOT_REMOTE_TYPE, getter_AddRefs(loadInfo));

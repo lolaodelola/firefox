@@ -141,11 +141,6 @@ class ScriptPreloader : public nsIObserver,
 
   bool Active() const;
 
-  void EnsureCacheIsSent();
-#ifdef DEBUG
-  void AssertCacheHasBeenSent();
-#endif
-
  private:
   Result<Ok, nsresult> InitCacheInternal(JS::Handle<JSObject*> scope = nullptr);
   already_AddRefed<JS::Stencil> GetCachedStencilInternal(
