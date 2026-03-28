@@ -33,3 +33,20 @@ macosx64-android-sdk-repack:
     fetches:
         toolchain:
             - macosx64-jdk-repack
+
+macosx64-android-avd-arm64-repack:
+    description: "Android AVD arm64 (macOS) repack toolchain build"
+    treeherder:
+        symbol: TL(avd-arm64-macos)
+    run:
+        using: toolchain-script
+        script: repack-android-avd-macos.sh
+        arguments:
+            - 'python/mozboot/mozboot/android-avds/arm64.json'
+        resources:
+            - 'python/mozboot/**/*android*'
+        toolchain-artifact: public/build/android-avd-macos.tar.zst
+        toolchain-alias: android-avd-arm64-macos
+    fetches:
+        toolchain:
+            - macosx64-jdk-repack
