@@ -864,6 +864,10 @@ bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
   auto& notLost = *pNotLost;
 
   auto res = [&]() -> Result<Ok, std::string> {
+    if (!gfx::gfxVars::AllowWebGL()) {
+      return Err("WebGL disabled, see about:support for why");
+    }
+
     auto options = *mInitialOptions;
     if (StaticPrefs::webgl_disable_fail_if_major_performance_caveat()) {
       options.failIfMajorPerformanceCaveat = false;
@@ -901,6 +905,13 @@ bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
     }
 
     if (!useOop) {
+#ifdef ANDROID
+      if (!StaticPrefs::webgl_allow_in_content_AtStartup()) {
+        return Err(
+            "WebGL disabled in remote and content processes (about:config "
+            "override available: webgl.allow-in-content)");
+      }
+#endif
       notLost.inProcess =
           HostWebGLContext::Create({this, nullptr}, initDesc, &notLost.info);
       return Ok();
