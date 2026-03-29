@@ -19282,6 +19282,30 @@
   value: 4
   mirror: always
 
+# Is WebGL allowed to run in the parent process? This should be false if
+# on a platform that supports the GPU process, else true.
+- name: webgl.allow-in-parent
+  type: bool
+#if defined(XP_WIN) || defined(XP_MACOSX) || defined(ANDROID)
+  value: false
+#else
+  value: true
+#endif
+  mirror: once
+
+#if defined(ANDROID)
+- name: webgl.allow-in-content
+  type: bool
+  value: false
+  mirror: once
+#endif
+
+# Should we override the blocklist to enable WebGL?
+- name: webgl.ignore-blocklist
+  type: bool
+  value: false
+  mirror: once
+
 - name: webgl.out-of-process
   type: RelaxedAtomicBool
   value: true

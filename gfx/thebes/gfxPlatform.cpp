@@ -3142,6 +3142,19 @@ void gfxPlatform::InitWebGLConfig() {
     return (status == nsIGfxInfo::FEATURE_STATUS_OK);
   };
 
+  FeatureState& featureWebGL = gfxConfig::GetFeature(Feature::WEBGL);
+  featureWebGL.EnableByDefault();
+
+  nsCString message;
+  nsCString failureId;
+  if (!IsGfxInfoStatusOkay(nsIGfxInfo::FEATURE_WEBGL, &message, failureId)) {
+    if (StaticPrefs::webgl_ignore_blocklist_AtStartup()) {
+      featureWebGL.UserForceEnable(
+          "Ignoring blocklist entry because webgl.ignore-blocklist is true.");
+    }
+    featureWebGL.Disable(FeatureStatus::Blocklisted, message.get(), failureId);
+  }
+
   gfxVars::SetAllowWebgl2(IsFeatureOk(nsIGfxInfo::FEATURE_WEBGL2));
   gfxVars::SetWebglAllowWindowsNativeGl(
       IsFeatureOk(nsIGfxInfo::FEATURE_WEBGL_OPENGL));
@@ -3179,6 +3192,18 @@ void gfxPlatform::InitWebGLConfig() {
     }
 #endif
   }
+
+  if (!gfxConfig::IsEnabled(Feature::GPU_PROCESS) &&
+#ifdef ANDROID
+      !StaticPrefs::webgl_allow_in_content_AtStartup() &&
+#endif
+      !StaticPrefs::webgl_allow_in_parent_AtStartup()) {
+    featureWebGL.Disable(FeatureStatus::UnavailableNoGpuProcess,
+                         "Disabled without GPU process",
+                         "FEATURE_WEBGL_NO_GPU_PROCESS"_ns);
+  }
+
+  gfxVars::SetAllowWebGL(featureWebGL.IsEnabled());
 
   bool threadsafeGL = IsFeatureOk(nsIGfxInfo::FEATURE_THREADSAFE_GL);
   threadsafeGL |= StaticPrefs::webgl_threadsafe_gl_force_enabled_AtStartup();
@@ -4055,6 +4080,8 @@ bool gfxPlatform::FallbackFromAcceleration(FeatureStatus aStatus,
        !StaticPrefs::gfx_canvas_accelerated_allow_in_parent_AtStartup()) ||
       (gfxVars::AllowWebGPU() &&
        !StaticPrefs::dom_webgpu_allow_in_parent_AtStartup()) ||
+      (gfxVars::AllowWebGL() &&
+       !StaticPrefs::webgl_allow_in_parent_AtStartup()) ||
       (kIsAndroid && gfxVars::AllowWebglOop())) {
     // Because content has a lot of control over inputs to remote canvas, we
     // try to disable it as part of our final fallback step before disabling
@@ -4099,6 +4126,15 @@ void gfxPlatform::DisableAllCanvasForFallback(FeatureStatus aStatus,
       !StaticPrefs::dom_webgpu_allow_in_parent_AtStartup()) {
     gfxConfig::Disable(Feature::WEBGPU, aStatus, aMessage, aFailureId);
     gfxVars::SetAllowWebGPU(false);
+  }
+
+  if (gfxVars::AllowWebGL() &&
+#ifdef ANDROID
+      !StaticPrefs::webgl_allow_in_content_AtStartup() &&
+#endif
+      !StaticPrefs::webgl_allow_in_parent_AtStartup()) {
+    gfxConfig::Disable(Feature::WEBGL, aStatus, aMessage, aFailureId);
+    gfxVars::SetAllowWebGL(false);
   }
 
   if (kIsAndroid) {
