@@ -1933,7 +1933,12 @@ ModuleRequestObject* frontend::StencilModuleMetadata::createModuleRequestObject(
   MOZ_ASSERT(specifier);
 
   Rooted<ModuleRequestObject*> moduleRequestObject(
-      cx, ModuleRequestObject::create(cx, specifier, attributes));
+      cx,
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+      ModuleRequestObject::create(cx, specifier, attributes, request.phase));
+#else
+      ModuleRequestObject::create(cx, specifier, attributes));
+#endif
   if (!moduleRequestObject) {
     return nullptr;
   }
@@ -2151,10 +2156,11 @@ bool ModuleBuilder::processAttributes(frontend::StencilModuleRequest& request,
 bool ModuleBuilder::processImport(frontend::BinaryNode* importNode) {
   using namespace js::frontend;
 
-  MOZ_ASSERT(importNode->isKind(ParseNodeKind::ImportDecl));
-
-  auto* specList = &importNode->left()->as<ListNode>();
-  MOZ_ASSERT(specList->isKind(ParseNodeKind::ImportSpecList));
+  MOZ_ASSERT(importNode->isKind(ParseNodeKind::ImportDecl)
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+             || importNode->isKind(ParseNodeKind::ImportSourceDecl)
+#endif
+  );
 
   auto* moduleRequest = &importNode->right()->as<BinaryNode>();
   MOZ_ASSERT(moduleRequest->isKind(ParseNodeKind::ImportModuleRequest));
@@ -2162,10 +2168,44 @@ bool ModuleBuilder::processImport(frontend::BinaryNode* importNode) {
   auto* moduleSpec = &moduleRequest->left()->as<NameNode>();
   MOZ_ASSERT(moduleSpec->isKind(ParseNodeKind::StringExpr));
 
+  auto specifier = moduleSpec->atom();
+
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+  if (importNode->isKind(ParseNodeKind::ImportSourceDecl)) {
+    auto* localNameNode = &importNode->left()->as<NameNode>();
+    MOZ_ASSERT(localNameNode->isKind(ParseNodeKind::Name));
+
+    MaybeModuleRequestIndex moduleRequestIndex =
+        appendModuleRequest(specifier, nullptr, ImportPhase::Source);
+    if (!moduleRequestIndex.isSome()) {
+      return false;
+    }
+
+    if (!maybeAppendRequestedModule(moduleRequestIndex, moduleSpec)) {
+      return false;
+    }
+
+    auto localName = localNameNode->atom();
+    markUsedByStencil(localName);
+
+    uint32_t line;
+    JS::LimitedColumnNumberOneOrigin column;
+    eitherParser_.computeLineAndColumn(localNameNode->pn_pos.begin, &line,
+                                       &column);
+
+    auto entry = StencilModuleEntry::importNamespaceEntry(
+        moduleRequestIndex, localName, line, JS::ColumnNumberOneOrigin(column));
+
+    return importEntries_.put(localName, entry);
+  }
+#endif
+
+  auto* specList = &importNode->left()->as<ListNode>();
+  MOZ_ASSERT(specList->isKind(ParseNodeKind::ImportSpecList));
+
   auto* attributeList = &moduleRequest->right()->as<ListNode>();
   MOZ_ASSERT(attributeList->isKind(ParseNodeKind::ImportAttributeList));
 
-  auto specifier = moduleSpec->atom();
   MaybeModuleRequestIndex moduleRequestIndex =
       appendModuleRequest(specifier, attributeList);
   if (!moduleRequestIndex.isSome()) {
@@ -2218,19 +2258,6 @@ bool ModuleBuilder::processImport(frontend::BinaryNode* importNode) {
 
   return true;
 }
-
-#ifdef ENABLE_SOURCE_PHASE_IMPORTS
-bool ModuleBuilder::processImportSource(frontend::BinaryNode* importNode) {
-  using namespace js::frontend;
-
-  MOZ_ASSERT(importNode->isKind(ParseNodeKind::ImportSourceDecl));
-
-  // TODO: Support for import source will be added in Bug 2011284.
-  // For now, we'll return true rather than signal an error, so we
-  // can write tests for parsing.
-  return true;
-}
-#endif
 
 bool ModuleBuilder::processExport(frontend::ParseNode* exportNode) {
   using namespace js::frontend;
@@ -2522,12 +2549,18 @@ bool ModuleBuilder::appendExportEntry(
 
 frontend::MaybeModuleRequestIndex ModuleBuilder::appendModuleRequest(
     frontend::TaggedParserAtomIndex specifier,
-    frontend::ListNode* attributeList) {
+    frontend::ListNode* attributeList, ImportPhase phase) {
   markUsedByStencil(specifier);
   auto request = frontend::StencilModuleRequest(specifier);
 
-  if (!processAttributes(request, attributeList)) {
-    return MaybeModuleRequestIndex();
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+  request.phase = phase;
+  if (phase == ImportPhase::Evaluation)
+#endif
+  {
+    if (!processAttributes(request, attributeList)) {
+      return MaybeModuleRequestIndex();
+    }
   }
 
   if (auto ptr = moduleRequestIndexes_.lookup(request)) {
