@@ -60,7 +60,8 @@ static bool ContinueModuleLoading(JSContext* cx,
 static bool TryStartDynamicModuleImport(JSContext* cx, HandleScript script,
                                         HandleValue specifierArg,
                                         HandleValue optionsArg,
-                                        HandleObject promise);
+                                        HandleObject promise,
+                                        ImportPhase phase);
 static bool ContinueDynamicImport(JSContext* cx, Handle<JSScript*> referrer,
                                   Handle<PromiseObject*> promiseCapability,
                                   Handle<ModuleObject*> module,
@@ -2661,7 +2662,7 @@ JSObject* js::StartDynamicModuleImport(JSContext* cx, HandleScript script,
   }
 
   if (!TryStartDynamicModuleImport(cx, script, specifierArg, optionsArg,
-                                   promise)) {
+                                   promise, ImportPhase::Evaluation)) {
     if (!RejectPromiseWithPendingError(cx, promise.as<PromiseObject>())) {
       return nullptr;
     }
@@ -2670,30 +2671,12 @@ JSObject* js::StartDynamicModuleImport(JSContext* cx, HandleScript script,
   return promise;
 }
 
-#ifdef ENABLE_SOURCE_PHASE_IMPORTS
-JSObject* js::StartDynamicModuleImportSource(JSContext* cx, HandleScript script,
-                                             HandleValue specifierArg) {
-  JS::Rooted<PromiseObject*> promise(cx,
-                                     PromiseObject::createSkippingExecutor(cx));
-  if (!promise) {
-    return nullptr;
-  }
-
-  // TODO: This will be implemented in Bug 2011284.
-  JS_ReportErrorASCII(cx, "source phase imports are not yet implemented");
-  if (!RejectPromiseWithPendingError(cx, promise)) {
-    return nullptr;
-  }
-
-  return promise;
-}
-#endif
-
 // https://tc39.es/ecma262/#sec-evaluate-import-call continued.
 static bool TryStartDynamicModuleImport(JSContext* cx, HandleScript script,
                                         HandleValue specifierArg,
                                         HandleValue optionsArg,
-                                        HandleObject promise) {
+                                        HandleObject promise,
+                                        ImportPhase phase) {
   RootedString specifier(cx, ToString(cx, specifierArg));
   if (!specifier) {
     return false;
@@ -2704,16 +2687,28 @@ static bool TryStartDynamicModuleImport(JSContext* cx, HandleScript script,
     return false;
   }
 
-  Rooted<ImportAttributeVector> attributes(cx);
-  if (!EvaluateDynamicImportOptions(cx, optionsArg, &attributes)) {
-    return false;
-  }
+  RootedObject moduleRequest(cx);
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+  if (phase == ImportPhase::Source) {
+    // https://tc39.es/proposal-source-phase-imports/#sec-evaluate-import-call
+    // Step 8. Let moduleRequest be a new ModuleRequest Record { [[Specifier]]:
+    //         specifierString, [[Phase]]: source }.
+    moduleRequest = ModuleRequestObject::create(
+        cx, specifierAtom, JS::ModuleType::JavaScript, phase);
+  } else
+#endif
+  {
+    MOZ_ASSERT(phase == ImportPhase::Evaluation);
+    Rooted<ImportAttributeVector> attributes(cx);
+    if (!EvaluateDynamicImportOptions(cx, optionsArg, &attributes)) {
+      return false;
+    }
 
-  // Step 12. Let moduleRequest be a new ModuleRequest Record { [[Specifier]]:
-  //          specifierString, [[Attributes]]: attributes }.
-  RootedObject moduleRequest(
-      cx, ModuleRequestObject::create(cx, specifierAtom, attributes,
-                                      ImportPhase::Evaluation));
+    // Step 12. Let moduleRequest be a new ModuleRequest Record { [[Specifier]]:
+    //          specifierString, [[Attributes]]: attributes }.
+    moduleRequest =
+        ModuleRequestObject::create(cx, specifierAtom, attributes, phase);
+  }
   if (!moduleRequest) {
     return false;
   }
@@ -2726,6 +2721,28 @@ static bool TryStartDynamicModuleImport(JSContext* cx, HandleScript script,
 
   return true;
 }
+
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+// https://tc39.es/proposal-source-phase-imports/#sec-evaluate-import-call
+JSObject* js::StartDynamicModuleImportSource(JSContext* cx, HandleScript script,
+                                             HandleValue specifierArg) {
+  JS::Rooted<PromiseObject*> promise(cx,
+                                     PromiseObject::createSkippingExecutor(cx));
+  if (!promise) {
+    return nullptr;
+  }
+
+  if (!TryStartDynamicModuleImport(cx, script, specifierArg,
+                                   JS::UndefinedHandleValue, promise,
+                                   ImportPhase::Source)) {
+    if (!RejectPromiseWithPendingError(cx, promise)) {
+      return nullptr;
+    }
+  }
+
+  return promise;
+}
+#endif
 
 static bool OnRootModuleRejected(JSContext* cx, unsigned argc, Value* vp) {
   CallArgs args = CallArgsFromVp(argc, vp);
@@ -2869,6 +2886,35 @@ bool ContinueDynamicImport(JSContext* cx, Handle<JSScript*> referrer,
   MOZ_ASSERT(module);
 
   // Step 1, 2: Already handled in FinishLoadingImportedModuleFailed functions.
+
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+  // https://tc39.es/proposal-source-phase-imports/#sec-ContinueDynamicImport
+  // Step 3. If phase is source, then
+  if (phase == ImportPhase::Source) {
+    // Step 3.a. Let moduleSource be module.[[ModuleSource]].
+    ModuleSourceObject* moduleSource = module->moduleSource();
+
+    // Step 3.b. If moduleSource is empty, then
+    if (!moduleSource) {
+      // Step 3.b.i. Perform ! Call(promiseCapability.[[Reject]], undefined,
+      //                            « a new SyntaxError »).
+      JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr,
+                                JSMSG_MODULE_SOURCE_NOT_AVAILABLE);
+      return RejectPromiseWithPendingError(cx, promiseCapability);
+    }
+
+    // Step 3.c. Else,
+    // Step 3.c.i. Perform ! Call(promiseCapability.[[Resolve]], undefined,
+    //                            « moduleSource »).
+    RootedValue moduleSourceValue(cx, ObjectValue(*moduleSource));
+    if (!PromiseObject::resolve(cx, promiseCapability, moduleSourceValue)) {
+      return false;
+    }
+
+    // Step 3.d. Return unused.
+    return true;
+  }
+#endif
 
   // Step 6. Let linkAndEvaluateClosure be a new Abstract Closure with no
   // parameters that captures module, promiseCapability, and onRejected...
