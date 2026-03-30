@@ -4,6 +4,9 @@ ChromeUtils.defineESModuleGetters(this, {
   sinon: "resource://testing-common/Sinon.sys.mjs",
 });
 
+const PREF_SYSTEM_SHORTCUTS_PERSONALIZATION =
+  "discoverystream.shortcuts.personalization.enabled";
+
 add_task(async function test_weightedSampleTopSites_no_guid_last() {
   // Ranker are utilities we are testing
   const Ranker = ChromeUtils.importESModule(
@@ -38,6 +41,7 @@ add_task(async function test_weightedSampleTopSites_no_guid_last() {
     trainhopConfig: {
       smartShortcuts: {
         // fset: "custom", // uncomment iff your build defines a "custom" fset you want to use
+        enabled: true,
         eta: 0,
         click_bonus: 10,
         positive_prior: 1,
@@ -60,6 +64,190 @@ add_task(async function test_weightedSampleTopSites_no_guid_last() {
 
   sandbox.restore();
 });
+
+add_task(
+  async function test_rankTopSites_uses_local_defaults_without_trainhop() {
+    const Ranker = ChromeUtils.importESModule(
+      "resource://newtab/lib/SmartShortcutsRanker/RankShortcuts.mjs"
+    );
+    const provider = new Ranker.RankShortcutsProvider();
+    const { NewTabUtils } = ChromeUtils.importESModule(
+      "resource://gre/modules/NewTabUtils.sys.mjs"
+    );
+
+    await NewTabUtils.init();
+
+    const sandbox = sinon.createSandbox();
+    let weightedInput;
+
+    sandbox
+      .stub(NewTabUtils.activityStreamProvider, "executePlacesQuery")
+      .resolves([
+        ["a", 0, 0],
+        ["b", 0, 0],
+      ]);
+    sandbox.stub(provider, "getLatestInteractions").resolves({});
+    sandbox.stub(provider, "fetchRefreFeatures").resolves({
+      rece: { a: 10, b: 1 },
+      freq: null,
+      refre: null,
+      unid: null,
+    });
+    sandbox.stub(provider.sc_obj, "get").resolves({});
+    sandbox.stub(provider.sc_obj, "set").resolves();
+    provider._rankShortcutsWorker = {
+      post(method, args) {
+        const [input] = args;
+        if (method === "updateWeights") {
+          return input.weights;
+        }
+        if (method === "weightedSampleTopSites") {
+          weightedInput = input;
+          return {
+            norms: {},
+            score_map: {
+              a: { final: 2, frec: 1, rece: 1, bias: 1 },
+              b: { final: 1, frec: 0, rece: 0, bias: 1 },
+            },
+          };
+        }
+        throw new Error(`unexpected worker method: ${method}`);
+      },
+    };
+
+    const out = await provider.rankTopSites(
+      [
+        { url: "https://no-guid.com" },
+        { guid: "a", url: "https://a.com", frecency: 10 },
+        { guid: "b", url: "https://b.com", frecency: 1 },
+      ],
+      {
+        [PREF_SYSTEM_SHORTCUTS_PERSONALIZATION]: true,
+      },
+      { isStartup: true }
+    );
+
+    Assert.deepEqual(
+      weightedInput.features,
+      ["frec", "rece"],
+      "built-in feature defaults are used without trainhop config"
+    );
+    Assert.equal(
+      weightedInput.weights.frec,
+      0.7,
+      "frec uses the built-in default"
+    );
+    Assert.equal(
+      weightedInput.weights.rece,
+      0.3,
+      "rece uses the built-in default"
+    );
+    Assert.ok(
+      !Object.hasOwn(weightedInput.weights, "bias"),
+      "bias weight is omitted when bias is not in the default feature set"
+    );
+    Assert.equal(
+      out[0].guid,
+      "a",
+      "ranking still runs without trainhop config"
+    );
+    Assert.equal(
+      out[out.length - 1].url,
+      "https://no-guid.com",
+      "no-guid item stays last"
+    );
+
+    sandbox.restore();
+  }
+);
+
+add_task(async function test_rankTopSites_remote_false_overrides_local_pref() {
+  const Ranker = ChromeUtils.importESModule(
+    "resource://newtab/lib/SmartShortcutsRanker/RankShortcuts.mjs"
+  );
+  const provider = new Ranker.RankShortcutsProvider();
+  const input = [{ guid: "a", url: "https://a.com", frecency: 10 }];
+
+  const out = await provider.rankTopSites(
+    input,
+    {
+      [PREF_SYSTEM_SHORTCUTS_PERSONALIZATION]: true,
+      trainhopConfig: { smartShortcuts: { enabled: false } },
+    },
+    { isStartup: true }
+  );
+
+  Assert.equal(out, input, "explicit remote false skips ranking");
+});
+
+add_task(
+  async function test_rankTopSites_partial_trainhop_falls_back_to_local_pref() {
+    const Ranker = ChromeUtils.importESModule(
+      "resource://newtab/lib/SmartShortcutsRanker/RankShortcuts.mjs"
+    );
+    const provider = new Ranker.RankShortcutsProvider();
+    const sandbox = sinon.createSandbox();
+
+    sandbox.stub(provider, "getLatestInteractions").resolves({});
+    sandbox.stub(provider, "fetchRefreFeatures").resolves({
+      rece: { a: 10, b: 1 },
+      freq: null,
+      refre: null,
+      unid: null,
+    });
+    sandbox.stub(provider.sc_obj, "get").resolves({});
+    sandbox.stub(provider.sc_obj, "set").resolves();
+    provider._rankShortcutsWorker = {
+      post(method, args) {
+        const [input] = args;
+        if (method === "updateWeights") {
+          return input.weights;
+        }
+        if (method === "weightedSampleTopSites") {
+          return {
+            norms: {},
+            score_map: {
+              a: { final: 2, frec: 1, rece: 1, bias: 1 },
+              b: { final: 1, frec: 0, rece: 0, bias: 1 },
+            },
+          };
+        }
+        throw new Error(`unexpected worker method: ${method}`);
+      },
+    };
+
+    const { NewTabUtils } = ChromeUtils.importESModule(
+      "resource://gre/modules/NewTabUtils.sys.mjs"
+    );
+    await NewTabUtils.init();
+    sandbox
+      .stub(NewTabUtils.activityStreamProvider, "executePlacesQuery")
+      .resolves([
+        ["a", 0, 0],
+        ["b", 0, 0],
+      ]);
+
+    const out = await provider.rankTopSites(
+      [
+        { guid: "a", url: "https://a.com", frecency: 10 },
+        { guid: "b", url: "https://b.com", frecency: 1 },
+      ],
+      {
+        [PREF_SYSTEM_SHORTCUTS_PERSONALIZATION]: true,
+        trainhopConfig: { smartShortcuts: {} },
+      },
+      { isStartup: true }
+    );
+
+    Assert.equal(
+      out[0].guid,
+      "a",
+      "partial trainhop config falls back to local defaults"
+    );
+
+    sandbox.restore();
+  }
+);
 
 add_task(async function test_sumNorm() {
   const Ranker = ChromeUtils.importESModule(
@@ -932,6 +1120,7 @@ add_task(async function test_rankTopSites_sql_pipeline_happy_path() {
     trainhopConfig: {
       smartShortcuts: {
         // fset: "custom", // uncomment iff your build defines a "custom" fset you want to use
+        enabled: true,
         eta: 0,
         click_bonus: 10,
         positive_prior: 1,
@@ -1510,6 +1699,7 @@ function prefsFor(features, extra = {}) {
   return {
     trainhopConfig: {
       smartShortcuts: {
+        enabled: true,
         features,
         // make training a no-op for determinism
         eta: 0,

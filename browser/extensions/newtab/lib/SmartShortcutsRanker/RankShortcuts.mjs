@@ -40,23 +40,25 @@ const BOOKMARK_TABLE = "moz_bookmarks";
 const BASE_SEASONALITY_CACHE_EXPIRATION = 1e3 * 60 * 60 * 24 * 7; // 7 day in miliseconds
 const ETA = 0;
 const CLICK_BONUS = 10;
+const PREF_SYSTEM_SHORTCUTS_PERSONALIZATION =
+  "discoverystream.shortcuts.personalization.enabled";
 
 const FEATURE_META = {
-  thom: { pref: "thom_weight", def: 5 },
-  frec: { pref: "frec_weight", def: 95 },
+  thom: { pref: "thom_weight", def: 0 },
+  frec: { pref: "frec_weight", def: 70 },
   hour: { pref: "hour_weight", def: 0 },
   daily: { pref: "daily_weight", def: 0 },
   bmark: { pref: "bmark_weight", def: 0 },
-  rece: { pref: "rece_weight", def: 0 },
+  rece: { pref: "rece_weight", def: 30 },
   freq: { pref: "freq_weight", def: 0 },
   refre: { pref: "refre_weight", def: 0 },
   open: { pref: "open_weight", def: 0 },
   unid: { pref: "unid_weight", def: 0 },
   ctr: { pref: "ctr_weight", def: 0 },
-  bias: { pref: "bias_weight", def: 1 },
+  bias: { pref: "bias_weight", def: 0 },
 };
 
-const FEATURES = ["frec", "thom", "bias"];
+const FEATURES = ["frec", "rece"];
 const SHORTCUT_POSITIVE_PRIOR = 1;
 const SHORTCUT_NEGATIVE_PRIOR = 1000;
 const STICKY_NUMIMPS = 0;
@@ -73,6 +75,16 @@ ChromeUtils.defineESModuleGetters(lazy, {
 });
 
 import { sortKeysValues } from "resource://newtab/lib/SmartShortcutsRanker/ThomSample.mjs";
+
+function smartshortcutsEnabled(prefValues) {
+  // first check nimbus pref, fall back to local pref
+  const experimentVariable =
+    prefValues?.trainhopConfig?.smartShortcuts?.enabled;
+  if (typeof experimentVariable === "boolean") {
+    return experimentVariable;
+  }
+  return !!prefValues?.[PREF_SYSTEM_SHORTCUTS_PERSONALIZATION];
+}
 
 // helper for lowering precision of numbers, save space in telemetry
 // longest string i can come up with out of this function:
@@ -876,7 +888,7 @@ export class RankShortcutsProvider {
    * @returns {Promise<{}>} topsites reordered
    */
   async rankTopSites(topsites, prefValues, isStartup, numSponsored = 0) {
-    if (!prefValues?.trainhopConfig?.smartShortcuts) {
+    if (!smartshortcutsEnabled(prefValues)) {
       return topsites;
     }
     // get our feature set

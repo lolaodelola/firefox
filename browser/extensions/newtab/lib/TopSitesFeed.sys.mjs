@@ -163,9 +163,12 @@ const PREF_SYSTEM_SHORTCUTS_PERSONALIZATION =
   "discoverystream.shortcuts.personalization.enabled";
 
 function smartshortcutsEnabled(values) {
-  const systemPref = values[PREF_SYSTEM_SHORTCUTS_PERSONALIZATION];
+  // if nimbus pref is valid we use it, otherwise fall back to local pref
   const experimentVariable = values.trainhopConfig?.smartShortcuts?.enabled;
-  return systemPref || experimentVariable;
+  if (typeof experimentVariable === "boolean") {
+    return experimentVariable;
+  }
+  return !!values[PREF_SYSTEM_SHORTCUTS_PERSONALIZATION];
 }
 const OVERSAMPLE_MULTIPLIER = 2;
 
