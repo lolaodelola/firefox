@@ -50,6 +50,11 @@ support-files = [
   "contentSearchSuggestions.xml",
   "testEngine_chromeicon.xml",
 ]
+skipif =[
+  "os == 'linux' && os_version == '24.04' && arch == 'x86_64' && asan", # Bug 2009494
+  "os == 'linux' && os_version == '24.04' && arch == 'x86_64' && opt", # Bug 2009494
+  "os == 'win' && os_version == '11.26100'", # Bug 2009494
+]
 
 ["browser_contentSearchUI_default.js"]
 
