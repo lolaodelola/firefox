@@ -1468,11 +1468,13 @@ static bool FailWithUnsupportedAttributeException(
                                exnStack.exception());
 }
 
-// https://tc39.es/ecma262/#sec-InnerModuleLoading
-// InnerModuleLoading ( state, module )
+// https://tc39.es/proposal-source-phase-imports/#sec-InnerModuleLoading
+// InnerModuleLoading ( state, module, loadType )
+enum class LoadType { Single, RecursiveLoad };
 static bool InnerModuleLoading(JSContext* cx,
                                Handle<GraphLoadingStateRecordObject*> state,
-                               Handle<ModuleObject*> module) {
+                               Handle<ModuleObject*> module,
+                               LoadType loadType) {
   MOZ_ASSERT(state);
   MOZ_ASSERT(module);
 
@@ -1484,9 +1486,10 @@ static bool InnerModuleLoading(JSContext* cx,
   // Step 1. Assert: state.[[IsLoading]] is true.
   MOZ_ASSERT(state->isLoading());
 
-  // Step 2. If module is a Cyclic Module Record, module.[[Status]] is new, and
-  // state.[[Visited]] does not contain module, then
-  if (module->hasCyclicModuleFields() &&
+  // Step 2. If loadType is recursive-load, module is a Cyclic Module Record,
+  //         module.[[Status]] is new, and state.[[Visited]] does not contain
+  //         module, then
+  if (loadType == LoadType::RecursiveLoad && module->hasCyclicModuleFields() &&
       module->status() == ModuleStatus::New && !state->visited().has(module)) {
     // Step 2.a. Append module to state.[[Visited]].
     if (!state->visited().putNew(module)) {
@@ -1503,13 +1506,13 @@ static bool InnerModuleLoading(JSContext* cx,
     uint32_t count = state->pendingModulesCount() + requestedModulesCount;
     state->setPendingModulesCount(count);
 
-    // Step 2.d. For each String required of module.[[RequestedModules]], do
+    // Step 2.d For each ModuleRequest Record required of
+    //          module.[[RequestedModules]], do
     Rooted<ModuleRequestObject*> moduleRequest(cx);
     Rooted<ModuleObject*> recordModule(cx);
     Rooted<JSAtom*> invalidKey(cx);
     for (const RequestedModule& request : module->requestedModules()) {
       moduleRequest = request.moduleRequest();
-
       // https://tc39.es/proposal-import-attributes/#sec-InnerModuleLoading
       if (moduleRequest->hasFirstUnsupportedAttributeKey()) {
         if (!FailWithUnsupportedAttributeException(cx, state, moduleRequest)) {
@@ -1519,9 +1522,17 @@ static bool InnerModuleLoading(JSContext* cx,
         // Step 2.d.i. If module.[[LoadedModules]] contains a Record whose
         //             [[Specifier]] is required, then
         // Step 2.d.i.1. Let record be that Record.
-        // Step 2.d.i.2. Perform InnerModuleLoading(state, record.[[Module]]).
+        // Step 2.d.i.2 If required.[[Phase]] is source, let innerLoadType
+        //              be single; else let innerLoadType be recursive-load.
+        LoadType innerLoadType = LoadType::RecursiveLoad;
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+        if (moduleRequest->phase() == ImportPhase::Source) {
+          innerLoadType = LoadType::Single;
+        }
+#endif
+        // Step 2.d.i.3. Perform InnerModuleLoading(state, record.[[Module]]).
         recordModule = record->value();
-        if (!InnerModuleLoading(cx, state, recordModule)) {
+        if (!InnerModuleLoading(cx, state, recordModule, innerLoadType)) {
           return false;
         }
       } else {
@@ -1580,8 +1591,8 @@ static bool InnerModuleLoading(JSContext* cx,
   return true;
 }
 
-// https://tc39.es/ecma262/#sec-ContinueModuleLoading
-// ContinueModuleLoading ( state, moduleCompletion )
+// https://tc39.es/proposal-source-phase-imports/#sec-ContinueModuleLoading
+// ContinueModuleLoading ( state, phase, moduleCompletion )
 static bool ContinueModuleLoading(JSContext* cx,
                                   Handle<GraphLoadingStateRecordObject*> state,
                                   Handle<ModuleObject*> moduleCompletion,
@@ -1596,11 +1607,17 @@ static bool ContinueModuleLoading(JSContext* cx,
 
   // Step 2. If moduleCompletion is a normal completion, then
   if (moduleCompletion) {
-    // TODO: Bug 1943933: Implement Source Phase Imports
-    MOZ_ASSERT(phase == ImportPhase::Evaluation);
-
-    // Step 2.a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
-    return InnerModuleLoading(cx, state, moduleCompletion);
+    // Step 2.a. If phase is source, let loadType be single;
+    //           otherwise let loadType be recursive-load.
+    LoadType loadType = LoadType::RecursiveLoad;
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+    if (phase == ImportPhase::Source) {
+      loadType = LoadType::Single;
+    }
+#endif
+    // Step 2.b. Perform InnerModuleLoading(state, moduleCompletion.[[Value]],
+    //                                      loadType).
+    return InnerModuleLoading(cx, state, moduleCompletion, loadType);
   }
 
   // Step 3. Else,
@@ -1638,8 +1655,8 @@ bool js::LoadRequestedModules(JSContext* cx, Handle<ModuleObject*> module,
     return false;
   }
 
-  // Step 4. Perform InnerModuleLoading(state, module).
-  return InnerModuleLoading(cx, state, module);
+  // Step 4. Perform InnerModuleLoading(state, module, recursive-load).
+  return InnerModuleLoading(cx, state, module, LoadType::RecursiveLoad);
 }
 
 bool js::LoadRequestedModules(JSContext* cx, Handle<ModuleObject*> module,
@@ -1669,8 +1686,8 @@ bool js::LoadRequestedModules(JSContext* cx, Handle<ModuleObject*> module,
     return false;
   }
 
-  // Step 4. Perform InnerModuleLoading(state, module).
-  if (!InnerModuleLoading(cx, state, module)) {
+  // Step 4. Perform InnerModuleLoading(state, module, recursive-load).
+  if (!InnerModuleLoading(cx, state, module, LoadType::RecursiveLoad)) {
     return false;
   }
 
@@ -1788,13 +1805,18 @@ static bool InnerModuleLinking(JSContext* cx, Handle<ModuleObject*> module,
     return false;
   }
 
-  // Step 9. For each String required that is an element of
+  // Step 9. For each ModuleRequest Record required that is an element of
   //         module.[[RequestedModules]], do:
   Rooted<ModuleRequestObject*> required(cx);
   Rooted<ModuleObject*> requiredModule(cx);
   for (const RequestedModule& request : module->requestedModules()) {
-    // Step 9.a. Let requiredModule be ? GetImportedModule(module, required).
     required = request.moduleRequest();
+    // Step 9.a. If required.[[Phase]] is evaluation, then
+    if (required->phase() != ImportPhase::Evaluation) {
+      continue;
+    }
+    // Step 9.a.i. Let requiredModule be ? GetImportedModule(module,
+    //             required).
     MOZ_ASSERT(required->phase() == ImportPhase::Evaluation);
     requiredModule = GetImportedModule(cx, module, required);
     if (!requiredModule) {
@@ -1802,33 +1824,31 @@ static bool InnerModuleLinking(JSContext* cx, Handle<ModuleObject*> module,
     }
     MOZ_ASSERT(requiredModule->status() >= ModuleStatus::Unlinked);
 
-    // Step 9.b. Set index to ? InnerModuleLinking(requiredModule, stack,
-    //           index).
+    // Step 9.a.ii Set index to ? InnerModuleLinking(requiredModule, stack,
+    //             index).
     if (!InnerModuleLinking(cx, requiredModule, stack, index, &index)) {
       return false;
     }
 
-    // Step 9.c. If requiredModule is a Cyclic Module Record, then:
+    // Step 9.a.iii If requiredModule is a Cyclic Module Record, then:
     if (requiredModule->hasCyclicModuleFields()) {
-      // Step 9.c.i. Assert: requiredModule.[[Status]] is either linking,
-      // linked,
-      //             evaluating-async, or evaluated.
+      // Step 9.a.iii.1. Assert: requiredModule.[[Status]] is either linking,
+      //                 linked, evaluating-async, or evaluated.
       MOZ_ASSERT(requiredModule->status() == ModuleStatus::Linking ||
                  requiredModule->status() == ModuleStatus::Linked ||
                  requiredModule->status() == ModuleStatus::EvaluatingAsync ||
                  requiredModule->status() == ModuleStatus::Evaluated);
 
-      // Step 9.c.ii. Assert: requiredModule.[[Status]] is linking if and only
-      // if
-      //              requiredModule is in stack.
+      // Step 9.a.iii.2 Assert: requiredModule.[[Status]] is linking if and
+      // only if requiredModule is in stack.
       MOZ_ASSERT((requiredModule->status() == ModuleStatus::Linking) ==
                  ContainsElement(stack, requiredModule));
 
-      // Step 9.c.iii. If requiredModule.[[Status]] is linking, then:
+      // Step 9.a.iii.3 If requiredModule.[[Status]] is linking, then:
       if (requiredModule->status() == ModuleStatus::Linking) {
-        // Step 9.c.iii.1. Set module.[[DFSAncestorIndex]] to
-        //                 min(module.[[DFSAncestorIndex]],
-        //                 requiredModule.[[DFSAncestorIndex]]).
+        // Step 9.ia.iii.3.a. Set module.[[DFSAncestorIndex]] to
+        //                    min(module.[[DFSAncestorIndex]],
+        //                    requiredModule.[[DFSAncestorIndex]]).
         module->setDfsAncestorIndex(std::min(
             module->dfsAncestorIndex(), requiredModule->dfsAncestorIndex()));
       }
@@ -2015,8 +2035,8 @@ static bool ModuleEvaluate(JSContext* cx, Handle<ModuleObject*> moduleArg,
   return true;
 }
 
-// https://tc39.es/ecma262/#sec-innermoduleevaluation
-// 16.2.1.5.2.1 InnerModuleEvaluation
+// https://tc39.es/proposal-source-phase-imports/#sec-innermoduleevaluation
+// 16.2.1.5.3.1 InnerModuleEvaluation
 static bool InnerModuleEvaluation(JSContext* cx, Handle<ModuleObject*> module,
                                   MutableHandle<ModuleVector> stack,
                                   size_t index, size_t* indexOut) {
@@ -2077,61 +2097,66 @@ static bool InnerModuleEvaluation(JSContext* cx, Handle<ModuleObject*> module,
   // Step 9. Set index to index + 1.
   index++;
 
-  // Step 11. For each String required of module.[[RequestedModules]], do:
+  // Step 11. For each ModuleRequest Record required of
+  //          module.[[RequestedModules]], do:
   Rooted<ModuleRequestObject*> required(cx);
   Rooted<ModuleObject*> requiredModule(cx);
   for (const RequestedModule& request : module->requestedModules()) {
     // Step 11.a. Let requiredModule be GetImportedModule(module,
     //            required).
     required = request.moduleRequest();
-    MOZ_ASSERT(required->phase() == ImportPhase::Evaluation);
+    // Step 11.b. If requiredModule.[[Phase]] is evaluation, then
+    if (required->phase() != ImportPhase::Evaluation) {
+      continue;
+    }
     requiredModule = GetImportedModule(cx, module, required);
     if (!requiredModule) {
       return false;
     }
     MOZ_ASSERT(requiredModule->status() >= ModuleStatus::Linked);
 
-    // Step 11.b. Set index to ? InnerModuleEvaluation(requiredModule, stack,
-    //            index).
+    // Step 11.b.i Set index to ? InnerModuleEvaluation(requiredModule, stack,
+    //             index).
     if (!InnerModuleEvaluation(cx, requiredModule, stack, index, &index)) {
       return false;
     }
 
-    // Step 11.c. If requiredModule is a Cyclic Module Record, then:
+    // Step 11.b.ii If requiredModule is a Cyclic Module Record, then:
     if (requiredModule->hasCyclicModuleFields()) {
-      // Step 11.c.i. Assert: requiredModule.[[Status]] is either evaluating,
-      //              evaluating-async, or evaluated.
+      // Step 11.b.ii.1. Assert: requiredModule.[[Status]] is either
+      // evaluating, evaluating-async, or evaluated.
       MOZ_ASSERT(requiredModule->status() == ModuleStatus::Evaluating ||
                  requiredModule->status() == ModuleStatus::EvaluatingAsync ||
                  requiredModule->status() == ModuleStatus::Evaluated);
 
-      // Step 11.c.ii. Assert: requiredModule.[[Status]] is evaluating if and
-      //               only if requiredModule is in stack.
+      // Step 11.b.ii.2. Assert: requiredModule.[[Status]] is evaluating if
+      // and only if requiredModule is in stack.
       if ((requiredModule->status() == ModuleStatus::Evaluating) !=
           ContainsElement(stack, requiredModule)) {
         ThrowUnexpectedModuleStatus(cx, requiredModule->status());
         return false;
       }
 
-      // Step 11.c.iii. If requiredModule.[[Status]] is evaluating, then:
+      // Step 11.b.ii.3 If requiredModule.[[Status]] is evaluating, then:
       if (requiredModule->status() == ModuleStatus::Evaluating) {
-        // Step 11.c.iii.1. Set module.[[DFSAncestorIndex]] to
-        //                  min(module.[[DFSAncestorIndex]],
-        //                  requiredModule.[[DFSAncestorIndex]]).
+        // Step 11.b.ii.3.a. Set module.[[DFSAncestorIndex]] to
+        //                   min(module.[[DFSAncestorIndex]],
+        //                   requiredModule.[[DFSAncestorIndex]]).
         module->setDfsAncestorIndex(std::min(
             module->dfsAncestorIndex(), requiredModule->dfsAncestorIndex()));
       } else {
-        // Step 11.c.iv. Else:
-        // Step 11.c.iv.1. Set requiredModule to requiredModule.[[CycleRoot]].
+        // Step 11.b.ii.4 Else:
+        // Step 11.b.ii.4.a. Set requiredModule to
+        // requiredModule.[[CycleRoot]].
         requiredModule = requiredModule->getCycleRoot();
 
-        // Step 11.c.iv.2. Assert: requiredModule.[[Status]] is evaluating-async
-        //                 or evaluated.
+        // Step 11.b.ii.4.b. Assert: requiredModule.[[Status]] is
+        // evaluating-async or evaluated.
         MOZ_ASSERT(requiredModule->status() >= ModuleStatus::EvaluatingAsync ||
                    requiredModule->status() == ModuleStatus::Evaluated);
 
-        // Step 11.c.iv.3. If requiredModule.[[EvaluationError]] is not empty,
-        //                 return ? requiredModule.[[EvaluationError]].
+        // Step 11.b.ii.4.c If requiredModule.[[EvaluationError]] is not
+        // empty, return ? requiredModule.[[EvaluationError]].
         if (requiredModule->hadEvaluationError()) {
           Rooted<Value> error(cx, requiredModule->evaluationError());
           cx->setPendingException(error, ShouldCaptureStack::Maybe);
@@ -2139,18 +2164,18 @@ static bool InnerModuleEvaluation(JSContext* cx, Handle<ModuleObject*> module,
         }
       }
 
-      // Step 11.c.v. If requiredModule.[[AsyncEvaluationOrder]] is an integer,
-      // then:
+      // Step 11.b.ii.5. If requiredModule.[[AsyncEvaluationOrder]] is an
+      // integer, then:
       if (requiredModule->asyncEvaluationOrder().isInteger()) {
-        // Step 11.c.v.2. Append module to
-        // requiredModule.[[AsyncParentModules]].
+        // Step 11.b.ii.5.b. Append module to
+        //                   requiredModule.[[AsyncParentModules]].
         if (!ModuleObject::appendAsyncParentModule(cx, requiredModule,
                                                    module)) {
           return false;
         }
 
-        // Step 11.d.v.1. Set module.[[PendingAsyncDependencies]] to
-        //                module.[[PendingAsyncDependencies]] + 1.
+        // Step 11.b.ii.5.a. Set module.[[PendingAsyncDependencies]] to
+        //                   module.[[PendingAsyncDependencies]] + 1.
         module->setPendingAsyncDependencies(module->pendingAsyncDependencies() +
                                             1);
       }
