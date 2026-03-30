@@ -317,6 +317,14 @@ class AbstractModuleSourceObject : public NativeObject {
  public:
   static const JSClass class_;
 };
+
+// https://tc39.es/proposal-source-phase-imports/#sec-module-source-objects
+class ModuleSourceObject : public NativeObject {
+ public:
+  static const JSClass class_;
+  static bool isInstance(HandleValue value);
+  [[nodiscard]] static ModuleSourceObject* create(JSContext* cx);
+};
 #endif
 
 // Value types of [[Status]] in a Cyclic Module Record
@@ -407,6 +415,10 @@ class ModuleObject : public NativeObject {
 #ifdef DEBUG
     PreloadSlot,
 #endif
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+    // Module Source object for source phase imports. Otherwise `undefined`.
+    ModuleSourceSlot,
+#endif
     SlotCount
   };
 
@@ -421,6 +433,9 @@ class ModuleObject : public NativeObject {
 
   // Initialize the slots on this object that are dependent on the script.
   void initScriptSlots(HandleScript script);
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+  void initModuleSourceSlot(Handle<ModuleSourceObject*> moduleSource);
+#endif
 
   void setInitialEnvironment(
       Handle<ModuleEnvironmentObject*> initialEnvironment);
@@ -442,6 +457,9 @@ class ModuleObject : public NativeObject {
   ModuleEnvironmentObject& initialEnvironment() const;
   ModuleEnvironmentObject* environment() const;
   ModuleNamespaceObject* namespace_();
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+  ModuleSourceObject* moduleSource() const;
+#endif
   ModuleStatus status() const;
   mozilla::Maybe<uint32_t> maybeDfsAncestorIndex() const;
   uint32_t dfsAncestorIndex() const;

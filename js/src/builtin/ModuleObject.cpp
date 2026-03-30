@@ -830,6 +830,28 @@ static const ClassSpec AbstractModuleSourceObjectClassSpec = {
     JS_NULL_CLASS_OPS,
     &AbstractModuleSourceObjectClassSpec,
 };
+
+///////////////////////////////////////////////////////////////////////////
+// ModuleSourceObject
+
+/* static */ const JSClass ModuleSourceObject::class_ = {
+    "ModuleSource",
+};
+
+/* static */
+bool ModuleSourceObject::isInstance(HandleValue value) {
+  return value.isObject() && value.toObject().is<ModuleSourceObject>();
+}
+
+/* static */
+ModuleSourceObject* ModuleSourceObject::create(JSContext* cx) {
+  RootedObject proto(
+      cx, GlobalObject::getOrCreatePrototype(cx, JSProto_AbstractModuleSource));
+  if (!proto) {
+    return nullptr;
+  }
+  return NewObjectWithGivenProto<ModuleSourceObject>(cx, proto);
+}
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1144,6 +1166,16 @@ ScriptSourceObject* ModuleObject::scriptSourceObject() const {
   return cyclicModuleFields()->scriptSourceObject;
 }
 
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+ModuleSourceObject* ModuleObject::moduleSource() const {
+  Value value = getReservedSlot(ModuleSourceSlot);
+  if (value.isUndefined()) {
+    return nullptr;
+  }
+  return &value.toObject().as<ModuleSourceObject>();
+}
+#endif
+
 void ModuleObject::initAsyncSlots(JSContext* cx, bool hasTopLevelAwait,
                                   Handle<ListObject*> asyncParentModules) {
   cyclicModuleFields()->hasTopLevelAwait = hasTopLevelAwait;
@@ -1157,6 +1189,13 @@ void ModuleObject::initScriptSlots(HandleScript script) {
   initReservedSlot(ScriptSlot, PrivateGCThingValue(script));
   cyclicModuleFields()->scriptSourceObject = script->sourceObject();
 }
+
+#ifdef ENABLE_SOURCE_PHASE_IMPORTS
+void ModuleObject::initModuleSourceSlot(
+    Handle<ModuleSourceObject*> moduleSource) {
+  initReservedSlot(ModuleSourceSlot, ObjectValue(*moduleSource));
+}
+#endif
 
 void ModuleObject::setInitialEnvironment(
     Handle<ModuleEnvironmentObject*> initialEnvironment) {
