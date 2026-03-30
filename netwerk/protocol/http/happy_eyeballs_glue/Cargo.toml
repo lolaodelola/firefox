@@ -7,6 +7,7 @@ license = "MPL-2.0"
 description = "FFI glue layer between happy-eyeballs Rust crate and Firefox's C++ networking stack"
 
 [dependencies]
+firefox-on-glean = { path = "../../../../toolkit/components/glean/api" }
 gecko-profiler = { path = "../../../../tools/profiler/rust-api" }
 happy-eyeballs = { tag = "v0.4.0", git = "https://github.com/mozilla/happy-eyeballs" }
 log = "0.4"
