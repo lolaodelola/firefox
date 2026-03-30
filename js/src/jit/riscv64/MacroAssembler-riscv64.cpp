@@ -4532,7 +4532,7 @@ static void CompareExchange(MacroAssembler& masm,
   masm.andi(offsetTemp, scratch2, 3);
   masm.subPtr(offsetTemp, scratch2);
   if constexpr (std::endian::native != std::endian::little) {
-    masm.as_xori(offsetTemp, offsetTemp, 3);
+    masm.xori(offsetTemp, offsetTemp, 3);
   }
   masm.slli(offsetTemp, offsetTemp, 3);
   masm.ma_li(maskTemp, Imm32(UINT32_MAX >> ((4 - nbytes) * 8)));
