@@ -247,6 +247,9 @@ skip-if = [
   "true", # Bug ?????? - test directly manipulates content (gBrowser.contentDocument.getElementById("postForm").submit();)
 ]
 
+["browser_save_webpage_wrapping.js"]
+support-files = ["file_save_webpage_wrapping.html"]
+
 ["browser_starting_autoscroll_in_about_content.js"]
 fail-if = [
   "a11y_checks", # Bug 1854538 clicked body.wide-container may not be accessible
