@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+import { IPPAuthProvider } from "moz-src:///toolkit/components/ipprotection/IPPAuthProvider.sys.mjs";
+
 const lazy = {};
 
 ChromeUtils.defineLazyGetter(lazy, "fxAccounts", () =>
@@ -16,10 +18,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
     "moz-src:///toolkit/components/ipprotection/fxa/IPPSignInWatcher.sys.mjs",
 });
 
-/**
- *
- */
-class IPPFxaAuthProviderSingleton {
+class IPPFxaAuthProviderSingleton extends IPPAuthProvider {
   get helpers() {
     return [lazy.IPPSignInWatcher, lazy.IPPEnrollAndEntitleManager];
   }

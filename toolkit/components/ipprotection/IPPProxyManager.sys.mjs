@@ -348,7 +348,7 @@ class IPPProxyManagerSingleton extends EventTarget {
     await lazy.IPProtectionServerlist.maybeFetchList();
 
     const notReady =
-      await lazy.IPProtectionService.authProvider?.aboutToStart();
+      await lazy.IPProtectionService.authProvider.aboutToStart();
     if (notReady) {
       throw notReady.error || ERRORS.GENERIC;
     }

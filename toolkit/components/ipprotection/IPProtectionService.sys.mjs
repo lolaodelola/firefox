@@ -9,6 +9,8 @@ const lazy = {};
 ChromeUtils.defineESModuleGetters(lazy, {
   GuardianClient:
     "moz-src:///toolkit/components/ipprotection/GuardianClient.sys.mjs",
+  IPPAuthProvider:
+    "moz-src:///toolkit/components/ipprotection/IPPAuthProvider.sys.mjs",
   IPPNimbusHelper:
     "moz-src:///toolkit/components/ipprotection/IPPNimbusHelper.sys.mjs",
   IPPStartupCache:
@@ -52,7 +54,7 @@ class IPProtectionServiceSingleton extends EventTarget {
   #guardian = null;
 
   #helpers = [];
-  #authProvider = null;
+  #authProvider = new lazy.IPPAuthProvider();
 
   /**
    * Returns the state of the service. See the description of the state
@@ -168,8 +170,7 @@ class IPProtectionServiceSingleton extends EventTarget {
       return IPProtectionStates.UNAVAILABLE;
     }
 
-    // If we have an auth provider, let's rely on it to know the state.
-    if (this.#authProvider && !this.#authProvider.isReady) {
+    if (!this.#authProvider.isReady) {
       return IPProtectionStates.UNAUTHENTICATED;
     }
 

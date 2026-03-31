@@ -95,19 +95,11 @@ testcases
         ],
       });
 
-      const sandbox = sinon.createSandbox();
-      sandbox.stub(IPPEnrollAndEntitleManager, "getToken").resolves({
-        token: "test-token",
-        [Symbol.dispose]: () => {},
-      });
-
       const client = new GuardianClient();
 
       try {
-        // Call the actual enroll method - no mocking!
         const result = await client.enroll(experimentType);
 
-        // Check the results
         Assert.equal(
           result.ok,
           expects.ok,
@@ -128,7 +120,6 @@ testcases
           );
         }
       } finally {
-        sandbox.restore();
         await SpecialPowers.popPrefEnv();
         server.stop();
       }
