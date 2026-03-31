@@ -390,3 +390,62 @@ add_task(async function test_context_menu_delete_from_history_telemetry() {
     }
   });
 });
+
+add_task(async function test_context_menu_forget_about_this_site_telemetry() {
+  await PlacesUtils.history.clear();
+  await PlacesUtils.history.insert({
+    url: URLs[0],
+    title: "Example Domain 1",
+    visits: [{ date: new Date() }],
+  });
+  await withFirefoxView({}, async browser => {
+    const { document } = browser.contentWindow;
+    is(
+      document.location.href,
+      "about:firefoxview",
+      "The Recent browsing page is showing."
+    );
+    await navigateToViewAndWait(document, "history");
+    let historyComponent = document.querySelector("view-history");
+    await TestUtils.waitForCondition(() => historyComponent.fullyUpdated);
+    await TestUtils.waitForCondition(
+      () => historyComponent.lists[0].rowEls.length
+    );
+    let firstTabList = historyComponent.lists[0];
+    let firstItem = firstTabList.rowEls[0];
+    let panelList = historyComponent.panelList;
+    EventUtils.synthesizeMouseAtCenter(
+      firstItem.secondaryButtonEl,
+      {},
+      content
+    );
+    info("Context menu button clicked.");
+    await BrowserTestUtils.waitForEvent(panelList, "shown");
+    info("Context menu shown.");
+    await clearAllParentTelemetryEvents();
+    let panelItems = Array.from(panelList.children).filter(
+      panelItem => panelItem.nodeName === "PANEL-ITEM"
+    );
+    let forgetAboutThisSiteOption = panelItems[1];
+    ok(
+      forgetAboutThisSiteOption.textContent.includes("Forget"),
+      "Forget About This Site button is present in the context menu."
+    );
+    let contextMenuEvent = [
+      [
+        "firefoxview_next",
+        "context_menu",
+        "tabs",
+        undefined,
+        { menu_action: "forget-about-this-site", data_type: "history" },
+      ],
+    ];
+    EventUtils.synthesizeMouseAtCenter(forgetAboutThisSiteOption, {}, content);
+    info("Forget About This Site context menu option clicked.");
+    await telemetryEvent(contextMenuEvent);
+    // clean up extra tabs
+    while (gBrowser.tabs.length > 1) {
+      BrowserTestUtils.removeTab(gBrowser.tabs.at(-1));
+    }
+  });
+});
