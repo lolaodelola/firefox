@@ -15,5 +15,5 @@ def add_dependencies(config, jobs):
         if not dependencies:
             continue
 
-        job["if-dependencies"] = list(dependencies.values())
+        job["if-dependencies"] = sorted(dependencies.values())
         yield job

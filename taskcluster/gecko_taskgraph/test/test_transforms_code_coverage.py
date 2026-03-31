@@ -22,8 +22,8 @@ def test_add_dependencies_sets_if_dependencies(run_transform):
 
     assert len(transformed) == 1
     assert transformed[0]["if-dependencies"] == [
-        "linux64-ccov/opt",
         "linux64-ccov/debug",
+        "linux64-ccov/opt",
     ]
 
 
@@ -92,7 +92,7 @@ def test_from_deps_and_code_coverage_integration(run_transform):
         ccov_2.label,
     }
     assert transformed[0]["if-dependencies"] == list(
-        transformed[0]["dependencies"].values()
+        sorted(transformed[0]["dependencies"].values())
     )
 
 
