@@ -1615,7 +1615,7 @@ class Settings(
     )
 
     val shouldShowOpenInAppCfr: Boolean
-        get() = canShowCfr && shouldShowOpenInAppBanner && inAppMessagesEnabled
+        get() = canShowCfr && shouldShowOpenInAppBanner
 
     var shouldShowAutoCloseTabsBanner by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_should_show_auto_close_tabs_banner),
