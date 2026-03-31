@@ -138,26 +138,24 @@ export function resolveAdvancedConfig(advancedConfig, l10nArgValues) {
  */
 export function getResolvedErrorConfig(id, l10nArgValues) {
   const baseConfig = getErrorConfig(id);
+  if (!baseConfig) {
+    return {};
+  }
 
   const introContentHandler = Array.isArray(baseConfig.introContent)
     ? resolveManyL10nArgs
     : resolveL10nArgs;
-  return baseConfig
-    ? {
-        ...baseConfig,
-        introContent: introContentHandler(
-          baseConfig.introContent,
-          l10nArgValues
-        ),
-        shortDescription: resolveL10nArgs(
-          baseConfig.shortDescription,
-          l10nArgValues
-        ),
-        descriptionParts: resolveDescriptionParts(
-          baseConfig.descriptionParts,
-          l10nArgValues
-        ),
-        advanced: resolveAdvancedConfig(baseConfig.advanced, l10nArgValues),
-      }
-    : {};
+  return {
+    ...baseConfig,
+    introContent: introContentHandler(baseConfig.introContent, l10nArgValues),
+    shortDescription: resolveL10nArgs(
+      baseConfig.shortDescription,
+      l10nArgValues
+    ),
+    descriptionParts: resolveDescriptionParts(
+      baseConfig.descriptionParts,
+      l10nArgValues
+    ),
+    advanced: resolveAdvancedConfig(baseConfig.advanced, l10nArgValues),
+  };
 }

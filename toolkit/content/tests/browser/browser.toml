@@ -161,6 +161,8 @@ tags = "audiochannel"
 
 ["browser_f7_caret_browsing.js"]
 
+["browser_felt_privacy_fallback.js"]
+
 ["browser_findbar.js"]
 
 ["browser_findbar_disabled_manual.js"]
