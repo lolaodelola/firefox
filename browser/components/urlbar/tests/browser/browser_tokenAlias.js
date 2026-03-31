@@ -24,15 +24,18 @@ if (AppConstants.platform == "macosx") {
 add_setup(async function () {
   // Add a default engine with suggestions, to avoid hitting the network when
   // fetching them.
-  let defaultEngine = await SearchTestUtils.installOpenSearchEngine({
-    url: getRootDirectory(gTestPath) + TEST_ENGINE_BASENAME,
-    setAsDefault: true,
-  });
-  defaultEngine.alias = "@default";
-  await SearchTestUtils.installSearchExtension({
-    name: TEST_ALIAS_ENGINE_NAME,
-    keyword: ALIAS,
-  });
+
+  await SearchTestUtils.updateRemoteSettingsConfig([
+    {
+      identifier: "default",
+      base: { aliases: ["default"] },
+    },
+    {
+      identifier: TEST_ALIAS_ENGINE_NAME,
+      // Config provided engines automatically have the `@` added to the alias.
+      base: { aliases: [ALIAS.substring(1)] },
+    },
+  ]);
 
   // Search results aren't shown in quantumbar unless search suggestions are
   // enabled.
@@ -115,6 +118,7 @@ async function doSimpleTest(revertBetweenSteps) {
     await UrlbarTestUtils.assertSearchMode(window, {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "typed",
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     Assert.equal(gURLBar.value, "", "value should be empty");
     await UrlbarTestUtils.exitSearchMode(window);
@@ -138,6 +142,7 @@ async function doSimpleTest(revertBetweenSteps) {
     await UrlbarTestUtils.assertSearchMode(window, {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "typed",
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     Assert.equal(gURLBar.value, "foo", "value should be query");
     await UrlbarTestUtils.exitSearchMode(window);
@@ -161,6 +166,7 @@ async function doSimpleTest(revertBetweenSteps) {
     await UrlbarTestUtils.assertSearchMode(window, {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "typed",
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     Assert.equal(gURLBar.value, "", "value should be empty");
     await UrlbarTestUtils.exitSearchMode(window);
@@ -218,6 +224,7 @@ add_task(async function spacesBeforeAlias() {
     await UrlbarTestUtils.assertSearchMode(window, {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "typed",
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     Assert.equal(gURLBar.value, "", "value should be empty");
     await UrlbarTestUtils.exitSearchMode(window);
@@ -241,16 +248,17 @@ add_task(async function charsBeforeAlias() {
     "value should be unchanged"
   );
 
-  await UrlbarTestUtils.promisePopupClose(window, () =>
-    EventUtils.synthesizeKey("KEY_Escape")
-  );
+  await UrlbarTestUtils.promisePopupClose(window, () => {
+    EventUtils.synthesizeKey("KEY_Escape");
+    EventUtils.synthesizeKey("KEY_Escape");
+  });
 });
 
 // While already in search mode, an alias should not be recognized.
 add_task(async function alreadyInSearchMode() {
   await UrlbarTestUtils.promiseAutocompleteResultPopup({
     window,
-    value: "",
+    value: "t",
   });
   await UrlbarTestUtils.enterSearchMode(window, {
     source: UrlbarUtils.RESULT_SOURCE.BOOKMARKS,
@@ -322,6 +330,7 @@ add_task(async function aliasCase() {
   await UrlbarTestUtils.assertSearchMode(window, {
     engineName: TEST_ALIAS_ENGINE_NAME,
     entry: "typed",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
   });
   Assert.equal(gURLBar.value, "", "value should be empty");
   await UrlbarTestUtils.exitSearchMode(window);
@@ -341,6 +350,7 @@ add_task(async function aliasCase_query() {
   await UrlbarTestUtils.assertSearchMode(window, {
     engineName: TEST_ALIAS_ENGINE_NAME,
     entry: "typed",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
   });
   Assert.equal(gURLBar.value, "query", "value should be query");
   await UrlbarTestUtils.exitSearchMode(window);
@@ -465,6 +475,7 @@ add_task(async function clickAndFillAlias() {
   await UrlbarTestUtils.assertSearchMode(window, {
     engineName: testEngineItem.result.payload.engine,
     entry: "keywordoffer",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
   });
 
   await UrlbarTestUtils.exitSearchMode(window);
@@ -503,6 +514,7 @@ add_task(async function enterAndFillAlias() {
   await UrlbarTestUtils.assertSearchMode(window, {
     engineName: details.searchParams.engine,
     entry: "keywordoffer",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
   });
 
   await UrlbarTestUtils.exitSearchMode(window);
@@ -529,6 +541,7 @@ add_task(async function enterAutofillsAlias() {
     await UrlbarTestUtils.assertSearchMode(window, {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "keywordoffer",
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
 
     await UrlbarTestUtils.exitSearchMode(window);
@@ -555,6 +568,7 @@ add_task(async function rightEntersSearchMode() {
     await UrlbarTestUtils.assertSearchMode(window, {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "typed",
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     Assert.equal(gURLBar.value, "", "value should be empty");
     await UrlbarTestUtils.exitSearchMode(window);
@@ -592,6 +606,7 @@ add_task(async function rightEntersSearchMode() {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "keywordoffer",
       isPreview: true,
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     Assert.equal(gURLBar.value, "", "value should be empty");
 
@@ -603,6 +618,7 @@ add_task(async function rightEntersSearchMode() {
       engineName: TEST_ALIAS_ENGINE_NAME,
       entry: "keywordoffer",
       isPreview: false,
+      source: UrlbarUtils.RESULT_SOURCE.SEARCH,
     });
     await UrlbarTestUtils.exitSearchMode(window);
   }
@@ -841,6 +857,7 @@ add_task(async function doNotShowInSearchMode() {
   await UrlbarTestUtils.assertSearchMode(window, {
     engineName: testEngineItem.result.payload.engine,
     entry: "keywordoffer",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
   });
 
   await UrlbarTestUtils.promiseAutocompleteResultPopup({
