@@ -202,7 +202,8 @@ bool AbsoluteContainingBlock::PrepareAbsoluteFrames(
 
       // After stealing children from the previous absCB, traverse our children
       // and see if any child has a prev-in-flow that is also in our child list.
-      // If so, we move the child to our pushed child list.
+      // If so, we insert them at the front of our pushed child list.
+      nsFrameList newPushedAbsoluteFrames;
       for (auto iter = mAbsoluteFrames.begin();
            iter != mAbsoluteFrames.end();) {
         // Advance the iterator first, so it's safe to move |child|.
@@ -211,8 +212,13 @@ bool AbsoluteContainingBlock::PrepareAbsoluteFrames(
         if (childPrevInFlow &&
             childPrevInFlow->GetParent() == aDelegatingFrame) {
           mAbsoluteFrames.RemoveFrame(child);
-          mPushedAbsoluteFrames.AppendFrame(nullptr, child);
+          newPushedAbsoluteFrames.AppendFrame(nullptr, child);
         }
+      }
+      if (newPushedAbsoluteFrames.NotEmpty()) {
+        // Prepend the new pushed frames to the front of mPushedAbsoluteFrames.
+        mPushedAbsoluteFrames.InsertFrames(nullptr, nullptr,
+                                           std::move(newPushedAbsoluteFrames));
       }
     }
   }
@@ -235,6 +241,7 @@ bool AbsoluteContainingBlock::PrepareAbsoluteFrames(
 
     for (auto iter = nextAbsCB->GetChildList().begin();
          iter != nextAbsCB->GetChildList().end();) {
+      // Advance the iterator first, so it's safe to move |child|.
       nsIFrame* const child = *iter++;
       if (!child->GetPrevInFlow()) {
         nextAbsCB->StealFrame(child);
@@ -271,6 +278,34 @@ void AbsoluteContainingBlock::SanityCheckChildListsBeforeReflow(
       MOZ_ASSERT(!GetChildList().ContainsFrame(prev),
                  "It is wrong that both a child and its prev-in-flow are in "
                  "our child list!");
+    }
+  }
+
+  {
+    // Verify that continuations are ordered across both lists concatenated.
+    // If a frame and its continuation are both present, the continuation must
+    // appear later.
+    nsTHashSet<const nsIFrame*> allFrames;
+    for (const nsFrameList* list : {&mAbsoluteFrames, &mPushedAbsoluteFrames}) {
+      for (const nsIFrame* child : *list) {
+        allFrames.Insert(child);
+      }
+    }
+
+    nsTHashSet<const nsIFrame*> seen;
+    auto CheckOrder = [&](const nsIFrame* child) {
+      seen.Insert(child);
+      const nsIFrame* prev = child->GetPrevInFlow();
+      if (prev && allFrames.Contains(prev)) {
+        MOZ_ASSERT(seen.Contains(prev),
+                   "A frame's continuation appears before the frame in "
+                   "mAbsoluteFrames + mPushedAbsoluteFrames!");
+      }
+    };
+    for (const nsFrameList* list : {&mAbsoluteFrames, &mPushedAbsoluteFrames}) {
+      for (const nsIFrame* child : *list) {
+        CheckOrder(child);
+      }
     }
   }
 
@@ -662,6 +697,7 @@ void AbsoluteContainingBlock::Reflow(nsContainerFrame* aDelegatingFrame,
   nsOverflowContinuationTracker tracker(aDelegatingFrame, true);
   const nscoord availBSize = aReflowInput.AvailableBSize();
   const WritingMode containerWM = aReflowInput.GetWritingMode();
+  nsFrameList newPushedAbsoluteFrames;
   for (auto iter = mAbsoluteFrames.begin(); iter != mAbsoluteFrames.end();) {
     // Advance the iterator first, so it's safe to move |kidFrame|.
     nsIFrame* const kidFrame = *iter++;
@@ -800,18 +836,20 @@ void AbsoluteContainingBlock::Reflow(nsContainerFrame* aDelegatingFrame,
         if (kidFrameNeedsPush) {
           StealFrame(kidFrame);
           kidFrame->AddStateBits(NS_FRAME_IS_PUSHED_OUT_OF_FLOW);
-          mPushedAbsoluteFrames.AppendFrame(nullptr, kidFrame);
+          newPushedAbsoluteFrames.AppendFrame(nullptr, kidFrame);
         } else if (!kidStatus.IsFullyComplete()) {
           if (!nextFrame) {
             nextFrame = aPresContext->PresShell()
                             ->FrameConstructor()
                             ->CreateContinuingFrame(kidFrame, aDelegatingFrame);
             nextFrame->AddStateBits(NS_FRAME_IS_PUSHED_OUT_OF_FLOW);
-            mPushedAbsoluteFrames.AppendFrame(nullptr, nextFrame);
+            newPushedAbsoluteFrames.AppendFrame(nullptr, nextFrame);
           } else if (nextFrame->GetParent() !=
                      aDelegatingFrame->GetNextInFlow()) {
             nextFrame->GetParent()->GetAbsoluteContainingBlock()->StealFrame(
                 nextFrame);
+            // nextFrame is in a later absCB continuation. To keep the
+            // continuations in order, append it to mPushedAbsoluteFrames.
             mPushedAbsoluteFrames.AppendFrame(aDelegatingFrame, nextFrame);
           }
           reflowStatus.MergeCompletionStatusFrom(kidStatus);
@@ -875,6 +913,12 @@ void AbsoluteContainingBlock::Reflow(nsContainerFrame* aDelegatingFrame,
         kidFrame->AddStateBits(NS_FRAME_HAS_DIRTY_CHILDREN);
       }
     }
+  }
+
+  if (newPushedAbsoluteFrames.NotEmpty()) {
+    // Prepend the new pushed frames to the front of mPushedAbsoluteFrames.
+    mPushedAbsoluteFrames.InsertFrames(nullptr, nullptr,
+                                       std::move(newPushedAbsoluteFrames));
   }
 
   if (availBSize != NS_UNCONSTRAINEDSIZE) {
