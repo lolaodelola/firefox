@@ -271,4 +271,7 @@
     [['--x', '3'], ['--y', '3'], ['--z', '1']],
     true);
 
+  // test queries with env(), assuming "safe area" insets will never be negative.
+  test_query('style(0px <= env(safe-area-inset-top))', true);
+  test_query('style(0px > env(safe-area-inset-bottom))', false);
 </script>
