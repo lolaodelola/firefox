@@ -7,6 +7,8 @@
 
 const TEST_ALIAS_ENGINE_NAME = "Test";
 const ALIAS = "@test";
+const TEST_ALIAS2_ENGINE_NAME = "Other";
+const ALIAS2 = "@other";
 const TEST_ENGINE_BASENAME = "searchSuggestionEngine.xml";
 
 // We make sure that aliases and search terms are correctly recognized when they
@@ -35,6 +37,11 @@ add_setup(async function () {
       // Config provided engines automatically have the `@` added to the alias.
       base: { aliases: [ALIAS.substring(1)] },
     },
+    {
+      identifier: TEST_ALIAS2_ENGINE_NAME,
+      // Config provided engines automatically have the `@` added to the alias.
+      base: { aliases: [ALIAS2.substring(1)] },
+    },
   ]);
 
   // Search results aren't shown in quantumbar unless search suggestions are
@@ -43,6 +50,8 @@ add_setup(async function () {
     set: [
       ["browser.urlbar.suggest.searches", true],
       ["browser.urlbar.scotchBonnet.enableOverride", false],
+      ["browser.search.separatePrivateDefault.ui.enabled", true],
+      ["browser.search.separatePrivateDefault", true],
     ],
   });
 
@@ -874,6 +883,162 @@ add_task(async function doNotShowInSearchMode() {
       `Result at index ${i} is not a keywordoffer.`
     );
   }
+
+  gURLBar.value = "";
+  await UrlbarTestUtils.exitSearchMode(window);
+  await UrlbarTestUtils.promisePopupClose(window, () =>
+    EventUtils.synthesizeKey("KEY_Escape")
+  );
+});
+
+// Tests that we select the right engine when entering a duplicate alias.
+add_task(async function duplicateAliases() {
+  let extension = await SearchTestUtils.installSearchExtension(
+    {
+      name: "TestFoo",
+      keyword: ALIAS,
+    },
+    { skipUnload: true }
+  );
+
+  let testConfigEngine = SearchService.getEngineById(TEST_ALIAS_ENGINE_NAME);
+  let addonEngine = SearchService.getEngineByName("TestFoo");
+
+  // Set the add-on engine as default, so the alias should use this engine.
+  await SearchService.setDefault(
+    addonEngine,
+    SearchService.CHANGE_REASON.UNKNOWN
+  );
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: `${ALIAS} `,
+    fireInputEvent: true,
+  });
+  await UrlbarTestUtils.assertSearchMode(window, {
+    engineName: "TestFoo",
+    entry: "typed",
+  });
+
+  await UrlbarTestUtils.exitSearchMode(window);
+
+  // Now do the same, but with the main test engine as default.
+  await SearchService.setDefault(
+    testConfigEngine,
+    SearchService.CHANGE_REASON.UNKNOWN
+  );
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: `${ALIAS} `,
+    fireInputEvent: true,
+  });
+  await UrlbarTestUtils.assertSearchMode(window, {
+    engineName: TEST_ALIAS_ENGINE_NAME,
+    entry: "typed",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
+  });
+
+  await UrlbarTestUtils.exitSearchMode(window);
+
+  // Now try it with neither as default - should still use the engine from the
+  // configuration.
+  await SearchService.setDefault(
+    SearchService.getEngineById("default"),
+    SearchService.CHANGE_REASON.UNKNOWN
+  );
+
+  // Move the add-on search engine first in the list, so that we have it in
+  // a predictable place.
+  await SearchService.moveEngine(addonEngine, 0);
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: `${ALIAS} `,
+    fireInputEvent: true,
+  });
+  await UrlbarTestUtils.assertSearchMode(window, {
+    engineName: TEST_ALIAS_ENGINE_NAME,
+    entry: "typed",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
+  });
+
+  await UrlbarTestUtils.exitSearchMode(window);
+
+  // Lastly, change the order so the config engine is before the add-on engine,
+  // to make sure we still use the config engine.
+  await SearchService.moveEngine(testConfigEngine, 0);
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: `${ALIAS} `,
+    fireInputEvent: true,
+  });
+  await UrlbarTestUtils.assertSearchMode(window, {
+    engineName: TEST_ALIAS_ENGINE_NAME,
+    entry: "typed",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
+  });
+
+  await UrlbarTestUtils.exitSearchMode(window);
+
+  await extension.unload();
+
+  await SearchService.moveEngine(SearchService.getEngineById("default"), 0);
+});
+
+// A cut down version of the previous test that checks we use the correct alias
+// when the default engine is set for private browsing mode.
+add_task(async function duplicateAliases_private() {
+  let extension = await SearchTestUtils.installSearchExtension(
+    {
+      name: "OtherFoo",
+      keyword: ALIAS2,
+    },
+    { skipUnload: true }
+  );
+
+  let testConfigEngine = SearchService.getEngineById(TEST_ALIAS2_ENGINE_NAME);
+  let addonEngine = SearchService.getEngineByName("OtherFoo");
+
+  // Set the add-on engine as default, so the alias should use this engine.
+  await SearchService.setDefaultPrivate(
+    addonEngine,
+    SearchService.CHANGE_REASON.UNKNOWN
+  );
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: `${ALIAS2} `,
+    fireInputEvent: true,
+  });
+  await UrlbarTestUtils.assertSearchMode(window, {
+    engineName: "OtherFoo",
+    entry: "typed",
+  });
+
+  await UrlbarTestUtils.exitSearchMode(window);
+
+  // Now do the same, but with the main test engine as default.
+  await SearchService.setDefaultPrivate(
+    testConfigEngine,
+    SearchService.CHANGE_REASON.UNKNOWN
+  );
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: `${ALIAS2} `,
+    fireInputEvent: true,
+  });
+  await UrlbarTestUtils.assertSearchMode(window, {
+    engineName: TEST_ALIAS2_ENGINE_NAME,
+    entry: "typed",
+    source: UrlbarUtils.RESULT_SOURCE.SEARCH,
+  });
+
+  await UrlbarTestUtils.exitSearchMode(window);
+
+  await extension.unload();
 });
 
 async function assertFirstResultIsAlias(isAlias, expectedAlias) {
