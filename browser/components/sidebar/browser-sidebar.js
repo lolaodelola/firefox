@@ -390,6 +390,20 @@ var SidebarController = {
       this._state = new this.SidebarState(this);
     }
 
+    // Watch for fullscreen transitions to sync the sidebar attribute.
+    this._fullscreenObserver = new MutationObserver(() => {
+      const inFullscreen =
+        document.documentElement.hasAttribute("inDOMFullscreen");
+      this._state.fullscreen = inFullscreen;
+    });
+
+    this._fullscreenObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["inDOMFullscreen"],
+    });
+    // Initial check: is the window already in fullscreen when we start?
+    this._state.fullscreen =
+      document.documentElement.hasAttribute("inDOMFullscreen");
     this._pinnedTabsContainer = document.getElementById(
       "pinned-tabs-container"
     );
@@ -546,6 +560,10 @@ var SidebarController = {
   uninit() {
     // Set a flag to allow us to ignore pref changes while the host document is being unloaded.
     this._uninitializing = true;
+    if (this._fullscreenObserver) {
+      this._fullscreenObserver.disconnect();
+      this._fullscreenObserver = null;
+    }
 
     // If this is the last browser window, persist various values that should be
     // remembered for after a restart / reopening a browser window.

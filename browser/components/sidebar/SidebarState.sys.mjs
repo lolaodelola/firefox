@@ -77,6 +77,7 @@ export class SidebarState {
   };
   #launcherEverVisible = false;
   bookmarksExpandedFolders = [];
+  #fullscreen = false;
 
   /** @type {SidebarStateProps} */
   static defaultProperties = Object.freeze({
@@ -422,6 +423,19 @@ export class SidebarState {
       return true;
     }
     return DEFAULT_LAUNCHER_VISIBLE;
+  }
+
+  get fullscreen() {
+    return this.#fullscreen;
+  }
+
+  set fullscreen(val) {
+    if (this.#fullscreen === val) {
+      return;
+    }
+    this.#fullscreen = val;
+    // Re-run the update logic every time the fullscreen state changes.
+    this.#updateTabbrowser(this.launcherVisible);
   }
 
   get launcherVisible() {
@@ -783,9 +797,10 @@ export class SidebarState {
   }
 
   #updateTabbrowser(isSidebarShown) {
-    this.#controllerGlobal.document
-      .getElementById("tabbrowser-tabbox")
-      .toggleAttribute("sidebar-shown", isSidebarShown);
+    const doc = this.#controllerGlobal.document;
+    const tabbox = doc.getElementById("tabbrowser-tabbox");
+    const inFullscreen = doc.documentElement.hasAttribute("inDOMFullscreen");
+    tabbox.toggleAttribute("sidebar-shown", isSidebarShown && !inFullscreen);
   }
 
   get command() {
