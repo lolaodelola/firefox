@@ -8,6 +8,8 @@ with Files("**"):
     BUG_COMPONENT = ("Firefox", "IP Protection")
 
 MOZ_SRC_FILES += [
+    "fxa/IPPFxaAuthProvider.sys.mjs",
+    "fxa/IPPSignInWatcher.sys.mjs",
     "GuardianClient.sys.mjs",
     "IPPAutoRestore.sys.mjs",
     "IPPAutoStart.sys.mjs",
@@ -21,7 +23,6 @@ MOZ_SRC_FILES += [
     "IPProtectionActivator.sys.mjs",
     "IPProtectionServerlist.sys.mjs",
     "IPProtectionService.sys.mjs",
-    "IPPSignInWatcher.sys.mjs",
     "IPPStartupCache.sys.mjs",
 ]
 

@@ -29,7 +29,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   IPProtection:
     "moz-src:///browser/components/ipprotection/IPProtection.sys.mjs",
   IPPSignInWatcher:
-    "moz-src:///toolkit/components/ipprotection/IPPSignInWatcher.sys.mjs",
+    "moz-src:///toolkit/components/ipprotection/fxa/IPPSignInWatcher.sys.mjs",
   IPProtectionStates:
     "moz-src:///toolkit/components/ipprotection/IPProtectionService.sys.mjs",
   SpecialMessageActions:

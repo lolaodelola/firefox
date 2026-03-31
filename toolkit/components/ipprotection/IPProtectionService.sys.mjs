@@ -9,12 +9,8 @@ const lazy = {};
 ChromeUtils.defineESModuleGetters(lazy, {
   GuardianClient:
     "moz-src:///toolkit/components/ipprotection/GuardianClient.sys.mjs",
-  IPPEnrollAndEntitleManager:
-    "moz-src:///toolkit/components/ipprotection/IPPEnrollAndEntitleManager.sys.mjs",
   IPPNimbusHelper:
     "moz-src:///toolkit/components/ipprotection/IPPNimbusHelper.sys.mjs",
-  IPPSignInWatcher:
-    "moz-src:///toolkit/components/ipprotection/IPPSignInWatcher.sys.mjs",
   IPPStartupCache:
     "moz-src:///toolkit/components/ipprotection/IPPStartupCache.sys.mjs",
 });
@@ -56,6 +52,7 @@ class IPProtectionServiceSingleton extends EventTarget {
   #guardian = null;
 
   #helpers = [];
+  #authProvider = null;
 
   /**
    * Returns the state of the service. See the description of the state
@@ -87,6 +84,15 @@ class IPProtectionServiceSingleton extends EventTarget {
    */
   setHelpers(helpers) {
     this.#helpers = helpers;
+  }
+
+  /**
+   * Sets the authentication provider.
+   *
+   * @param {object} authProvider
+   */
+  setAuthProvider(authProvider) {
+    this.#authProvider = authProvider;
   }
 
   /**
@@ -158,19 +164,8 @@ class IPProtectionServiceSingleton extends EventTarget {
       return IPProtectionStates.UNAVAILABLE;
     }
 
-    // For non authenticated users, we don't know yet their enroll state so the UI
-    // is shown and they have to login.
-    if (!lazy.IPPSignInWatcher.isSignedIn) {
-      return IPProtectionStates.UNAUTHENTICATED;
-    }
-
-    // If the current account is not enrolled and entitled, the UI is shown and
-    // they have to opt-in.
-    // If they are currently enrolling, they have already opted-in.
-    if (
-      !lazy.IPPEnrollAndEntitleManager.isEnrolledAndEntitled &&
-      !lazy.IPPEnrollAndEntitleManager.isEnrolling
-    ) {
+    // If we have an auth provider, let's rely on it to know the state.
+    if (this.#authProvider && !this.#authProvider.isReady) {
       return IPProtectionStates.UNAUTHENTICATED;
     }
 
