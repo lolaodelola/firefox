@@ -73,7 +73,6 @@ using mozilla::BitwiseCast;
 using mozilla::IsAsciiAlpha;
 using mozilla::IsAsciiDigit;
 using mozilla::IsAsciiLowercaseAlpha;
-using mozilla::NumbersAreIdentical;
 using mozilla::Relaxed;
 
 using JS::AutoCheckCannotGC;
@@ -176,14 +175,14 @@ static inline bool IsTimeValue(double t) {
 #endif
 
 /**
- * Time value with local time zone offset applied.
+ * Finite time value with local time zone offset applied.
  */
-static inline bool IsLocalTimeValue(double t) {
-  if (std::isnan(t)) {
-    return true;
-  }
-  return IsInteger(t) && (StartOfTime - msPerDay) < t &&
-         t < (EndOfTime + msPerDay);
+template <typename T>
+static inline bool IsLocalTimeValue(T t) {
+  static_assert(std::is_same_v<T, double> || std::is_same_v<T, int64_t>);
+  MOZ_ASSERT(!std::isfinite(t) || IsInteger(t),
+             "unexpected fractional parts in local time value");
+  return T(StartOfTime - msPerDay) < t && t < T(EndOfTime + msPerDay);
 }
 
 /**
@@ -439,15 +438,15 @@ static int32_t WeekDay(int64_t t) {
   return result;
 }
 
-static inline int DayFromMonth(int month, bool isLeapYear) {
-  /*
-   * The following array contains the day of year for the first day of
-   * each month, where index 0 is January, and day 0 is January 1.
-   */
-  static const int firstDayOfMonth[2][13] = {
-      {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
-      {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}};
+/*
+ * The following array contains the day of year for the first day of
+ * each month, where index 0 is January, and day 0 is January 1.
+ */
+static constexpr int firstDayOfMonth[2][13] = {
+    {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
+    {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}};
 
+static constexpr int DayFromMonth(int month, bool isLeapYear) {
   MOZ_ASSERT(0 <= month && month <= 12);
   return firstDayOfMonth[isLeapYear][month];
 }
@@ -760,24 +759,28 @@ static int64_t LocalTime(DateTimeInfo* dtInfo, double t) {
  *
  * ES2025 draft rev 76814cbd5d7842c2a99d28e6e8c7833f1de5bee0
  */
-static double UTC(DateTimeInfo* dtInfo, double t) {
-  // Step 1.
-  if (!std::isfinite(t)) {
-    return GenericNaN();
-  }
+template <typename T>
+static double UTC(DateTimeInfo* dtInfo, T t) {
+  static_assert(std::is_same_v<T, double> || std::is_same_v<T, int64_t>);
 
+  MOZ_ASSERT(!std::isfinite(t) || IsInteger(t),
+             "unexpected fractional parts in local time value");
+
+  // Step 1.
+  //
   // Return early when |t| is outside the valid local time value limits.
   if (!IsLocalTimeValue(t)) {
     return GenericNaN();
   }
+  int64_t time = mozilla::AssertedCast<int64_t>(t);
 
   // Steps 2-5.
   int32_t offsetMs = DateTimeHelper::getTimeZoneOffset(
-      dtInfo, static_cast<int64_t>(t), DateTimeInfo::TimeZoneOffset::Local);
+      dtInfo, time, DateTimeInfo::TimeZoneOffset::Local);
   MOZ_ASSERT(std::abs(offsetMs) < msPerDay);
 
   // Step 6.
-  return static_cast<double>(static_cast<int64_t>(t) - offsetMs);
+  return static_cast<double>(time - offsetMs);
 }
 
 /**
@@ -1282,19 +1285,54 @@ static bool ParseISOStyleDate(DateTimeInfo* dtInfo, const CharT* s,
     return false;
   }
 
-  month -= 1; /* convert month to 0-based */
+  // MakeDay optimized for in-bounds int32 values.
+  static constexpr auto MakeDay = [](int32_t year, int32_t month,
+                                     int32_t date) JS_ALWAYS_INLINE_LAMBDA {
+    MOZ_ASSERT(-999'999 <= year && year <= 999'999);
+    MOZ_ASSERT(1 <= month && month <= 12);
+    MOZ_ASSERT(1 <= date && date <= 31);
 
-  double date = MakeDate(MakeDay(yearSign * year, month, day),
-                         MakeTime(hour, min, sec, msec));
+    int32_t yearday = ::DayFromYear(year);
+    int32_t monthday = DayFromMonth(month - 1, IsLeapYear(year));
+    return yearday + monthday + date - 1;
+  };
 
+  // MakeTime optimized for in-bounds int32 values.
+  static constexpr auto MakeTime = [](int32_t hour, int32_t min, int32_t sec,
+                                      int32_t ms) JS_ALWAYS_INLINE_LAMBDA {
+    return hour * msPerHour + min * msPerMinute + sec * msPerSecond + ms;
+  };
+
+  // Minimum and maximum possible day values when |abs(year) <= 999'999|.
+  static constexpr int32_t minDay = MakeDay(-999'999, 1, 1);
+  static constexpr int32_t maxDay = MakeDay(999'999, 12, 31);
+
+  // MakeDate optimized for in-bounds int32 values.
+  static constexpr auto MakeDate = [](int32_t day,
+                                      int32_t time) JS_ALWAYS_INLINE_LAMBDA {
+    MOZ_ASSERT(minDay <= day && day <= maxDay);
+    MOZ_ASSERT(time <= msPerDay);
+
+    return int64_t(day) * msPerDay + time;
+  };
+
+  static_assert(MakeDate(minDay, msPerDay) > INT64_MIN,
+                "doesn't overflow when day >= minDay");
+  static_assert(MakeDate(maxDay, msPerDay) < INT64_MAX,
+                "doesn't overflow when day <= maxDay");
+
+  int64_t date = MakeDate(MakeDay(yearSign * year, month, day),
+                          MakeTime(hour, min, sec, msec));
+
+  double datetime;
   if (isLocalTime) {
-    date = UTC(dtInfo, date);
+    datetime = UTC(dtInfo, date);
   } else {
-    date -= tzSign * (tzHour * msPerHour + tzMin * msPerMinute);
+    datetime = date - (tzSign * (tzHour * msPerHour + tzMin * msPerMinute));
   }
 
-  *result = TimeClip(date);
-  return NumbersAreIdentical(date, result->toDouble());
+  *result = TimeClip(datetime);
+  return true;
 
 #undef JS_ALWAYS_INLINE_LAMBDA
 }
