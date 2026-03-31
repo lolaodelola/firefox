@@ -9,9 +9,6 @@ const { HttpServer, HTTP_404 } = ChromeUtils.importESModule(
 const { GuardianClient } = ChromeUtils.importESModule(
   "moz-src:///toolkit/components/ipprotection/GuardianClient.sys.mjs"
 );
-const { IPPEnrollAndEntitleManager } = ChromeUtils.importESModule(
-  "moz-src:///toolkit/components/ipprotection/IPPEnrollAndEntitleManager.sys.mjs"
-);
 const { JsonSchemaValidator } = ChromeUtils.importESModule(
   "resource://gre/modules/components-utils/JsonSchemaValidator.sys.mjs"
 );
@@ -73,7 +70,7 @@ function setupGuardianClient(serverWrapper) {
   Services.prefs.setCharPref("identity.fxaccounts.remote.root", serverOrigin);
 
   const sandbox = sinon.createSandbox();
-  sandbox.stub(IPPEnrollAndEntitleManager, "getToken").resolves({
+  sandbox.stub(IPPFxaAuthProvider, "getToken").resolves({
     token: "test-token",
     [Symbol.dispose]: () => {},
   });
@@ -934,7 +931,7 @@ add_task(async function test_getToken_abort() {
     sandbox.stub(fxAccounts, "getOAuthToken").returns(new Promise(() => {}));
 
     const controller = new AbortController();
-    const promise = IPPEnrollAndEntitleManager.getToken(controller.signal);
+    const promise = IPPFxaAuthProvider.getToken(controller.signal);
 
     do_timeout(10, () => controller.abort());
 

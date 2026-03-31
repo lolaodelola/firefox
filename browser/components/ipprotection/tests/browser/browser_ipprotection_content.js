@@ -25,7 +25,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   IPPNimbusHelper:
     "moz-src:///toolkit/components/ipprotection/IPPNimbusHelper.sys.mjs",
   IPPEnrollAndEntitleManager:
-    "moz-src:///toolkit/components/ipprotection/IPPEnrollAndEntitleManager.sys.mjs",
+    "moz-src:///toolkit/components/ipprotection/fxa/IPPEnrollAndEntitleManager.sys.mjs",
 });
 
 const PANELSTATES = {

@@ -86,6 +86,10 @@ class IPProtectionServiceSingleton extends EventTarget {
     this.#helpers = helpers;
   }
 
+  get authProvider() {
+    return this.#authProvider;
+  }
+
   /**
    * Sets the authentication provider.
    *

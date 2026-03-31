@@ -401,38 +401,6 @@ class IPPEnrollAndEntitleManagerSingleton extends EventTarget {
     this.#setEntitlement(null);
   }
 
-  /**
-   * Retrieves an FxA OAuth token and returns a disposable handle that revokes
-   * it on disposal.
-   *
-   * @param {AbortSignal} [abortSignal]
-   * @returns {Promise<{token: string} & Disposable>}
-   */
-  async getToken(abortSignal = null) {
-    let tasks = [
-      lazy.fxAccounts.getOAuthToken({
-        scope: ["profile", "https://identity.mozilla.com/apps/vpn"],
-      }),
-    ];
-    if (abortSignal) {
-      abortSignal.throwIfAborted();
-      tasks.push(
-        new Promise((_, rej) => {
-          abortSignal?.addEventListener("abort", rej, { once: true });
-        })
-      );
-    }
-    const token = await Promise.race(tasks);
-    if (!token) {
-      return null;
-    }
-    return {
-      token,
-      [Symbol.dispose]: () => {
-        lazy.fxAccounts.removeCachedOAuthToken({ token });
-      },
-    };
-  }
 }
 
 const IPPEnrollAndEntitleManager = new IPPEnrollAndEntitleManagerSingleton();
