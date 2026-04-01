@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         installer_dest_path.push(format!("{i}.{ext}"));
         downloader.fetch(&entry.installer, &installer_dest_path)?;
         let mut updater_dest_path = download_dir.clone();
-        updater_dest_path.push("updater.tar.xz");
+        updater_dest_path.push(format!("{i}.updater.tar.xz"));
         downloader.fetch(&entry.updater_package, &updater_dest_path)?;
         tests.push(Test {
             id: entry.id.clone(),
