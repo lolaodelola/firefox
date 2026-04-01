@@ -207,6 +207,7 @@ export const AboutNewTab = {
     try {
       this.activityStream = new lazy.ActivityStream(createdInstant);
       Glean.newtab.activityStreamCtorSuccess.set(true);
+      redirector.resumeNewTabLoads();
     } catch (error) {
       // Send Activity Stream loading failure telemetry
       // This probe will help to monitor if ActivityStream failure has crossed

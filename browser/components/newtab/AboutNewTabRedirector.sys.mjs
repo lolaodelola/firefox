@@ -459,7 +459,7 @@ class BaseAboutNewTabRedirector {
  * before the AboutNewTabRedirectorChild has a chance to handle the request).
  */
 export class AboutNewTabRedirectorParent extends BaseAboutNewTabRedirector {
-  #addonInitialized = false;
+  #allowNewTabLoads = false;
   #suspendedChannels = [];
   #addonInitializedPromise = null;
   #addonInitializedResolver = null;
@@ -504,13 +504,16 @@ export class AboutNewTabRedirectorParent extends BaseAboutNewTabRedirector {
    * resumes them, now that the built-in addon has been set up.
    */
   notifyBuiltInAddonInitialized() {
-    this.#addonInitialized = true;
+    this.#addonInitializedResolver();
+  }
+
+  resumeNewTabLoads() {
+    this.#allowNewTabLoads = true;
 
     for (let suspendedChannel of this.#suspendedChannels) {
       suspendedChannel.resume();
     }
     this.#suspendedChannels = [];
-    this.#addonInitializedResolver();
   }
 
   /**
@@ -539,7 +542,7 @@ export class AboutNewTabRedirectorParent extends BaseAboutNewTabRedirector {
     );
     resultChannel.originalURI = uri;
 
-    if (!this.#addonInitialized) {
+    if (!this.#allowNewTabLoads) {
       return this.#getSuspendedChannel(resultChannel);
     }
 
