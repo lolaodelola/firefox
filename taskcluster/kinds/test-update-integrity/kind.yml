@@ -14,11 +14,8 @@ transforms:
 kind-dependencies:
     - build-signing
     - mar-signing
-    - mar-signing-l10n
     - partials-signing
     - repackage
-    - repackage-l10n
-    - shippable-l10n-signing
     - toolchain
 
 only-for-build-platforms:
@@ -40,8 +37,8 @@ tasks:
         description: verify update integrity
         worker-type: b-linux
         from-deps:
-            kinds: [mar-signing, mar-signing-l10n, partials-signing, repackage, repackage-l10n, build-signing, shippable-l10n-signing]
-            group-by: single-locale
+            kinds: [mar-signing, partials-signing, repackage, build-signing]
+            group-by: platform-no-l10n
             copy-attributes: true
             fetches:
                 # partials not listed here because the number and naming of them
@@ -51,8 +48,6 @@ tasks:
                 # fetches for these kinds are added in a transform
                 mar-signing:
                     - artifact: target.complete.mar
-                mar-signing-l10n:
-                    - artifact: "{locale}/target.complete.mar"
 
         cert-overrides:
             by-project:

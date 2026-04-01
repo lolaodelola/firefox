@@ -52,39 +52,18 @@ def set_treeherder(config, jobs):
 def add_to_installer(config, jobs):
     """Adds fetch entries for the "to" installer to fetches."""
     for job in jobs:
-        locale = job["attributes"].get("locale", "en-US")
-        # en-US and l10n tasks have different upstream tasks, and different
-        # artifact names.
-        if locale == "en-US":
-            if "linux" in job["attributes"]["build_platform"]:
-                job["fetches"]["build-signing"] = [
-                    {"artifact": "target.tar.xz", "extract": False}
-                ]
-            elif "mac" in job["attributes"]["build_platform"]:
-                job["fetches"]["repackage"] = [{"artifact": "target.dmg"}]
-            elif "win" in job["attributes"]["build_platform"]:
-                job["fetches"]["repackage"] = [{"artifact": "target.installer.exe"}]
-            else:
-                raise Exception(
-                    "unsupported platform: {job['attributes']['build_platform']}!"
-                )
-        else:  # noqa: PLR5501 -- this is more readable with a separate `else` block for l10n
-            if "linux" in job["attributes"]["build_platform"]:
-                job["fetches"]["shippable-l10n-signing"] = [
-                    {"artifact": f"{locale}/target.tar.xz", "extract": False}
-                ]
-            elif "mac" in job["attributes"]["build_platform"]:
-                job["fetches"]["repackage-l10n"] = [
-                    {"artifact": f"{locale}/target.dmg"}
-                ]
-            elif "win" in job["attributes"]["build_platform"]:
-                job["fetches"]["repackage-l10n"] = [
-                    {"artifact": f"{locale}/target.installer.exe"}
-                ]
-            else:
-                raise Exception(
-                    "unsupported platform: {job['attributes']['build_platform']}!"
-                )
+        if "linux" in job["attributes"]["build_platform"]:
+            job["fetches"]["build-signing"] = [
+                {"artifact": "target.tar.xz", "extract": False}
+            ]
+        elif "mac" in job["attributes"]["build_platform"]:
+            job["fetches"]["repackage"] = [{"artifact": "target.dmg"}]
+        elif "win" in job["attributes"]["build_platform"]:
+            job["fetches"]["repackage"] = [{"artifact": "target.installer.exe"}]
+        else:
+            raise Exception(
+                "unsupported platform: {job['attributes']['build_platform']}!"
+            )
 
         yield job
 
@@ -172,25 +151,16 @@ def add_additional_fetches_and_command(config, jobs):
 
         fetches = []
         for mar, info in config.params["release_history"][build_target][locale].items():
-            if locale == "en-US":
-                mar_prefix = ""
-            else:
-                mar_prefix = f"{locale}/"
-
-            fetches.append({"artifact": f"{mar_prefix}{mar}"})
-
+            fetches.append({"artifact": mar})
             # parameters give us the complete MAR url. installers are found right
             # beside them
             base_url = info["mar_url"].split(".complete.mar")[0]
             buildid = info["buildid"]
 
-            # the locale identifier is different for japanese depending on the
-            # platform...make sure we translate it for the updater download
-            linux_locale = "ja" if locale == "ja-JP-mac" else locale
             # regardless of what platform is under test, we perform the tests
             # with the 64-bit linux updater
             linux64_info = config.params["release_history"]["Linux_x86_64-gcc3"][
-                linux_locale
+                locale
             ][mar]
             linux64_installer = linux64_info["mar_url"].replace(
                 ".complete.mar", ".tar.xz"
