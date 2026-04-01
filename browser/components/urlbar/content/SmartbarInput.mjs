@@ -5916,7 +5916,12 @@ export class SmartbarInput extends HTMLElement {
         this.window.gBrowser.selectedBrowser?.getAttribute("usercontextid") ?? 0
       );
       options.tabGroup = this.window.gBrowser.selectedTab.group?.id ?? null;
-      options.currentPage = this.window.gBrowser.currentURI?.spec ?? "";
+      const currentPageSpec = this.window.gBrowser.currentURI?.spec;
+      // currentURI can be transiently null during a docshell swap (tab drag);
+      // omit currentPage rather than passing "" which fails UrlbarQueryContext validation.
+      if (currentPageSpec) {
+        options.currentPage = currentPageSpec;
+      }
     }
 
     if (this.searchMode) {
