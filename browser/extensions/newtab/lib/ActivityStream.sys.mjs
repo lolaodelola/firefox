@@ -43,6 +43,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   PrefsFeed: "resource://newtab/lib/PrefsFeed.sys.mjs",
   PlacesFeed: "resource://newtab/lib/PlacesFeed.sys.mjs",
   Region: "resource://gre/modules/Region.sys.mjs",
+  RemoteRenderer: "resource://newtab/lib/RemoteRenderer.sys.mjs",
   SectionsFeed: "resource://newtab/lib/SectionsManager.sys.mjs",
   SectionsLayoutFeed: "resource://newtab/lib/SectionsLayoutFeed.sys.mjs",
   StartupCacheInit: "resource://newtab/lib/StartupCacheInit.sys.mjs",
@@ -116,6 +117,9 @@ const PREF_IMAGE_PROXY_ENABLED =
   "browser.newtabpage.activity-stream.discoverystream.imageProxy.enabled";
 
 const PREF_IMAGE_PROXY_ENABLED_STORE = "discoverystream.imageProxy.enabled";
+
+const PREF_NEWTAB_REMOTE_RENDERER_ENABLED =
+  "browser.newtabpage.activity-stream.remote-renderer.enabled";
 
 export const PREF_DEFAULT_VALUE_TOPSITES_ENABLED = true;
 export const PREF_DEFAULT_VALUE_TOPSTORIES_ENABLED = true;
@@ -1731,6 +1735,12 @@ export class ActivityStream {
     this._defaultPrefs = new lazy.DefaultPrefs(PREFS_CONFIG);
     this._proxyRegistered = false;
     this.#createdInstant = createdInstant ?? null;
+
+    if (
+      Services.prefs.getBoolPref(PREF_NEWTAB_REMOTE_RENDERER_ENABLED, false)
+    ) {
+      this.remoteRenderer = new lazy.RemoteRenderer();
+    }
   }
 
   /**
@@ -1943,6 +1953,7 @@ export class ActivityStream {
 
     this.store.uninit();
     this.unregisterNetworkProxy();
+    lazy.NewTabActorRegistry.uninit();
     this.initialized = false;
   }
 

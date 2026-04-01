@@ -40,6 +40,8 @@ FINAL_TARGET_FILES.data.data += [
 ]
 FINAL_TARGET_FILES.data.content += [
     "../data/content/activity-stream.bundle.js",
+    "../data/content/bundled-renderer-index.js",
+    "../data/content/bundled-renderer.css",
     "../data/content/newtab-render.js",
     "../data/content/remote-renderer-host.html",
     "../data/content/vendor.bundle.js",

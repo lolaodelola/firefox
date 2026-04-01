@@ -90,7 +90,7 @@ export class AboutNewTabParent extends JSWindowActorParent {
         let browsingContext = this.browsingContext;
         let browser = browsingContext.top.embedderElement;
         if (!browser) {
-          return;
+          return null;
         }
 
         let tabDetails = {
@@ -124,7 +124,7 @@ export class AboutNewTabParent extends JSWindowActorParent {
         }
 
         if (!tabDetails) {
-          return;
+          return null;
         }
 
         tabDetails.browser.removeEventListener("EndSwapDocShells", this);
@@ -135,10 +135,19 @@ export class AboutNewTabParent extends JSWindowActorParent {
         break;
       }
 
-      case "ActivityStream:ContentToMain":
+      case "ActivityStream:ContentToMain": {
         this.notifyActivityStreamChannel("onMessage", message);
         break;
+      }
+
+      case "AssignRenderer": {
+        const rendererActor = this.browsingContext.currentWindowGlobal.getActor(
+          "MozNewTabRemoteRendererProtocol"
+        );
+        return rendererActor.assignRenderer();
+      }
     }
+    return null;
   }
 
   notifyActivityStreamChannel(name, message, tabDetails) {

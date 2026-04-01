@@ -59,7 +59,7 @@ const IS_PRIVILEGED_PROCESS =
 const PREF_ACTIVITY_STREAM_DEBUG = "browser.newtabpage.activity-stream.debug";
 const PREF_NEWTAB_SELF_LOADING =
   "browser.newtabpage.activity-stream.selfLoading.enabled";
-const PREF_NEWTAB_REMOTE_RENDERER =
+const PREF_NEWTAB_REMOTE_RENDERER_ENABLED =
   "browser.newtabpage.activity-stream.remote-renderer.enabled";
 /**
  * The AboutHomeStartupCacheChild is responsible for connecting the
@@ -412,7 +412,7 @@ class BaseAboutNewTabRedirector {
     XPCOMUtils.defineLazyPreferenceGetter(
       this,
       "remoteRendererEnabled",
-      PREF_NEWTAB_REMOTE_RENDERER,
+      PREF_NEWTAB_REMOTE_RENDERER_ENABLED,
       false
     );
   }

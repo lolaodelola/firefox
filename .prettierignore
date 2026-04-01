@@ -1263,6 +1263,7 @@ toolkit/components/uniffi-bindgen-gecko-js/tests/generated/*
 browser/components/aboutwelcome/**/*.css
 browser/components/asrouter/**/*.css
 browser/extensions/newtab/**/*.css
+browser/extensions/newtab/data/content/bundled-renderer-index.js
 
 # Note that the debugger has its own stylelint setup, but that currently
 # produces errors. Bug 1831302 tracks making this better

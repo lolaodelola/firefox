@@ -15,6 +15,7 @@ EXTRA_JS_MODULES += [
 
 MOZ_SRC_FILES += [
     "AboutNewTabComponents.sys.mjs",
+    "MozNewTabRemoteRendererProtocolHandler.sys.mjs",
     "SponsorProtection.sys.mjs",
 ]
 
