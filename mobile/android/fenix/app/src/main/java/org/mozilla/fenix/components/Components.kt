@@ -85,6 +85,7 @@ import org.mozilla.fenix.perf.StartupStateProvider
 import org.mozilla.fenix.perf.StrictModeManager
 import org.mozilla.fenix.perf.lazyMonitored
 import org.mozilla.fenix.reviewprompt.ReviewPromptMiddleware
+import org.mozilla.fenix.settings.datachoices.DataChoicesSearchProvider
 import org.mozilla.fenix.settings.settingssearch.DefaultFenixSettingsIndexer
 import org.mozilla.fenix.termsofuse.TermsOfUseManager
 import org.mozilla.fenix.termsofuse.store.DefaultTermsOfUsePromptRepository
@@ -391,7 +392,12 @@ class Components(private val context: Context) {
     }
 
     val settingsIndexer by lazyMonitored {
-        DefaultFenixSettingsIndexer(context)
+        DefaultFenixSettingsIndexer(
+            context = context,
+            additionalProviders = listOf(
+                DataChoicesSearchProvider,
+            ),
+        )
     }
 
     val ads by lazyMonitored {

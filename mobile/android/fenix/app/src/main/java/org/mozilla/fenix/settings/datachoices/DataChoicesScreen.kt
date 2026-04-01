@@ -4,6 +4,8 @@
 
 package org.mozilla.fenix.settings.datachoices
 
+import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,10 @@ import org.mozilla.fenix.compose.list.RadioButtonListItem
 import org.mozilla.fenix.compose.list.SwitchListItem
 import org.mozilla.fenix.compose.list.TextListItem
 import org.mozilla.fenix.compose.settings.SettingsSectionHeader
+import org.mozilla.fenix.ext.settings
+import org.mozilla.fenix.settings.settingssearch.PreferenceFileInformation
+import org.mozilla.fenix.settings.settingssearch.SettingsSearchItem
+import org.mozilla.fenix.settings.settingssearch.SettingsSearchProvider
 import org.mozilla.fenix.theme.FirefoxTheme
 import org.mozilla.fenix.theme.PreviewThemeProvider
 import org.mozilla.fenix.theme.Theme
@@ -379,6 +385,72 @@ private fun DataChoicesMarketingSectionDisabledPreview(
                     showMeasurementDataSection = false,
                 ),
             ),
+        )
+    }
+}
+
+/**
+ * Provides [SettingsSearchItem]s for the Data Choices settings screen for use in settings search.
+ */
+object DataChoicesSearchProvider : SettingsSearchProvider {
+    private val preferenceFileInformation = PreferenceFileInformation.DataChoicesPreferences
+
+    override fun getSearchItems(context: Context): List<SettingsSearchItem> {
+        return buildList {
+            add(
+                buildSearchItem(
+                    context = context,
+                    titleRes = R.string.preference_usage_data_2,
+                    summaryRes = R.string.preferences_usage_data_description_1,
+                ),
+            )
+            add(
+                buildSearchItem(
+                    context = context,
+                    titleRes = R.string.studies_title_2,
+                    summaryRes = null,
+                ),
+            )
+            add(
+                buildSearchItem(
+                    context = context,
+                    titleRes = R.string.preferences_daily_usage_ping_title,
+                    summaryRes = R.string.preferences_daily_usage_ping_description,
+                ),
+            )
+            add(
+                buildSearchItem(
+                    context = context,
+                    titleRes = R.string.crash_reports_data_category,
+                    summaryRes = R.string.crash_reporting_description,
+                ),
+            )
+            if (context.settings().hasMadeMarketingTelemetrySelection) {
+                add(
+                    buildSearchItem(
+                        context = context,
+                        titleRes = R.string.preferences_marketing_data_2,
+                        summaryRes = R.string.preferences_marketing_data_description_4,
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun buildSearchItem(
+        context: Context,
+        @StringRes titleRes: Int,
+        @StringRes summaryRes: Int?,
+    ) = context.getString(titleRes).run {
+        SettingsSearchItem(
+            title = this,
+            summary = when (summaryRes) {
+                null -> ""
+                else -> context.getString(summaryRes)
+            },
+            preferenceKey = this,
+            categoryHeader = context.getString(preferenceFileInformation.categoryHeaderResourceId),
+            preferenceFileInformation = preferenceFileInformation,
         )
     }
 }

@@ -172,4 +172,15 @@ sealed class PreferenceFileInformation(
         categoryHeaderResourceId = R.string.preferences_debug_settings,
         fragmentId = R.id.secretSettingsPreference,
     )
+
+    /**
+     * Represents the "Data Collection" settings screen.
+     * This screen is Compose-based and has no backing XML preference file.
+     */
+    object DataChoicesPreferences : PreferenceFileInformation(
+        xmlResourceId = R.id.dataChoicesFragment,
+        topBreadcrumbResourceId = R.string.preferences_data_collection,
+        categoryHeaderResourceId = R.string.preferences_category_privacy_security,
+        fragmentId = R.id.dataChoicesFragment,
+    )
 }
