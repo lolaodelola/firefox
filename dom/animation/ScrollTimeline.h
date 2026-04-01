@@ -157,8 +157,15 @@ class ScrollTimeline : public AnimationTimeline,
     // We are using this magic number for progress-based timeline duration
     // because we don't support percentage for duration.
     const auto interval = IntervalForAttachmentRange(aRange);
-    return TimeDuration::FromMilliseconds((interval.second - interval.first) *
-                                          PROGRESS_TIMELINE_DURATION_MILLISEC);
+    // FIXME: Bug 2006263. This function is used for computing the normalized
+    // timing for each animation effect. Per spec, we should just return 100%.
+    // However, we use TimeDuration to represent the duration now, so if the
+    // interval is negative or zero when applying the animation attachment
+    // range, we return 0 as the tentative solution.
+    return TimeDuration::FromMilliseconds(
+        (interval.second > interval.first ? interval.second - interval.first
+                                          : 0.0) *
+        PROGRESS_TIMELINE_DURATION_MILLISEC);
   }
 
   void WillRefresh();

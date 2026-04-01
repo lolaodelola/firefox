@@ -199,7 +199,7 @@ void ViewTimeline::UpdateCachedCurrentTime() {
 std::pair<nscoord, nscoord> ViewTimeline::IntervalForTimelineRangeName(
     const StyleTimelineRangeName aName,
     const ScrollTimeline::ComputedTimelineData& aData) {
-  nscoord rangeStart = 0.0;
+  nscoord rangeStart = 0;
   switch (aName) {
     case StyleTimelineRangeName::None:
     case StyleTimelineRangeName::Normal:
@@ -217,7 +217,7 @@ std::pair<nscoord, nscoord> ViewTimeline::IntervalForTimelineRangeName(
       break;
   }
 
-  nscoord rangeEnd = 1.0;
+  nscoord rangeEnd = 0;
   switch (aName) {
     case StyleTimelineRangeName::None:
     case StyleTimelineRangeName::Normal:
