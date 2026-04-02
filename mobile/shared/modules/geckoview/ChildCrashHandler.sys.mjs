@@ -100,18 +100,16 @@ export var ChildCrashHandler = {
 
         const processType = aSubject.get("processType");
 
-        lazy.EventDispatcher.instance.sendRequest(
-          "GeckoView:ChildCrashReport",
-          {
-            minidumpPath,
-            extrasPath,
-            success: true,
-            fatal: false,
-            processVisibility,
-            processType,
-            remoteType,
-          }
-        );
+        lazy.EventDispatcher.instance.sendRequest({
+          type: "GeckoView:ChildCrashReport",
+          minidumpPath,
+          extrasPath,
+          success: true,
+          fatal: false,
+          processVisibility,
+          processType,
+          remoteType,
+        });
 
         break;
       }

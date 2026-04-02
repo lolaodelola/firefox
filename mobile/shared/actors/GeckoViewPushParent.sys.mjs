@@ -14,24 +14,24 @@ export class GeckoViewPushParent extends JSProcessActorParent {
 
     switch (name) {
       case "GeckoView:PushSubscribe": {
-        return lazy.EventDispatcher.instance.sendRequestForResult(
-          "GeckoView:PushSubscribe",
-          data
-        );
+        return lazy.EventDispatcher.instance.sendRequestForResult({
+          ...data,
+          type: "GeckoView:PushSubscribe",
+        });
       }
 
       case "GeckoView:PushUnsubscribe": {
-        return lazy.EventDispatcher.instance.sendRequestForResult(
-          "GeckoView:PushUnsubscribe",
-          data
-        );
+        return lazy.EventDispatcher.instance.sendRequestForResult({
+          ...data,
+          type: "GeckoView:PushUnsubscribe",
+        });
       }
 
       case "GeckoView:PushGetSubscription": {
-        return lazy.EventDispatcher.instance.sendRequestForResult(
-          "GeckoView:PushGetSubscription",
-          data
-        );
+        return lazy.EventDispatcher.instance.sendRequestForResult({
+          ...data,
+          type: "GeckoView:PushGetSubscription",
+        });
       }
 
       default: {

@@ -27,10 +27,10 @@ export class GeckoViewContentParent extends GeckoViewActorParent {
   async receiveMessage(aMsg) {
     switch (aMsg.name) {
       case "GeckoView:PinOnScreen": {
-        return this.eventDispatcher.sendRequest(
-          "GeckoView:PinOnScreen",
-          aMsg.data
-        );
+        return this.eventDispatcher.sendRequest({
+          ...aMsg.data,
+          type: "GeckoView:PinOnScreen",
+        });
       }
       default: {
         return super.receiveMessage(aMsg);

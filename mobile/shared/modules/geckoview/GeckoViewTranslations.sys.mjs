@@ -109,7 +109,9 @@ export class GeckoViewTranslations extends GeckoViewModule {
     debug`handleEvent: ${aEvent.type}`;
     switch (aEvent.type) {
       case "TranslationsParent:OfferTranslation":
-        this.eventDispatcher.sendRequest("GeckoView:Translations:Offer");
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:Translations:Offer",
+        });
         break;
       case "TranslationsParent:LanguageState": {
         const {
@@ -128,7 +130,8 @@ export class GeckoViewTranslations extends GeckoViewModule {
           isEngineReady,
         };
 
-        this.eventDispatcher.sendRequest("GeckoView:Translations:StateChange", {
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:Translations:StateChange",
           data,
         });
 

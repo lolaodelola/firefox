@@ -357,6 +357,7 @@ export class GeckoViewNavigation extends GeckoViewModule {
       .replace(/-/g, "");
 
     const message = {
+      type: "GeckoView:OnNewSession",
       uri: aUri ? aUri.displaySpec : "",
       newSessionId,
     };
@@ -370,7 +371,7 @@ export class GeckoViewNavigation extends GeckoViewModule {
     );
 
     return this.eventDispatcher
-      .sendRequestForResult("GeckoView:OnNewSession", message)
+      .sendRequestForResult(message)
       .then(didOpenSession => {
         if (!didOpenSession) {
           // New session cannot be opened, so we should throw NS_ERROR_ABORT.
@@ -743,6 +744,7 @@ export class GeckoViewNavigation extends GeckoViewModule {
     }
 
     const message = {
+      type: "GeckoView:LocationChange",
       uri: fixedURI.displaySpec,
       canGoBack: this.browser.canGoBack,
       canGoForward: this.browser.canGoForward,
@@ -754,7 +756,7 @@ export class GeckoViewNavigation extends GeckoViewModule {
           : false,
     };
     lazy.TranslationsParent.onLocationChange(this.browser);
-    this.eventDispatcher.sendRequest("GeckoView:LocationChange", message);
+    this.eventDispatcher.sendRequest(message);
   }
 }
 

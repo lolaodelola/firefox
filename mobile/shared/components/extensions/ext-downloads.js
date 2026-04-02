@@ -238,7 +238,8 @@ this.downloads = class extends ExtensionAPIPersistent {
           }
 
           return EventDispatcher.instance
-            .sendRequestForResult(REQUEST_DOWNLOAD_MESSAGE, {
+            .sendRequestForResult({
+              type: REQUEST_DOWNLOAD_MESSAGE,
               options,
               extensionId: extension.id,
             })

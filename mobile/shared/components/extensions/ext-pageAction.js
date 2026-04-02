@@ -42,8 +42,9 @@ class PageAction extends PageActionBase {
     const action = tab
       ? this.getContextData(tab)
       : this.helper.extractProperties(this.globals);
-    this.helper.sendRequest(tabId, "GeckoView:PageAction:Update", {
+    this.helper.sendRequest(tabId, {
       action,
+      type: "GeckoView:PageAction:Update",
     });
   }
 
@@ -52,8 +53,9 @@ class PageAction extends PageActionBase {
     const popupUri = this.triggerClickOrPopup(tab);
     const actionObject = this.getContextData(tab);
     const action = this.helper.extractProperties(actionObject);
-    this.helper.sendRequest(tab.id, "GeckoView:PageAction:OpenPopup", {
+    this.helper.sendRequest(tab.id, {
       action,
+      type: "GeckoView:PageAction:OpenPopup",
       popupUri,
     });
   }

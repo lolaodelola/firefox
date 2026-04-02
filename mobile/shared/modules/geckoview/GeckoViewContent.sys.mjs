@@ -309,7 +309,9 @@ export class GeckoViewContent extends GeckoViewModule {
         if (this.browser.hasAttribute("primary")) {
           return;
         }
-        this.eventDispatcher.sendRequest("GeckoView:FocusRequest");
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:FocusRequest",
+        });
         aEvent.preventDefault();
         break;
       case "MozDOMFullscreen:Entered":
@@ -330,7 +332,8 @@ export class GeckoViewContent extends GeckoViewModule {
         this.#sendExitDOMFullScreenEvent();
         break;
       case "pagetitlechanged":
-        this.eventDispatcher.sendRequest("GeckoView:PageTitleChanged", {
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:PageTitleChanged",
           title: this.browser.contentTitle,
         });
         break;
@@ -340,22 +343,27 @@ export class GeckoViewContent extends GeckoViewModule {
         // here Gecko will close it immediately.
         aEvent.preventDefault();
 
-        this.eventDispatcher.sendRequest("GeckoView:DOMWindowClose");
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:DOMWindowClose",
+        });
         break;
       case "pageinfo":
         if (aEvent.detail.previewImageURL) {
-          this.eventDispatcher.sendRequest("GeckoView:PreviewImage", {
+          this.eventDispatcher.sendRequest({
+            type: "GeckoView:PreviewImage",
             previewImageUrl: aEvent.detail.previewImageURL,
           });
         }
         break;
       case "cookiebannerdetected":
-        this.eventDispatcher.sendRequest(
-          "GeckoView:CookieBannerEvent:Detected"
-        );
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:CookieBannerEvent:Detected",
+        });
         break;
       case "cookiebannerhandled":
-        this.eventDispatcher.sendRequest("GeckoView:CookieBannerEvent:Handled");
+        this.eventDispatcher.sendRequest({
+          type: "GeckoView:CookieBannerEvent:Handled",
+        });
         break;
     }
   }
@@ -373,9 +381,13 @@ export class GeckoViewContent extends GeckoViewModule {
         }
         this.window.setTimeout(() => {
           if (this._contentCrashed) {
-            this.eventDispatcher.sendRequest("GeckoView:ContentCrash");
+            this.eventDispatcher.sendRequest({
+              type: "GeckoView:ContentCrash",
+            });
           } else {
-            this.eventDispatcher.sendRequest("GeckoView:ContentKill");
+            this.eventDispatcher.sendRequest({
+              type: "GeckoView:ContentKill",
+            });
           }
         }, 250);
         break;
