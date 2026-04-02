@@ -75,6 +75,13 @@ def lint(paths, config, binary=None, fix=None, rules=[], setup=None, **lintargs)
         for rule in rules:
             extra_args.extend(["--rule", rule])
 
+            # ESLint requires that we specify any plugins, these are typically
+            # named by the prefix before the first `/`. There are some cases where
+            # this doesn't work, but ESLint also can't handle those cases with
+            # the `--plugin` argument anyway.
+            if "/" in rule:
+                extra_args.extend(["--plugin", rule.split("/", 1)[0]])
+
         # First run ESLint
         cmd_args = (
             [
@@ -108,6 +115,13 @@ def lint(paths, config, binary=None, fix=None, rules=[], setup=None, **lintargs)
         if any(a.startswith("--ignore-path") for a in extra_args)
         else ["--ignore-path=.prettierignore", "--ignore-path=.prettierignore-css"]
     )
+
+    # Don't pass the configuration, plugin or rule information to Prettier,
+    # as it doesn't understand those arguments.
+    def bypass(arg):
+        bypass_list = ["--config", "--plugin", "--rule"]
+        return any(arg.startswith(flag) for flag in bypass_list)
+
     cmd_args = (
         [
             binary,
@@ -117,9 +131,16 @@ def lint(paths, config, binary=None, fix=None, rules=[], setup=None, **lintargs)
             "--list-different",
             "--no-error-on-unmatched-pattern",
         ]
-        # Don't pass the configuration to Prettier as well, as it doesn't understand
-        # the ESLint configuration.
-        + list(filter(lambda x: not x.startswith("--config"), extra_args))
+        # Don't pass the configuration, plugin or rule information to Prettier,
+        # as it doesn't understand those arguments.
+        + list(
+            filter(
+                lambda x: not x.startswith("--config")
+                and not x.startswith("--plugin")
+                and not x.startswith("--rule"),
+                [arg for arg in extra_args if bypass(arg)],
+            )
+        )
         # Prettier does not support exclude arguments.
         # + exclude_args
         + ignore_args
