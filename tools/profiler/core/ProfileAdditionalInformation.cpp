@@ -200,6 +200,34 @@ constexpr uint8_t kSourceTextUTF8Tag = 1;
 constexpr uint8_t kRetrievableFileTag = 2;
 constexpr uint8_t kUnavailableTag = 3;
 
+// Bounded, overflow-safe read of a length-prefixed char buffer from an IPC
+// message. The caller has already read aLength (as size_t) from the wire; this
+// validates it, allocates, reads the payload, and null-terminates.
+template <typename CharT>
+static bool ReadSourceBuffer(
+    IPC::MessageReader* aReader, size_t aLength,
+    mozilla::UniquePtr<CharT[], JS::FreePolicy>* aOut) {
+  constexpr size_t kMaxLength = (UINT32_MAX / sizeof(CharT)) - 1;
+  if (aLength > kMaxLength) {
+    return false;
+  }
+  uint32_t byteLen = static_cast<uint32_t>(aLength * sizeof(CharT));
+  if (!aReader->HasBytesAvailable(byteLen)) {
+    return false;
+  }
+  CharT* chars = static_cast<CharT*>(js_malloc((aLength + 1) * sizeof(CharT)));
+  if (!chars) {
+    return false;
+  }
+  if (!aReader->ReadBytesInto(chars, byteLen)) {
+    js_free(chars);
+    return false;
+  }
+  chars[aLength] = CharT(0);
+  aOut->reset(chars);
+  return true;
+}
+
 void IPC::ParamTraits<ProfilerJSSourceData>::Write(MessageWriter* aWriter,
                                                    const paramType& aParam) {
   // Write sourceId and filePath first
@@ -258,15 +286,8 @@ bool IPC::ParamTraits<ProfilerJSSourceData>::Read(MessageReader* aReader,
 
   // Read filePath if present
   JS::UniqueChars filePath;
-  if (pathLength > 0) {
-    char* chars =
-        static_cast<char*>(js_malloc((pathLength + 1) * sizeof(char)));
-    if (!chars || !aReader->ReadBytesInto(chars, pathLength * sizeof(char))) {
-      js_free(chars);
-      return false;
-    }
-    chars[pathLength] = '\0';
-    filePath.reset(chars);
+  if (pathLength > 0 && !ReadSourceBuffer(aReader, pathLength, &filePath)) {
+    return false;
   }
 
   // Read startLine and startColumn.
@@ -283,16 +304,9 @@ bool IPC::ParamTraits<ProfilerJSSourceData>::Read(MessageReader* aReader,
   }
 
   JS::UniqueTwoByteChars sourceMapURL;
-  if (sourceMapURLLength > 0) {
-    char16_t* chars = static_cast<char16_t*>(
-        js_malloc((sourceMapURLLength + 1) * sizeof(char16_t)));
-    if (!chars ||
-        !aReader->ReadBytesInto(chars, sourceMapURLLength * sizeof(char16_t))) {
-      js_free(chars);
-      return false;
-    }
-    chars[sourceMapURLLength] = u'\0';
-    sourceMapURL.reset(chars);
+  if (sourceMapURLLength > 0 &&
+      !ReadSourceBuffer(aReader, sourceMapURLLength, &sourceMapURL)) {
+    return false;
   }
 
   // Then read the specific data type
@@ -307,27 +321,13 @@ bool IPC::ParamTraits<ProfilerJSSourceData>::Read(MessageReader* aReader,
       if (!ReadParam(aReader, &length)) {
         return false;
       }
-      if (length > 0) {
-        // Allocate one extra element for null terminator
-        char16_t* chars =
-            static_cast<char16_t*>(js_malloc((length + 1) * sizeof(char16_t)));
-        if (!chars ||
-            !aReader->ReadBytesInto(chars, length * sizeof(char16_t))) {
-          js_free(chars);
-          return false;
-        }
-        // Ensure null termination
-        chars[length] = u'\0';
-        *aResult = ProfilerJSSourceData(
-            sourceId, JS::UniqueTwoByteChars(chars), length,
-            std::move(filePath), pathLength, startLine, startColumn,
-            std::move(sourceMapURL), sourceMapURLLength);
-      } else {
-        *aResult = ProfilerJSSourceData(
-            sourceId, JS::UniqueTwoByteChars(), 0, std::move(filePath),
-            pathLength, startLine, startColumn, std::move(sourceMapURL),
-            sourceMapURLLength);
+      JS::UniqueTwoByteChars chars;
+      if (length > 0 && !ReadSourceBuffer(aReader, length, &chars)) {
+        return false;
       }
+      *aResult = ProfilerJSSourceData(
+          sourceId, std::move(chars), length, std::move(filePath), pathLength,
+          startLine, startColumn, std::move(sourceMapURL), sourceMapURLLength);
       return true;
     }
     case kSourceTextUTF8Tag: {
@@ -335,26 +335,13 @@ bool IPC::ParamTraits<ProfilerJSSourceData>::Read(MessageReader* aReader,
       if (!ReadParam(aReader, &length)) {
         return false;
       }
-      if (length > 0) {
-        // Allocate one extra byte for null terminator
-        char* chars =
-            static_cast<char*>(js_malloc((length + 1) * sizeof(char)));
-        if (!chars || !aReader->ReadBytesInto(chars, length * sizeof(char))) {
-          js_free(chars);
-          return false;
-        }
-        // Ensure null termination
-        chars[length] = '\0';
-        *aResult = ProfilerJSSourceData(
-            sourceId, JS::UniqueChars(chars), length, std::move(filePath),
-            pathLength, startLine, startColumn, std::move(sourceMapURL),
-            sourceMapURLLength);
-      } else {
-        *aResult = ProfilerJSSourceData(
-            sourceId, JS::UniqueChars(), 0, std::move(filePath), pathLength,
-            startLine, startColumn, std::move(sourceMapURL),
-            sourceMapURLLength);
+      JS::UniqueChars chars;
+      if (length > 0 && !ReadSourceBuffer(aReader, length, &chars)) {
+        return false;
       }
+      *aResult = ProfilerJSSourceData(
+          sourceId, std::move(chars), length, std::move(filePath), pathLength,
+          startLine, startColumn, std::move(sourceMapURL), sourceMapURLLength);
       return true;
     }
     case kRetrievableFileTag: {
