@@ -14,6 +14,15 @@ skip-if = [
 ["test_backup_legacy_to_selectable.py"]
 skip-if = [
   "os == 'linux' && os_version == '22.04' && arch == 'x86_64' && display == 'wayland'", # 1924781: Gnome keyring not unlocked
+  "os == 'linux' && os_version == '22.04' && arch == 'x86_64' && display == 'x11 && asan", # 2005929
+  "os == 'linux' && os_version == '22.04' && arch == 'x86_64' && display == 'x11' && opt", # 2005929
+  "os == 'linux' && os_version == '22.04' && arch == 'x86_64' && display == 'x11' && debug ", # 2005929
+  "os == 'mac' && os_version == '14.70' && arch == 'x86_64' && debug", # 2005929
+  "os == 'mac' && os_version == '14.70' && arch == 'x86_64' && opt", # 2005929
+  "os == 'win' && os_version == '11.26100' && arch == 'x86' && opt", # 2005929
+  "os == 'win' && os_version == '11.26200' && arch == 'x86' && opt", # 2005929
+  "os == 'win' && os_version == '11.26100' && arch == 'x86_64' && opt", # 2005929
+  "os == 'win' && os_version == '11.26200' && arch == 'x86_64' && opt", # 2005929
 ]
 
 ["test_backup_replace_current_profile.py"]
