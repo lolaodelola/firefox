@@ -52,8 +52,6 @@ ChromeUtils.defineESModuleGetters(this, {
   NewTabUtils: "resource://gre/modules/NewTabUtils.sys.mjs",
   NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
   nsContextMenu: "chrome://browser/content/nsContextMenu.sys.mjs",
-  OpenInTabsUtils:
-    "moz-src:///browser/components/tabbrowser/OpenInTabsUtils.sys.mjs",
   OpenSearchManager:
     "moz-src:///browser/components/search/OpenSearchManager.sys.mjs",
   PageActions: "resource:///modules/PageActions.sys.mjs",
@@ -3555,80 +3553,6 @@ function middleMousePaste(event) {
 
   if (Event.isInstance(event)) {
     event.stopPropagation();
-  }
-}
-
-// handleDroppedLink has the following 2 overloads:
-//   handleDroppedLink(event, url, name, triggeringPrincipal)
-//   handleDroppedLink(event, links, triggeringPrincipal)
-function handleDroppedLink(
-  event,
-  urlOrLinks,
-  nameOrTriggeringPrincipal,
-  triggeringPrincipal
-) {
-  let links;
-  if (Array.isArray(urlOrLinks)) {
-    links = urlOrLinks;
-    triggeringPrincipal = nameOrTriggeringPrincipal;
-  } else {
-    links = [{ url: urlOrLinks, nameOrTriggeringPrincipal, type: "" }];
-  }
-
-  let lastLocationChange = gBrowser.selectedBrowser.lastLocationChange;
-
-  let userContextId = gBrowser.selectedBrowser.getAttribute("usercontextid");
-
-  // event is null if links are dropped in content process.
-  // inBackground should be false, as it's loading into current browser.
-  let inBackground = false;
-  if (event) {
-    inBackground = Services.prefs.getBoolPref("browser.tabs.loadInBackground");
-    if (event.shiftKey) {
-      inBackground = !inBackground;
-    }
-  }
-
-  (async function () {
-    if (
-      links.length >=
-      Services.prefs.getIntPref("browser.tabs.maxOpenBeforeWarn")
-    ) {
-      // Sync dialog cannot be used inside drop event handler.
-      let answer = await OpenInTabsUtils.promiseConfirmOpenInTabs(
-        links.length,
-        window
-      );
-      if (!answer) {
-        return;
-      }
-    }
-
-    let urls = [];
-    let postDatas = [];
-    for (let link of links) {
-      let data = await UrlbarUtils.getShortcutOrURIAndPostData(link.url);
-      urls.push(data.url);
-      postDatas.push(data.postData);
-    }
-    if (lastLocationChange == gBrowser.selectedBrowser.lastLocationChange) {
-      gBrowser.loadTabs(urls, {
-        inBackground,
-        replace: true,
-        allowThirdPartyFixup: false,
-        postDatas,
-        userContextId,
-        triggeringPrincipal,
-      });
-    }
-  })();
-
-  // If links are dropped in content process, event.preventDefault() should be
-  // called in content process.
-  if (event) {
-    // Keep the event from being handled by the dragDrop listeners
-    // built-in to gecko if they happen to be above us.
-    event.preventDefault();
   }
 }
 

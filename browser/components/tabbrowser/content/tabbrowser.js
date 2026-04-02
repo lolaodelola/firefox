@@ -93,6 +93,84 @@
     return totalMemoryUsage;
   }
 
+  // Used for links dropped on browser content areas. Can be called with a null
+  // event argument when dropping links in the content process.
+  // handleDroppedLink has the following 2 overloads:
+  //   handleDroppedLink(tabbrowser, browser, event, url, name, triggeringPrincipal)
+  //   handleDroppedLink(tabbrowser, browser, event, links, triggeringPrincipal)
+  async function handleDroppedLink(
+    tabbrowser,
+    browser,
+    event,
+    urlOrLinks,
+    nameOrTriggeringPrincipal,
+    triggeringPrincipal
+  ) {
+    // If links are dropped in content process, event.preventDefault() should be
+    // called in the content process. Otherwise, we do it here.
+    if (event) {
+      // Keep the event from being handled by the dragDrop listeners
+      // built-in to gecko if they happen to be above us.
+      event.preventDefault();
+    }
+    let links;
+    if (Array.isArray(urlOrLinks)) {
+      links = urlOrLinks;
+      triggeringPrincipal = nameOrTriggeringPrincipal;
+    } else {
+      links = [{ url: urlOrLinks, nameOrTriggeringPrincipal, type: "" }];
+    }
+
+    let lastLocationChange = browser.lastLocationChange;
+
+    let userContextId = browser.getAttribute("usercontextid");
+
+    // event is null if links are dropped in content process.
+    // inBackground should be false, as it's loading into current browser.
+    let inBackground = false;
+    if (event) {
+      inBackground = Services.prefs.getBoolPref(
+        "browser.tabs.loadInBackground"
+      );
+      if (event.shiftKey) {
+        inBackground = !inBackground;
+      }
+    }
+
+    if (
+      links.length >=
+      Services.prefs.getIntPref("browser.tabs.maxOpenBeforeWarn")
+    ) {
+      // Sync dialog cannot be used inside drop event handler.
+      let answer = await tabbrowser.OpenInTabsUtils.promiseConfirmOpenInTabs(
+        links.length,
+        window
+      );
+      if (!answer) {
+        return;
+      }
+    }
+
+    let urls = [];
+    let postDatas = [];
+    for (let link of links) {
+      let data = await UrlbarUtils.getShortcutOrURIAndPostData(link.url);
+      urls.push(data.url);
+      postDatas.push(data.postData);
+    }
+    if (lastLocationChange == browser.lastLocationChange) {
+      tabbrowser.loadTabs(urls, {
+        inBackground,
+        replace: true,
+        allowThirdPartyFixup: false,
+        postDatas,
+        userContextId,
+        targetTab: tabbrowser.getTabForBrowser(browser),
+        triggeringPrincipal,
+      });
+    }
+  }
+
   window.Tabbrowser = class {
     init() {
       this.tabContainer = document.getElementById("tabbrowser-tabs");
@@ -109,6 +187,8 @@
         ASRouter: "resource:///modules/asrouter/ASRouter.sys.mjs",
         AsyncTabSwitcher:
           "moz-src:///browser/components/tabbrowser/AsyncTabSwitcher.sys.mjs",
+        OpenInTabsUtils:
+          "moz-src:///browser/components/tabbrowser/OpenInTabsUtils.sys.mjs",
         PictureInPicture: "resource://gre/modules/PictureInPicture.sys.mjs",
         SmartTabGroupingManager:
           "moz-src:///browser/components/tabbrowser/SmartTabGrouping.sys.mjs",
@@ -121,6 +201,7 @@
         TaskbarTabsUtils:
           "resource:///modules/taskbartabs/TaskbarTabsUtils.sys.mjs",
         TaskbarTabs: "resource:///modules/taskbartabs/TaskbarTabs.sys.mjs",
+        UrlbarUtils: "moz-src:///browser/components/urlbar/UrlbarUtils.sys.mjs",
         UrlbarProviderOpenTabs:
           "moz-src:///browser/components/urlbar/UrlbarProviderOpenTabs.sys.mjs",
         FaviconUtils: "moz-src:///toolkit/modules/FaviconUtils.sys.mjs",
@@ -223,6 +304,14 @@
         .addEventListener("change", this);
 
       this.tabContainer.init();
+
+      this._defaultDropLinkHandler = function (...args) {
+        // The droppedLinkHandler gets invoked with `this` being the browser
+        // element on which the drop took place.
+        let browser = this;
+        let tabbrowser = browser.getTabBrowser();
+        handleDroppedLink(tabbrowser, browser, ...args);
+      };
       this._setupInitialBrowserAndTab();
 
       if (
@@ -632,7 +721,7 @@
       if (gBrowserAllowScriptsToCloseInitialTabs) {
         browser.setAttribute("allowscriptstoclose", "true");
       }
-      browser.droppedLinkHandler = handleDroppedLink;
+      browser.droppedLinkHandler = this._defaultDropLinkHandler;
       browser.loadURI = URILoadingWrapper.loadURI.bind(
         URILoadingWrapper,
         browser
@@ -2459,7 +2548,6 @@
       // We'll be creating a new listener, so destroy the old one.
       listener?.destroy();
 
-      let oldDroppedLinkHandler = aBrowser.droppedLinkHandler;
       let oldUserTypedValue = aBrowser.userTypedValue;
       let hadStartedLoad = aBrowser.didStartLoadSinceLastUserTyping();
 
@@ -2490,8 +2578,6 @@
       if (hadStartedLoad) {
         aBrowser.urlbarChangeTracker.startedLoad();
       }
-
-      aBrowser.droppedLinkHandler = oldDroppedLinkHandler;
 
       // This shouldn't really be necessary, however, this has the side effect
       // of sending MozLayerTreeReady / MozLayerTreeCleared events for remote
@@ -2875,7 +2961,7 @@
       this._tabListeners.set(aTab, tabListener);
       this._tabFilters.set(aTab, filter);
 
-      browser.droppedLinkHandler = handleDroppedLink;
+      browser.droppedLinkHandler = this._defaultDropLinkHandler;
       browser.loadURI = URILoadingWrapper.loadURI.bind(
         URILoadingWrapper,
         browser
@@ -8848,7 +8934,6 @@
         // We'll be creating a new listener, so destroy the old one.
         oldListener.destroy();
 
-        let oldDroppedLinkHandler = browser.droppedLinkHandler;
         let oldUserTypedValue = browser.userTypedValue;
         let hadStartedLoad = browser.didStartLoadSinceLastUserTyping();
 
@@ -8857,8 +8942,6 @@
           if (hadStartedLoad) {
             browser.urlbarChangeTracker.startedLoad();
           }
-
-          browser.droppedLinkHandler = oldDroppedLinkHandler;
 
           // This shouldn't really be necessary, however, this has the side effect
           // of sending MozLayerTreeReady / MozLayerTreeCleared events for remote
