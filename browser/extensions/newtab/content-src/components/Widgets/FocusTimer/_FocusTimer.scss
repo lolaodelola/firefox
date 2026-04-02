@@ -70,11 +70,10 @@
   padding-inline: var(--space-medium);
   margin-block-end: var(--space-medium);
 
-  h3 {
-    font-size: var(--button-font-size);
-    // @backward-compat { version 150 } D281466/D283723 renamed design tokens; remove once Firefox 150 is on Release.
-    font-weight: var(--font-weight-heading, var(--heading-font-weight));
+  h2 {
     margin-block: 0;
+    font-weight: var(--font-weight);
+    font-size: var(--font-size-root);
   }
 }
 

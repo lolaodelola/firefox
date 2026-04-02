@@ -375,7 +375,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
           {searchActive ? (
             <LocationSearch outerClassName="" />
           ) : (
-            <h3>{weatherData.locationData.city}</h3>
+            <h2>{weatherData.locationData.city}</h2>
           )}
         </div>
         {renderContextMenu()}

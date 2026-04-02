@@ -153,7 +153,7 @@ describe("<WeatherForecast>", () => {
   });
 
   it("should display city name when search is inactive", () => {
-    const cityName = wrapper.find(".city-name h3");
+    const cityName = wrapper.find(".city-name h2");
     assert.ok(cityName.exists());
     assert.equal(cityName.text(), "Testville");
   });

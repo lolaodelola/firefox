@@ -4802,10 +4802,10 @@ dialog:dir(rtl)::after {
   padding-inline: var(--space-medium);
   margin-block-end: var(--space-medium);
 }
-.newtab-widget-timer-notification-title-wrapper h3 {
-  font-size: var(--button-font-size);
-  font-weight: var(--font-weight-heading, var(--heading-font-weight));
+.newtab-widget-timer-notification-title-wrapper h2 {
   margin-block: 0;
+  font-weight: var(--font-weight);
+  font-size: var(--font-size-root);
 }
 
 .focus-timer-context-menu-wrapper {
@@ -4956,7 +4956,7 @@ dialog:dir(rtl)::after {
 .weather-forecast-widget .city-wrapper .city-name {
   width: 100%;
 }
-.weather-forecast-widget .city-wrapper h3 {
+.weather-forecast-widget .city-wrapper h2 {
   margin-block: 0;
   font-weight: var(--font-weight);
   font-size: var(--font-size-root);

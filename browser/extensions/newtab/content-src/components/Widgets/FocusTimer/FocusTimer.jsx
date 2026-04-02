@@ -704,7 +704,7 @@ export const FocusTimer = ({
       }}
     >
       <div className="newtab-widget-timer-notification-title-wrapper">
-        <h3 data-l10n-id="newtab-widget-timer-notification-title"></h3>
+        <h2 data-l10n-id="newtab-widget-timer-notification-title"></h2>
         <div className="focus-timer-context-menu-wrapper">
           <moz-button
             className="focus-timer-context-menu-button"
