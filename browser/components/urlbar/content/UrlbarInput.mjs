@@ -128,8 +128,11 @@ export class UrlbarInput extends HTMLElement {
                      native="false">
             <menucaption class="searchmode-switcher-popup-description"
                          role="heading" />
-            <menuseparator/>
-            <menuseparator class="searchmode-switcher-popup-footer-separator"/>
+${
+  lazy.UrlbarPrefs.get("nova.featureGate")
+    ? '<menuseparator class="searchmode-switcher-popup-installed-engine-separator" /><menuseparator class="searchmode-switcher-popup-footer-separator"/>'
+    : '<menuseparator/><menuseparator class="searchmode-switcher-popup-installed-engine-separator searchmode-switcher-popup-footer-separator"/>'
+}
             <menuitem class="searchmode-switcher-popup-search-settings-button menuitem-iconic"
                       data-action="openpreferences"
                       image="chrome://global/skin/icons/settings.svg"
@@ -352,11 +355,12 @@ export class UrlbarInput extends HTMLElement {
     let searchModeSwitcherDescription = this.querySelector(
       ".searchmode-switcher-popup-description"
     );
+
     searchModeSwitcherDescription.setAttribute(
       "data-l10n-id",
-      this.#isAddressbar
-        ? "urlbar-searchmode-popup-description-menucaption"
-        : "urlbar-searchmode-popup-sticky-description-menucaption"
+      this.#isAddressbar && !lazy.UrlbarPrefs.get("nova.featureGate")
+        ? "urlbar-searchmode-popup-one-off-description-menucaption"
+        : "urlbar-searchmode-popup-header-menucaption"
     );
 
     // The event bufferer can be used to defer events that may affect users
