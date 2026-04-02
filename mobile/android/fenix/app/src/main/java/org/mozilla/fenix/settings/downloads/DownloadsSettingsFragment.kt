@@ -13,7 +13,6 @@ import androidx.navigation.fragment.navArgs
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreferenceCompat
 import mozilla.components.support.base.log.logger.Logger
 import mozilla.components.support.ktx.kotlin.ifNullOrEmpty
 import org.mozilla.fenix.R
@@ -21,11 +20,7 @@ import org.mozilla.fenix.e2e.SystemInsetsPaddedFragment
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.ext.showToolbar
 import org.mozilla.fenix.nimbus.FxNimbus
-import org.mozilla.fenix.settings.RadioButtonPreference
-import org.mozilla.fenix.settings.requirePreference
 import org.mozilla.fenix.settings.scrollToPreferenceWithHighlight
-import org.mozilla.fenix.utils.Settings.DeleteDownloadBehavior
-import org.mozilla.fenix.utils.view.addToRadioGroup
 
 /**
  * A [androidx.preference.PreferenceFragmentCompat] that displays settings related to downloads.
@@ -34,10 +29,6 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
     private val logger = Logger("DownloadsSettingsFragment")
     private val args by navArgs<DownloadsSettingsFragmentArgs>()
     private lateinit var downloadLocationFormatter: DownloadLocationFormatter
-
-    private lateinit var deleteFromDeviceRadioButton: RadioButtonPreference
-    private lateinit var removeFromDownloadHistoryRadioButton: RadioButtonPreference
-    private lateinit var askWhenToDeleteFilesRadioButton: RadioButtonPreference
 
     private var launcher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -56,7 +47,7 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
         val flags =
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
         try {
-            context?.contentResolver?.takePersistableUriPermission(safeUri, flags)
+            requireContext().contentResolver.takePersistableUriPermission(safeUri, flags)
         } catch (e: SecurityException) {
             logger.error(
                 "Failed to take persistable URI permission for the selected downloads directory.",
@@ -64,7 +55,7 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
             )
         }
 
-        context?.settings()?.downloadsDefaultLocation = safeUri.toString()
+        requireContext().settings().downloadsDefaultLocation = safeUri.toString()
         updateDownloadsLocationSummary()
     }
 
@@ -73,12 +64,6 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
             DefaultAndroidFileUtils(requireContext()),
         )
         setPreferencesFromResource(R.xml.downloads_settings_preferences, rootKey)
-        requirePreference<SwitchPreferenceCompat>(R.string.pref_key_downloads_clean_up_files_automatically).apply {
-            title = getString(
-                R.string.preferences_downloads_settings_clean_up_files_title,
-                getString(R.string.app_name),
-            )
-        }
         findPreference<Preference>(getString(R.string.pref_key_downloads_default_location))?.apply {
             onPreferenceClickListener = Preference.OnPreferenceClickListener {
                 launcher.launch(null)
@@ -86,50 +71,18 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
             }
         }
 
-        setupRadioGroups()
+        setUpDeleteBehaviorPreference()
 
         val fileStorageCategory =
             findPreference<PreferenceCategory>(getString(R.string.pref_key_downloads_storage_category))
         fileStorageCategory?.isVisible = FxNimbus.features.downloadsCustomLocation.value().enabled
     }
 
-    private fun setupRadioGroups() {
-        deleteFromDeviceRadioButton = requirePreference(
-            R.string.pref_key_downloads_delete_from_device,
-        )
-        removeFromDownloadHistoryRadioButton = requirePreference(
-            R.string.pref_key_downloads_remove_from_downloads_history,
-        )
-        askWhenToDeleteFilesRadioButton = requirePreference(
-            R.string.pref_key_downloads_ask_when_to_delete_files,
-        )
+    private fun setUpDeleteBehaviorPreference() {
+        findPreference<DownloadDeleteBehaviorComposePreference>("pref_key_compose_delete_behavior")?.apply {
+            currentBehavior = requireContext().settings().deleteDownloadBehavior
 
-        addToRadioGroup(
-            deleteFromDeviceRadioButton,
-            removeFromDownloadHistoryRadioButton,
-            askWhenToDeleteFilesRadioButton,
-        )
-
-        val currentBehavior = context?.settings()?.deleteDownloadBehavior
-        when (currentBehavior) {
-            DeleteDownloadBehavior.DELETE_FROM_DEVICE, null ->
-                deleteFromDeviceRadioButton.setCheckedWithoutClickListener(true)
-            DeleteDownloadBehavior.REMOVE_FROM_HISTORY ->
-                removeFromDownloadHistoryRadioButton.setCheckedWithoutClickListener(true)
-            DeleteDownloadBehavior.ASK_WHEN_DELETING ->
-                askWhenToDeleteFilesRadioButton.setCheckedWithoutClickListener(true)
-        }
-
-        deleteFromDeviceRadioButton.onClickListener {
-            context?.settings()?.deleteDownloadBehavior = DeleteDownloadBehavior.DELETE_FROM_DEVICE
-        }
-
-        removeFromDownloadHistoryRadioButton.onClickListener {
-            context?.settings()?.deleteDownloadBehavior = DeleteDownloadBehavior.REMOVE_FROM_HISTORY
-        }
-
-        askWhenToDeleteFilesRadioButton.onClickListener {
-            context?.settings()?.deleteDownloadBehavior = DeleteDownloadBehavior.ASK_WHEN_DELETING
+            onBehaviorSelected = { requireContext().settings().deleteDownloadBehavior = it }
         }
     }
 
@@ -146,7 +99,7 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
         val preference =
             findPreference<Preference>(getString(R.string.pref_key_downloads_default_location))
 
-        val storedLocation = context?.settings()?.downloadsDefaultLocation
+        val storedLocation = requireContext().settings().downloadsDefaultLocation
         val defaultLocation = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_DOWNLOADS,
         ).path
@@ -156,7 +109,7 @@ class DownloadsSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPadded
             downloadLocationFormatter.getFriendlyPath(locationToFormat)
         } catch (e: MissingUriPermission) {
             logger.warn("Resetting download location to default due to lost permissions.", e)
-            context?.settings()?.downloadsDefaultLocation = defaultLocation
+            requireContext().settings().downloadsDefaultLocation = defaultLocation
             downloadLocationFormatter.getFriendlyPath(defaultLocation)
         }
     }
