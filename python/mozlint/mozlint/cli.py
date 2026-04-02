@@ -92,7 +92,7 @@ class MozlintParser(ArgumentParser):
         [
             ["--include-third-party"],
             {
-                "dest": "include_third-party",
+                "dest": "include_third_party",
                 "default": False,
                 "action": "store_true",
                 "help": "Also run the linter(s) on third-party code",
