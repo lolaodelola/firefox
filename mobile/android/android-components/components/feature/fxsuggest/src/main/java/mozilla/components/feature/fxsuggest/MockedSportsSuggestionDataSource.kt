@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
  * strictly for development, visual testing, and UI prototyping.
  *
  * It does not perform any network requests and does not simulate latency.
- * If realistic behaviour (e.g. delayed responses, cancellation, overlapping requests)
+ * If realistic behavior (e.g. delayed responses, cancellation, overlapping requests)
  * is required for testing asynchronous flows, consider adding an artificial delay
  * inside [fetch] or using a test-specific implementation.
  *

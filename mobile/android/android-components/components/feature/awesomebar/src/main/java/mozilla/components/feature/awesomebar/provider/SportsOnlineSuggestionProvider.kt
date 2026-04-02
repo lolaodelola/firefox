@@ -17,11 +17,8 @@ import mozilla.components.feature.awesomebar.facts.emitOptimizedSuggestionCardDi
 import mozilla.components.feature.search.SearchUseCases
 import java.time.DateTimeException
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.time.format.FormatStyle
 import java.util.Locale
 import java.util.UUID
 
@@ -116,11 +113,7 @@ class SportsOnlineSuggestionProvider(
                     SportSuggestionDate.Today
                 }
                 tomorrow -> {
-                    val time = parsedDate.format(
-                        DateTimeFormatter
-                            .ofLocalizedTime(FormatStyle.SHORT)
-                            .withLocale(locale),
-                    )
+                    val time = formatShortTime(parsedDate, locale)
                     SportSuggestionDate.Tomorrow(time)
                 }
                 else -> {
@@ -135,15 +128,6 @@ class SportsOnlineSuggestionProvider(
         } catch (_: DateTimeException) {
             null
         }
-    }
-
-    private fun parseIsoDate(
-        date: String,
-        timeZone: ZoneId,
-    ): LocalDateTime? = try {
-        OffsetDateTime.parse(date).atZoneSameInstant(timeZone).toLocalDateTime()
-    } catch (_: DateTimeParseException) {
-        null
     }
 
     @VisibleForTesting
