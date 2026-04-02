@@ -358,6 +358,10 @@ class StructuredCloneHolder : public StructuredCloneHolderBase {
  protected:
   void SameProcessScopeRequired(bool* aSameProcessScopeRequired);
 
+  // If SupportsTransferring(), clears out the internal attachment arrays and
+  // storage to prevent future attempts from reading our internal state.
+  void MaybeClearTransferredState();
+
   already_AddRefed<MessagePort> ReceiveMessagePort(nsIGlobalObject* aGlobal,
                                                    uint64_t aIndex);
 

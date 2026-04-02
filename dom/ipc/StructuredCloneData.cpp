@@ -47,6 +47,10 @@ void StructuredCloneData::WriteIPCParams(IPC::MessageWriter* aWriter) {
     std::apply([&](auto&... member) { WriteParams(aWriter, member...); },
                TransferableAttachmentArrays());
   }
+
+  // Writing our data over IPC is a consuming operation if
+  // SupportsTransferring() - clear out the state if we've been consumed.
+  MaybeClearTransferredState();
 }
 
 bool StructuredCloneData::ReadIPCParams(IPC::MessageReader* aReader) {

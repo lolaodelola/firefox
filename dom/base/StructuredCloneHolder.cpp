@@ -453,6 +453,10 @@ void StructuredCloneHolder::Read(JSContext* aCx,
 
   StructuredCloneHolderBase::Read(aCx, aValue, aCloneDataPolicy, aRv);
 
+  MaybeClearTransferredState();
+}
+
+void StructuredCloneHolder::MaybeClearTransferredState() {
   // If we are transferring something, we cannot call 'Read()' more than once.
   // Clear out all serialized data whether or not we succeed.
   if (mSupportsTransferring) {
