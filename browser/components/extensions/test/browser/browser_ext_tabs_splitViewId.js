@@ -481,79 +481,94 @@ add_task(async function test_move_tabs_of_splitview_to_other_window() {
 
       // Now adopt one of the tabs in the split view in a new window. That
       // should adopt both tabs.
-      const newWindow2 = await browser.windows.create({ tabId: tabId0 });
-      browser.test.assertDeepEq(
-        [
-          { index: 0, tabId: tabId0, splitViewId },
-          { index: 1, tabId: tabId1, splitViewId },
-        ],
-        await queryTabsByWindowId(newWindow2.id),
-        "windows.create() with tab of split view should adopt both tabs"
-      );
-      browser.test.assertDeepEq(
-        [
-          {
-            movedTabId: tabId0,
-            detachInfo: { oldWindowId: newWindow.id, oldPosition: 0 },
-          },
-          {
-            movedTabId: tabId0,
-            attachInfo: { newWindowId: newWindow2.id, newPosition: 0 },
-          },
-          {
-            movedTabId: tabId1,
-            detachInfo: { oldWindowId: newWindow.id, oldPosition: 0 },
-          },
-          {
-            movedTabId: tabId1,
-            attachInfo: { newWindowId: newWindow2.id, newPosition: 1 },
-          },
-          // Note: no tabs.onUpdated with changeInfo.splitViewId, because the
-          // splitViewId does effectively not change.
-        ],
-        changes.splice(0),
-        "Got expected tabs events after moving tab of split to new window"
-      );
 
-      // Moving one tab of the split view should result in moving both tabs.
-      await browser.tabs.move(tabId0, {
-        windowId: newWindow.id,
-        index: 0,
-      });
-      browser.test.assertDeepEq(
-        [
-          { index: 0, tabId: tabId0, splitViewId },
-          { index: 1, tabId: tabId1, splitViewId },
-          { index: 2, tabId: tabId2, splitViewId: -1 },
-        ],
-        await queryTabsByWindowId(newWindow.id),
-        "tabs.move of one tab to a different window should move both"
-      );
+      // The observed outcome is expected to be identical independently of
+      // whether one is adopting the split view's left tab vs its right tab.
+      // This test temporarily tears off the split view to a separate window
+      // and then puts it back in the same place where it started. That
+      // enables us to reuse the test logic for both tabs.
+      async function testAdoptOneTabOfSplitInNewWindow(tabId0or1) {
+        const whichTab =
+          tabId0or1 === tabId0 ? "left tab of split" : "left tab of split";
+        const newWindow2 = await browser.windows.create({ tabId: tabId0or1 });
+        browser.test.assertDeepEq(
+          [
+            { index: 0, tabId: tabId0, splitViewId },
+            { index: 1, tabId: tabId1, splitViewId },
+          ],
+          await queryTabsByWindowId(newWindow2.id),
+          `windows.create() with ${whichTab} should adopt both tabs`
+        );
+        browser.test.assertDeepEq(
+          [
+            {
+              movedTabId: tabId0,
+              detachInfo: { oldWindowId: newWindow.id, oldPosition: 0 },
+            },
+            {
+              movedTabId: tabId0,
+              attachInfo: { newWindowId: newWindow2.id, newPosition: 0 },
+            },
+            {
+              movedTabId: tabId1,
+              detachInfo: { oldWindowId: newWindow.id, oldPosition: 0 },
+            },
+            {
+              movedTabId: tabId1,
+              attachInfo: { newWindowId: newWindow2.id, newPosition: 1 },
+            },
+            // Note: no tabs.onUpdated with changeInfo.splitViewId, because the
+            // splitViewId does effectively not change.
+          ],
+          changes.splice(0),
+          `Got expected tabs events after moving ${whichTab} to new window`
+        );
 
-      browser.test.assertDeepEq(
-        [
-          {
-            movedTabId: tabId0,
-            detachInfo: { oldWindowId: newWindow2.id, oldPosition: 0 },
-          },
-          {
-            movedTabId: tabId0,
-            attachInfo: { newWindowId: newWindow.id, newPosition: 0 },
-          },
-          {
-            movedTabId: tabId1,
-            detachInfo: { oldWindowId: newWindow2.id, oldPosition: 0 },
-          },
-          {
-            movedTabId: tabId1,
-            attachInfo: { newWindowId: newWindow.id, newPosition: 1 },
-          },
-          // Note: no tabs.onUpdated with changeInfo.splitViewId, because the
-          // splitViewId does effectively not change.
-        ],
-        changes.splice(0),
-        "Got expected tabs events after moving tab of split to existing window"
-      );
+        // Moving one tab of the split view should result in moving both tabs.
+        await browser.tabs.move(tabId0or1, {
+          windowId: newWindow.id,
+          index: 0,
+        });
+        browser.test.assertDeepEq(
+          [
+            { index: 0, tabId: tabId0, splitViewId },
+            { index: 1, tabId: tabId1, splitViewId },
+            { index: 2, tabId: tabId2, splitViewId: -1 },
+          ],
+          await queryTabsByWindowId(newWindow.id),
+          `tabs.move of ${whichTab} to different window should move whole split`
+        );
+
+        browser.test.assertDeepEq(
+          [
+            {
+              movedTabId: tabId0,
+              detachInfo: { oldWindowId: newWindow2.id, oldPosition: 0 },
+            },
+            {
+              movedTabId: tabId0,
+              attachInfo: { newWindowId: newWindow.id, newPosition: 0 },
+            },
+            {
+              movedTabId: tabId1,
+              detachInfo: { oldWindowId: newWindow2.id, oldPosition: 0 },
+            },
+            {
+              movedTabId: tabId1,
+              attachInfo: { newWindowId: newWindow.id, newPosition: 1 },
+            },
+            // Note: no tabs.onUpdated with changeInfo.splitViewId, because the
+            // splitViewId does effectively not change.
+          ],
+          changes.splice(0),
+          `Got expected tabs events after moving ${whichTab} to existing window`
+        );
+      }
+
+      // Test left side of split view (tabId0).
+      await testAdoptOneTabOfSplitInNewWindow(tabId0);
+      // Test right side of split view (tabId1).
+      await testAdoptOneTabOfSplitInNewWindow(tabId1);
 
       // Now remove a tab from the split, which should force unsplit.
       await browser.tabs.remove(tabId0);
