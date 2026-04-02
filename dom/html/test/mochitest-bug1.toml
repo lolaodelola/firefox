@@ -186,197 +186,295 @@ support-files = [
   "!/gfx/layers/apz/test/mochitest/apz_test_utils.js",
 ]
 
-["test_a_text.html"]
+["test_bug589.html"]
 
-["test_allowMedia.html"]
-skip-if = [
-  "os == 'mac' && os_version == '10.15' && arch == 'x86_64' && opt",
-  "os == 'win' && os_version == '10.2009' && arch == 'x86_64' && debug", # Bug 1434744
-]
+["test_bug691.html"]
 
-["test_anchor_href_cache_invalidation.html"]
+["test_bug694.html"]
 
-["test_base_attributes_reflection.html"]
+["test_bug696.html"]
 
-["test_change_crossorigin.html"]
+["test_bug1297.html"]
+
+["test_bug1366.html"]
+
+["test_bug1400.html"]
+
+["test_bug1682.html"]
+
+["test_bug1823.html"]
+
+["test_bug2082.html"]
+
+["test_bug3348.html"]
+
+["test_bug6296.html"]
+
+["test_bug24958.html"]
+
+["test_bug57600.html"]
+
+["test_bug95530.html"]
+
+["test_bug100533.html"]
+
+["test_bug109445.html"]
+
+["test_bug109445.xhtml"]
+
+["test_bug143220.html"]
+
+["test_bug182279.html"]
+
+["test_bug196523.html"]
 skip-if = [
   "http2",
   "http3",
 ]
 
-["test_checked.html"]
+["test_bug199692.html"]
 
-["test_details_handle_command_internal.html"]
-
-["test_dir_attributes_reflection.html"]
-
-["test_dl_attributes_reflection.html"]
-
-["test_document-element-inserted.html"]
-
-["test_documentAll.html"]
-
-["test_element_prototype.html"]
-
-["test_embed_attributes_reflection.html"]
-
-["test_fakepath.html"]
-
-["test_filepicker_default_directory.html"]
-
-["test_focusshift_button.html"]
-
-["test_form-parsing.html"]
-
-["test_formData.html"]
-
-["test_formSubmission.html"]
+["test_bug209275.xhtml"]
 skip-if = [
   "os == 'android'", # TIMED_OUT
 ]
 
-["test_formSubmission2.html"]
-skip-if = [
-  "os == 'android'",
+["test_bug237071.html"]
+
+["test_bug242709.html"]
+
+["test_bug255820.html"]
+
+["test_bug259332.html"]
+
+["test_bug274626.html"]
+
+["test_bug277724.html"]
+
+["test_bug277890.html"]
+
+["test_bug287465.html"]
+
+["test_bug295561.html"]
+
+["test_bug297761.html"]
+
+["test_bug300691-1.html"]
+
+["test_bug300691-2.html"]
+
+["test_bug300691-3.xhtml"]
+
+["test_bug311681.html"]
+
+["test_bug311681.xhtml"]
+
+["test_bug324378.html"]
+
+["test_bug330705-1.html"]
+
+["test_bug332246.html"]
+
+["test_bug332848.xhtml"]
+
+["test_bug332893-1.html"]
+
+["test_bug332893-2.html"]
+
+["test_bug332893-3.html"]
+
+["test_bug332893-4.html"]
+
+["test_bug332893-5.html"]
+
+["test_bug332893-6.html"]
+
+["test_bug332893-7.html"]
+
+["test_bug340017.xhtml"]
+
+["test_bug340800.html"]
+
+["test_bug347174.html"]
+
+["test_bug347174_write.html"]
+
+["test_bug347174_xsl.html"]
+
+["test_bug347174_xslp.html"]
+
+["test_bug353415-1.html"]
+
+["test_bug353415-2.html"]
+
+["test_bug359657.html"]
+
+["test_bug369370.html"]
+run-if = [
+  "os != 'android'",
 ]
 
-["test_formelements.html"]
+["test_bug371375.html"]
 
-["test_fragment_form_pointer.html"]
+["test_bug372098.html"]
 
-["test_frame_count_with_synthetic_doc.html"]
+["test_bug373589.html"]
 
-["test_getElementsByName_after_mutation.html"]
+["test_bug375003-1.html"]
 
-["test_hidden.html"]
+["test_bug375003-2.html"]
 
-["test_html_attributes_reflection.html"]
+["test_bug377624.html"]
 
-["test_htmlcollection.html"]
+["test_bug380383.html"]
 
-["test_iframe_sandbox_general.html"]
-tags = "openwindow"
+["test_bug383383.html"]
+
+["test_bug383383_2.xhtml"]
+
+["test_bug384419.html"]
+
+["test_bug386496.html"]
+
+["test_bug386728.html"]
+
+["test_bug386996.html"]
+
+["test_bug388558.html"]
+
+["test_bug388794.html"]
+
+["test_bug389797.html"]
+
+["test_bug390975.html"]
+
+["test_bug391994.html"]
+
+["test_bug395107.html"]
+
+["test_bug401160.xhtml"]
+
+["test_bug402680.html"]
+
+["test_bug403868.html"]
+
+["test_bug403868.xhtml"]
+
+["test_bug405242.html"]
+
+["test_bug406596.html"]
+
+["test_bug417760.html"]
+
+["test_bug421640.html"]
+
+["test_bug424698.html"]
+
+["test_bug428135.xhtml"]
+
+["test_bug430351.html"]
+skip-if = [
+  "os == 'android'", # Bug 1525959
+]
+
+["test_bug435128.html"]
+skip-if = [
+  "true", # Disabled for timeouts.
+]
+
+["test_bug441930.html"]
+
+["test_bug445004.html"]
+skip-if = [
+  "true", # Disabled permanently (bug 559932).
+]
+
+["test_bug446483.html"]
+
+["test_bug448166.html"]
+
+["test_bug448564.html"]
+
+["test_bug456229.html"]
+
+["test_bug458037.xhtml"]
+allow_xul_xbl = true
 skip-if = [
   "http2",
   "http3",
 ]
 
-["test_iframe_sandbox_inheritance.html"]
-tags = "openwindow"
+["test_bug460568.html"]
 
-["test_iframe_sandbox_navigation.html"]
-tags = "openwindow"
+["test_bug463104.html"]
 
-["test_iframe_sandbox_navigation2.html"]
-tags = "openwindow"
+["test_bug478251.html"]
 
-["test_iframe_sandbox_popups.html"]
-tags = "openwindow"
-
-["test_iframe_sandbox_popups_inheritance.html"]
-tags = "openwindow"
-
-["test_iframe_sandbox_redirect.html"]
-
-["test_iframe_sandbox_refresh.html"]
-
-["test_iframe_sandbox_same_origin.html"]
-
-["test_iframe_sandbox_workers.html"]
-
-["test_imageSrcSet.html"]
-
-["test_image_clone_load.html"]
+["test_bug481335.xhtml"]
 skip-if = [
-  "http2",
-  "http3",
+  "os == 'android'", # TIMED_OUT
 ]
 
-["test_img_attributes_reflection.html"]
+["test_bug481440.html"]
 
-["test_input_file_cancel_event.html"]
+["test_bug481647.html"]
 
-["test_input_files_not_nsIFile.html"]
+["test_bug482659.html"]
 
-["test_input_lastInteractiveValue.html"]
+["test_bug486741.html"]
 
-["test_input_modify_by_wheel.html"]
+["test_bug489532.html"]
 
-["test_inputmode.html"]
+["test_bug497242.xhtml"]
 
-["test_li_attributes_reflection.html"]
+["test_bug499092.html"]
 
-["test_link_attributes_reflection.html"]
+["test_bug500885.html"]
 
-["test_link_sizes.html"]
+["test_bug512367.html"]
 
-["test_map_attributes_reflection.html"]
+["test_bug514856.html"]
 
-["test_meta_attributes_reflection.html"]
+["test_bug518122.html"]
 
-["test_mod_attributes_reflection.html"]
+["test_bug519987.html"]
 
-["test_multipleFilePicker.html"]
+["test_bug523771.html"]
 
-["test_named_options.html"]
+["test_bug529819.html"]
 
-["test_nested_invalid_fieldsets.html"]
+["test_bug529859.html"]
 
-["test_nestediframe.html"]
+["test_bug535043.html"]
 
-["test_non-ascii-cookie.html"]
-support-files = ["file_cookiemanager.js"]
-skip-if = [
-  "http2",
-  "http3",
-  "xorigin",
-]
+["test_bug536891.html"]
 
-["test_object_attributes_reflection.html"]
+["test_bug536895.html"]
 
-["test_ol_attributes_reflection.html"]
+["test_bug546995.html"]
 
-["test_option_defaultSelected.html"]
+["test_bug547850.html"]
 
-["test_option_selected_state.html"]
+["test_bug551846.html"]
 
-["test_param_attributes_reflection.html"]
+["test_bug555567.html"]
 
-["test_q_attributes_reflection.html"]
+["test_bug556645.html"]
 
-["test_restore_from_parser_fragment.html"]
+["test_bug557087-1.html"]
 
-["test_rowscollection.html"]
+["test_bug557087-2.html"]
 
-["test_script_module.html"]
-support-files = ["file_script_module.html"]
+["test_bug557087-3.html"]
 
-["test_set_input_files.html"]
+["test_bug557087-4.html"]
 
-["test_srcdoc-2.html"]
+["test_bug557087-5.html"]
 
-["test_srcdoc.html"]
+["test_bug557087-6.html"]
 
-["test_style_attributes_reflection.html"]
+["test_bug557620.html"]
 
-["test_track.html"]
+["test_bug558788-1.html"]
 
-["test_ul_attributes_reflection.html"]
-
-["test_viewport_resize.html"]
-
-["test_window_open_close.html"]
-tags = "openwindow"
-skip-if = [
-  "os == 'android' && debug",
-  "os == 'win' && os_version == '10.2009' && arch == 'x86_64' && debug", # Bug 1533759
-]
-
-["test_window_open_from_closing.html"]
-skip-if = [
-  "os == 'android'", # test does not function on android due to aggressive background tab freezing
-]
-support-files = [
-  "file_window_close_and_open.html",
-  "file_broadcast_load.html",
-]
+["test_bug558788-2.html"]
