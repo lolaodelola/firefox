@@ -55,6 +55,13 @@ Java_org_mozilla_gecko_media_SampleBuffer_nativeWriteToDirectBuffer(
 }
 
 JNIEXPORT
+void JNICALL Java_org_mozilla_gecko_media_SampleBuffer_nativeMemcpy(
+    JNIEnv*, jclass, jlong dest, jlong src, jint size) {
+  memcpy(reinterpret_cast<void*>(dest), reinterpret_cast<const void*>(src),
+         size);
+}
+
+JNIEXPORT
 jlong JNICALL Java_org_mozilla_gecko_mozglue_SharedMemory_map(JNIEnv* env,
                                                               jobject jobj,
                                                               jint fd,
