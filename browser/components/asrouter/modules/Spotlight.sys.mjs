@@ -79,6 +79,12 @@ export const Spotlight = {
     this.sendUserEventTelemetry("IMPRESSION", message, dispatchCFRAction);
     dispatchCFRAction({ type: "IMPRESSION", data: message });
 
+    let unloadHandler = () => {
+      this._dialog = null;
+      this._dialogWindow = null;
+    };
+    win.addEventListener("unload", unloadHandler, { once: true });
+
     try {
       if (message.content?.modal === "tab") {
         let { closedPromise, dialog } = win.gBrowser
@@ -101,6 +107,7 @@ export const Spotlight = {
         await openPromise;
       }
     } finally {
+      win.removeEventListener("unload", unloadHandler);
       this._dialog = null;
       this._dialogWindow = null;
     }
