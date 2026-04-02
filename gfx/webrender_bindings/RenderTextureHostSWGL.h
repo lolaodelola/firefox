@@ -50,8 +50,8 @@ class RenderTextureHostSWGL : public RenderTextureHost {
   // surface. See swgl_bindings.rs for a description of the resulting
   // WrSWGLCompositeSurfaceInfo. This is paired with a call to UnlockSWGL when
   // composition is done.
-  virtual bool LockSWGLCompositeSurface(void* aContext,
-                                        wr::SWGLCompositeSurfaceInfo* aInfo);
+  bool LockSWGLCompositeSurface(void* aContext,
+                                wr::SWGLCompositeSurfaceInfo* aInfo);
 
   size_t BytesFromPlanes() {
     NS_ASSERTION(mPlanes.size(), "Can't compute bytes without any planes");
