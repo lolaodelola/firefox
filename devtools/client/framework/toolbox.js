@@ -244,7 +244,7 @@ const BOOLEAN_CONFIGURATION_PREFS = {
     name: "pauseOverlay",
     thread: true,
   },
-  "devtools.command-button-jstracer.enabled": {
+  "devtools.debugger.features.javascript-tracing": {
     name: "isTracerFeatureEnabled",
   },
 };
@@ -989,7 +989,7 @@ class Toolbox extends EventEmitter {
       let tracerInitialization;
       if (
         Services.prefs.getBoolPref(
-          "devtools.command-button-jstracer.enabled",
+          "devtools.debugger.features.javascript-tracing",
           false
         )
       ) {
@@ -4426,7 +4426,7 @@ class Toolbox extends EventEmitter {
 
     if (
       Services.prefs.getBoolPref(
-        "devtools.command-button-jstracer.enabled",
+        "devtools.debugger.features.javascript-tracing",
         false
       )
     ) {

@@ -651,15 +651,11 @@ exports.ToolboxButtons = [
       "toolbox.buttons.jstracer",
       osString == "Darwin" ? "Cmd+Shift+5" : "Ctrl+Shift+5"
     ),
-    isToolSupported: () => {
-      return (
-        lazy.AppConstants.NIGHTLY_BUILD ||
-        Services.prefs.getBoolPref(
-          "devtools.debugger.features.javascript-tracing",
-          false
-        )
-      );
-    },
+    isToolSupported: () =>
+      Services.prefs.getBoolPref(
+        "devtools.debugger.features.javascript-tracing",
+        false
+      ),
     async onClick(event, toolbox) {
       await toolbox.commands.tracerCommand.toggle();
     },
@@ -677,20 +673,6 @@ exports.ToolboxButtons = [
     isToggle: true,
     setup(toolbox, onChange) {
       toolbox.commands.tracerCommand.on("toggle", onChange);
-
-      // Automatically enable the button if this old preference was set to true.
-      // When enabling the tracer on all channels we will remove this preference.
-      if (
-        Services.prefs.getBoolPref(
-          "devtools.debugger.features.javascript-tracing",
-          false
-        )
-      ) {
-        Services.prefs.setBoolPref(
-          "devtools.command-button-jstracer.enabled",
-          true
-        );
-      }
     },
     teardown(toolbox, onChange) {
       toolbox.commands.tracerCommand.off("toggle", onChange);
