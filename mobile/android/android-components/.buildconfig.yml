@@ -2335,6 +2335,13 @@ projects:
     - components:support-test
     - components:support-utils
     - components:tooling-lint
+  components:service-merino-manifest:
+    description: A library that provides metadata for popular websites using an embedded
+      snapshot of the Merino manifest.
+    path: components/service/merino-manifest
+    publish: true
+    upstream_dependencies:
+    - components:tooling-lint
   components:service-nimbus:
     description: A client-side experiment SDK
     path: components/service/nimbus

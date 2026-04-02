@@ -323,6 +323,7 @@ treeherder:
         'service-glean': 'service-glean'
         'service-location': 'service-location'
         'service-mars': 'service-mars'
+        'service-merino-manifest': 'service-merino-manifest'
         'service-nimbus': 'service-nimbus'
         'service-pocket': 'service-pocket'
         'service-sync-autofill': 'service-sync-autofill'

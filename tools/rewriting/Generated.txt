@@ -172,6 +172,7 @@ mobile/android/android-components/components/service/firefox-relay/lint-baseline
 mobile/android/android-components/components/service/glean/lint-baseline.xml
 mobile/android/android-components/components/service/location/lint-baseline.xml
 mobile/android/android-components/components/service/mars/lint-baseline.xml
+mobile/android/android-components/components/service/merino-manifest/lint-baseline.xml
 mobile/android/android-components/components/service/nimbus/lint-baseline.xml
 mobile/android/android-components/components/service/pocket/lint-baseline.xml
 mobile/android/android-components/components/service/sync-autofill/lint-baseline.xml
