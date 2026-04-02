@@ -4267,11 +4267,6 @@ int XREMain::XRE_mainInit(bool* aExitFlag) {
   xreBinDirectory = mDirProvider.GetGREBinDir();
 
   if ((mAppData->flags & NS_XRE_ENABLE_CRASH_REPORTER) &&
-      NS_FAILED(CrashReporter::OOPInit(xreBinDirectory))) {
-    NS_WARNING("Could not launch the crash helper");
-  }
-
-  if ((mAppData->flags & NS_XRE_ENABLE_CRASH_REPORTER) &&
       NS_SUCCEEDED(CrashReporter::SetExceptionHandler(xreBinDirectory))) {
     nsCOMPtr<nsIFile> file;
     rv = nsXREDirProvider::GetUserAppDataDirectory(getter_AddRefs(file));
@@ -6159,10 +6154,8 @@ int XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig) {
   // detect hangs -- they show up as crashes.  We do this as late as possible.
   // In particular, after ProcessRuntime is destroyed on Windows.
   auto unsetExceptionHandler = MakeScopeExit([&] {
-    if (mAppData->flags & NS_XRE_ENABLE_CRASH_REPORTER) {
-      CrashReporter::OOPDeinit();
+    if (mAppData->flags & NS_XRE_ENABLE_CRASH_REPORTER)
       return CrashReporter::UnsetExceptionHandler();
-    }
     return NS_OK;
   });
 
