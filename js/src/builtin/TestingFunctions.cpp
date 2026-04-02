@@ -9647,6 +9647,10 @@ static bool BaselineCompile(JSContext* cx, unsigned argc, Value* vp) {
       returnedStr = "baseline disabled";
       break;
     }
+    if (script->length() > jit::BaselineMaxScriptLength ||
+        script->nslots() > jit::BaselineMaxScriptSlots) {
+      script->disableBaselineCompile();
+    }
     if (!script->canBaselineCompile()) {
       returnedStr = "can't compile";
       break;
