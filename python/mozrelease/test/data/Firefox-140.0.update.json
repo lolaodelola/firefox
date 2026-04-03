@@ -1,7 +1,7 @@
 [
     {
         "fields": {
-            "detailsURL": "https://www.mozilla.org/%LOCALE%/firefox/140.0/releasenotes/",
+            "detailsURL": "https://www.firefox.com/%LOCALE%/firefox/140.0/releasenotes/",
             "type": "minor"
         },
         "for": {}

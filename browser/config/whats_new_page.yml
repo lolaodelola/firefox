@@ -5,7 +5,7 @@
 ---
 - type: product-details
   # %LOCALE% is automatically replaced by Balrog.
-  url: "https://www.mozilla.org/%LOCALE%/{product}/{version}/releasenotes/"
+  url: "https://www.firefox.com/%LOCALE%/{product}/{version}/releasenotes/"
 - type: show-url
   # yamllint disable-line rule:line-length
   url: "https://www.firefox.com/%LOCALE%/whatsnew/{version}/?oldversion=%OLD_VERSION%&utm_medium=firefox-desktop&utm_source=update&utm_campaign={version.major_number}"

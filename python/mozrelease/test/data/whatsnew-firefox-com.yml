@@ -3,7 +3,7 @@
 
 ---
 - type: product-details
-  url: "https://www.mozilla.org/%LOCALE%/{product}/{version}/releasenotes/"
+  url: "https://www.firefox.com/%LOCALE%/{product}/{version}/releasenotes/"
 # %LOCALE% is automatically replaced by Balrog.
 - type: show-url
   # yamllint disable-line rule:line-length
