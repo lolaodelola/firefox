@@ -3469,6 +3469,14 @@ class nsContentUtils {
   static already_AddRefed<mozilla::dom::ContentFrameMessageManager>
   TryGetBrowserChildGlobal(nsISupports* aFrom);
 
+  /**
+   * Attempts to retrieve the extant document from a window global.
+   *
+   * @param aFrom The object expected to represent a window global.
+   * @return The associated document, or nullptr if not available.
+   */
+  static Document* TryGetDocumentFromWindowGlobal(nsISupports* aFrom);
+
   // Get a serial number for a newly created inner or outer window.
   static uint32_t InnerOrOuterWindowCreated();
   // Record that an inner or outer window has been destroyed.

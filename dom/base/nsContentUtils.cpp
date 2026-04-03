@@ -12497,6 +12497,16 @@ nsContentUtils::TryGetBrowserChildGlobal(nsISupports* aFrom) {
 }
 
 /* static */
+Document* nsContentUtils::TryGetDocumentFromWindowGlobal(nsISupports* aFrom) {
+  nsCOMPtr<nsPIDOMWindowInner> window = do_QueryInterface(aFrom);
+  MOZ_DIAGNOSTIC_ASSERT(window, "Expected a window global");
+  if (!window) {
+    return nullptr;
+  }
+  return window->GetExtantDoc();
+}
+
+/* static */
 uint32_t nsContentUtils::InnerOrOuterWindowCreated() {
   MOZ_ASSERT(NS_IsMainThread());
   ++sInnerOrOuterWindowCount;
