@@ -412,10 +412,7 @@ export class SearchModeSwitcher {
     }
 
     let browser = this.#input.window.gBrowser;
-    let installedEngineSeparator = this.#popup.querySelector(
-      ".searchmode-switcher-popup-installed-engine-separator"
-    );
-    let footerSeparator = this.#popup.querySelector(
+    let separator = this.#popup.querySelector(
       ".searchmode-switcher-popup-footer-separator"
     );
 
@@ -453,10 +450,10 @@ export class SearchModeSwitcher {
         }
       );
 
-      installedEngineSeparator.before(menuitem);
+      separator.before(menuitem);
     }
 
-    await this.#buildLocalSearchModeList(footerSeparator);
+    await this.#buildLocalSearchModeList(separator);
 
     // Add engines that can be installed.
     let openSearchEngines = lazy.OpenSearchManager.getEngines(
@@ -480,7 +477,7 @@ export class SearchModeSwitcher {
       menuitem.addEventListener("command", e => {
         this.#installOpenSearchEngine(e, engine);
       });
-      footerSeparator.before(menuitem);
+      separator.after(menuitem);
     }
 
     this.#popup.dispatchEvent(new Event("rebuild"));

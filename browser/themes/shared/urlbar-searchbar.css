@@ -1284,11 +1284,6 @@ toolbar[inactive="true"] .urlbar,
   }
 }
 
-/* Hide footer separator if there are no menuitems between both separators */
-.searchmode-switcher-popup-installed-engine-separator + .searchmode-switcher-popup-footer-separator {
-  display: none;
-}
-
 .searchmode-switcher-popup-description {
   font-weight: revert;
 }
