@@ -675,6 +675,316 @@ describe("<WeatherForecast>", () => {
     });
   });
 
+  describe("size submenu (nova)", () => {
+    const novaState = {
+      ...mockState,
+      Prefs: {
+        ...mockState.Prefs,
+        values: {
+          ...mockState.Prefs.values,
+          "nova.enabled": true,
+          "widgets.weather.size": "medium",
+        },
+      },
+    };
+
+    it("does not render submenu when nova is disabled", () => {
+      assert.isFalse(
+        wrapper
+          .find("panel-item[data-l10n-id='newtab-widget-menu-change-size']")
+          .exists()
+      );
+    });
+
+    it("renders size submenu when nova is enabled", () => {
+      wrapper = mount(
+        <WrapWithProvider state={novaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      assert.ok(
+        wrapper
+          .find("panel-item[data-l10n-id='newtab-widget-menu-change-size']")
+          .exists()
+      );
+      assert.ok(
+        wrapper
+          .find("panel-item[data-l10n-id='newtab-widget-size-small']")
+          .exists()
+      );
+      assert.ok(
+        wrapper
+          .find("panel-item[data-l10n-id='newtab-widget-size-medium']")
+          .exists()
+      );
+      assert.ok(
+        wrapper
+          .find("panel-item[data-l10n-id='newtab-widget-size-large']")
+          .exists()
+      );
+    });
+
+    it("clicking 'Small' dispatches SET_PREF and WIDGETS_USER_EVENT", () => {
+      wrapper = mount(
+        <WrapWithProvider state={novaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      const submenuNode = wrapper
+        .find("panel-list[id='weather-forecast-size-submenu']")
+        .getDOMNode();
+      const mockItem = document.createElement("div");
+      mockItem.dataset.size = "small";
+      const event = new MouseEvent("click", { bubbles: true });
+      Object.defineProperty(event, "composedPath", { value: () => [mockItem] });
+      submenuNode.dispatchEvent(event);
+
+      assert.ok(dispatch.calledTwice);
+
+      const [setPrefAction] = dispatch.getCall(0).args;
+      assert.equal(setPrefAction.type, at.SET_PREF);
+      assert.equal(setPrefAction.data.name, "widgets.weather.size");
+      assert.equal(setPrefAction.data.value, "small");
+
+      const [telemetryAction] = dispatch.getCall(1).args;
+      assert.equal(telemetryAction.type, at.WIDGETS_USER_EVENT);
+      assert.equal(telemetryAction.data.widget_name, "weather");
+      assert.equal(telemetryAction.data.widget_source, "context_menu");
+      assert.equal(telemetryAction.data.user_action, "change_size");
+      assert.equal(telemetryAction.data.action_value, "small");
+      assert.equal(telemetryAction.data.widget_size, "small");
+    });
+
+    it("clicking 'Large' dispatches SET_PREF and WIDGETS_USER_EVENT", () => {
+      wrapper = mount(
+        <WrapWithProvider state={novaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      const submenuNode = wrapper
+        .find("panel-list[id='weather-forecast-size-submenu']")
+        .getDOMNode();
+      const mockItem = document.createElement("div");
+      mockItem.dataset.size = "large";
+      const event = new MouseEvent("click", { bubbles: true });
+      Object.defineProperty(event, "composedPath", { value: () => [mockItem] });
+      submenuNode.dispatchEvent(event);
+
+      assert.ok(dispatch.calledTwice);
+
+      const [setPrefAction] = dispatch.getCall(0).args;
+      assert.equal(setPrefAction.type, at.SET_PREF);
+      assert.equal(setPrefAction.data.name, "widgets.weather.size");
+      assert.equal(setPrefAction.data.value, "large");
+
+      const [telemetryAction] = dispatch.getCall(1).args;
+      assert.equal(telemetryAction.type, at.WIDGETS_USER_EVENT);
+      assert.equal(telemetryAction.data.widget_name, "weather");
+      assert.equal(telemetryAction.data.widget_source, "context_menu");
+      assert.equal(telemetryAction.data.user_action, "change_size");
+      assert.equal(telemetryAction.data.action_value, "large");
+      assert.equal(telemetryAction.data.widget_size, "large");
+    });
+
+    it("widget_size in telemetry uses pref value when nova is enabled", () => {
+      const largeNovaState = {
+        ...novaState,
+        Prefs: {
+          ...novaState.Prefs,
+          values: {
+            ...novaState.Prefs.values,
+            "widgets.weather.size": "large",
+          },
+        },
+      };
+
+      wrapper = mount(
+        <WrapWithProvider state={largeNovaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      const changeLocationItem = wrapper.find(
+        "panel-item[data-l10n-id='newtab-weather-menu-change-location']"
+      );
+      changeLocationItem.props().onClick();
+
+      const [telemetryAction] = dispatch.getCall(1).args;
+      assert.equal(telemetryAction.type, at.WIDGETS_USER_EVENT);
+      assert.equal(telemetryAction.data.widget_size, "large");
+    });
+
+    it("isSmallSize is true when not maximized and widgetsMayBeMaximized is set", () => {
+      wrapper = mount(
+        <WrapWithProvider state={mockState}>
+          <WeatherForecast
+            dispatch={dispatch}
+            isMaximized={false}
+            widgetsMayBeMaximized={true}
+          />
+        </WrapWithProvider>
+      );
+
+      assert.ok(wrapper.find(".small-widget").exists());
+    });
+
+    it("nova=on, size=medium renders compact layout (.small-widget present)", () => {
+      const mediumNovaState = {
+        ...novaState,
+        Prefs: {
+          ...novaState.Prefs,
+          values: {
+            ...novaState.Prefs.values,
+            "widgets.weather.size": "medium",
+          },
+        },
+      };
+
+      wrapper = mount(
+        <WrapWithProvider state={mediumNovaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      assert.ok(wrapper.find(".small-widget").exists());
+    });
+
+    it("nova=on, size=large renders full layout (.small-widget absent)", () => {
+      const largeNovaState = {
+        ...novaState,
+        Prefs: {
+          ...novaState.Prefs,
+          values: {
+            ...novaState.Prefs.values,
+            "widgets.weather.size": "large",
+          },
+        },
+      };
+
+      wrapper = mount(
+        <WrapWithProvider state={largeNovaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      assert.isFalse(wrapper.find(".small-widget").exists());
+    });
+  });
+
+  describe("nova display gate and menu", () => {
+    const novaState = {
+      ...mockState,
+      Prefs: {
+        ...mockState.Prefs,
+        values: {
+          ...mockState.Prefs.values,
+          "nova.enabled": true,
+          "widgets.weather.size": "medium",
+        },
+      },
+    };
+
+    it("does not render when nova is enabled and size is small", () => {
+      const novaSmallState = {
+        ...novaState,
+        Prefs: {
+          ...novaState.Prefs,
+          values: {
+            ...novaState.Prefs.values,
+            "widgets.weather.size": "small",
+          },
+        },
+      };
+
+      wrapper = mount(
+        <WrapWithProvider state={novaSmallState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      assert.isFalse(wrapper.find(".weather-forecast-widget").exists());
+    });
+
+    it("renders without weather.display=detailed when nova is enabled", () => {
+      const novaSimpleState = {
+        ...novaState,
+        Prefs: {
+          ...novaState.Prefs,
+          values: {
+            ...novaState.Prefs.values,
+            "weather.display": "simple",
+          },
+        },
+      };
+
+      wrapper = mount(
+        <WrapWithProvider state={novaSimpleState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      assert.ok(wrapper.find(".weather-forecast-widget").exists());
+    });
+
+    it("hides CHANGE_DISPLAY items when nova is enabled", () => {
+      wrapper = mount(
+        <WrapWithProvider state={novaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      assert.isFalse(
+        wrapper
+          .find(
+            "panel-item[data-l10n-id='newtab-weather-menu-change-weather-display-detailed']"
+          )
+          .exists()
+      );
+      assert.isFalse(
+        wrapper
+          .find(
+            "panel-item[data-l10n-id='newtab-weather-menu-change-weather-display-simple']"
+          )
+          .exists()
+      );
+    });
+
+    it("shows CHANGE_DISPLAY items when nova is disabled", () => {
+      assert.ok(
+        wrapper
+          .find(
+            "panel-item[data-l10n-id='newtab-weather-menu-change-weather-display-simple']"
+          )
+          .exists()
+      );
+    });
+
+    it("checked state marks the current size", () => {
+      wrapper = mount(
+        <WrapWithProvider state={novaState}>
+          <WeatherForecast dispatch={dispatch} />
+        </WrapWithProvider>
+      );
+
+      const mediumItem = wrapper.find(
+        "panel-item[data-l10n-id='newtab-widget-size-medium']"
+      );
+      const smallItem = wrapper.find(
+        "panel-item[data-l10n-id='newtab-widget-size-small']"
+      );
+      const largeItem = wrapper.find(
+        "panel-item[data-l10n-id='newtab-widget-size-large']"
+      );
+
+      assert.equal(mediumItem.prop("checked"), true);
+      assert.equal(smallItem.prop("checked"), undefined);
+      assert.equal(largeItem.prop("checked"), undefined);
+    });
+  });
+
   describe("provider link anchor", () => {
     it("should dispatch WIDGETS_USER_EVENT with provider_link_click when the anchor is clicked", () => {
       const anchor = wrapper.find(".forecast-anchor");
