@@ -158,13 +158,6 @@ class Nursery {
   void* allocateBuffer(JS::Zone* zone, gc::Cell* owner, size_t nbytes,
                        size_t maxNurserySize);
 
-  // Allocate a zero-initialized buffer for a given zone, using the nursery if
-  // possible. If the buffer isn't allocated in the nursery, the given arena is
-  // used. Returns <buffer, isMalloced>. Returns false in |isMalloced| if the
-  // allocation fails.
-  std::tuple<void*, bool> allocateZeroedBuffer(JS::Zone* zone, size_t nbytes,
-                                               arena_id_t arena);
-
   // Allocate a zero-initialized buffer for a given Cell, using the nursery if
   // possible and |owner| is in the nursery. If the buffer isn't allocated in
   // the nursery, the given arena is used.

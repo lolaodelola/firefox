@@ -819,37 +819,31 @@ void* js::Nursery::allocNurseryOrMallocBuffer(Zone* zone, Cell* owner,
   return buffer;
 }
 
-std::tuple<void*, bool> js::Nursery::allocateZeroedBuffer(Zone* zone,
-                                                          size_t nbytes,
-                                                          arena_id_t arena) {
-  MOZ_ASSERT(nbytes > 0);
-
-  if (nbytes <= MaxNurseryBufferSize) {
-    void* buffer = allocate(nbytes);
-    if (buffer) {
-      memset(buffer, 0, nbytes);
-      return {buffer, false};
-    }
-  }
-
-  void* buffer = zone->pod_arena_calloc<uint8_t>(arena, nbytes);
-  return {buffer, bool(buffer)};
-}
-
 void* js::Nursery::allocateZeroedBuffer(Cell* owner, size_t nbytes,
                                         arena_id_t arena) {
   MOZ_ASSERT(owner);
   MOZ_ASSERT(nbytes > 0);
+  MOZ_ASSERT(nbytes <= SIZE_MAX - gc::CellAlignBytes);
+  nbytes = RoundUp(nbytes, gc::CellAlignBytes);
 
-  if (!IsInsideNursery(owner)) {
-    return owner->asTenured().zone()->pod_arena_calloc<uint8_t>(arena, nbytes);
+  if (IsInsideNursery(owner) && nbytes <= MaxNurseryBufferSize) {
+    void* buffer = allocate(nbytes);
+    if (buffer) {
+      memset(buffer, 0, nbytes);
+      return buffer;
+    }
   }
-  auto [buffer, isMalloced] =
-      allocateZeroedBuffer(owner->nurseryZone(), nbytes, arena);
-  if (isMalloced && !registerMallocedBuffer(buffer, nbytes)) {
+
+  void* buffer = owner->zone()->pod_arena_calloc<uint8_t>(arena, nbytes);
+  if (!buffer) {
+    return nullptr;
+  }
+
+  if (!registerMallocedBuffer(buffer, nbytes)) {
     js_free(buffer);
     return nullptr;
   }
+
   return buffer;
 }
 
