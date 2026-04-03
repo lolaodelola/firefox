@@ -724,6 +724,10 @@ class Zone : public js::ZoneAllocator, public js::gc::GraphNodeBase<JS::Zone> {
     return true;
   }
 
+  bool hasPendingWrapperPreservations() const {
+    return preservedWrappersCount_ != 0;
+  }
+
   void purgePendingWrapperPreservationBuffer() {
     MOZ_RELEASE_ASSERT(preservedWrappersCount_ == 0);
     js_free(preservedWrappers_);
