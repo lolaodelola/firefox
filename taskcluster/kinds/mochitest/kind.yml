@@ -134,6 +134,7 @@ tasks:
             - conditioned_profile
             - xorigin
             - no-fission
+            - standalone
             - headless
             - http3
             - http2
@@ -165,6 +166,11 @@ tasks:
                 aab+no-fission:
                     by-test-platform:
                         android-em.*/debug: built-projects
+                        default: []
+                standalone:
+                    by-test-platform:
+                        linux.*-64/(opt|debug): ['autoland', 'mozilla-central']
+                        windows.*-64-[^-/]+/(opt|debug): ['autoland', 'mozilla-central']
                         default: []
                 headless:
                     by-test-platform:
@@ -200,15 +206,22 @@ tasks:
                         default: built-projects
         chunks: dynamic
         default-chunks:
-            by-test-platform:
-                android.*/debug: 10
-                linux.*/debug: 16
-                linux.*64-tsan/opt: 20
-                .*-ccov.*: 10
-                .*-asan.*: 10
-                linux.*/opt: 8
-                windows.*/debug: 8
-                default: 5
+            by-variant:
+                standalone:
+                    by-test-platform:
+                        windows.*/debug: 30
+                        linux.*/debug: 25
+                        default: 20
+                default:
+                    by-test-platform:
+                        android.*/debug: 10
+                        linux.*/debug: 16
+                        linux.*64-tsan/opt: 20
+                        .*-ccov.*: 10
+                        .*-asan.*: 10
+                        linux.*/opt: 8
+                        windows.*/debug: 8
+                        default: 5
         tier:
             by-variant:
                 no-fission:
@@ -221,7 +234,10 @@ tasks:
                 linux.*64-asan/opt: xlarge-noscratch  # runs out of memory using 8GB
                 linux.*64-tsan/opt: xlarge-noscratch  # runs out of memory using 8GB
                 default: default
-        max-run-time: 3600
+        max-run-time:
+            by-variant:
+                standalone: 5400
+                default: 3600
         allow-software-gl-layers: false
         mozharness:
             mochitest-flavor: plain
@@ -574,6 +590,7 @@ tasks:
         variants:
             - 1proc
             - webrender-sw+1proc
+            - standalone
             - inc-origin-init
         run-on-projects:
             by-variant:
@@ -586,13 +603,24 @@ tasks:
                     by-test-platform:
                         .*-wayland.*: []
                         default: built-projects
+                standalone:
+                    by-test-platform:
+                        linux.*-64/(opt|debug): ['autoland', 'mozilla-central']
+                        windows.*-64-[^-/]+/(opt|debug): ['autoland', 'mozilla-central']
+                        default: []
                 inc-origin-init: []
         chunks: dynamic
         default-chunks:
-            by-test-platform:
-                .*-tsan.*/opt: 6
-                default: 3
-        max-run-time: 3600
+            by-variant:
+                standalone: 10
+                default:
+                    by-test-platform:
+                        .*-tsan.*/opt: 6
+                        default: 3
+        max-run-time:
+            by-variant:
+                standalone: 5400
+                default: 3600
         mozharness:
             mochitest-flavor: chrome
             chunked: true
