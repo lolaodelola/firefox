@@ -116,7 +116,7 @@ add_task(async function test_click_ask_row_picks_result() {
       "fetchWithHistory should be called after picking the AI_CHAT row"
     );
 
-    const conversation = fetchWithHistoryStub.firstCall.args[0];
+    const conversation = fetchWithHistoryStub.firstCall.args[0].conversation;
     const messages = conversation.getMessagesInOpenAiFormat();
     const userMessage = messages.findLast(m => m.role === "user");
     Assert.equal(

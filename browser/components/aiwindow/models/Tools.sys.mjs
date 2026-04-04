@@ -228,7 +228,6 @@ export const toolsConfig = [
  * Only includes tabs with http/https URLs.
  * TODO: Ignores chat-only pages (FE to implement isSidebarMode flag).
  *
- * @param {object} _params
  * @param {SecurityProperties} securityProperties
  * @returns {Promise<Array<object>>}
  *  A promise resolving to an array of tab metadata objects, each containing:
@@ -238,7 +237,7 @@ export const toolsConfig = [
  *  - lastAccessed {number}: Last accessed timestamp in milliseconds
  *  Tabs are sorted by most recently accessed and limited to MAX_TABS results.
  */
-export async function getOpenTabs(_params, securityProperties) {
+export async function getOpenTabs(securityProperties) {
   // No security check needed. The security checks prevent data exfiltration,
   // which requires external communication. This tool makes no external requests.
   const tabs = [];
@@ -430,12 +429,11 @@ export class RunSearch {
 
   /**
    * @param {object} [toolParams]
-   * @param {object} [context]
-   * @param {BrowsingContext} [context.browsingContext]
+   * @param {BrowsingContext} browsingContext
    * @param {SecurityProperties} securityProperties
    * @returns {Promise<string>}
    */
-  static async runSearch(toolParams, context = {}, securityProperties) {
+  static async runSearch(toolParams, browsingContext, securityProperties) {
     // No security check, always allowed because we assume that the search
     // provider is trusted.
 
@@ -458,17 +456,17 @@ export class RunSearch {
       return "Error: a non-empty search query is required.";
     }
 
-    if (!context.browsingContext) {
+    if (!browsingContext) {
       return "Error: no browsingContext provided to perform search.";
     }
 
-    const win = context.browsingContext.topChromeWindow;
+    const win = browsingContext.topChromeWindow;
     if (!win || win.closed) {
       return "Error: associated browser window not available or closed.";
     }
 
     // Get the original tab from the browsing context, not the currently selected tab
-    const originalBrowser = context.browsingContext.embedderElement;
+    const originalBrowser = browsingContext.embedderElement;
     let targetTab =
       originalBrowser && win.gBrowser?.getTabForBrowser(originalBrowser);
 
@@ -803,11 +801,10 @@ export class GetPageContent {
 /**
  * Retrieves the summaries of all saved memories
  *
- * @param {object} _toolParams
  * @param {SecurityProperties} securityProperties
  * @returns {Promise<Array<string>>}
  */
-export async function getUserMemories(_toolParams, securityProperties) {
+export async function getUserMemories(securityProperties) {
   // No security check, always allowed because it makes no external requests.
   const memories = await lazy.MemoriesManager.getAllMemories();
 
@@ -818,3 +815,5 @@ export async function getUserMemories(_toolParams, securityProperties) {
   lazy.console.log("[Tool] getUserMemories", result);
   return result;
 }
+
+export const toolFns = { getOpenTabs, searchBrowsingHistory, getUserMemories };

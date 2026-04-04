@@ -86,7 +86,7 @@ add_task(async function test_getOpenTabs_basic() {
       "https://mozilla.org": "Mozilla organization site",
     });
 
-    const tabs = await getOpenTabs(15, new SecurityProperties());
+    const tabs = await getOpenTabs(new SecurityProperties());
 
     Assert.equal(tabs.length, 3, "Should return all 3 tabs");
     Assert.equal(tabs[0].url, "https://firefox.com", "Most recent tab first");
@@ -142,7 +142,7 @@ add_task(async function test_getOpenTabs_filters_non_web_urls() {
     sb.stub(BrowserWindowTracker, "orderedWindows").get(() => [fakeWindow]);
     setupPageDataServiceMock(sb);
 
-    const tabs = await getOpenTabs(15, new SecurityProperties());
+    const tabs = await getOpenTabs(new SecurityProperties());
 
     Assert.equal(
       tabs.length,
@@ -186,7 +186,7 @@ add_task(async function test_getOpenTabs_pagination() {
     setupPageDataServiceMock(sb);
 
     // Test default limit
-    const defaultResult = await getOpenTabs(15, new SecurityProperties());
+    const defaultResult = await getOpenTabs(new SecurityProperties());
     Assert.equal(defaultResult.length, 15, "Should return at most 15 tabs");
     Assert.equal(
       defaultResult[0].url,
@@ -230,7 +230,7 @@ add_task(async function test_getOpenTabs_filters_non_ai_windows() {
     ]);
     setupPageDataServiceMock(sb);
 
-    const tabs = await getOpenTabs(15, new SecurityProperties());
+    const tabs = await getOpenTabs(new SecurityProperties());
 
     Assert.equal(
       tabs.length,
@@ -250,7 +250,7 @@ add_task(async function test_getOpenTabs_filters_non_ai_windows() {
 
 add_task(async function test_getOpenTabs_sets_security_flags() {
   const secProps = new SecurityProperties();
-  await getOpenTabs(15, secProps);
+  await getOpenTabs(secProps);
   secProps.commit();
 
   Assert.strictEqual(secProps.privateData, true, "private_data true");
@@ -262,7 +262,7 @@ add_task(async function test_getOpenTabs_allowed_when_flags_set() {
   secProps.setPrivateData();
   secProps.setUntrustedInput();
   secProps.commit();
-  const tabs = await getOpenTabs(15, secProps);
+  const tabs = await getOpenTabs(secProps);
 
   Assert.ok(Array.isArray(tabs), "returns array, not refusal");
 });
@@ -284,7 +284,7 @@ add_task(async function test_getOpenTabs_return_structure() {
       "https://test.com": "A test page description",
     });
 
-    const tabs = await getOpenTabs(15, new SecurityProperties());
+    const tabs = await getOpenTabs(new SecurityProperties());
 
     Assert.equal(tabs.length, 1, "Should return one tab");
 

@@ -97,7 +97,7 @@ add_task(async function test_smartbar_submit_chat() {
       "Should call fetchWithHistory once"
     );
 
-    const conversation = fetchWithHistoryStub.firstCall.args[0];
+    const conversation = fetchWithHistoryStub.firstCall.args[0].conversation;
     const messages = conversation.getMessagesInOpenAiFormat();
     const userMessage = messages.findLast(message => message.role === "user");
 
@@ -506,7 +506,7 @@ add_task(async function test_smartbar_can_submit_followup_prompts() {
     await typeInSmartbar(browser, followupPrompt);
     await submitSmartbar(browser);
 
-    const conversation = fetchWithHistoryStub.firstCall.args[0];
+    const conversation = fetchWithHistoryStub.firstCall.args[0].conversation;
     const messages = conversation.getMessagesInOpenAiFormat();
     const initialUserMessage = messages.find(
       message => message.content === intialPrompt

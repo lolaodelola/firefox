@@ -144,7 +144,7 @@ describe("AI Window session restore", () => {
     let sidebarBrowser;
 
     beforeEach(async () => {
-      sb.stub(Chat, "fetchWithHistory").callsFake(async conversation => {
+      sb.stub(Chat, "fetchWithHistory").callsFake(async ({ conversation }) => {
         await ChatStore.updateConversation(conversation);
       });
       sb.stub(openAIEngine, "build").resolves({

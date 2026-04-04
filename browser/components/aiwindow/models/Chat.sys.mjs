@@ -14,11 +14,9 @@ import {
 } from "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs";
 import {
   toolsConfig,
-  getOpenTabs,
-  searchBrowsingHistory,
+  toolFns,
   GetPageContent,
   RunSearch,
-  getUserMemories,
   GET_OPEN_TABS,
   SEARCH_BROWSING_HISTORY,
   GET_PAGE_CONTENT,
@@ -100,13 +98,6 @@ function logConversationStream(turn, action, data = null, extraText = "") {
 }
 
 Object.assign(Chat, {
-  toolMap: {
-    get_open_tabs: getOpenTabs,
-    search_browsing_history: searchBrowsingHistory,
-    get_page_content: GetPageContent.getPageContent,
-    run_search: RunSearch.runSearch.bind(RunSearch),
-    get_user_memories: getUserMemories,
-  },
   lastUsage: null,
 
   /**
@@ -115,12 +106,23 @@ Object.assign(Chat, {
    * we execute them locally, append results to the conversation, and continue
    * streaming the model's follow-up answer. Repeats until no more tool calls.
    *
-   * @param {ChatConversation} conversation
-   * @param {openAIEngine} engineInstance
-   * @param {object} [context]
-   * @param {BrowsingContext} [context.browsingContext]
+   * @param {object} options
+   * @param {ChatConversation} options.conversation
+   * @param {openAIEngine} options.engineInstance
+   * @param {BrowsingContext} options.browsingContext - Omitted for tests only.
+   * @param {"fullpage" | "sidebar" | "urlbar"} options.mode - See the MODE in ai-window.mjs
    */
-  async fetchWithHistory(conversation, engineInstance, context = {}) {
+  async fetchWithHistory({
+    conversation,
+    engineInstance,
+    browsingContext,
+    mode,
+  }) {
+    if (!browsingContext && !Cu.isInAutomation) {
+      throw new Error(
+        "The browsingContext must exist for fetchWithHistory unless we're in automation."
+      );
+    }
     const fxAccountToken = await openAIEngine.getFxAccountToken();
     if (!fxAccountToken) {
       console.error("fetchWithHistory Account Token null or undefined");
@@ -305,57 +307,76 @@ Object.assign(Chat, {
           delete toolParams.query;
         }
 
-        let result, searchHandoffBrowser;
+        // Capture the embedder element before running tools, as navigation during
+        // a tool call such as search handoff can replace the browsing context.
+        const originalEmbedderElement = browsingContext?.embedderElement;
+
+        // Dispatch the required arguments to different tool calls. Wrap this in a
+        // try/catch so the conversation can be updated for failed calls.
+        let result;
         try {
-          const toolFunc = this.toolMap[toolName];
-          if (typeof toolFunc !== "function") {
-            throw new Error(`No such tool: ${toolName}`);
-          }
-
-          const hasParams = toolParams && !!Object.keys(toolParams).length;
-          const params = hasParams ? toolParams : undefined;
-          const secProps = conversation.securityProperties;
-
-          if (toolName === RUN_SEARCH) {
-            if (!context.browsingContext) {
-              console.error(
-                "run_search: No browsingContext provided, aborting search handoff"
+          switch (toolName) {
+            case GET_PAGE_CONTENT: {
+              const startTime = new Date();
+              result = await GetPageContent.getPageContent(
+                toolParams,
+                allAllowedUrls,
+                conversation.securityProperties
               );
-              return;
+              Glean.smartWindow.getPageContent.record({
+                location: mode,
+                chat_id: conversation.id,
+                message_seq: conversation.messageCount,
+                length: result.reduce(
+                  (acc, curr) => acc + (curr?.length || 0),
+                  0
+                ),
+                time: new Date() - startTime,
+              });
+              break;
             }
-            searchHandoffBrowser = context.browsingContext.embedderElement;
-            result = await toolFunc(params ?? {}, context, secProps);
-            const engine = await lazy.SearchService.getDefault();
-            Glean.smartWindow.searchHandoff.record({
-              location: context.telemetry.location,
-              chat_id: conversation.id,
-              message_seq: conversation.messageCount,
-              provider: engine.name ?? "unknown",
-              model: engineInstance?.model,
-            });
-            conversation._searchExecutedTurn = currentTurn;
-          } else if (toolName === GET_PAGE_CONTENT) {
-            const startTime = new Date();
-            result = await toolFunc(params, allAllowedUrls, secProps);
-            Glean.smartWindow.getPageContent.record({
-              location: context?.telemetry?.location,
-              chat_id: conversation.id,
-              message_seq: conversation.messageCount,
-              length: result.reduce(
-                (acc, curr) => acc + (curr?.length || 0),
-                0
-              ),
-              time: new Date() - startTime,
-            });
-          } else {
-            result = await toolFunc(params, secProps);
+            case RUN_SEARCH: {
+              result = await RunSearch.runSearch(
+                toolParams,
+                browsingContext,
+                conversation.securityProperties
+              );
+              const engine = await lazy.SearchService.getDefault();
+              Glean.smartWindow.searchHandoff.record({
+                location: mode,
+                chat_id: conversation.id,
+                message_seq: conversation.messageCount,
+                provider: engine.name ?? "unknown",
+                model: engineInstance?.model,
+              });
+              conversation._searchExecutedTurn = currentTurn;
+              break;
+            }
+            case GET_OPEN_TABS:
+              result = await toolFns.getOpenTabs(
+                conversation.securityProperties
+              );
+              break;
+            case SEARCH_BROWSING_HISTORY:
+              result = await toolFns.searchBrowsingHistory(
+                toolParams,
+                conversation.securityProperties
+              );
+              break;
+            case GET_USER_MEMORIES:
+              result = await toolFns.getUserMemories(
+                conversation.securityProperties
+              );
+              break;
+            default:
+              throw new Error(`No such tool: ${toolName}`);
           }
 
           // Debug logging: Record the data returned by the tool before feeding it to the model
           logConversationStream(
             currentTurn,
             "TOOL EXEC",
-            { arguments: params, result },
+            { arguments: toolParams, result },
             toolName
           );
 
@@ -378,6 +399,7 @@ Object.assign(Chat, {
           ?.updateConversation(conversation)
           .catch(() => {});
 
+        // Perform the search handoff if the RUN_SEARCH tool was run.
         if (toolName === RUN_SEARCH) {
           // Commit here because we return early below and never reach the
           // post-loop commit.
@@ -386,7 +408,7 @@ Object.assign(Chat, {
             `Security commit ${conversation.securityProperties.getLogText()}`
           );
 
-          const win = searchHandoffBrowser?.ownerGlobal;
+          const win = originalEmbedderElement?.ownerGlobal;
           if (!win || win.closed) {
             console.error(
               "run_search: Associated window not available or closed, aborting search handoff"
@@ -394,8 +416,9 @@ Object.assign(Chat, {
             return;
           }
 
-          const searchHandoffTab =
-            win.gBrowser.getTabForBrowser(searchHandoffBrowser);
+          const searchHandoffTab = win.gBrowser.getTabForBrowser(
+            originalEmbedderElement
+          );
           if (!searchHandoffTab) {
             console.error(
               "run_search: Original tab no longer exists, aborting search handoff"
@@ -430,10 +453,7 @@ Object.assign(Chat, {
    * @param {Set<string>} allAllowedUrls - Set to populate
    */
   async _collectInitialAllowedUrls(conversation, allAllowedUrls) {
-    const openTabs = await this.toolMap.get_open_tabs(
-      undefined,
-      conversation.securityProperties
-    );
+    const openTabs = await toolFns.getOpenTabs(conversation.securityProperties);
     for (const url of extractValidUrls(openTabs)) {
       allAllowedUrls.add(url);
     }

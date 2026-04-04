@@ -1253,7 +1253,9 @@ export class AIWindow extends MozLitElement {
    *
    * @private
    *
-   * @param {string} inputText
+   * @param {string} [inputText] - The already trimmed and non-empty input text from the
+   *   user. If this argument is not provided then the conversation will resume either
+   *   from tool calls or from an error.
    * @param {object} [options]
    * @param {boolean} [options.skipUserDispatch=false] - If true, do not dispatch
    * a user message into chat content (used for retries to avoid duplicate
@@ -1263,15 +1265,10 @@ export class AIWindow extends MozLitElement {
    * @param {URL|null} [options.pageUrl] - Page URL to associate with the
    * message, or null if the user removed page context.
    */
-  #fetchAIResponse = async (
-    inputText = false,
+  async #fetchAIResponse(
+    inputText,
     { skipUserDispatch = false, pageUrl, ...userOpts } = {}
-  ) => {
-    const formattedPrompt = (inputText || "").trim();
-    if (!formattedPrompt && inputText !== false) {
-      return;
-    }
-
+  ) {
     this.showStarters = false;
     this.showFooter = false;
     this.showDisclaimer = true;
@@ -1285,7 +1282,7 @@ export class AIWindow extends MozLitElement {
         return;
       }
       firstTokenTime = Date.now();
-      this.#conversation.off("chat-conversation:message-update", onUpdate);
+      this.#conversation?.off("chat-conversation:message-update", onUpdate);
     };
     this.#conversation.on("chat-conversation:message-update", onUpdate);
 
@@ -1297,9 +1294,9 @@ export class AIWindow extends MozLitElement {
         lazy.PURPOSES.CHAT
       );
 
-      if (formattedPrompt) {
+      if (inputText) {
         await this.#conversation.generatePrompt(
-          formattedPrompt,
+          inputText,
           pageUrl,
           engineInstance,
           userOpts,
@@ -1313,12 +1310,11 @@ export class AIWindow extends MozLitElement {
         this.#sendModelRequestTelemetryEvent();
       }
 
-      await lazy.Chat.fetchWithHistory(this.#conversation, engineInstance, {
-        inputText,
+      await lazy.Chat.fetchWithHistory({
+        conversation: this.#conversation,
+        engineInstance,
         browsingContext: this.#getBrowsingContext(),
-        telemetry: {
-          location: this.mode,
-        },
+        mode: this.mode,
       });
 
       this.#sendModelResponseTelemetryEvent(
@@ -1333,7 +1329,7 @@ export class AIWindow extends MozLitElement {
       );
       this.requestUpdate?.();
     }
-  };
+  }
 
   #onMessageComplete = (_event, msg) => {
     this.#addConversationTitle(msg?.content?.body);
@@ -1432,6 +1428,7 @@ export class AIWindow extends MozLitElement {
   }
 
   #handleError(error, { latency, duration }) {
+    console.error(error);
     let errorCode = error.error ?? error.metadata?.errorMessage;
     const newErrorMessage = {
       role: "",
@@ -1820,7 +1817,7 @@ export class AIWindow extends MozLitElement {
     }
 
     this._isRetrying = true;
-    this.#fetchAIResponse(false)
+    this.#fetchAIResponse()
       .catch(error => {
         console.error("Error retrying after error:", error);
       })

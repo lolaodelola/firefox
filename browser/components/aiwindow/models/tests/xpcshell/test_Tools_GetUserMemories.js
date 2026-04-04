@@ -14,7 +14,7 @@ const { SecurityProperties } = ChromeUtils.importESModule(
 
 add_task(async function test_getUserMemories_sets_security_flags() {
   const securityProperties = new SecurityProperties();
-  await getUserMemories({}, securityProperties);
+  await getUserMemories(securityProperties);
   securityProperties.commit();
   Assert.equal(securityProperties.privateData, true, "private_data set");
   Assert.equal(
@@ -29,7 +29,7 @@ add_task(async function test_getUserMemories_allowed_when_flags_set() {
   securityProperties.setPrivateData();
   securityProperties.setUntrustedInput();
   securityProperties.commit();
-  const result = await getUserMemories({}, securityProperties);
+  const result = await getUserMemories(securityProperties);
 
   Assert.ok(Array.isArray(result), "returns array, not a refusal");
 });

@@ -6,6 +6,9 @@
 const { SmartWindowTelemetry } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/ui/modules/SmartWindowTelemetry.sys.mjs"
 );
+const { GetPageContent, RunSearch } = ChromeUtils.importESModule(
+  "moz-src:///browser/components/aiwindow/models/Tools.sys.mjs"
+);
 
 async function dispatchSmartbarCommit(browser, value, action) {
   await SpecialPowers.spawn(browser, [value, action], async (val, act) => {
@@ -427,7 +430,7 @@ add_task(async function test_get_page_content_telemetry() {
   try {
     Services.fog.testResetFOG();
     const getPageContentStub = sb
-      .stub(this.Chat.toolMap, "get_page_content")
+      .stub(GetPageContent, "getPageContent")
       .resolves(["abc", "defg"]);
 
     await withServer(
@@ -485,7 +488,7 @@ add_task(async function test_search_handoff_telemetry() {
     );
     await SearchService.init();
     const runSearchStub = sb
-      .stub(this.Chat.toolMap, "run_search")
+      .stub(RunSearch, "runSearch")
       .resolves("Mock search results");
 
     await withServer(

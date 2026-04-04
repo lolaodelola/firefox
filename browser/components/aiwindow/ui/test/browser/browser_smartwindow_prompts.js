@@ -311,7 +311,7 @@ add_task(async function test_starter_prompts_click_triggers_chat_on_new_tab() {
       "fetchWithHistory should be called after clicking prompt"
     );
 
-    const conversation = fetchWithHistoryStub.firstCall.args[0];
+    const conversation = fetchWithHistoryStub.firstCall.args[0].conversation;
     const messages = conversation.getMessagesInOpenAiFormat();
     const userMessage = messages.findLast(m => m.role === "user");
 
@@ -348,7 +348,7 @@ add_task(async function test_starter_prompts_click_triggers_chat_in_sidebar() {
       "fetchWithHistory should be called after clicking prompt"
     );
 
-    const conversation = fetchWithHistoryStub.firstCall.args[0];
+    const conversation = fetchWithHistoryStub.firstCall.args[0].conversation;
     const messages = conversation.getMessagesInOpenAiFormat();
     const userMessage = messages.findLast(m => m.role === "user");
 

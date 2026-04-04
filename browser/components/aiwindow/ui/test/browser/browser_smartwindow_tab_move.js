@@ -226,7 +226,7 @@ add_task(async function test_smarttab_conversation_restored_after_drag() {
   });
 
   const fetchWithHistory = Promise.withResolvers();
-  sb.stub(Chat, "fetchWithHistory").callsFake(conversation => {
+  sb.stub(Chat, "fetchWithHistory").callsFake(({ conversation }) => {
     fetchWithHistory.resolve(ChatStore.updateConversation(conversation));
     return fetchWithHistory.promise;
   });

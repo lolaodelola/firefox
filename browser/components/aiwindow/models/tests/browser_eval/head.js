@@ -3,8 +3,6 @@
 
 "use strict";
 
-const DEFAULT_CONTEXT = { telemetry: { location: "home" } };
-
 async function setupEvaluation({ url, waitForLoad = true }) {
   await SpecialPowers.pushPrefEnv({
     set: [["services.settings.server", "data:,#remote-settings-dummy/v1"]],
@@ -47,7 +45,7 @@ async function collectChatResponse(conversation, engineInstance) {
   const { Chat } = ChromeUtils.importESModule(
     "moz-src:///browser/components/aiwindow/models/Chat.sys.mjs"
   );
-  await Chat.fetchWithHistory(conversation, engineInstance, DEFAULT_CONTEXT);
+  await Chat.fetchWithHistory({ conversation, engineInstance });
   const messages = conversation.getMessagesInOpenAiFormat();
   const lastAssistant = messages.findLast(msg => msg.role === "assistant");
   const responseText = lastAssistant?.content ?? "";

@@ -18,15 +18,11 @@ const { SecurityProperties } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/models/SecurityProperties.sys.mjs"
 );
 
-const { Chat } = ChromeUtils.importESModule(
-  "moz-src:///browser/components/aiwindow/models/Chat.sys.mjs"
-);
-
-add_task(async function test_run_search_registered_in_toolMap() {
+add_task(async function test_run_search_is_callable() {
   Assert.strictEqual(
-    typeof Chat.toolMap.run_search,
+    typeof RunSearch.runSearch,
     "function",
-    "run_search should be registered in Chat.toolMap"
+    "RunSearch.runSearch should be a function"
   );
 });
 
@@ -168,7 +164,7 @@ add_task(async function test_runSearch_sets_security_flags() {
   const secProps = new SecurityProperties();
   const result = await RunSearch.runSearch(
     { query: "test query" },
-    fakeContext,
+    fakeContext.browsingContext,
     secProps
   );
   secProps.commit();
@@ -186,7 +182,7 @@ add_task(async function test_runSearch_allowed_when_flags_set() {
   secProps.commit();
   const result = await RunSearch.runSearch(
     { query: "test query" },
-    fakeContext,
+    fakeContext.browsingContext,
     secProps
   );
 
