@@ -8,6 +8,29 @@
 
 {
   'variables': {
+    'moz_have_arm_sve2%': '<(moz_have_arm_sve2)',
+    'moz_have_arm_i8mm_and_dot_prod%': '<(moz_have_arm_i8mm_and_dot_prod)',
+    'moz_neon_cflags_block_list': [
+            '-mfpu=vfp',
+            '-mfpu=vfpv3',
+            '-mfpu=vfpv3-d16',
+    ],
+    # Needs to be reflected in upstream gyp file.
+    'libyuv_sve_sources': [
+      # sources.
+      'source/row_sve.cc',
+    ],
+    'libyuv_neon_sources': [
+      # ARM Source Files
+      "source/compare_neon.cc",
+      "source/compare_neon64.cc",
+      "source/rotate_neon.cc",
+      "source/rotate_neon64.cc",
+      "source/row_neon.cc",
+      "source/row_neon64.cc",
+      "source/scale_neon.cc",
+      "source/scale_neon64.cc",
+    ],
     'libyuv_sources': [
       # includes.
       'include/libyuv.h',
@@ -67,8 +90,6 @@
       'source/row_gcc.cc',
       'source/row_lasx.cc',
       'source/row_lsx.cc',
-      'source/row_neon.cc',
-      'source/row_neon64.cc',
       'source/row_win.cc',
       'source/scale.cc',
       'source/scale_any.cc',
