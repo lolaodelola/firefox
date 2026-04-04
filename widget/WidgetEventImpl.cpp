@@ -766,31 +766,21 @@ int32_t WidgetPointerHelper::GetValidTiltValue(int32_t aTilt) {
 
 // static
 double WidgetPointerHelper::GetValidAltitudeAngle(double aAltitudeAngle) {
-  if (MOZ_LIKELY(aAltitudeAngle >= 0.0 && aAltitudeAngle <= kHalfPi)) {
-    return aAltitudeAngle;
+  if (!std::isfinite(aAltitudeAngle)) {
+    return 0.0;
   }
-  while (aAltitudeAngle > kHalfPi) {
-    aAltitudeAngle -= kHalfPi;
-  }
-  while (aAltitudeAngle < 0.0) {
-    aAltitudeAngle += kHalfPi;
-  }
-  MOZ_ASSERT(aAltitudeAngle >= 0.0 && aAltitudeAngle <= kHalfPi);
-  return aAltitudeAngle;
+  return std::clamp(aAltitudeAngle, 0.0, kHalfPi);
 }
 
 // static
 double WidgetPointerHelper::GetValidAzimuthAngle(double aAzimuthAngle) {
-  if (MOZ_LIKELY(aAzimuthAngle >= 0.0 && aAzimuthAngle <= kDoublePi)) {
-    return aAzimuthAngle;
+  if (!std::isfinite(aAzimuthAngle)) {
+    return 0.0;
   }
-  while (aAzimuthAngle > kDoublePi) {
-    aAzimuthAngle -= kDoublePi;
-  }
-  while (aAzimuthAngle < 0.0) {
+  aAzimuthAngle = std::fmod(aAzimuthAngle, kDoublePi);
+  if (aAzimuthAngle < 0.0) {
     aAzimuthAngle += kDoublePi;
   }
-  MOZ_ASSERT(aAzimuthAngle >= 0.0 && aAzimuthAngle <= kDoublePi);
   return aAzimuthAngle;
 }
 
