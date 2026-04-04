@@ -10,7 +10,7 @@ Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/45b99d1ba95b46896
  1 file changed, 71 insertions(+)
 
 diff --git a/webrtc.gni b/webrtc.gni
-index d2204d2064..c9be6d3bb0 100644
+index 59e4083b17..c2d5d407c3 100644
 --- a/webrtc.gni
 +++ b/webrtc.gni
 @@ -698,6 +698,36 @@ template("rtc_source_set") {
