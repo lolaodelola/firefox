@@ -784,7 +784,7 @@ index ef9d0250f6..7e2e5eb3e2 100644
    RTC_CHECK_NOTREACHED();
  }
 diff --git a/modules/video_capture/device_info_impl.cc b/modules/video_capture/device_info_impl.cc
-index f96fda0903..2b6a0568e1 100644
+index 5df4cb6a45..f159daf9d8 100644
 --- a/modules/video_capture/device_info_impl.cc
 +++ b/modules/video_capture/device_info_impl.cc
 @@ -71,7 +71,7 @@ int32_t DeviceInfoImpl::GetCapability(const char* deviceUniqueIdUTF8,
