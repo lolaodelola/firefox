@@ -70,6 +70,20 @@ export class ChatConversation extends EventEmitter {
   activeBranchTipMessageId;
 
   /**
+   * Language models can generate arbitrary URLs. If a conversation has been exposed
+   * to untrusted content (such as from summarizing a webpage) then it can be prompt
+   * injected to display arbitrary URLs. Language models can also invent plausible URLs
+   * for a conversation that do not exist.
+   *
+   * To mitigate these issues we collect all URLs that have been seen in a conversation
+   * so that we can decide how to show them to users in a safe way. If a URL has not
+   * been seen before, then it's untrusted in different circumstances.
+   *
+   * @type {Set<string>}
+   */
+  seenUrls = new Set();
+
+  /**
    * @param {object} params
    * @param {string} [params.id]
    * @param {string} params.title
@@ -757,5 +771,16 @@ export class ChatConversation extends EventEmitter {
 
   get messageCount() {
     return this.#messages.filter(m => CHAT_ROLES.includes(m.role)).length;
+  }
+
+  /**
+   * Efficiently add an iterable of URLs to the seen urls.
+   *
+   * @param {Iterable<string>} urls
+   */
+  addSeenUrls(urls) {
+    for (const url of urls) {
+      this.seenUrls.add(url);
+    }
   }
 }

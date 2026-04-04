@@ -27,7 +27,13 @@ function makeConversation({
     securityProperties.setUntrustedInput();
   }
   securityProperties.commit();
-  return { securityProperties };
+  return {
+    securityProperties,
+    addSeenUrls() {},
+    getAllMentionURLs() {
+      return new Set();
+    },
+  };
 }
 const { PlacesUtils } = ChromeUtils.importESModule(
   "resource://gre/modules/PlacesUtils.sys.mjs"

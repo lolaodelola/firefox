@@ -45,9 +45,6 @@ add_task(async function test_get_page_content_basic() {
       window.document.documentElement.hasAttribute("ai-window")
   );
 
-  // Create an allowed URLs set containing the test page
-  const allowedUrls = new Set(url_list);
-
   const conversation = new ChatConversation({
     title: "",
     description: "",
@@ -58,7 +55,6 @@ add_task(async function test_get_page_content_basic() {
   // Call the tool with the URL
   const result_array = await GetPageContent.getPageContent(
     { url_list },
-    allowedUrls,
     conversation
   );
   const result = result_array[0];

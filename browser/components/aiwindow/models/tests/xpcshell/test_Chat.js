@@ -474,8 +474,8 @@ add_task(
         "Empty arguments string should be converted to '{}'"
       );
       Assert.ok(
-        toolFns.getOpenTabs.calledTwice,
-        "Tool should be called twice: once by _collectInitialAllowedUrls, once by the tool call"
+        toolFns.getOpenTabs.calledOnce,
+        "Tool should be called once by the tool call"
       );
       Assert.equal(
         getLastAssistantResponse(conversation).content.body,
@@ -563,7 +563,7 @@ add_task(
 
       const getPageContentStub = sb
         .stub(GetPageContent, "getPageContent")
-        .callsFake(async (_params, _seenUrls, conversation) => {
+        .callsFake(async (_params, conversation) => {
           const secProps = conversation.securityProperties;
           if (secProps.untrustedInput && secProps.privateData) {
             return [

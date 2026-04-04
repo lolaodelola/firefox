@@ -88,7 +88,6 @@ add_task(async function test_getPageContent_exact_url_match() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
 
@@ -124,7 +123,6 @@ add_task(async function test_getPageContent_multiple_urls() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [url1, url2] },
-      new Set([url1, url2]),
       makeConversation()
     );
 
@@ -154,10 +152,8 @@ add_task(async function test_getPageContent_tab_not_found_with_allowed_url() {
 
     setupBrowserWindowTracker(sb, createFakeWindow(tabs));
 
-    const allowedUrls = new Set([targetUrl]);
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      allowedUrls,
       makeConversation()
     );
 
@@ -190,8 +186,6 @@ add_task(
 
       setupBrowserWindowTracker(sb, createFakeWindow(tabs));
 
-      const allowedUrls = new Set(["https://different.com"]);
-
       const conversation = makeConversation({
         privateData: true,
         untrustedInput: true,
@@ -199,7 +193,6 @@ add_task(
 
       const result_array = await GetPageContent.getPageContent(
         { url_list: [targetUrl] },
-        allowedUrls,
         conversation
       );
 
@@ -227,7 +220,6 @@ add_task(async function test_getPageContent_no_browsing_context() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
     const result = result_array[0];
@@ -270,7 +262,6 @@ add_task(async function test_getPageContent_successful_extraction() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
 
@@ -306,7 +297,6 @@ add_task(async function test_getPageContent_content_format() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
     const result = result_array[0];
@@ -342,7 +332,6 @@ add_task(async function test_getPageContent_empty_content() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
 
@@ -378,7 +367,6 @@ add_task(async function test_getPageContent_extraction_error() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
 
@@ -414,7 +402,6 @@ add_task(async function test_getPageContent_reader_mode_content() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
 
@@ -441,7 +428,6 @@ add_task(async function test_getPageContent_invalid_url_format() {
 
     const result_array = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       makeConversation()
     );
     const result = result_array[0];
@@ -462,7 +448,6 @@ add_task(async function test_getPageContent_refuses_both_security_flags() {
   });
   const result = await GetPageContent.getPageContent(
     { url_list: ["https://example.com"] },
-    new Set(),
     conversation
   );
   Assert.equal(result.length, 1, "Should return one message");
@@ -482,7 +467,6 @@ add_task(async function test_getPageContent_allows_untrusted_input_only() {
     const conversation = makeConversation({ untrustedInput: true });
     const result = await GetPageContent.getPageContent(
       { url_list: [targetUrl] },
-      new Set([targetUrl]),
       conversation
     );
     Assert.equal(result.length, 1, "Should return one result");
