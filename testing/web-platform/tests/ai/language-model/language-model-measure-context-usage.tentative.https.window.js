@@ -8,21 +8,14 @@
 
 promise_test(async t => {
   await ensureLanguageModel();
-  const session = await createLanguageModel();
-  const result = await session.measureContextUsage('This is a prompt.');
-  assert_equals(typeof result, 'number');
-  assert_greater_than(result, 0);
-}, 'measureContextUsage returns a number greater than zero for text');
 
-promise_test(async t => {
-  const prompts = [
-    {role: 'system', content: 'foo'},
-    {role: 'user', content: 'bar'},
-    {role: 'assistant', content: 'baz'},
-  ];
-  await ensureLanguageModel();
-  const session = await createLanguageModel({initialPrompts: prompts});
-  const result = await session.measureContextUsage(prompts);
-  assert_equals(typeof result, 'number');
-  assert_greater_than(result, 0);
-}, 'measure message sequences of various roles, even after adding prompts');
+  // Start a new session.
+  const session = await createLanguageModel();
+
+  // Test the measureContextUsage() API.
+  let result = await session.measureContextUsage('This is a prompt.');
+  assert_true(
+    typeof result === "number" && result > 0,
+    "The counting result should be a positive number."
+  );
+});

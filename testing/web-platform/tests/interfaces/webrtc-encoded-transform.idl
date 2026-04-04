@@ -3,8 +3,8 @@
 // (https://github.com/w3c/webref)
 // Source: WebRTC Encoded Transform (https://w3c.github.io/webrtc-encoded-transform/)
 
-typedef (RTCSFrameSenderTransform or RTCRtpScriptTransform) RTCRtpSenderTransform;
-typedef (RTCSFrameReceiverTransform or RTCRtpScriptTransform) RTCRtpReceiverTransform;
+typedef (SFrameSenderTransform or RTCRtpScriptTransform) RTCRtpSenderTransform;
+typedef (SFrameReceiverTransform or RTCRtpScriptTransform) RTCRtpReceiverTransform;
 
 // New methods for RTCRtpSender and RTCRtpReceiver
 partial interface RTCRtpSender {
@@ -42,16 +42,16 @@ interface mixin SFrameDecrypterManager {
 };
 
 [Exposed=Window]
-interface RTCSFrameSenderTransform {
+interface SFrameSenderTransform {
     constructor(optional SFrameTransformOptions options = {});
 };
-RTCSFrameSenderTransform includes SFrameEncrypterManager;
+SFrameSenderTransform includes SFrameEncrypterManager;
 
 [Exposed=Window]
-interface RTCSFrameReceiverTransform : EventTarget {
+interface SFrameReceiverTransform : EventTarget {
     constructor(optional SFrameTransformOptions options = {});
 };
-RTCSFrameReceiverTransform includes SFrameDecrypterManager;
+SFrameReceiverTransform includes SFrameDecrypterManager;
 
 [Exposed=(Window,DedicatedWorker)]
 interface SFrameEncrypterStream : EventTarget {

@@ -8,9 +8,6 @@ features:
 - name: scroll-buttons
   files:
   - scroll-button*
-- name: scroll-target-group
-  files:
-  - scroll-target-group*
 - name: scrollbar-gutter
   files:
   - scrollbar-gutter-*

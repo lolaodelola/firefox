@@ -1,16 +1,14 @@
 'use strict';
 
 test(() => {
-  const tool = {
+  navigator.modelContext.registerTool({
     name: 'echo',
     description: 'echo input',
     execute: (obj) => obj.text,
     annotations: {
       // No `readOnlyHint` member.
     },
-  };
+  });
 
-  const controller = new AbortController();
-  navigator.modelContext.registerTool(tool, { signal: controller.signal });
-  controller.abort();
+  navigator.modelContext.unregisterTool('echo');
 }, 'register tool with empty annotations');

@@ -16,7 +16,10 @@ promise_test(async t => {
     session.promptStreaming(kTestPrompt);
   // Run GC.
   gc();
-  assert_true(streamingResponse instanceof ReadableStream);
+  assert_equals(
+    Object.prototype.toString.call(streamingResponse),
+    "[object ReadableStream]"
+  );
   let result = "";
   for await (const value of streamingResponse) {
     result += value;

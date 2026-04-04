@@ -1,6 +1,5 @@
 # mypy: allow-untyped-calls, allow-untyped-defs
 from __future__ import annotations
-from dataclasses import dataclass
 
 import abc
 import hashlib
@@ -10,7 +9,7 @@ import os
 import queue
 from urllib.parse import urlsplit
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 from typing import (cast, Any, Callable, Dict, Deque, List, Mapping, MutableMapping, Optional, Set,
                     Tuple, Type)
 
@@ -518,26 +517,8 @@ def get_test_queue_builder(**kwargs: Any) -> Tuple[TestQueueBuilder, Mapping[str
     return builder_cls(**builder_kwargs), chunker_kwargs
 
 
-@dataclass
-class GroupMetadata:
-    scope: str
-    extra: MutableMapping[str, Any]
-
-    def __init__(self, scope: str):
-        self.scope = scope
-        self.extra = {}
-
-
-@dataclass
-class TestGroup:
-    test_queue: Deque[wpttest.Test]
-    subsuite: Optional[str]
-    test_type: str
-    metadata: GroupMetadata
-
-    @property
-    def name(self) -> str:
-        return f"{self.subsuite}:{self.metadata.scope}" if self.subsuite is not None else "/"
+TestGroup = namedtuple("TestGroup", ["group", "subsuite", "test_type", "metadata"])
+GroupMetadata = Mapping[str, Any]
 
 
 class TestQueueBuilder:
@@ -566,7 +547,7 @@ class TestQueueBuilder:
                 group.test_type,
                 # Next, run larger groups first to avoid straggler runners. Use
                 # timeout to give slow tests greater relative weight.
-                sum(test.timeout for test in group.test_queue),
+                sum(test.timeout for test in group.group),
             ), reverse=True)
         for item in groups:
             test_queue.put(item)
@@ -583,7 +564,7 @@ class TestQueueBuilder:
         pass
 
     def group_metadata(self, state: Mapping[str, Any]) -> GroupMetadata:
-        return GroupMetadata(scope="/")
+        return {"scope": "/"}
 
     def process_count(self, requested_processes: int, num_test_groups: int) -> int:
         """Get the number of processes to use.
@@ -604,20 +585,20 @@ class SingleTestSource(TestQueueBuilder):
                 group = queues[idx]
                 metadata = metadatas[idx]
                 group.append(test)
-                test.update_metadata(metadata.extra)
+                test.update_metadata(metadata)
 
-            for group, subsuite, test_type, metadata in zip(queues,
-                                                            itertools.repeat(subsuite),
-                                                            itertools.repeat(test_type),
-                                                            metadatas):
-                if len(group) > 0:
-                    groups.append(TestGroup(group, subsuite, test_type, metadata))
+            for item in zip(queues,
+                            itertools.repeat(subsuite),
+                            itertools.repeat(test_type),
+                            metadatas):
+                if len(item[0]) > 0:
+                    groups.append(TestGroup(*item))
         return groups
 
     def tests_by_group(self, tests_by_type: TestsByType) -> Mapping[str, List[str]]:
         groups: MutableMapping[str, List[str]] = defaultdict(list)
         for (subsuite, test_type), tests in tests_by_type.items():
-            group_name = f"{subsuite}:{self.group_metadata({}).scope}"
+            group_name = f"{subsuite}:{self.group_metadata({})['scope']}"
             groups[group_name].extend(test.id for test in tests)
         return groups
 
@@ -660,9 +641,9 @@ class PathGroupedSource(TestQueueBuilder):
                 if not in_one_group and self.new_group(state, subsuite, test_type, test):
                     group_metadata = self.group_metadata(state)
                     groups.append(TestGroup(deque(), subsuite, test_type, group_metadata))
-                last_group = groups[-1]
-                last_group.test_queue.append(test)
-                test.update_metadata(last_group.metadata.extra)
+                group, _, _, metadata = groups[-1]
+                group.append(test)
+                test.update_metadata(metadata)
         return groups
 
     def tests_by_group(self, tests_by_type: TestsByType) -> Mapping[str, List[str]]:
@@ -672,7 +653,7 @@ class PathGroupedSource(TestQueueBuilder):
             in_one_group = self.in_one_group(subsuite, tests)
             for test in tests:
                 if not in_one_group and self.new_group(state, subsuite, test_type, test):
-                    group = self.group_metadata(state).scope
+                    group = self.group_metadata(state)['scope']
                 if in_one_group:
                     group_name = f"{subsuite}:/"
                 elif subsuite:
@@ -683,8 +664,7 @@ class PathGroupedSource(TestQueueBuilder):
         return groups
 
     def group_metadata(self, state: Mapping[str, Any]) -> GroupMetadata:
-        scope = f"/{'/'.join(state['prev_group_key'][2])}"
-        return GroupMetadata(scope)
+        return {"scope": "/%s" % "/".join(state["prev_group_key"][2])}
 
 
 class FullyParallelGroupedSource(PathGroupedSource):
@@ -713,12 +693,12 @@ class GroupFileTestSource(TestQueueBuilder):
             tests_by_group = self.tests_by_group({(subsuite, test_type): tests})
             ids_to_tests = {test.id: test for test in tests}
             for group_name, test_ids in tests_by_group.items():
-                group_metadata = GroupMetadata(group_name)
+                group_metadata = {"scope": group_name}
                 group: Deque[wpttest.Test] = deque()
                 for test_id in test_ids:
                     test = ids_to_tests[test_id]
                     group.append(test)
-                    test.update_metadata(group_metadata.extra)
+                    test.update_metadata(group_metadata)
                 groups.append(TestGroup(group, subsuite, test_type, group_metadata))
         return groups
 

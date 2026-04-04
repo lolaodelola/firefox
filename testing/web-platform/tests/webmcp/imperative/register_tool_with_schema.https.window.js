@@ -1,7 +1,7 @@
 'use strict';
 
 test(() => {
-  const tool = {
+  navigator.modelContext.registerTool({
     name: 'echo',
     description: 'echo input',
     inputSchema: {
@@ -18,11 +18,9 @@ test(() => {
     annotations: {
       readOnlyHint: 'true',
     },
-  };
+  });
 
-  const controller = new AbortController();
-  navigator.modelContext.registerTool(tool, { signal: controller.signal });
-  controller.abort();
+  navigator.modelContext.unregisterTool('echo');
 }, 'register and unregister script tool');
 
 test(() => {

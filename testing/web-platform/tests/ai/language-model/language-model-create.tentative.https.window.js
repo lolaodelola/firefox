@@ -70,19 +70,13 @@ promise_test(async t => {
 }, 'Create with initialPrompts without system role');
 
 promise_test(async t => {
-  let result1 = createLanguageModel({
+  let result = createLanguageModel({
     initialPrompts: [
       {role: 'user', content: 'hello'}, {role: 'assistant', content: 'hello'},
       {role: 'system', content: 'you are a robot'}
     ]
   });
-  await promise_rejects_js(t, TypeError, result1);
-
-  let result2 = createLanguageModel({
-    initialPrompts:
-        [{role: 'system', content: 'foo'}, {role: 'system', content: 'bar'}]
-  });
-  await promise_rejects_js(t, TypeError, result2);
+  await promise_rejects_js(t, TypeError, result);
 }, 'Create with system role not ordered first should fail');
 
 promise_test(async t => {

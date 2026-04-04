@@ -31,5 +31,5 @@ test(() => {
   const toStringTag = Object.getOwnPropertyDescriptor(AbstractModuleSource.prototype, Symbol.toStringTag).get;
 
   assert_equals(toStringTag.call(module), "WebAssembly.Module");
-  assert_equals(toStringTag.call({}), undefined);
+  assert_throws_js(TypeError, () => toStringTag.call({}));
 }, "AbstractModuleSourceProto toStringTag brand check");
