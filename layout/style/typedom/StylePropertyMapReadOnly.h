@@ -97,6 +97,10 @@ class StylePropertyMapReadOnly : public nsISupports, public nsWrapperCache {
     StylePropertyTypedValueList GetAll(const CSSPropertyId& aPropertyId,
                                        ErrorResult& aRv) const;
 
+    // Defined in StylePropertyMap.cpp
+    void Set(const nsACString& aProperty, const nsACString& aValue,
+             ErrorResult& aRv);
+
     URLExtraData* GetURLExtraData() const;
 
     void Unlink();
