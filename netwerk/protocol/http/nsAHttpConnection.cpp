@@ -20,7 +20,7 @@ nsAHttpConnection::Release() {
   if (0 == count) {
     mRefCnt = 1; /* stablize */
     // it is essential that the connection be destroyed on the socket thread.
-    DeleteSelfOnSocketThread();
+    delete this;
     return 0;
   }
   return count;

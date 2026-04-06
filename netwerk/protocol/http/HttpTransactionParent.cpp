@@ -16,6 +16,7 @@
 #include "nsIThreadRetargetableStreamListener.h"
 #include "nsITransportSecurityInfo.h"
 #include "nsNetUtil.h"
+#include "nsProxyRelease.h"
 #include "nsQueryObject.h"
 #include "nsSerializationHelper.h"
 #include "nsStreamUtils.h"
@@ -34,6 +35,20 @@ NS_INTERFACE_MAP_END
 
 NS_IMETHODIMP_(MozExternalRefCountType) HttpTransactionParent::Release(void) {
   MOZ_ASSERT(int32_t(mRefCnt) > 0, "dup release");
+
+  // When mRefCnt == 2 on a background thread, the two remaining refs are ours
+  // and the IPDL ActorLifecycleProxy's. Decrementing here would leave the
+  // proxy as the sole owner, and the main thread can then free the object
+  // (via ActorDisconnected) before this thread reaches the count==1 branch
+  // below. Instead, transfer our reference to the main thread without
+  // decrementing, so the count==1 path always executes there.
+  if (!NS_IsMainThread() && mRefCnt == 2) {
+    NS_ProxyRelease("HttpTransactionParent::Release",
+                    GetMainThreadSerialEventTarget(),
+                    dont_AddRef(static_cast<nsIRequest*>(this)));
+    return 1;
+  }
+
   nsrefcnt count = --mRefCnt;
   NS_LOG_RELEASE(this, count, "HttpTransactionParent");
   if (count == 0) {
@@ -46,17 +61,8 @@ NS_IMETHODIMP_(MozExternalRefCountType) HttpTransactionParent::Release(void) {
   // we are done with this transaction. We should send a delete message
   // to delete the transaction child in socket process.
   if (count == 1 && CanSend()) {
-    if (!NS_IsMainThread()) {
-      RefPtr<HttpTransactionParent> self = this;
-      MOZ_ALWAYS_SUCCEEDS(NS_DispatchToMainThread(
-          NS_NewRunnableFunction("HttpTransactionParent::Release", [self]() {
-            (void)self->Send__delete__(self);
-            // Make sure we can not send IPC after Send__delete__().
-            MOZ_ASSERT(!self->CanSend());
-          })));
-    } else {
-      (void)Send__delete__(this);
-    }
+    MOZ_DIAGNOSTIC_ASSERT(NS_IsMainThread());
+    (void)Send__delete__(this);
     return 1;
   }
   return count;
