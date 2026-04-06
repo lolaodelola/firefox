@@ -345,7 +345,7 @@ class JujutsuRepository(Repository):
 
     def commit(self, message, author=None, date=None, paths=None):
         run_kwargs = {}
-        cmd = ["commit", "-m", message]
+        cmd = ["commit", "--message", message]
         if author:
             cmd += ["--author", author]
         if date:
@@ -541,7 +541,7 @@ class JujutsuRepository(Repository):
             "operation", "log", "-n1", "--no-graph", "--template", "id.short(16)"
         ).rstrip()
         try:
-            self._run("new", "-m", commit_message, self.HEAD_REVSET)
+            self._run("new", "--message", commit_message, self.HEAD_REVSET)
             for path, content in (changed_files or {}).items():
                 p = self.path / Path(path)
                 p.parent.mkdir(parents=True, exist_ok=True)

@@ -76,7 +76,7 @@ def test_push_to_try(repo, monkeypatch):
                 os.path.join(vcs.path, "extra-file"),
                 os.path.join(vcs.path, "other", "extra-file"),
             ),
-            (str(tool), "push-to-try", "-m", commit_message),
+            (str(tool), "push-to-try", "--message", commit_message),
             (str(tool), "revert", "-a"),
         ]
         expected_inputs = []
@@ -98,7 +98,7 @@ def test_push_to_try(repo, monkeypatch):
             (
                 str(tool),
                 "update-ref",
-                "-m",
+                "--message",
                 "mach try: push",
                 "HEAD",
                 "1234567890123456789012345678901234567890",
@@ -107,7 +107,7 @@ def test_push_to_try(repo, monkeypatch):
             (
                 str(tool),
                 "update-ref",
-                "-m",
+                "--message",
                 "mach try: restore",
                 "HEAD",
                 "0987654321098765432109876543210987654321",
@@ -182,7 +182,7 @@ def test_push_to_try(repo, monkeypatch):
                 str(tool),
                 "--quiet",
                 "new",
-                "-m",
+                "--message",
                 "commit message",
                 'coalesce(@ ~ (empty() & description(exact:"")) ~ bookmarks(), @-)',
             ),
