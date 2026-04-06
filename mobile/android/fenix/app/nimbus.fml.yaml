@@ -1074,6 +1074,14 @@ features:
         type: Boolean
         default: false
 
+  merino-manifest:
+    description: Feature to enable the Merino Manifest for users on Firefox on Android.
+    variables:
+      enabled:
+        description: If true, Merino Manifest is enabled.
+        type: Boolean
+        default: false
+
   mozilla-ads-client:
     description: Feature to enable the Mozilla Ads Client for users on Firefox on Android.
     variables:
