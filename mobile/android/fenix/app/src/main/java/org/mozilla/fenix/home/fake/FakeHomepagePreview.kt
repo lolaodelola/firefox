@@ -80,10 +80,6 @@ internal object FakeHomepagePreview {
             PrivacyNoticeBannerInteractor by PrivacyNoticeBannerInteractorNoOp {
             override fun reportSessionMetrics(state: AppState) { /* no op */ }
 
-            override fun onPasteAndGo(clipboardText: String) { /* no op */ }
-
-            override fun onPaste(clipboardText: String) { /* no op */ }
-
             override fun onNavigateSearch() { /* no op */ }
 
             override fun onMessageClicked(message: Message) { /* no op */ }

@@ -64,8 +64,7 @@ import org.mozilla.fenix.wallpapers.Wallpaper
 internal const val EDIT_TOOLBAR_DELAY_AFTER_VOICE_REQUEST = 1_000L
 
 /**
- * A wrapper over the [BrowserToolbar] composable to allow for extra customisation and
- * integration in the same framework as the [HomeToolbarView].
+ * A wrapper over the [BrowserToolbar] composable to allow for extra customisation.
  *
  * @param context [Context] used for various system interactions.
  * @param homeBinding [FragmentHomeBinding] which will serve as parent for this composable.

@@ -86,15 +86,6 @@
                 android:layout_height="match_parent"
                 app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
-            <ViewStub
-                android:id="@+id/toolbarLayoutStub"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:elevation="5dp"
-                android:layout="@layout/fragment_home_toolbar_view_layout"
-                tools:context=".home.HomeFragment" />
-
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/dynamicSnackbarContainer"
                 android:layout_width="wrap_content"

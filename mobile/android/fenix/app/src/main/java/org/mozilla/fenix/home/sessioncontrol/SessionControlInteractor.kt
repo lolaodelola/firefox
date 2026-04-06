@@ -291,14 +291,6 @@ class SessionControlInteractor(
         privateBrowsingController.handlePrivateModeButtonClicked(newMode)
     }
 
-    override fun onPasteAndGo(clipboardText: String) {
-        toolbarController.handlePasteAndGo(clipboardText)
-    }
-
-    override fun onPaste(clipboardText: String) {
-        toolbarController.handlePaste(clipboardText)
-    }
-
     override fun onNavigateSearch() {
         toolbarController.handleNavigateSearch()
     }
