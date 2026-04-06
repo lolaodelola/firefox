@@ -225,6 +225,61 @@ add_task(async function test_IPPProxyManager_reset() {
 });
 
 /**
+ * Tests that usage info is refreshed after reset, so stale data from a
+ * previous account doesn't carry over when using the same profile.
+ */
+add_task(async function test_IPPProxyManager_reset_clears_usage() {
+  let sandbox = sinon.createSandbox();
+  const oldUsage = new ProxyUsage(
+    "5368709120",
+    "4294967296",
+    "3026-02-01T00:00:00.000Z"
+  );
+  const newUsage = new ProxyUsage(
+    "1073741824",
+    "1073741824",
+    "3026-03-01T00:00:00.000Z"
+  );
+  setupStubs(sandbox, { proxyUsage: oldUsage });
+
+  const readyEvent = waitForEvent(
+    IPProtectionService,
+    "IPProtectionService:StateChanged",
+    () => IPProtectionService.state === IPProtectionStates.READY
+  );
+  IPProtectionService.init();
+  await readyEvent;
+
+  await IPPProxyManager.start();
+
+  Assert.equal(
+    IPPProxyManager.usageInfo,
+    oldUsage,
+    "Should have old account's usage info after starting"
+  );
+
+  // Simulate an account switch: the next fetchProxyUsage call returns new data.
+  let usageRefreshed = new Promise(resolve => {
+    IPProtectionService.guardian.fetchProxyUsage.callsFake(() => {
+      resolve();
+      return Promise.resolve(newUsage);
+    });
+  });
+
+  await IPPProxyManager.reset();
+  await usageRefreshed;
+
+  Assert.equal(
+    IPPProxyManager.usageInfo,
+    newUsage,
+    "Usage info should be refreshed after reset, not carry over old account's data"
+  );
+
+  IPProtectionService.uninit();
+  sandbox.restore();
+});
+
+/**
  * Tests the error state.
  * - When the proxy is active, the ERROR state is set on errors.
  * - Stopping the proxy clears the ERROR state and returns the proxy to READY.

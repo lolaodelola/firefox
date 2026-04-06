@@ -699,25 +699,6 @@ add_task(async function test_remove_warning_after_sign_out() {
   await closePanel();
   cleanupService();
   Services.prefs.clearUserPref("browser.ipProtection.bandwidthThreshold");
-
-  let resetPromise = BrowserTestUtils.waitForEvent(
-    IPPUsageHelper,
-    "IPPUsageHelper:StateChanged"
-  );
-  IPPProxyManager.dispatchEvent(
-    new CustomEvent("IPPProxyManager:UsageChanged", {
-      bubbles: true,
-      composed: true,
-      detail: {
-        usage: new ProxyUsage(
-          String(maxBytes),
-          String(maxBytes),
-          "2026-03-01T00:00:00.000Z"
-        ),
-      },
-    })
-  );
-  await resetPromise;
 });
 
 /**
