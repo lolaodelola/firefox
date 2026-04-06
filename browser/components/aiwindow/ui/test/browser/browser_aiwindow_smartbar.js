@@ -797,3 +797,61 @@ add_task(
     }
   }
 );
+
+add_task(async function test_sidebar_element_order() {
+  const { win, sidebarBrowser } = await openAIWindowWithSidebar();
+
+  await SpecialPowers.spawn(sidebarBrowser, [], async () => {
+    const aiWindow = await ContentTaskUtils.waitForCondition(
+      () => content.document.querySelector("ai-window"),
+      "Wait for ai-window element"
+    );
+    const root = aiWindow.shadowRoot;
+
+    const prompts = await ContentTaskUtils.waitForCondition(
+      () => root.querySelector("smartwindow-prompts"),
+      "Wait for smartwindow-prompts"
+    );
+    const smartbarSlot = await ContentTaskUtils.waitForCondition(
+      () => root.querySelector("#smartbar-slot"),
+      "Wait for #smartbar-slot"
+    );
+
+    Assert.ok(
+      prompts.compareDocumentPosition(smartbarSlot) &
+        content.Node.DOCUMENT_POSITION_FOLLOWING,
+      "smartbar-slot should follow smartwindow-prompts in sidebar DOM order"
+    );
+  });
+
+  await BrowserTestUtils.closeWindow(win);
+});
+
+add_task(async function test_fullpage_element_order() {
+  const win = await openAIWindow();
+
+  await SpecialPowers.spawn(win.gBrowser.selectedBrowser, [], async () => {
+    const aiWindow = await ContentTaskUtils.waitForCondition(
+      () => content.document.querySelector("ai-window"),
+      "Wait for ai-window element"
+    );
+    const root = aiWindow.shadowRoot;
+
+    const prompts = await ContentTaskUtils.waitForCondition(
+      () => root.querySelector("smartwindow-prompts"),
+      "Wait for smartwindow-prompts"
+    );
+    const smartbarSlot = await ContentTaskUtils.waitForCondition(
+      () => root.querySelector("#smartbar-slot"),
+      "Wait for #smartbar-slot"
+    );
+
+    Assert.ok(
+      smartbarSlot.compareDocumentPosition(prompts) &
+        content.Node.DOCUMENT_POSITION_FOLLOWING,
+      "smartwindow-prompts should follow smartbar-slot in fullpage DOM order"
+    );
+  });
+
+  await BrowserTestUtils.closeWindow(win);
+});

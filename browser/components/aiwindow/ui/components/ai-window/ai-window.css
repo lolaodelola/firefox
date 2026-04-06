@@ -110,13 +110,13 @@
   bottom: 0;
 }
 
+#smartbar-slot {
+  display: contents;
+}
+
 smartwindow-prompts {
   grid-area: prompts;
   width: 100%;
-}
-
-#browser-container.chat-active #ai-window-smartbar {
-  grid-area: 2 / 1;
 }
 
 .sidebar-header {
