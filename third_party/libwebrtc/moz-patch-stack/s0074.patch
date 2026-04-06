@@ -12,10 +12,10 @@ Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/237d19fe96dd7d25b
  1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc b/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc
-index 6b2158ff5b..bf7da572bc 100644
+index d5ed0c6be9..2c0412a857 100644
 --- a/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc
 +++ b/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc
-@@ -472,7 +472,9 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
+@@ -476,7 +476,9 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
      RTC_LOG(LS_ERROR) << "Unable to open PipeWire library";
      return false;
    }
@@ -26,17 +26,17 @@ index 6b2158ff5b..bf7da572bc 100644
  
    pw_stream_node_id_ = stream_node_id;
  
-@@ -564,7 +566,8 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
+@@ -568,7 +570,8 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
      for (uint32_t format : {SPA_VIDEO_FORMAT_BGRA, SPA_VIDEO_FORMAT_RGBA,
                              SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_RGBx}) {
        // Modifiers can be used with PipeWire >= 0.3.33
 -      if (has_required_pw_client_version && has_required_pw_server_version) {
 +      if (egl_dmabuf_ &&
 +          has_required_pw_client_version && has_required_pw_server_version) {
+         std::vector<uint64_t> modifiers;
          auto render_device = egl_dmabuf_->GetRenderDevice();
          if (render_device) {
-           modifiers_ = render_device->QueryDmaBufModifiers(format);
-@@ -1016,7 +1019,7 @@ bool SharedScreenCastStreamPrivate::ProcessDMABuffer(
+@@ -1021,7 +1024,7 @@ bool SharedScreenCastStreamPrivate::ProcessDMABuffer(
  
    const uint n_planes = spa_buffer->n_datas;
  

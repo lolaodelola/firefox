@@ -241,7 +241,7 @@ index e90ef0e06a..0e96125f40 100644
      cflags = [ "-mfpu=neon" ]
    }
 diff --git a/modules/desktop_capture/BUILD.gn b/modules/desktop_capture/BUILD.gn
-index 4157eacdd8..3a40b9c0a4 100644
+index 55645e9568..a7ebdc9641 100644
 --- a/modules/desktop_capture/BUILD.gn
 +++ b/modules/desktop_capture/BUILD.gn
 @@ -10,7 +10,7 @@ import("//build/config/linux/gtk/gtk.gni")
