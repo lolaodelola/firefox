@@ -93,13 +93,13 @@ class JujutsuRepository(Repository):
         `get_commits`.
         """
         # Do-nothing command with an explanatory message visible in `jj op log`.
-        self._run("log", "-n0", "--template", f'"snapshot: {reason}"')
+        self._run("log", "--limit=0", "--template", f'"snapshot: {reason}"')
 
     def _resolve_to_change(self, revset: str) -> Optional[str]:
         change_id = self._run_read_only(
             "log",
             "--no-graph",
-            "-n1",
+            "--limit=1",
             "--revision",
             revset,
             "--template",
@@ -161,7 +161,7 @@ class JujutsuRepository(Repository):
         return int(
             self._run_read_only(
                 "log",
-                "-n1",
+                "--limit=1",
                 "--no-graph",
                 "--template",
                 'committer.timestamp().format("%s")',
@@ -457,7 +457,7 @@ class JujutsuRepository(Repository):
             'commit_id ++ "\n"',
         ]
         if limit is not None:
-            cmd.append(f"-n{limit}")
+            cmd.append(f"--limit={limit}")
         if follow is not None:
             cmd.extend(follow)
 
@@ -497,7 +497,7 @@ class JujutsuRepository(Repository):
         see `stage_changes`.
         """
         opid = self._run(
-            "operation", "log", "-n1", "--no-graph", "--template", "id.short(16)"
+            "operation", "log", "--limit=1", "--no-graph", "--template", "id.short(16)"
         ).rstrip()
         try:
             change, _ = self.prepare_try_push(commit_message, changed_files)
@@ -538,7 +538,7 @@ class JujutsuRepository(Repository):
         # working-copy changes if not!), so be extra explicit here in case it
         # becomes possible to default snapshotting off.
         opid = self._run(
-            "operation", "log", "-n1", "--no-graph", "--template", "id.short(16)"
+            "operation", "log", "--limit=1", "--no-graph", "--template", "id.short(16)"
         ).rstrip()
         try:
             self._run("new", "--message", commit_message, self.HEAD_REVSET)
@@ -576,7 +576,7 @@ class JujutsuRepository(Repository):
         date = self._run(
             "log",
             "--no-graph",
-            "-n1",
+            "--limit=1",
             "--template",
             "committer.timestamp()",
             f'"{escaped_path}"',
