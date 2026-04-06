@@ -254,7 +254,7 @@ add_task(async function test_sync_disconnected_error() {
 
     let preferencesTabPromise = BrowserTestUtils.waitForNewTab(
       browser.getTabBrowser(),
-      "about:preferences?action=choose-what-to-sync#sync",
+      "about:preferences#sync",
       true
     );
     let emptyStateButton = syncedTabsComponent.emptyState.querySelector(

@@ -868,17 +868,14 @@ add_task(async function test_new_sync_setup_ui() {
     enabledItems: [
       "PanelUI-fxa-menu-sendtab-button",
       "PanelUI-fxa-menu-account-signout-button",
-      "PanelUI-fxa-menu-connect-device-button",
     ],
     disabledItems: [],
     hiddenItems: [
       "PanelUI-fxa-menu-syncnow-button",
       "PanelUI-fxa-menu-sync-prefs-button",
-    ],
-    visibleItems: [
-      "PanelUI-fxa-menu-setup-sync-container",
       "PanelUI-fxa-menu-connect-device-button",
     ],
+    visibleItems: ["PanelUI-fxa-menu-setup-sync-container"],
   });
 
   await closeFxaPanel();

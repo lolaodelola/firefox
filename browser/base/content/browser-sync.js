@@ -1370,7 +1370,7 @@ var gSync = {
           syncSetupEl.removeAttribute("hidden");
         }
 
-        if (state.hasSyncKeys) {
+        if (state.syncEnabled) {
           cadButtonEl.removeAttribute("hidden");
           syncSetupSeparator.removeAttribute("hidden");
         } else {

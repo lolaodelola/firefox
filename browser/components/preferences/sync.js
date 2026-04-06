@@ -277,17 +277,22 @@ var gSyncPane = {
     let syncNowButton = document.getElementById("syncNow");
     let syncNotConfiguredEl = document.getElementById("syncNotConfigured");
     let syncConfiguredEl = document.getElementById("syncConfigured");
+    let syncConnectAnotherDeviceEl = document.getElementById(
+      "syncConnectAnotherDevice"
+    );
 
     if (SyncHelpers.isSyncEnabled) {
       syncStatusTitle.setAttribute("data-l10n-id", "prefs-syncing-on");
       syncNowButton.hidden = false;
       syncConfiguredEl.hidden = false;
       syncNotConfiguredEl.hidden = true;
+      syncConnectAnotherDeviceEl.hidden = false;
     } else {
       syncStatusTitle.setAttribute("data-l10n-id", "prefs-syncing-off");
       syncNowButton.hidden = true;
       syncConfiguredEl.hidden = true;
       syncNotConfiguredEl.hidden = false;
+      syncConnectAnotherDeviceEl.hidden = true;
     }
   },
 
