@@ -38,7 +38,7 @@ constexpr uint16_t kNetworkCostVpn = 1;
 
 // Add -2 to the network cost when using network slicing so that e.g. premium 5G
 // slice is preferred over regular 5G, everything else being equal.
-constexpr uint16_t kNetworkCostSlice = -2;
+constexpr int16_t kNetworkCostSlice = -2;
 
 // Aliases for correct wrap-around with network slice cost.
 constexpr uint16_t kNetworkCostCellular5GSlice =  // 248
