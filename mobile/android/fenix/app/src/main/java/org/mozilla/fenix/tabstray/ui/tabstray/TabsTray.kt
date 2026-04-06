@@ -287,6 +287,9 @@ fun TabsTray(
                             onTabDragStart = {
                                 tabsTrayStore.dispatch(TabsTrayAction.ExitSelectMode)
                             },
+                            onDeleteTabGroup = { group ->
+                                tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(group))
+                            },
                         )
                     }
 

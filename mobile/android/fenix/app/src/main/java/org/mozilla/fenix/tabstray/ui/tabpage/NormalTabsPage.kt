@@ -65,6 +65,7 @@ private val EmptyPageWidth = 170.dp
  * @param onInactiveTabsCFRClick Invoked when the inactive tabs CFR is clicked.
  * @param onInactiveTabsCFRDismiss Invoked when the inactive tabs CFR is dismissed.
  * @param onTabDragStart Invoked when a tab drag has been started.
+ * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
  */
 @Composable
 @Suppress("LongParameterList")
@@ -92,6 +93,7 @@ internal fun NormalTabsPage(
     onInactiveTabsCFRClick: () -> Unit,
     onInactiveTabsCFRDismiss: () -> Unit,
     onTabDragStart: () -> Unit,
+    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     if (normalTabs.isNotEmpty() || inactiveTabs.isNotEmpty()) {
         var showAutoCloseDialog by remember { mutableStateOf(shouldShowInactiveTabsAutoCloseDialog) }
@@ -139,6 +141,7 @@ internal fun NormalTabsPage(
             onItemLongClick = onItemLongClick,
             header = optionalInactiveTabsHeader,
             onTabDragStart = onTabDragStart,
+            onDeleteTabGroup = onDeleteTabGroup,
             onMove = onMove,
         )
     } else {

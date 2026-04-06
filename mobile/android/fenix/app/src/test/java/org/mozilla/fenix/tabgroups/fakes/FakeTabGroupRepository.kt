@@ -59,7 +59,9 @@ class FakeTabGroupRepository(
 
     override suspend fun deleteTabGroup(tabGroup: StoredTabGroup) {}
 
-    override suspend fun deleteTabGroupById(tabGroupId: String) {}
+    override suspend fun deleteTabGroupById(tabGroupId: String) {
+        tabGroupFlow.emit(tabGroupFlow.value.filterNot { it.id == tabGroupId })
+    }
 
     override suspend fun deleteTabGroupsById(ids: List<String>) {
         tabGroupFlow.emit(fetchTabGroups().filterNot { it.id in ids })

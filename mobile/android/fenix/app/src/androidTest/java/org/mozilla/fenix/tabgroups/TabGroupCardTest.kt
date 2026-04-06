@@ -109,6 +109,27 @@ class TabGroupCardTest {
     }
 
     @Test
+    fun verifyDelete() {
+        var deleteClicked = false
+        var argumentReceived: String? = null
+        composeTestRule.setContent {
+            FirefoxTheme {
+                ComposableUnderTest(
+                    onDeleteTabGroup = { arg ->
+                        deleteClicked = true
+                        argumentReceived = arg
+                    },
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.TAB_GROUP_THREE_DOT_BUTTON)
+            .performClick()
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.DELETE_TAB_GROUP).performClick()
+        Assert.assertTrue(deleteClicked)
+        Assert.assertEquals("Test", argumentReceived)
+    }
+
+    @Test
     fun verifyMenuItems() {
         composeTestRule.setContent {
             FirefoxTheme {
@@ -259,6 +280,7 @@ class TabGroupCardTest {
         onClick: (String) -> Unit = {},
         onLongClick: (String) -> Unit = {},
         interactionState: TabItemInteractionState = TabItemInteractionState(),
+        onDeleteTabGroup: (String) -> Unit = {},
     ) {
         TabGroupCard(
             group = TabsTrayItem.TabGroup(
@@ -278,6 +300,7 @@ class TabGroupCardTest {
             ),
             interactionState = interactionState,
             modifier = modifier,
+            onDeleteTabGroup = { onDeleteTabGroup("Test") },
         )
     }
 }

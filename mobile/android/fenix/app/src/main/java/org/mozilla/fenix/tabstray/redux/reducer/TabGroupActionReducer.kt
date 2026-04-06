@@ -4,7 +4,9 @@
 
 package org.mozilla.fenix.tabstray.redux.reducer
 
+import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
+import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
@@ -82,6 +84,14 @@ object TabGroupActionReducer {
                 mode = TabsTrayState.Mode.Normal,
                 backStack = state.backStack.popTabGroupFlow(),
             )
+
+            is TabGroupAction.DeleteClicked -> state.copy(
+                backStack = state.backStack + DeleteTabGroupConfirmationDialog(group = action.group),
+            )
+
+            is TabGroupAction.DeleteConfirmed -> state.copy(
+                backStack = state.backStack.popDeleteTabGroupFlow(action.group),
+            )
         }
     }
 
@@ -101,6 +111,22 @@ object TabGroupActionReducer {
         ) {
             stack = stack.dropLast(1)
         }
+        return stack
+    }
+
+    private fun List<TabManagerNavDestination>.popDeleteTabGroupFlow(
+        group: TabsTrayItem.TabGroup,
+    ): List<TabManagerNavDestination> {
+        var stack = this
+
+        while (stack.size > 1 && stack.last() in setOf(
+                DeleteTabGroupConfirmationDialog(group = group),
+                ExpandedTabGroup(group = group),
+            )
+        ) {
+            stack = stack.dropLast(1)
+        }
+
         return stack
     }
 }

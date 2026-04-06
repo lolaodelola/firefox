@@ -54,6 +54,7 @@ private const val PLACEHOLDER_SHARE_TAB_GROUP_CONTENT_DESCRIPTION = "Share tab g
  * that is not inside the group.
  * @param onItemClick Invoked when the user clicks on a [TabsTrayItem] in the group.
  * @param onTabClose Invoked when the user clicks to close a [TabsTrayItem.Tab] in the group.
+ * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +63,7 @@ fun ExpandedTabGroup(
     focusedTabId: String?,
     onItemClick: (TabsTrayItem) -> Unit,
     onTabClose: (TabsTrayItem.Tab) -> Unit,
+    onDeleteTabGroup: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -72,7 +74,11 @@ fun ExpandedTabGroup(
             ),
     ) {
         Spacer(modifier = Modifier.height(FirefoxTheme.layout.space.static150))
-        ViewTabGroupHeader(group.title, group.theme)
+        ViewTabGroupHeader(
+            title = group.title,
+            groupTheme = group.theme,
+            onDeleteTabGroup = onDeleteTabGroup,
+        )
         TabLayout(
             tabs = group.tabs.toList(),
             displayTabsInGrid = true,
@@ -84,13 +90,18 @@ fun ExpandedTabGroup(
             onItemLongClick = { item -> }, // Ignore long click
             onMove = { _, _, _ -> }, // Ignore moves
             onTabDragStart = { }, // Ignore drags
+            onDeleteTabGroup = { }, // Ignore tab group deletes
             contentPadding = PaddingValues(0.dp), // TabLayout should not have its own content padding inside this view
         )
     }
 }
 
 @Composable
-private fun ViewTabGroupHeader(title: String, groupTheme: TabGroupTheme) {
+private fun ViewTabGroupHeader(
+    title: String,
+    groupTheme: TabGroupTheme,
+    onDeleteTabGroup: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -137,7 +148,10 @@ private fun ViewTabGroupHeader(title: String, groupTheme: TabGroupTheme) {
 
         Spacer(modifier = Modifier.width(FirefoxTheme.layout.space.static100))
 
-        TabGroupMenuButton(includeCloseOption = true)
+        TabGroupMenuButton(
+            includeCloseOption = true,
+            onDeleteTabGroup = onDeleteTabGroup,
+        )
     }
 }
 
@@ -167,6 +181,7 @@ private fun ExpandedTabGroupPreview(
                     focusedTabId = previewState.selectedTabId,
                     onTabClose = {},
                     onItemClick = {},
+                    onDeleteTabGroup = {},
                 )
             }
         }

@@ -47,6 +47,20 @@ sealed interface TabGroupAction : TabsTrayAction {
     data class TabGroupClicked(val group: TabsTrayItem.TabGroup) : TabGroupAction
 
     /**
+     * Fired when the user clicks delete on a Tab Group.
+     *
+     * @property group The clicked [TabsTrayItem.TabGroup].
+     */
+    data class DeleteClicked(val group: TabsTrayItem.TabGroup) : TabGroupAction
+
+    /**
+     * Fired when the user confirms to delete a Tab Group.
+     *
+     * @property group The clicked [TabsTrayItem.TabGroup].
+     */
+    data class DeleteConfirmed(val group: TabsTrayItem.TabGroup) : TabGroupAction, TabsStorageAction
+
+    /**
      * Invoked when the user changes the tab group theme.
      *
      * @property theme The theme of the tab group the user has selected.

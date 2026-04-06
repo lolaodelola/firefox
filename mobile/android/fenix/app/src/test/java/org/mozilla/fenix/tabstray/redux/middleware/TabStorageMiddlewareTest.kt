@@ -5,6 +5,7 @@
 package org.mozilla.fenix.tabstray.redux.middleware
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,7 +15,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import mozilla.components.browser.state.action.TabListAction
 import mozilla.components.browser.state.state.createTab
+import mozilla.components.browser.state.store.BrowserStore
+import mozilla.components.feature.tabs.TabsUseCases
+import mozilla.components.feature.tabs.TabsUseCases.RemoveTabsUseCase
 import mozilla.components.support.utils.DateTimeProvider
 import mozilla.components.support.utils.FakeDateTimeProvider
 import org.junit.Assert.assertTrue
@@ -194,6 +199,7 @@ class TabStorageMiddlewareTest {
             tabGroupsEnabled = true,
             tabDataFlow = flowOf(),
             tabGroupRepository = createRepository(),
+            removeTabsUseCase = mockk(relaxed = true),
         )
         val actualTheme = with(middleware) {
             expectedTabGroupTheme.name.toTabGroupTheme()
@@ -210,6 +216,7 @@ class TabStorageMiddlewareTest {
             tabGroupsEnabled = true,
             tabDataFlow = flowOf(),
             tabGroupRepository = createRepository(),
+            removeTabsUseCase = mockk(relaxed = true),
         )
         val actualTheme = with(middleware) {
             "Rainbow123".toTabGroupTheme()
@@ -371,6 +378,95 @@ class TabStorageMiddlewareTest {
 
         assertTrue(repository.fetchTabGroups().isEmpty())
         assertTrue(repository.fetchTabGroupAssignments().isEmpty())
+    }
+
+    @Test
+    fun `WHEN tab group delete is confirmed THEN remove the tab group and its tabs`() = runTest {
+        val browserStore = BrowserStore()
+        val removeTabsUseCase = TabsUseCases(store = browserStore).removeTabs
+
+        val firstTab = createTab("https://mozilla.org")
+        browserStore.dispatch(TabListAction.AddTabAction(firstTab))
+
+        val secondTab = createTab("https://example.com")
+        browserStore.dispatch(TabListAction.AddTabAction(secondTab))
+
+        val title = "Group 1"
+        val theme = TabGroupTheme.Red
+        val storedGroup = StoredTabGroup(
+            title = title,
+            theme = theme.name,
+            lastModified = 0L,
+        )
+
+        val repository = FakeTabGroupRepository(
+            tabGroupFlow = MutableStateFlow(listOf(storedGroup)),
+        )
+        val store = createStore(
+            tabGroupRepository = repository,
+            removeTabsUseCase = removeTabsUseCase,
+            scope = backgroundScope,
+        )
+
+        val group = TabsTrayItem.TabGroup(
+            id = storedGroup.id,
+            title = title,
+            theme = theme,
+            tabs = mutableListOf(
+                TabsTrayItem.Tab(firstTab),
+                TabsTrayItem.Tab(secondTab),
+            ),
+        )
+
+        assertEquals(listOf(storedGroup), repository.fetchTabGroups())
+        assertEquals(2, browserStore.state.tabs.size)
+
+        store.dispatch(TabGroupAction.DeleteConfirmed(group))
+
+        runCurrent()
+        advanceUntilIdle()
+
+        assertTrue(repository.fetchTabGroups().isEmpty())
+        assertTrue(browserStore.state.tabs.isEmpty())
+    }
+
+    @Test
+    fun `GIVEN multiple tab groups exist WHEN delete is confirmed THEN remove the correct tab group`() = runTest {
+        val tabGroup1 = StoredTabGroup(
+            title = "Tab Group 1",
+            theme = TabGroupTheme.Red.name,
+            lastModified = 0L,
+        )
+        val tabGroup2 = StoredTabGroup(
+            title = "Tab Group 2",
+            theme = TabGroupTheme.Blue.name,
+            lastModified = 1L,
+        )
+        val repository = FakeTabGroupRepository(
+            tabGroupFlow = MutableStateFlow(listOf(tabGroup1, tabGroup2)),
+        )
+        val store = createStore(
+            tabGroupRepository = repository,
+            scope = backgroundScope,
+        )
+
+        assertEquals(listOf(tabGroup1, tabGroup2), repository.fetchTabGroups())
+
+        store.dispatch(
+            TabGroupAction.DeleteConfirmed(
+                group = TabsTrayItem.TabGroup(
+                    id = tabGroup1.id,
+                    title = tabGroup1.title,
+                    theme = TabGroupTheme.Red,
+                    tabs = mutableListOf(),
+                ),
+            ),
+        )
+
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals(listOf(tabGroup2), repository.fetchTabGroups())
     }
 
     @Test
@@ -562,6 +658,7 @@ class TabStorageMiddlewareTest {
         tabGroupsEnabled: Boolean = false,
         tabDataFlow: Flow<TabData> = flowOf(),
         tabGroupRepository: TabGroupRepository = createRepository(),
+        removeTabsUseCase: RemoveTabsUseCase = TabsUseCases(store = BrowserStore()).removeTabs,
         dateTimeProvider: DateTimeProvider = fakeDateTimeProvider,
         scope: CoroutineScope,
     ) = TabsTrayStore(
@@ -572,6 +669,7 @@ class TabStorageMiddlewareTest {
                 tabGroupsEnabled = tabGroupsEnabled,
                 tabDataFlow = tabDataFlow,
                 tabGroupRepository = tabGroupRepository,
+                removeTabsUseCase = removeTabsUseCase,
                 dateTimeProvider = dateTimeProvider,
                 scope = scope,
                 mainScope = scope,

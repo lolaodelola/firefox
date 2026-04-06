@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import mozilla.components.feature.tabs.TabsUseCases.RemoveTabsUseCase
 import mozilla.components.lib.state.Middleware
 import mozilla.components.lib.state.Store
 import mozilla.components.support.base.log.logger.Logger
@@ -39,6 +40,7 @@ private typealias TabGroupMap = HashMap<TabItemId, TabsTrayItem.TabGroup>
  * @param tabGroupsEnabled Whether the inactive tabs feature is enabled.
  * @param tabDataFlow [StateFlow] used to observe tab data.
  * @param tabGroupRepository The [TabGroupRepository] used to read/write tab group data.
+ * @param removeTabsUseCase The [RemoveTabsUseCase] used to delete the tabs in a tab group.
  * @param dateTimeProvider The [DateTimeProvider] that will be used to get the current date.
  * @param scope The [CoroutineScope] for running the tab data transformation off of the main thread.
  * @param mainScope The [CoroutineScope] used for returning to the main thread.
@@ -48,6 +50,7 @@ class TabStorageMiddleware(
     private val tabGroupsEnabled: Boolean,
     private val tabDataFlow: Flow<TabData>,
     private val tabGroupRepository: TabGroupRepository,
+    private val removeTabsUseCase: RemoveTabsUseCase,
     private val dateTimeProvider: DateTimeProvider = DefaultDateTimeProvider(),
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
     private val mainScope: CoroutineScope = CoroutineScope(Dispatchers.Main),
@@ -145,6 +148,8 @@ class TabStorageMiddleware(
                     )
                 }
             }
+
+            is TabGroupAction.DeleteConfirmed -> handleDeleteClicked(action.group)
         }
     }
 
@@ -255,6 +260,13 @@ class TabStorageMiddleware(
                     ),
                 )
             }
+        }
+    }
+
+    private fun handleDeleteClicked(group: TabsTrayItem.TabGroup) {
+        scope.launch {
+            removeTabsUseCase.invoke(ids = group.tabs.map { it.id })
+            tabGroupRepository.deleteTabGroupById(group.id)
         }
     }
 

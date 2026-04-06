@@ -82,6 +82,7 @@ internal fun PrivateTabsPage(
                     // Because we don't currently support selection mode for private tabs,
                     // there's no need to exit selection mode when dragging tabs.
                 },
+                onDeleteTabGroup = {},
                 onMove = onMove,
             )
         }

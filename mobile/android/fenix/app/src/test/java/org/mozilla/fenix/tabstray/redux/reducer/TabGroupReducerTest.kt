@@ -10,6 +10,7 @@ import org.mozilla.fenix.tabstray.data.TabGroupTheme
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTabGroup
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.AddToTabGroup
+import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.EditTabGroup
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
@@ -152,6 +153,43 @@ class TabGroupReducerTest {
         )
 
         assertEquals(expectedBackStack, resultState.backStack)
+    }
+
+    @Test
+    fun `WHEN delete is confirmed from expanded tab group THEN pop the confirmation dialog and expanded tab group`() {
+        val group = createTabGroup()
+        val initialState = TabsTrayState(
+            backStack = listOf(
+                TabsTrayState().backStack.first(),
+                ExpandedTabGroup(group = group),
+                DeleteTabGroupConfirmationDialog(group = group),
+            ),
+        )
+
+        val resultState = TabGroupActionReducer.reduce(
+            state = initialState,
+            action = TabGroupAction.DeleteConfirmed(group = group),
+        )
+
+        assertEquals(TabsTrayState().backStack, resultState.backStack)
+    }
+
+    @Test
+    fun `WHEN delete is confirmed from root tab manager THEN pop the confirmation dialog`() {
+        val group = createTabGroup()
+        val initialState = TabsTrayState(
+            backStack = listOf(
+                TabsTrayState().backStack.first(),
+                DeleteTabGroupConfirmationDialog(group = group),
+            ),
+        )
+
+        val resultState = TabGroupActionReducer.reduce(
+            state = initialState,
+            action = TabGroupAction.DeleteConfirmed(group = group),
+        )
+
+        assertEquals(TabsTrayState().backStack, resultState.backStack)
     }
 
     @Test

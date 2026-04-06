@@ -153,11 +153,13 @@ val gridItemAspectRatio: Float
  * Renders the three dot button and its menu items for [org.mozilla.fenix.tabstray.data.TabsTrayItem.TabGroup] views.
  * @param modifier: The Modifier parameter
  * @param includeCloseOption: Whether to include the "Close" dropdown item in the menu item list.
+ * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
  */
 @Composable
 fun TabGroupMenuButton(
     modifier: Modifier = Modifier,
     includeCloseOption: Boolean = false,
+    onDeleteTabGroup: () -> Unit,
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
     IconButton(
@@ -181,7 +183,7 @@ fun TabGroupMenuButton(
             menuItems = generateTabGroupMenuItems(
                 editTabGroup = {}, // handle edit
                 closeTabGroup = {}, // handle close
-                deleteTabGroup = {}, // handle delete
+                deleteTabGroup = onDeleteTabGroup,
                 includeCloseOption = includeCloseOption,
             ),
         )
@@ -214,7 +216,7 @@ private fun generateTabGroupMenuItems(
         testTag = TabsTrayTestTag.DELETE_TAB_GROUP,
         onClick = deleteTabGroup,
         level = MenuItem.FixedItem.Level.Critical,
-        enabled = false,
+        enabled = true,
     )
     return if (includeCloseOption) {
         listOf(editItem, closeItem, deleteItem)

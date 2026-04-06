@@ -43,6 +43,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -81,6 +82,7 @@ import org.mozilla.fenix.settings.biometric.ext.isAuthenticatorAvailable
 import org.mozilla.fenix.settings.biometric.ext.isHardwareAvailable
 import org.mozilla.fenix.share.ShareFragment
 import org.mozilla.fenix.tabgroups.AddToTabGroup
+import org.mozilla.fenix.tabgroups.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabgroups.EditTabGroup
 import org.mozilla.fenix.tabgroups.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.InactiveTabsBinding
@@ -221,7 +223,10 @@ class TabManagementFragment : DialogFragment() {
                     MutableTransitionState(false).apply { targetState = true }
                 }
                 val tabSelectedState = remember { mutableStateOf<TabsTrayItem.Tab?>(null) }
-                val bottomSheetStrategy = remember { BottomSheetSceneStrategy<TabManagerNavDestination>() }
+                val sceneStrategy = remember {
+                    DialogSceneStrategy<TabManagerNavDestination>() then
+                        BottomSheetSceneStrategy()
+                }
                 val shouldPerformTransitionAnimation = remember {
                     derivedStateOf {
                         shouldPerformTransitionAnimation(
@@ -275,7 +280,7 @@ class TabManagementFragment : DialogFragment() {
                         transitionSpec = defaultTransitionSpec(),
                         popTransitionSpec = popTransitionSpec(),
                         predictivePopTransitionSpec = defaultPredictivePopTransitionSpec(),
-                        sceneStrategy = bottomSheetStrategy,
+                        sceneStrategy = sceneStrategy,
                         entryProvider = entryProvider {
                             entry<TabManagerNavDestination.Root> {
                                 TabsTray(
@@ -416,6 +421,22 @@ class TabManagementFragment : DialogFragment() {
                                     onTabClose = {
                                         tabManagerInteractor.onTabClosed(tab = it, source = TAB_MANAGER_FEATURE_NAME)
                                     },
+                                    onDeleteTabGroup = {
+                                        tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(expandedGroup))
+                                    },
+                                )
+                            }
+
+                            entry<TabManagerNavDestination.DeleteTabGroupConfirmationDialog>(
+                                metadata = DialogSceneStrategy.dialog(),
+                            ) { args ->
+                                DeleteTabGroupConfirmationDialog(
+                                    onConfirmDelete = {
+                                        tabsTrayStore.dispatch(TabGroupAction.DeleteConfirmed(args.group))
+                                    },
+                                    onCancel = {
+                                        tabsTrayStore.dispatch(TabsTrayAction.NavigateBackInvoked)
+                                    },
                                 )
                             }
 
@@ -517,6 +538,7 @@ class TabManagementFragment : DialogFragment() {
                         tabGroupsEnabled = requireComponents.settings.tabGroupsEnabled,
                         tabDataFlow = requireComponents.core.store.stateFlow.map { TabData(browserState = it) },
                         tabGroupRepository = requireComponents.core.tabGroupRepository,
+                        removeTabsUseCase = requireComponents.useCases.tabsUseCases.removeTabs,
                         mainScope = lifecycleScope,
                     ),
                 ),

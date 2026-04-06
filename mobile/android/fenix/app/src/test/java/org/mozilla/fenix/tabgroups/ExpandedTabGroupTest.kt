@@ -36,6 +36,7 @@ class ExpandedTabGroupTest {
                         focusedTabId = null,
                         onItemClick = {},
                         onTabClose = {},
+                        onDeleteTabGroup = {},
                     )
                 }
             }
@@ -60,6 +61,7 @@ class ExpandedTabGroupTest {
                         focusedTabId = null,
                         onItemClick = {},
                         onTabClose = {},
+                        onDeleteTabGroup = {},
                     )
                 }
             }
@@ -89,6 +91,7 @@ class ExpandedTabGroupTest {
                                 }
                             },
                             onTabClose = {},
+                            onDeleteTabGroup = {},
                         )
                     }
                 }
@@ -119,6 +122,7 @@ class ExpandedTabGroupTest {
                                     itemClosed = true
                                 }
                             },
+                            onDeleteTabGroup = {},
                         )
                     }
                 }
@@ -129,6 +133,37 @@ class ExpandedTabGroupTest {
             .performClick()
 
         assertTrue(itemClosed)
+    }
+
+    @Test
+    fun verifyDeleteTabGroupClick() {
+        var deleteClicked = false
+        val group = fakeTabGroup()
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalUnderTest provides true) {
+                FirefoxTheme(theme = Theme.Light) {
+                    Surface {
+                        ExpandedTabGroup(
+                            group = group,
+                            focusedTabId = null,
+                            onItemClick = {},
+                            onTabClose = {},
+                            onDeleteTabGroup = {
+                                deleteClicked = true
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.TAB_GROUP_THREE_DOT_BUTTON)
+            .performClick()
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.DELETE_TAB_GROUP)
+            .performClick()
+
+        assertTrue(deleteClicked)
     }
 
     private fun fakeTabGroup(

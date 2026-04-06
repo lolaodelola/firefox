@@ -82,6 +82,7 @@ const val BOTTOM_END_THUMBNAIL_INDEX = 3
  * @param clickHandler: Handler for all click-handling inputs (long click, click, etc)
  * @param modifier: The Modifier
  * @param interactionState The tab item's interaction state (hover, drag, etc)
+ * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
  */
 @Composable
 fun TabGroupCard(
@@ -90,6 +91,7 @@ fun TabGroupCard(
     clickHandler: TabsTrayItemClickHandler,
     modifier: Modifier = Modifier,
     interactionState: TabItemInteractionState,
+    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -138,7 +140,10 @@ fun TabGroupCard(
 
                         Spacer(modifier = Modifier.width(FirefoxTheme.layout.space.static50))
 
-                        TabGroupOptionButton(selectionState = selectionState)
+                        TabGroupOptionButton(
+                            selectionState = selectionState,
+                            onDeleteTabGroup = { onDeleteTabGroup(group) },
+                        )
                     }
                 }
 
@@ -172,14 +177,21 @@ fun TabGroupCard(
  * Renders the button in the top-right corner of the TabGroupCard.
  */
 @Composable
-private fun TabGroupOptionButton(selectionState: TabsTrayItemSelectionState) {
+private fun TabGroupOptionButton(
+    selectionState: TabsTrayItemSelectionState,
+    onDeleteTabGroup: () -> Unit,
+) {
     if (selectionState.multiSelectEnabled) {
         MultiSelectTabButton(
             isSelected = selectionState.isSelected,
             uncheckedBorderColor = LocalContentColor.current,
         )
     } else {
-        TabGroupMenuButton(modifier = Modifier.size(TabHeaderIconTouchTargetSize), includeCloseOption = true)
+        TabGroupMenuButton(
+            modifier = Modifier.size(TabHeaderIconTouchTargetSize),
+            includeCloseOption = true,
+            onDeleteTabGroup = onDeleteTabGroup,
+        )
     }
 }
 
@@ -500,6 +512,7 @@ private fun TabGroupCardPreview(
                 ),
                 modifier = Modifier.weight(1f),
                 interactionState = tabGroupCardState.interactionState,
+                onDeleteTabGroup = {},
             )
         }
     }
