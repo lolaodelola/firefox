@@ -10,6 +10,7 @@
 #include "mozilla/DeclarationBlock.h"
 #include "mozilla/ProfilerLabels.h"
 #include "mozilla/StyleSheetInlines.h"
+#include "mozilla/Try.h"
 #include "mozilla/css/Rule.h"
 #include "mozilla/dom/BindingUtils.h"
 #include "mozilla/dom/CSSStylePropertiesBinding.h"
@@ -257,16 +258,13 @@ nsresult nsDOMCSSDeclaration::ModifyDeclaration(
   mozAutoDocUpdate autoUpdate(DocToUpdate(), true);
   RefPtr<DeclarationBlock> decl = olddecl->EnsureMutable();
 
-  bool changed;
   ParsingEnvironment servoEnv = GetParsingEnvironment(aSubjectPrincipal);
   if (!servoEnv.mUrlExtraData) {
     return NS_ERROR_NOT_AVAILABLE;
   }
 
-  changed = aFunc(decl, servoEnv);
-
+  bool changed = MOZ_TRY(aFunc(decl, servoEnv));
   if (!changed) {
-    // Parsing failed -- but we don't throw an exception for that.
     return NS_OK;
   }
 
@@ -286,10 +284,14 @@ nsresult nsDOMCSSDeclaration::ParsePropertyValue(
   return ModifyDeclaration(
       aSubjectPrincipal, &closureData,
       [&](DeclarationBlock* decl, ParsingEnvironment& env) {
-        return Servo_DeclarationBlock_SetPropertyById(
+        bool ok = Servo_DeclarationBlock_SetPropertyById(
             decl->Raw(), aPropId, &aPropValue, aIsImportant, env.mUrlExtraData,
             StyleParsingMode::DEFAULT, env.mCompatMode, env.mLoader,
             env.mRuleType, closure);
+
+        // Don't propagate parsing failures as nsresult errors. Instead, treat
+        // treat them as "no change".
+        return Result<bool, nsresult>(ok);
       });
 }
 
@@ -306,10 +308,14 @@ nsresult nsDOMCSSDeclaration::ParseCustomPropertyValue(
   return ModifyDeclaration(
       aSubjectPrincipal, &closureData,
       [&](DeclarationBlock* decl, ParsingEnvironment& env) {
-        return Servo_DeclarationBlock_SetProperty(
+        bool ok = Servo_DeclarationBlock_SetProperty(
             decl->Raw(), &aPropertyName, &aPropValue, aIsImportant,
             env.mUrlExtraData, StyleParsingMode::DEFAULT, env.mCompatMode,
             env.mLoader, env.mRuleType, closure);
+
+        // Don't propagate parsing failures as nsresult errors. Instead, treat
+        // treat them as "no change".
+        return Result<bool, nsresult>(ok);
       });
 }
 
