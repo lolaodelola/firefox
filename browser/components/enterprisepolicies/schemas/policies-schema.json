@@ -1862,6 +1862,10 @@
 
     "WindowsSSO": {
       "type": "boolean"
+    },
+
+    "XSLTEnabled": {
+      "type": "boolean"
     }
   }
 }
