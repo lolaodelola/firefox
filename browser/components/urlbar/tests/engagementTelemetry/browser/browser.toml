@@ -38,6 +38,8 @@ prefs = ["browser.bookmarks.testing.skipDefaultBookmarksImport=true"]
 
 ["browser_glean_telemetry_abandonment_type.js"]
 
+["browser_glean_telemetry_abandonment_window.js"]
+
 ["browser_glean_telemetry_bounce.js"]
 
 ["browser_glean_telemetry_disable.js"]
@@ -75,6 +77,8 @@ skip-if = [
 ["browser_glean_telemetry_engagement_tips.js"]
 
 ["browser_glean_telemetry_engagement_type.js"]
+
+["browser_glean_telemetry_engagement_window.js"]
 
 ["browser_glean_telemetry_exposure.js"]
 

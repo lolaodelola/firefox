@@ -358,6 +358,11 @@ add_task(async function test_smartbar_telemetry_engagement_extra_keys() {
     const extra = smartbarEvent.extra;
     Assert.ok(extra.chat_id, "engagement has chat_id");
     Assert.equal(extra.intent, "chat", "engagement has correct intent");
+    Assert.equal(
+      extra.window_mode,
+      "smartwindow",
+      "engagement has correct window mode"
+    );
     Assert.equal(extra.location, "fullpage", "engagement has correct location");
     Assert.equal(
       extra.model,
@@ -391,6 +396,11 @@ add_task(async function test_smartbar_telemetry_abandonment_extra_keys() {
   const extra = smartbarEvent.extra;
   Assert.ok(extra.chat_id, "abandonment has chat_id");
   Assert.equal(extra.intent, "chat", "abandonment has correct intent");
+  Assert.equal(
+    extra.window_mode,
+    "smartwindow",
+    "abandonment has correct window mode"
+  );
   Assert.equal(extra.location, "sidebar", "abandonment has correct location");
   Assert.equal(
     extra.model,
