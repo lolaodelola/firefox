@@ -48,7 +48,6 @@ import org.mozilla.fenix.components.search.BOOKMARKS_SEARCH_ENGINE_ID
 import org.mozilla.fenix.components.search.HISTORY_SEARCH_ENGINE_ID
 import org.mozilla.fenix.components.search.TABS_SEARCH_ENGINE_ID
 import org.mozilla.fenix.ext.components
-import org.mozilla.fenix.ext.navigateSafe
 import org.mozilla.fenix.ext.telemetryName
 import org.mozilla.fenix.nimbus.FxNimbus
 import org.mozilla.fenix.search.SearchFragmentAction.Init
@@ -289,9 +288,7 @@ class FenixSearchMiddleware(
                 DefaultSearchEngineProvider(uiContext.components.core.store),
             ),
             suggestionIconProvider = DefaultSuggestionIconProvider(uiContext),
-            onSearchEngineShortcutSelected = ::handleSearchEngineSuggestionClicked,
             onSearchEngineSuggestionSelected = ::handleSearchEngineSuggestionClicked,
-            onSearchEngineSettingsClicked = { handleClickSearchEngineSettings() },
         )
     }
 
@@ -462,13 +459,6 @@ class FenixSearchMiddleware(
 
     private fun handleSearchEngineSuggestionClicked(searchEngine: SearchEngine) {
         appStore.dispatch(SearchEngineSelected(searchEngine, true))
-    }
-
-    @VisibleForTesting
-    internal fun handleClickSearchEngineSettings() {
-        val directions = SearchDialogFragmentDirections.actionGlobalSearchEngineFragment()
-        navController.navigateSafe(R.id.searchDialogFragment, directions)
-        browserStore.dispatch(AwesomeBarAction.EngagementFinished(abandoned = true))
     }
 
     private inline fun <S : State, A : MVIAction> Store<S, A>.observeWhileActive(

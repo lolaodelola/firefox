@@ -490,22 +490,6 @@ class FenixSearchMiddlewareTest {
     }
 
     @Test
-    fun `GIVEN search settings are clicked WHEN handling this THEN open the settings screen and record search ended`() {
-        every { navController.navigate(any<NavDirections>()) } just Runs
-        every { navController.currentDestination } returns mockk {
-            every { id } returns R.id.searchDialogFragment
-        }
-        val (middleware, _) = buildMiddlewareAndAddToSearchStore()
-
-        middleware.handleClickSearchEngineSettings()
-
-        verify { navController.navigate(SearchDialogFragmentDirections.actionGlobalSearchEngineFragment()) }
-        browserActionsCaptor.assertLastAction(EngagementFinished::class) {
-            assertEquals(true, it.abandoned)
-        }
-    }
-
-    @Test
     fun `WHEN a search suggestion is clicked THEN exit search mode and execute the custom actions for it`() {
         var wasSuggestionClickHandled = false
         val customSuggestionClickedAction = { wasSuggestionClickHandled = true }

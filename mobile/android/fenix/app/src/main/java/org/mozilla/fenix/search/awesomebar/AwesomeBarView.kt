@@ -39,9 +39,7 @@ class AwesomeBarView(
                 DefaultSearchEngineProvider(context.components.core.store),
             ),
             suggestionIconProvider = DefaultSuggestionIconProvider(context),
-            onSearchEngineShortcutSelected = interactor::onSearchShortcutEngineSelected,
             onSearchEngineSuggestionSelected = interactor::onSearchEngineSuggestionSelected,
-            onSearchEngineSettingsClicked = interactor::onClickSearchEngineSettings,
             browsingModeManager = browsingModeManager,
         )
     }

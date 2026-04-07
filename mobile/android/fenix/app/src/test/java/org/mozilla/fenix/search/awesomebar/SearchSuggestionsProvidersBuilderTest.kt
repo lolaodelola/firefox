@@ -73,9 +73,7 @@ class SearchSuggestionsProvidersBuilderTest {
             selectTabUseCase = mockk(),
             suggestionsStringsProvider = suggestionsStringsProvider,
             suggestionIconProvider = mockk(relaxed = true),
-            onSearchEngineShortcutSelected = {},
             onSearchEngineSuggestionSelected = {},
-            onSearchEngineSettingsClicked = {},
         )
     }
 
