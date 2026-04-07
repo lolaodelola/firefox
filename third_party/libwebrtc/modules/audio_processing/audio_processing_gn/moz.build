@@ -36,7 +36,6 @@ LOCAL_INCLUDES += [
 ]
 
 SOURCES += [
-    "/third_party/libwebrtc/modules/audio_processing/echo_control_mobile_impl.cc",
     "/third_party/libwebrtc/modules/audio_processing/gain_control_impl.cc"
 ]
 
