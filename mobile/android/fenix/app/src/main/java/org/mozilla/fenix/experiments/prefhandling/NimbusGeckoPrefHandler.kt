@@ -61,11 +61,20 @@ class NimbusGeckoPrefHandler(
             }
         }
 
-    val preferenceList = nimbusGeckoPreferences.flatMap { featureEntry ->
+    // The list of preferences provided by Nimbus, that we are interested in for
+    // experiment purposes.
+    @VisibleForTesting
+    internal var preferenceList = nimbusGeckoPreferences.flatMap { featureEntry ->
         featureEntry.value.map { variablesEntry ->
             variablesEntry.value.prefString()
         }
     }
+
+    // Used to help prevent double queries for the same information.
+    // List<String> - The list of preferences being fetched.
+    // Deferred<Boolean> - The deferred query state.
+    @VisibleForTesting
+    internal var fetchingGeckoPrefState: Pair<List<String>, Deferred<Boolean>>? = null
 
     /**
      * Called when ready to begin observation.
@@ -96,6 +105,14 @@ class NimbusGeckoPrefHandler(
     fun getPreferenceStateFromGecko(): Deferred<Boolean> {
         val completable = CompletableDeferred<Boolean>()
         geckoScope.launch {
+            // Check for an existing fetch to optimize rapidly querying for the same information
+            val existingFetch = fetchingGeckoPrefState
+            if (existingFetch != null && existingFetch.first == preferenceList) {
+                completable.complete(existingFetch.second.await())
+                return@launch
+            }
+            fetchingGeckoPrefState = Pair(preferenceList, completable)
+
             try {
                 engine.value.getBrowserPrefs(
                     prefs = preferenceList,
@@ -110,12 +127,18 @@ class NimbusGeckoPrefHandler(
                             }.toString()
                             state.isUserSet = preference.hasUserChangedValue
                         }
+                        fetchingGeckoPrefState = null
                         completable.complete(true)
                     },
-                    onError = { completable.complete(false) },
+                    onError = { throwable ->
+                        logger.error("Error getting preference state from Gecko: ", throwable)
+                        fetchingGeckoPrefState = null
+                        completable.complete(false)
+                    },
                 )
             } catch (e: IllegalThreadStateException) {
-                logger.error("Error getting preference state from Gecko", e)
+                logger.error("Error getting preference state from Gecko: ", e)
+                fetchingGeckoPrefState = null
                 completable.complete(false)
             }
         }

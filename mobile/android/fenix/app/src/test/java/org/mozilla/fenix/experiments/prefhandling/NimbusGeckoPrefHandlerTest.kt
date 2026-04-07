@@ -12,6 +12,7 @@ import io.mockk.slot
 import io.mockk.verify
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
 import mozilla.components.ExperimentalAndroidComponentsApi
@@ -357,6 +358,68 @@ class NimbusGeckoPrefHandlerTest {
         handler.handleErrors()
 
         verify(exactly = 1) { mockNimbusApi.unenrollForGeckoPref(any(), eq(PrefUnenrollReason.FAILED_TO_SET)) }
+    }
+
+    @Test
+    fun `WHEN getPreferenceStateFromGecko is called twice concurrently with different preferenceList THEN getBrowserPrefs is called twice`() {
+        // getBrowserPrefs never calls onSuccess, leaving the first fetch in-flight
+        val capturedPrefs = mutableListOf<List<String>>()
+        every { mockEngine.getBrowserPrefs(any(), any(), any()) } answers { capturedPrefs.add(firstArg()) }
+
+        val handler = makeHandler()
+        handler.getPreferenceStateFromGecko()
+
+        // First request is now in-flight
+        shadowOf(Looper.getMainLooper()).idle()
+
+        // Change the pref list to simulate a different set of prefs being requested
+        handler.preferenceList = listOf("browser.some.other.pref")
+        handler.getPreferenceStateFromGecko()
+
+        shadowOf(Looper.getMainLooper()).idle()
+
+        // Checking that the engine received two distinct requests
+        verify(exactly = 2) { mockEngine.getBrowserPrefs(any(), any(), any()) }
+        assertEquals(2, capturedPrefs[0].size)
+        assertTrue(capturedPrefs[0].containsAll(listOf(TEST_PREF, SECOND_TEST_PREF)))
+        assertEquals(listOf("browser.some.other.pref"), capturedPrefs[1])
+    }
+
+    @Test
+    fun `WHEN getPreferenceStateFromGecko is called twice concurrently THEN getBrowserPrefs is only called once and both results are true`() {
+        var pendingOnSuccess: ((List<BrowserPreference<*>>) -> Unit)? = null
+        every { mockEngine.getBrowserPrefs(any(), any(), any()) } answers {
+            pendingOnSuccess = secondArg()
+        }
+
+        val handler = makeHandler()
+        val result1 = handler.getPreferenceStateFromGecko()
+        val result2 = handler.getPreferenceStateFromGecko()
+
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertNotNull(handler.fetchingGeckoPrefState)
+
+        // Both should have shared the same fetch request
+        verify(exactly = 1) { mockEngine.getBrowserPrefs(any(), any(), any()) }
+        assertEquals(handler.preferenceList, handler.fetchingGeckoPrefState!!.first)
+
+        // Deliver the Gecko response
+        pendingOnSuccess!!(
+            listOf(
+                BrowserPreference(
+                    pref = TEST_PREF,
+                    defaultValue = "value",
+                    hasUserChangedValue = false,
+                    prefType = BrowserPrefType.STRING,
+                ),
+            ),
+        )
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertNull(handler.fetchingGeckoPrefState)
+        assertTrue(runBlocking { result1.await() })
+        assertTrue(runBlocking { result2.await() })
     }
 
     @Test
