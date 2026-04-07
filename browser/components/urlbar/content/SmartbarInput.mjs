@@ -269,6 +269,8 @@ export class SmartbarInput extends HTMLElement {
   #sapName;
   #smartbarAction = "";
   #smartbarActionPending = false;
+  /** @type {SmartbarAction} */
+  #detectedIntent = "";
   #smartbarEditor = null;
   #smartbarInputController = null;
   _userTypedValue = "";
@@ -730,6 +732,15 @@ export class SmartbarInput extends HTMLElement {
   }
 
   /**
+   * Gets the original detected intent model action.
+   *
+   * @returns {SmartbarAction} The detected intent
+   */
+  get detectedIntent() {
+    return this.#detectedIntent;
+  }
+
+  /**
    * Gets the Smartbar location.
    *
    * @returns {SapLocation} The location of the smartbar
@@ -773,7 +784,7 @@ export class SmartbarInput extends HTMLElement {
    * @returns {number} The number of context websites
    */
   get contextWebsitesCount() {
-    return this.#contextWebsites.length;
+    return this.#getResolvedContextWebsites().length;
   }
 
   /**
@@ -1390,10 +1401,19 @@ export class SmartbarInput extends HTMLElement {
    * @param {object} triggeringPrincipal - The principal that the action was triggered from.
    * @returns {boolean} - True if the action was user initiated handled and false if we fell through.
    */
-  _handleSmartbarOnChangeAction(event, triggeringPrincipal) {
+  #handleSmartbarOnChangeAction(event, triggeringPrincipal) {
     const committedValue = this.untrimmedValue;
     const action = this.smartbarAction;
     const contextMentions = this.#getResolvedContextWebsites();
+
+    const buttonSelType = action === "chat" ? "ask" : action;
+    this.controller.engagementEvent.record(event, {
+      location: this.sapLocation,
+      searchString: committedValue,
+      searchSource: this.getSearchSource(event),
+      selType: `${buttonSelType}_button`,
+      result: null,
+    });
 
     this.dispatchEvent(
       new CustomEvent("smartbar-commit", {
@@ -1411,82 +1431,74 @@ export class SmartbarInput extends HTMLElement {
 
     // Submit chat
     if (action === "chat") {
-      this.controller.engagementEvent.record(event, {
-        location: this.sapLocation,
-        searchString: committedValue,
-        searchSource: this.getSearchSource(event),
-        selType: "ask_button",
-        result: null,
-      });
       this.#contextWebsites = [];
       this.#updateContextChips();
       return true;
     }
 
     // Run search
-    if (action === "search" && this.smartbarActionIsUserInitiated) {
+    if (action === "search") {
       const engine = lazy.UrlbarSearchUtils.getDefaultEngine();
-      const [url, postData] = lazy.UrlbarUtils.getSearchQueryUrl(
-        engine,
-        committedValue
-      );
-      this.controller.engagementEvent.record(event, {
-        location: this.sapLocation,
-        searchString: committedValue,
-        searchSource: this.getSearchSource(event),
-        selType: "search_button",
-        result: null,
-      });
       const { chat_id, message_seq } = this.conversationTelemetryInfo;
       Glean.smartWindow.searchSubmit.record({
         chat_id,
-        detected_intent: this.#smartbarAction,
+        detected_intent: this.detectedIntent,
         length: String(committedValue.length),
         location: this.sapLocation,
         message_seq: String(message_seq),
         model: this.modelName,
         provider: engine.name,
+        submit_type:
+          event?.type === "aiwindow-input-cta:on-action" ? "button" : "enter",
       });
-      this._loadURL(url, event, this._whereToOpen(event), {
-        triggeringPrincipal,
-        postData,
-        allowInheritPrincipal: false,
-      });
-      this._recordSearch(engine, event);
-      return true;
+
+      if (this.smartbarActionIsUserInitiated) {
+        const [url, postData] = lazy.UrlbarUtils.getSearchQueryUrl(
+          engine,
+          committedValue
+        );
+        this._loadURL(url, event, this._whereToOpen(event), {
+          triggeringPrincipal,
+          postData,
+          allowInheritPrincipal: false,
+        });
+        this._recordSearch(engine, event);
+        return true;
+      }
     }
 
     // Attempt to navigate to URL
-    if (action === "navigate" && this.smartbarActionIsUserInitiated) {
-      let flags = Ci.nsIURIFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
-      if (this.isPrivate) {
-        flags |= Ci.nsIURIFixup.FIXUP_FLAG_PRIVATE_CONTEXT;
-      }
-
-      let fixupInfo = Services.uriFixup.getFixupURIInfo(committedValue, flags);
-      this.controller.engagementEvent.record(event, {
-        searchString: committedValue,
-        location: this.sapLocation,
-        searchSource: this.getSearchSource(event),
-        selType: "navigate_button",
-        result: null,
-      });
+    if (action === "navigate") {
       const { chat_id, message_seq } = this.conversationTelemetryInfo;
       Glean.smartWindow.navigateSubmit.record({
         chat_id,
-        detected_intent: this.#smartbarAction,
+        detected_intent: this.detectedIntent,
+        length: String(committedValue.length),
         location: this.sapLocation,
         message_seq: String(message_seq),
         model: this.modelName,
-        submit_type: event?.type === "click" ? "button" : "enter",
+        submit_type:
+          event?.type === "aiwindow-input-cta:on-action" ? "button" : "enter",
       });
-      this._loadURL(
-        fixupInfo.preferredURI.spec,
-        event,
-        this._whereToOpen(event),
-        { triggeringPrincipal, allowInheritPrincipal: false }
-      );
-      return true;
+
+      if (this.smartbarActionIsUserInitiated) {
+        let flags = Ci.nsIURIFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
+        if (this.isPrivate) {
+          flags |= Ci.nsIURIFixup.FIXUP_FLAG_PRIVATE_CONTEXT;
+        }
+
+        let fixupInfo = Services.uriFixup.getFixupURIInfo(
+          committedValue,
+          flags
+        );
+        this._loadURL(
+          fixupInfo.preferredURI.spec,
+          event,
+          this._whereToOpen(event),
+          { triggeringPrincipal, allowInheritPrincipal: false }
+        );
+        return true;
+      }
     }
 
     // Let the handleNavigation logic continue
@@ -1511,7 +1523,7 @@ export class SmartbarInput extends HTMLElement {
   handleNavigation({ event, oneOffParams, triggeringPrincipal }) {
     if (
       this.#isSmartbarMode &&
-      this._handleSmartbarOnChangeAction(event, triggeringPrincipal)
+      this.#handleSmartbarOnChangeAction(event, triggeringPrincipal)
     ) {
       this.#clearSmartbarInput();
       return;
@@ -2320,6 +2332,7 @@ export class SmartbarInput extends HTMLElement {
     this._autofillPlaceholder = null;
     this._resultForCurrentValue = null;
     this.smartbarAction = "";
+    this.#detectedIntent = "";
     this.setSelectionRange(0, 0);
     this.view.close();
   }
@@ -6375,24 +6388,28 @@ export class SmartbarInput extends HTMLElement {
    * @param {UrlbarResult} [firstResult] The first result received.
    */
   #updateSmartbarCTAButton(firstResult) {
+    /** @type {SmartbarAction} */
+    let detectedAction;
     if (!firstResult || !firstResult.heuristic) {
-      this.smartbarAction = this.value ? "chat" : "";
-      return;
+      detectedAction = this.value ? "chat" : "";
+    } else {
+      switch (firstResult.type) {
+        case lazy.UrlbarUtils.RESULT_TYPE.URL:
+        case lazy.UrlbarUtils.RESULT_TYPE.KEYWORD:
+          detectedAction = "navigate";
+          break;
+        case lazy.UrlbarUtils.RESULT_TYPE.AI_CHAT:
+          detectedAction = "chat";
+          break;
+        case lazy.UrlbarUtils.RESULT_TYPE.SEARCH:
+          detectedAction = "search";
+          break;
+        default:
+          detectedAction = "";
+      }
     }
-    switch (firstResult.type) {
-      case lazy.UrlbarUtils.RESULT_TYPE.URL:
-      case lazy.UrlbarUtils.RESULT_TYPE.KEYWORD:
-        this.smartbarAction = "navigate";
-        break;
-      case lazy.UrlbarUtils.RESULT_TYPE.AI_CHAT:
-        this.smartbarAction = "chat";
-        break;
-      case lazy.UrlbarUtils.RESULT_TYPE.SEARCH:
-        this.smartbarAction = "search";
-        break;
-      default:
-        this.smartbarAction = "";
-    }
+    this.smartbarAction = detectedAction;
+    this.#detectedIntent = detectedAction;
   }
 
   /**

@@ -34,15 +34,15 @@ smart_window:
         type: string
         description: >
           What was the detected intent for the request: navigate, search, chat, or action
+      length: &length
+        type: quantity
+        unit: characters
+        description: >
+          Number of characters submitted
       location: &location
         type: string
         description: >
           Which input was used: fullpage, sidebar, or urlbar
-      memories:
-        type: quantity
-        unit: count
-        description: >
-          Number of memories included
       mentions:
         type: quantity
         unit: count
@@ -66,11 +66,6 @@ smart_window:
         unit: count
         description: >
           Number of tabs selected
-      tokens:
-        type: quantity
-        unit: count
-        description: >
-          Number of tokens in the request
 
   search_submit:
     type: event
@@ -88,11 +83,7 @@ smart_window:
     extra_keys:
       chat_id: *chat_id
       detected_intent: *detected_intent
-      length:
-        type: quantity
-        unit: characters
-        description: >
-          Number of characters for the search terms
+      length: *length
       location: *location
       message_seq: *message_seq
       model: *model
@@ -100,6 +91,7 @@ smart_window:
         type: string
         description: >
           Search provider used in the request
+      submit_type: *submit_type
 
   navigate_submit:
     type: event
@@ -117,6 +109,7 @@ smart_window:
     extra_keys:
       chat_id: *chat_id
       detected_intent: *detected_intent
+      length: *length
       location: *location
       message_seq: *message_seq
       model: *model

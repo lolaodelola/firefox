@@ -322,9 +322,8 @@ function setupMentionsPlugin(editorElement, panelList) {
         chat_id,
         location: smartbarInput.sapLocation,
         message_seq: String(message_seq),
-        tabs_available: panelList.groups.reduce(
-          (sum, group) => sum + group.items.length,
-          0
+        tabs_available: String(
+          panelList.groups.reduce((sum, group) => sum + group.items.length, 0)
         ),
         tabs_preselected: String(tabsPreselected),
         tabs_selected: String(smartbarInput.contextWebsitesCount),
