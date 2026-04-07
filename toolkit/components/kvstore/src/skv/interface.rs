@@ -88,6 +88,15 @@ fn value_to_variant(value: &Value) -> Result<RefPtr<nsIVariant>, ValueError> {
     })
 }
 
+fn store_path_from_wide(path: WidePathBuf) -> Result<StorePath, StoreError> {
+    if path == StorePath::IN_MEMORY_DATABASE_NAME {
+        Ok(StorePath::for_in_memory())
+    } else {
+        let dir = path.canonicalize().map_err(StoreError::StorageDir)?;
+        Ok(StorePath::for_storage_dir(dir))
+    }
+}
+
 fn key_from_nscstring(s: &nsACString) -> Key {
     Key::from(&*s.to_utf8())
 }
@@ -127,7 +136,7 @@ impl KeyValueService {
             moz_task::spawn_blocking("skv:KeyValueService:GetOrCreate:Request", async move {
                 Ok((
                     client.child_with_name("skv:KeyValueDatabase")?,
-                    StorePath::canonicalizing(dir)?,
+                    store_path_from_wide(dir)?,
                 ))
             });
 
@@ -871,7 +880,7 @@ impl RkvSafeModeKeyValueImporter {
                     .write()
                     .unwrap();
                 let store =
-                    client.store_for_path(StorePath::canonicalizing(specs[0].dir.clone())?)?;
+                    client.store_for_path(store_path_from_wide(specs[0].dir.clone())?)?;
 
                 // An Rkv environment is unique to a storage directory;
                 // if we're importing from multiple directories, we need to
