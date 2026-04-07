@@ -477,10 +477,12 @@ void CalcSnapPoints::AddEdge(const SnapPosition& aEdge, nscoord aDestination,
   updateBestEdges(isCandidateOfBest, isCandidateOfSecondBest);
 }
 
+using SnapTarget = ScrollSnapInfo::SnapTarget;
+
 static void ProcessSnapPositions(CalcSnapPoints& aCalcSnapPoints,
                                  const ScrollSnapInfo& aSnapInfo) {
   aSnapInfo.ForEachValidTargetFor(
-      aCalcSnapPoints.Destination(), [&](const auto& aTarget) -> bool {
+      aCalcSnapPoints.Destination(), [&](const SnapTarget& aTarget) -> bool {
         if (aTarget.mSnapPoint.mX && aSnapInfo.mScrollSnapStrictnessX !=
                                          StyleScrollSnapStrictness::None) {
           aCalcSnapPoints.AddVerticalEdge(aTarget);
@@ -593,7 +595,7 @@ static std::pair<Maybe<nscoord>, Maybe<nscoord>> GetCandidateInLastTargets(
   const ScrollSnapInfo::SnapTarget* focusedTarget = nullptr;
   Maybe<nscoord> x, y;
   aSnapInfo.ForEachValidTargetFor(
-      aCurrentPosition, [&](const auto& aTarget) -> bool {
+      aCurrentPosition, [&](const SnapTarget& aTarget) -> bool {
         if (aTarget.mSnapPoint.mX && aSnapInfo.mScrollSnapStrictnessX !=
                                          StyleScrollSnapStrictness::None) {
           if (aLastSnapTargetIds->mIdsOnX.Contains(aTarget.mTargetId)) {
@@ -706,7 +708,7 @@ Maybe<SnapDestination> ScrollSnapUtils::GetSnapPointForResnap(
         newPosition, newPosition, aSnapInfo.mScrollSnapStrictnessX,
         aSnapInfo.mScrollSnapStrictnessY);
     aSnapInfo.ForEachValidTargetFor(
-        newPosition, [&, &x = x, &y = y](const auto& aTarget) -> bool {
+        newPosition, [&, &x = x, &y = y](const SnapTarget& aTarget) -> bool {
           if (!x && aTarget.mSnapPoint.mX &&
               aSnapInfo.mScrollSnapStrictnessX !=
                   StyleScrollSnapStrictness::None) {
@@ -733,7 +735,8 @@ Maybe<SnapDestination> ScrollSnapUtils::GetSnapPointForResnap(
   // Collect snap points where the position is still same as the new snap
   // position.
   aSnapInfo.ForEachValidTargetFor(
-      snapTarget.mPosition, [&, &x = x, &y = y](const auto& aTarget) -> bool {
+      snapTarget.mPosition,
+      [&, &x = x, &y = y](const SnapTarget& aTarget) -> bool {
         if (aTarget.mSnapPoint.mX &&
             aSnapInfo.mScrollSnapStrictnessX !=
                 StyleScrollSnapStrictness::None &&
