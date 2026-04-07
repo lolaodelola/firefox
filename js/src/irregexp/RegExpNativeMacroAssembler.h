@@ -113,7 +113,8 @@ class SMRegExpMacroAssembler final : public NativeRegExpMacroAssembler {
   virtual void RecordComment(std::string_view comment) {}
   virtual MacroAssembler* masm() { return &masm_; }
 
-  virtual Handle<HeapObject> GetCode(Handle<String> source, RegExpFlags flags);
+  virtual Handle<HeapObject> GetCode(Handle<RegExpData> data,
+                                     RegExpFlags flags);
 
   virtual bool CanReadUnaligned() const;
 

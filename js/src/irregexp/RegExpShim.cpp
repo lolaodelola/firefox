@@ -54,6 +54,16 @@ std::ostream& operator<<(std::ostream& os, const AsUC32& c) {
   SprintfLiteral(buf, "\\u{%06x}", v);
   return os << buf;
 }
+std::ostream& operator<<(std::ostream& os, const AsHex& hex) {
+  // Each byte uses up to two characters. Plus two characters for the prefix,
+  // plus null terminator.
+  MOZ_ASSERT(sizeof(hex.value) * 2 >= hex.min_width);
+  static constexpr size_t kMaxHexLength = 3 + sizeof(hex.value) * 2;
+  char buf[kMaxHexLength];
+  SprintfLiteral(buf, "%s%.*" PRIx64, hex.with_prefix ? "0x" : "",
+                 hex.min_width, hex.value);
+  return os << buf;
+}
 
 HandleScope::HandleScope(Isolate* isolate) : isolate_(isolate) {
   isolate->openHandleScope(*this);
