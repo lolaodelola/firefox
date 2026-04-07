@@ -441,9 +441,9 @@ void FFmpegLibWrapper::UpdateLogLevel() {
                                         const char* aFmt, va_list aArgs) {
   LogLevel level = FromLibLogLevel(aLevel);
   if (MOZ_LOG_TEST(sFFmpegLibLog, level)) {
-    char buf[1024];
-    vsnprintf(buf, sizeof(buf), aFmt, aArgs);
-    MOZ_LOG(sFFmpegLibLog, level, ("[%p] %s", aPtr, buf));
+    nsAutoCString msg;
+    msg.AppendVprintf(aFmt, aArgs);
+    MOZ_LOG(sFFmpegLibLog, level, ("[%p] %s", aPtr, msg.get()));
   }
 }
 
