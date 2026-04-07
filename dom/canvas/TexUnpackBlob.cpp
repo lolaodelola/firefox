@@ -1142,7 +1142,8 @@ bool TexUnpackSurface::TexOrSubImage(bool isSubImage, bool needsRespec,
         gfxCriticalNote << "TexUnpackSurface failed to get ExternalImage";
         return false;
       }
-    } else if (AllowBlitSd(webgl, mDesc.imageTarget, level,
+    } else if (webgl->IsUploadableSdType(sd) &&
+               AllowBlitSd(webgl, mDesc.imageTarget, level,
                            {xOffset, yOffset, zOffset}, dui->internalFormat,
                            dstPI, false, true, true, true) &&
                BlitSd(sd, isSubImage, needsRespec, tex, level, dui, xOffset,

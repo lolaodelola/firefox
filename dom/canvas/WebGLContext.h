@@ -289,6 +289,7 @@ class WebGLContext : public VRefCounted, public SupportsWeakPtr {
   WebGLContextOptions mOptions;
   const uint32_t mPrincipalKey;
   Maybe<webgl::Limits> mLimits;
+  webgl::EnumMask<layers::SurfaceDescriptor::Type> mUploadableSdTypes;
   const uint32_t mMaxVertIdsPerDraw =
       StaticPrefs::webgl_max_vert_ids_per_draw();
 
@@ -337,6 +338,7 @@ class WebGLContext : public VRefCounted, public SupportsWeakPtr {
   webgl::OptionalRenderableFormatBits mOptionalRenderableFormatBits =
       webgl::OptionalRenderableFormatBits{0};
   void FinishInit();
+  void InitUploadableSdTypes();
 
  protected:
   WebGLContext(HostWebGLContext*, const webgl::InitContextDesc&);
@@ -995,6 +997,8 @@ class WebGLContext : public VRefCounted, public SupportsWeakPtr {
   auto GLMaxTextureUnits() const { return mLimits->maxTexUnits; }
 
   bool IsFormatValidForFB(TexInternalFormat format) const;
+
+  bool IsUploadableSdType(const layers::SurfaceDescriptor& sd) const;
 
  protected:
   // -------------------------------------------------------------------------
