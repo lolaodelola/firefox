@@ -284,16 +284,20 @@ add_task(async function test_translate_includes_target_language() {
   EventUtils.synthesizeKey("KEY_Tab", {}, window);
   EventUtils.synthesizeKey("KEY_Enter", {}, window);
 
-  info("Wait for about:translations to load and check query params");
+  info("Wait for about:translations to load and check hash parameters");
   await BrowserTestUtils.browserLoaded(translateTab.linkedBrowser, false, url =>
     url.startsWith("about:translations")
   );
 
   const url = new URL(translateTab.linkedBrowser.currentURI.spec);
-  const hashParams = new URLSearchParams(url.hash.substring(1));
-  const targetLang = hashParams.get("trg");
+  const hashParameters = new URLSearchParams(url.hash.substring(1));
+  const targetLanguage = hashParameters.get("trg");
 
-  Assert.equal(targetLang, "en", "Target language parameter is set to 'en'");
+  Assert.equal(
+    targetLanguage,
+    "en",
+    "Target language parameter is set to 'en'"
+  );
 
   if (UrlbarTestUtils.isPopupOpen(window)) {
     await UrlbarTestUtils.promisePopupClose(window, () => {
@@ -313,10 +317,12 @@ add_task(
 
     info("Temporarily override preferred language lookup to fail once");
     let oneTimeOverrideCalled = false;
-    const originalFn = TranslationsParent.getTopPreferredSupportedToLang;
+    const originalGetTopPreferredSupportedToLang =
+      TranslationsParent.getTopPreferredSupportedToLang;
     TranslationsParent.getTopPreferredSupportedToLang = async () => {
       oneTimeOverrideCalled = true;
-      TranslationsParent.getTopPreferredSupportedToLang = originalFn;
+      TranslationsParent.getTopPreferredSupportedToLang =
+        originalGetTopPreferredSupportedToLang;
       throw new Error("Simulated failure retrieving the preferred language");
     };
 
@@ -341,10 +347,21 @@ add_task(
     );
 
     const url = new URL(translateTab.linkedBrowser.currentURI.spec);
-    Assert.equal(url.hash, "", "No target language parameter is appended");
+    const hashParameters = new URLSearchParams(url.hash.substring(1));
+
+    Assert.equal(
+      hashParameters.get("src"),
+      "detect",
+      'The default source language parameter is "detect"'
+    );
+    Assert.equal(
+      hashParameters.get("trg"),
+      null,
+      "No target language parameter is appended"
+    );
     Assert.ok(oneTimeOverrideCalled, "The overridden language lookup ran once");
     Assert.equal(
-      originalFn,
+      originalGetTopPreferredSupportedToLang,
       TranslationsParent.getTopPreferredSupportedToLang,
       "The preferred-language getter has been restored"
     );

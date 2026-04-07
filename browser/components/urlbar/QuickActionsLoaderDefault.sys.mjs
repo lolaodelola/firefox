@@ -15,12 +15,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   ScreenshotsUtils:
     "moz-src:///browser/components/screenshots/ScreenshotsUtils.sys.mjs",
   TranslationsParent: "resource://gre/actors/TranslationsParent.sys.mjs",
-  UrlbarUtils: "moz-src:///browser/components/urlbar/UrlbarUtils.sys.mjs",
 });
-
-ChromeUtils.defineLazyGetter(lazy, "logger", () =>
-  lazy.UrlbarUtils.getLogger({ prefix: "QuickActions" })
-);
 
 import { AppConstants } from "resource://gre/modules/AppConstants.sys.mjs";
 
@@ -264,25 +259,12 @@ const DEFAULT_ACTIONS = {
       );
     },
     onPick: async (_queryContext, controller) => {
-      let url = "about:translations";
-      let targetLanguage;
+      await lazy.TranslationsParent.openAboutTranslationsPage({
+        browserWindow: controller.browserWindow,
+        targetLanguage: "derive",
+      });
 
-      try {
-        targetLanguage =
-          await lazy.TranslationsParent.getTopPreferredSupportedToLang();
-      } catch (error) {
-        lazy.logger.error(error);
-      }
-
-      if (targetLanguage) {
-        const urlObj = new URL(url);
-        const params = new URLSearchParams();
-        params.set("trg", targetLanguage);
-        urlObj.hash = params.toString();
-        url = urlObj.href;
-      }
-
-      return openUrl(url, controller.browserWindow);
+      return { focusContent: true };
     },
   },
   update: {
