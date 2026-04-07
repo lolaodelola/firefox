@@ -26,7 +26,7 @@ index 1e5613d230..750ba408af 100644
  # These are the targets to skip header checking by default. The files in targets
  # matching these patterns (see "gn help label_pattern" for format) will not have
 diff --git a/media/BUILD.gn b/media/BUILD.gn
-index f1c3a9e0a1..9167e6062d 100644
+index 0308944e07..6c6bc9c109 100644
 --- a/media/BUILD.gn
 +++ b/media/BUILD.gn
 @@ -7,7 +7,7 @@
