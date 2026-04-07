@@ -25,16 +25,12 @@ UNIFIED_SOURCES += [
     "imported/regexp-bytecode-analysis.cc",
     "imported/regexp-bytecode-generator.cc",
     "imported/regexp-bytecode-iterator.cc",
-    "imported/regexp-bytecode-peephole.cc",
     "imported/regexp-bytecodes.cc",
     "imported/regexp-code-generator.cc",
-    "imported/regexp-compiler-tonode.cc",
     "imported/regexp-dotprinter.cc",
-    "imported/regexp-graph-printer.cc",
     "imported/regexp-interpreter.cc",
     "imported/regexp-macro-assembler-tracer.cc",
     "imported/regexp-macro-assembler.cc",
-    "imported/regexp-node-printer.cc",
     "imported/regexp-parser.cc",
     "imported/regexp-printer.cc",
     "imported/regexp-stack.cc",
@@ -45,7 +41,11 @@ UNIFIED_SOURCES += [
 SOURCES += [
     "imported/regexp-ast-printer.cc",
     "imported/regexp-ast.cc",
+    "imported/regexp-bytecode-peephole.cc",
+    "imported/regexp-compiler-tonode.cc",
     "imported/regexp-compiler.cc",  # Bug 1643693
+    "imported/regexp-graph-printer.cc",
+    "imported/regexp-node-printer.cc",
     "RegExpNativeMacroAssembler.cpp",
 ]
 
