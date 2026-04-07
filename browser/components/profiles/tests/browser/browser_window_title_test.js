@@ -3,6 +3,24 @@
 
 "use strict";
 
+function waitForDbUpdatePropagation() {
+  let { promise, resolve } = Promise.withResolvers();
+
+  Services.obs.addObserver(function observer(subject, topic) {
+    if (topic == "sps-profiles-updated") {
+      Services.obs.removeObserver(observer, "sps-profiles-updated");
+      resolve();
+    }
+  }, "sps-profiles-updated");
+
+  return promise;
+}
+
+function triggerDbUpdate() {
+  Services.obs.notifyObservers(null, "pds-datastore-changed");
+  return waitForDbUpdatePropagation();
+}
+
 add_task(async function test_windowTitle() {
   // The currentProfile is null, because there are 0 profiles in the db, when
   // updateTitlebar is called in the EveryWindow init function.
@@ -20,18 +38,37 @@ add_task(async function test_windowTitle() {
     "The profile name is not in the window title"
   );
 
+  let dbUpdate = waitForDbUpdatePropagation();
   let newProfile = await SelectableProfileService.createNewProfile(false);
+  await dbUpdate;
 
   Assert.ok(
     document.title.includes(profileName),
     "The profile name is in the window title"
   );
 
+  dbUpdate = waitForDbUpdatePropagation();
   await SelectableProfileService.deleteProfile(newProfile);
+  await dbUpdate;
 
   Assert.ok(
     !document.title.includes(profileName),
     "The profile name is not in the window title"
+  );
+
+  // Simulate another instance creating a new profile
+  let connection = await openDatabase();
+  await connection.execute(
+    "INSERT INTO Profiles (id,path,name,avatar,themeId,themeFg,themeBg) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [55, "somewhere", "new profile", "briefcase", "other", "red", "blue"]
+  );
+  await connection.close();
+
+  await triggerDbUpdate();
+
+  Assert.ok(
+    document.title.includes(profileName),
+    "The profile name is in the window title"
   );
 
   await SelectableProfileService.uninit();
