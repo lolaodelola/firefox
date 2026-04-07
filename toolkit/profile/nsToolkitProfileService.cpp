@@ -11,7 +11,6 @@
 #include "mozilla/UniquePtr.h"
 #include "mozilla/UniquePtrExtensions.h"
 #include "mozilla/WidgetUtils.h"
-#include "nsNetUtil.h"
 #include "nsProfileLock.h"
 #include "nsStringFwd.h"
 
@@ -73,9 +72,6 @@
 #include "mozilla/UniquePtr.h"
 #include "nsAppRunner.h"
 #include "nsIRunnable.h"
-#include "nsFileStreams.h"
-#include "nsIFileStreams.h"
-#include "nsISafeOutputStream.h"
 #include "nsIToolkitShellService.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsPrintfCString.h"
@@ -252,29 +248,6 @@ nsresult RemoveProfileFiles(nsIFile* aRootDir, nsIFile* aLocalDir,
     // as deleting the lockfile explicitely after unlocking.
     (void)aRootDir->Remove(true);
   }
-
-  return NS_OK;
-}
-
-nsresult WriteFile(nsIFile* aFile, const nsCString& aData) {
-  // We cannot use XPCOM to get the output stream for the file because we often
-  // need to write files before XPCOM is available.
-  nsCOMPtr<nsIFileOutputStream> stream = new nsSafeFileOutputStream();
-  nsresult rv = stream->Init(aFile, -1, -1, 0);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  uint32_t count;
-  uint32_t length = aData.Length();
-  rv = stream->Write(aData.get(), length, &count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (count != length) {
-    return NS_ERROR_UNEXPECTED;
-  }
-
-  nsCOMPtr<nsISafeOutputStream> safeStream = do_QueryInterface(stream);
-  rv = safeStream->Finish();
-  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }
@@ -2372,8 +2345,12 @@ nsresult nsToolkitProfileService::CreateTimesInternal(nsIFile* aProfileDir) {
   int64_t msec = PR_Now() / PR_USEC_PER_MSEC;
 
   // Write it out.
-  nsPrintfCString times("{\n\"created\": %lld,\n\"firstUse\": null\n}\n", msec);
-  WriteFile(creationLog, times);
+  PRFileDesc* writeFile;
+  rv = creationLog->OpenNSPRFileDesc(PR_WRONLY, 0700, &writeFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PR_fprintf(writeFile, "{\n\"created\": %lld,\n\"firstUse\": null\n}\n", msec);
+  PR_Close(writeFile);
   return NS_OK;
 }
 
@@ -2522,18 +2499,15 @@ nsresult WriteProfileInfo(nsIFile* profilesDBFile, nsIFile* installDBFile,
         rv = installsIni.SetString(PromiseFlatCString(installHash).get(),
                                    "Default", profileInfo->mPath.get());
         if (NS_SUCCEEDED(rv)) {
-          nsCString installsIniData;
-          installsIni.WriteToString(installsIniData);
-          WriteFile(installDBFile, installsIniData);
+          installsIni.WriteToFile(installDBFile);
         }
       }
     }
   }
 
   if (changed) {
-    nsCString profilesIniData;
-    profilesIni.WriteToString(profilesIniData);
-    return WriteFile(profilesDBFile, profilesIniData);
+    rv = profilesIni.WriteToFile(profilesDBFile);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   return NS_OK;
@@ -2717,8 +2691,18 @@ nsresult nsToolkitProfileService::FlushData(const nsCString& aProfilesIniData,
   // installs can have changed, so no need to update the backup.
   if (mUseDedicatedProfile) {
     if (!aInstallsIniData.IsEmpty()) {
-      rv = WriteFile(mInstallDBFile, aInstallsIniData);
+      FILE* writeFile;
+      rv = mInstallDBFile->OpenANSIFileDesc("w", &writeFile);
       NS_ENSURE_SUCCESS(rv, rv);
+
+      uint32_t length = aInstallsIniData.Length();
+      if (fwrite(aInstallsIniData.get(), sizeof(char), length, writeFile) !=
+          length) {
+        fclose(writeFile);
+        return NS_ERROR_UNEXPECTED;
+      }
+
+      fclose(writeFile);
     } else {
       rv = mInstallDBFile->Remove(false);
       if (NS_FAILED(rv) && rv != NS_ERROR_FILE_NOT_FOUND) {
@@ -2727,8 +2711,18 @@ nsresult nsToolkitProfileService::FlushData(const nsCString& aProfilesIniData,
     }
   }
 
-  rv = WriteFile(mProfileDBFile, aProfilesIniData);
+  FILE* writeFile;
+  rv = mProfileDBFile->OpenANSIFileDesc("w", &writeFile);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  uint32_t length = aProfilesIniData.Length();
+  if (fwrite(aProfilesIniData.get(), sizeof(char), length, writeFile) !=
+      length) {
+    fclose(writeFile);
+    return NS_ERROR_UNEXPECTED;
+  }
+
+  fclose(writeFile);
 
   rv = UpdateFileStats(mProfileDBFile, &mProfileDBExists,
                        &mProfileDBModifiedTime, &mProfileDBFileSize);
