@@ -1230,6 +1230,7 @@ tab-group > tab-split-view-wrapper {
 
   .tabbrowser-tab {
     padding-inline: 2px;
+
     .tab-background {
       min-height: calc(var(--tab-min-height) - 4px); /* exclude the 4px padding normally added */
 
@@ -1247,6 +1248,21 @@ tab-group > tab-split-view-wrapper {
 
     tab-group & {
       overflow: visible;
+    }
+
+    .tab-content[attention]:not(selected) {
+      background-position-y: bottom 0.5px !important;
+      background-position-x: left calc(var(--tab-inline-padding) + var(--icon-size) - 7px) !important;
+      &:-moz-locale-dir(rtl) {
+        background-position-x: right calc(var(--tab-inline-padding) + var(--icon-size) - 7px) !important;
+      }
+
+      @media not (-moz-platform: linux) {
+        background-position-x: left calc(var(--tab-inline-padding) + var(--icon-size) - 10px) !important;
+        &:-moz-locale-dir(rtl) {
+          background-position-x: right calc(var(--tab-inline-padding) + var(--icon-size) - 10px) !important;
+        }
+      }
     }
 
     /* prettier-ignore */
@@ -1303,6 +1319,11 @@ tab-group > tab-split-view-wrapper {
 
     .tab-content {
       padding-inline: var(--space-medium);
+      background-position-y: 4px !important;
+      background-position-x: left calc(var(--tab-inline-padding) + var(--icon-size) - 7px) !important;
+      &:-moz-locale-dir(rtl) {
+        background-position-x: right calc(var(--tab-inline-padding) + var(--icon-size) - 7px) !important;
+      }
 
       @media (forced-colors) {
         #tabbrowser-tabs tab-split-view-wrapper[hasactivetab] .tabbrowser-tab:not([selected]) & {
@@ -1412,6 +1433,18 @@ tab-group > tab-split-view-wrapper {
     .tab-content {
       padding-inline: unset;
       justify-content: center;
+      background-position-y: 4px !important;
+      background-position-x: left calc(var(--tab-inline-padding) + var(--icon-size) - 10px) !important;
+      &:-moz-locale-dir(rtl) {
+        background-position-x: right calc(var(--tab-inline-padding) + var(--icon-size) - 10px) !important;
+      }
+
+      @media not (-moz-platform: linux) {
+        background-position-x: left calc(var(--tab-inline-padding) + var(--icon-size) - 7px) !important;
+        &:-moz-locale-dir(rtl) {
+          background-position-x: right calc(var(--tab-inline-padding) + var(--icon-size) - 7px) !important;
+        }
+      }
     }
   }
 
