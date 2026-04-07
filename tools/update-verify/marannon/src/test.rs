@@ -4,7 +4,7 @@
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt::{Display, Error, Formatter};
-use std::fs::{create_dir, exists, remove_dir_all, File};
+use std::fs::{create_dir, File};
 use std::io::Write;
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
@@ -145,9 +145,10 @@ fn run_test(
     let updater = match prepared_updaters.get(&test.from_installer) {
         Some(path) => path.clone(),
         None => {
-            let idx = prepared_updaters.len();
-            let mut unpack_dir = tmpdir.to_path_buf();
-            unpack_dir.push(format!("updater_{idx}"));
+            let unpack_dir = tempfile::Builder::new()
+                .prefix("updater_")
+                .tempdir_in(tmpdir)?
+                .keep();
             let path = prepare_updater(
                 &test.updater_package,
                 appname,
@@ -226,12 +227,10 @@ fn run_test(
 /// When we get rid of `check_updates.sh` we can consider changing or getting
 /// rid of this.
 fn setup_test_dir(mar: &Path, tmpdir: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let mut test_dir = tmpdir.to_path_buf();
-    test_dir.push("work");
-    if exists(test_dir.as_path())? {
-        remove_dir_all(&test_dir)?;
-    }
-    create_dir(test_dir.as_path())?;
+    let test_dir = tempfile::Builder::new()
+        .prefix("work_")
+        .tempdir_in(tmpdir)?
+        .keep();
     let mut update_dir = test_dir.clone();
     update_dir.push("update");
     create_dir(update_dir.as_path())?;
