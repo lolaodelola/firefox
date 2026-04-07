@@ -57,6 +57,9 @@ if CONFIG["JS_HAS_INTL_API"]:
         "util/ZoneShimFFI.cpp",
     ]
 
+if CONFIG["JS_JITSPEW"]:
+    CXXFLAGS += ["-DV8_ENABLE_REGEXP_DIAGNOSTICS"]
+
 # Make sure all irregexp code is built with libfuzzer
 # coverage instrumentation in FUZZING mode.
 if CONFIG["FUZZING_INTERFACES"] and CONFIG["LIBFUZZER"]:

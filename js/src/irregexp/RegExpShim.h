@@ -21,6 +21,10 @@
 #include <cctype>
 #include <optional>
 
+#ifdef JS_JITSPEW
+#  include <queue>
+#endif
+
 #include "irregexp/RegExpTypes.h"
 #include "irregexp/util/BitVectorShim.h"
 #include "irregexp/util/FlagsShim.h"

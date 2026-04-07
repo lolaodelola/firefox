@@ -58,7 +58,6 @@ using v8::internal::RegExpCompileData;
 using v8::internal::RegExpCompiler;
 using v8::internal::RegExpError;
 using v8::internal::RegExpMacroAssembler;
-using v8::internal::RegExpMacroAssemblerTracer;
 using v8::internal::RegExpNode;
 using v8::internal::RegExpParser;
 using v8::internal::SMRegExpMacroAssembler;
@@ -571,19 +570,17 @@ enum class AssembleResult {
   }
 
   // The masm tracer works as a thin wrapper around another macroassembler.
-  RegExpMacroAssembler* masm_ptr = masm.get();
-#ifdef DEBUG
-  UniquePtr<RegExpMacroAssembler> tracer_masm;
+#ifdef JS_JITSPEW
   if (jit::JitOptions.trace_regexp_assembler) {
-    tracer_masm = MakeUnique<RegExpMacroAssemblerTracer>(masm_ptr);
-    masm_ptr = tracer_masm.get();
+    masm =
+        MakeUnique<v8::internal::RegExpMacroAssemblerTracer>(std::move(masm));
   }
 #endif
 
   // Compile the regexp.
   V8HandleString wrappedPattern(v8::internal::String(pattern), cx->isolate);
   RegExpCompiler::CompilationResult result = compiler->Assemble(
-      cx->isolate, masm_ptr, data->node, data->capture_count, wrappedPattern);
+      cx->isolate, masm.get(), data->node, data->capture_count, wrappedPattern);
 
   if (useNativeCode) {
 #ifdef DEBUG
