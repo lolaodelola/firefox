@@ -181,8 +181,8 @@ desktop-frontend:
         # results for frontend-only changes.
         # This won't run 32-bit debug tests, which seems an acceptable
         # trade-off for query complexity + runtime on infrastructure.
-        - "'browser-chrome                 !spi !asan !tsan !msix !a11y !swr | 'linux"
-        - "'mochitest-chrome               !spi !asan !tsan             !swr !gpu"
+        - "'browser-chrome     !standalone !spi !asan !tsan !msix !a11y !swr | 'linux"
+        - "'mochitest-chrome   !standalone !spi !asan !tsan             !swr !gpu"
         - "'xpcshell                       !spi !asan !tsan !msix !nofis !condprof !android"
         - "'browser-a11y | 'mochitest-a11y !spi !asan !tsan !no-cache   !swr"
         - "'marionette                          !asan       !source !headless !swr"
@@ -348,7 +348,7 @@ mochitest-bc:
         tsan, msix, etc.) and some non-default configurations. For frontend
         only changes, use this with --artifact to speed up your trypushes.
     query:
-        - "'browser-chrome !tsan !asan !msix !spi !a11y !swr | 'linux"
+        - "'browser-chrome !standalone !tsan !asan !msix !spi !a11y !swr | 'linux"
     selector: fuzzy
 
 os-integration:
