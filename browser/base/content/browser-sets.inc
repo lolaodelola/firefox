@@ -56,6 +56,7 @@
 #endif
     <command id="cmd_reportBrokenSite"/>
     <command id="cmd_translate" />
+    <command id="cmd_openAboutTranslations" />
     <!-- work-around bug 392512 -->
     <command id="Browser:AddBookmarkAs" />
     <command id="Browser:SearchBookmarks" />

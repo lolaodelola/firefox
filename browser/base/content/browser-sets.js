@@ -6,6 +6,11 @@
 document.addEventListener(
   "MozBeforeInitialXULLayout",
   () => {
+    const lazy = {};
+    ChromeUtils.defineESModuleGetters(lazy, {
+      TranslationsParent: "resource://gre/actors/TranslationsParent.sys.mjs",
+    });
+
     // <commandset id="mainCommandSet"> defined in browser-sets.inc
     document
       .getElementById("mainCommandSet")
@@ -121,6 +126,12 @@ document.addEventListener(
             break;
           case "cmd_translate":
             FullPageTranslationsPanel.open(event);
+            break;
+          case "cmd_openAboutTranslations":
+            lazy.TranslationsParent.openAboutTranslationsPage({
+              browserWindow: window,
+              targetLanguage: "derive",
+            }).catch(console.error);
             break;
           case "Browser:AddBookmarkAs":
             PlacesCommandHook.bookmarkPage();

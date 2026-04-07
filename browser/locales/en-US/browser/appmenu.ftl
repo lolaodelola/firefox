@@ -300,6 +300,8 @@ appmenu-help-not-deceptive =
 
 appmenu-customizetoolbar =
     .label = Customize toolbar…
+appmenu-abouttranslations =
+    .label = Translate…
 
 appmenu-developer-tools-subheader = Browser tools
 appmenu-developer-tools-extensions =
