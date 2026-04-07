@@ -6,6 +6,7 @@
 #include "mozilla/Preferences.h"
 #include "mozilla/widget/GSettings.h"
 
+#include "nsAppRunner.h"
 #include "nsCOMPtr.h"
 #include "nsGNOMEShellService.h"
 #include "nsShellService.h"
@@ -488,5 +489,10 @@ nsGNOMEShellService::SetGSettingsString(const nsACString& aSchema,
                           PromiseFlatCString(aValue))) {
     return NS_ERROR_FAILURE;
   }
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsGNOMEShellService::GetArgv0(nsACString& output) {
+  output.Assign(gArgc <= 0 ? "" : gArgv[0]);
   return NS_OK;
 }
