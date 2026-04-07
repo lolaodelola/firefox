@@ -1087,7 +1087,6 @@ DirectHandle<TrustedByteArray> BytecodePeepholeOptimization::OptimizeBytecode(
 
   // Run the peephole optimizer until we've reached a fixed point. All relevant
   // data structures ping-pong between src and dst_writer.
-  bool any_pass_optimized = false;
   for (;;) {
     dst_writer->Reset();
     // TODO(jgruber): This currently recreates standard definitions for each
@@ -1096,7 +1095,6 @@ DirectHandle<TrustedByteArray> BytecodePeepholeOptimization::OptimizeBytecode(
     bool this_pass_optimized =
         BytecodePeephole::OptimizeBytecode(zone, src_writer, dst_writer);
     if (!this_pass_optimized) break;
-    any_pass_optimized = true;
     std::swap(dst_writer, src_writer);
   }
 
@@ -1108,18 +1106,6 @@ DirectHandle<TrustedByteArray> BytecodePeepholeOptimization::OptimizeBytecode(
   DirectHandle<TrustedByteArray> array =
       isolate->factory()->NewTrustedByteArray(optimized_length);
   MemCopy(array->begin(), optimized_bytecode, optimized_length);
-
-  if (any_pass_optimized && v8_flags.trace_regexp_peephole_optimization) {
-    std::unique_ptr<char[]> pattern_cstring =
-        re_data->escaped_source()->ToCString();
-    PrintF("Original Bytecode:\n");
-    RegExpBytecodeDisassemble(original_bytecode->data(),
-                              static_cast<uint32_t>(original_bytecode->size()),
-                              pattern_cstring.get());
-    PrintF("Optimized Bytecode:\n");
-    RegExpBytecodeDisassemble(array->begin(), optimized_length,
-                              pattern_cstring.get());
-  }
 
   return array;
 }

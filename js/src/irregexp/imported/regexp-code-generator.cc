@@ -36,20 +36,6 @@ CodeGenerator::Result CodeGenerator::Assemble(DirectHandle<RegExpData> re_data,
   USE(isolate_);
   USE(masm_);
 
-  // Bytecode analysis is currently unused. In future work it could form the
-  // basis for compiler optimizations.
-  if (V8_UNLIKELY(v8_flags.regexp_bytecode_analysis)) {
-    BytecodeAnalysis analysis(isolate_, &zone_, bytecode_);
-    analysis.Analyze();
-    if (v8_flags.trace_regexp_bytecode_analysis) {
-      std::unique_ptr<char[]> pattern_cstring =
-          re_data->escaped_source()->ToCString();
-      RegExpBytecodeDisassemble(bytecode_->begin(),
-                                bytecode_->ulength().value(),
-                                pattern_cstring.get(), &analysis);
-    }
-  }
-
   PreVisitBytecodes();
   iter_.reset();
   VisitBytecodes();

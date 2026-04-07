@@ -26,6 +26,7 @@ vendoring:
     - patches/remove-using-enum.patch
     - patches/regexp-tracer-unique-ptr.patch
     - patches/unordered-set-include.patch
+    - patches/disable-bytecode-analysis.patch
 
   update-actions:
     - action: run-script
