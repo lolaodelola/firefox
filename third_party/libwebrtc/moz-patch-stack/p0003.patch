@@ -1,0 +1,126 @@
+From: Tommi <tommi@webrtc.org>
+Date: Thu, 5 Mar 2026 23:12:04 +0100
+Subject: (cherry-pick-branch-heads/7680) [146] Update raw audio sink
+ management for unsignaled streams
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Ensure the default raw audio sink is correctly detached when an
+unsignaled stream is removed or promoted. Previously, when a stream
+was deregistered, the associated ProxySink could retain a bad
+pointer to the default sink.
+
+This change modifies the VoiceEngine to:
+* Explicitly clear the raw audio sink from a stream when it is
+  removed from the unsignaled stream list.
+* Properly hand over the default sink to the next available
+  unsignaled stream if the current primary stream is deregistered.
+* Simplify the logic for detaching the sink from the previous latest
+  stream when a new unsignaled stream is identified.
+
+(cherry picked from commit af411f52472297833af0813b727c7b4644221f04)
+
+Bug: chromium:486421954
+Fixes: chromium:486421954
+Change-Id: Ied7062e95a1749a9d8f95f77ec2b0dc81ab00ad1
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/454040
+Reviewed-by: Per Åhgren <peah@webrtc.org>
+Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
+Cr-Original-Commit-Position: refs/heads/main@{#47074}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456182
+Reviewed-by: Jeremy Leconte <jleconte@google.com>
+Cr-Commit-Position: refs/branch-heads/7680@{#3}
+Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#46853}
+---
+ media/engine/webrtc_voice_engine.cc          | 26 ++++++++++++++--
+ media/engine/webrtc_voice_engine_unittest.cc | 31 ++++++++++++++++++++
+ 2 files changed, 54 insertions(+), 3 deletions(-)
+
+diff --git a/media/engine/webrtc_voice_engine.cc b/media/engine/webrtc_voice_engine.cc
+index 9067545dfb..a692beecc3 100644
+--- a/media/engine/webrtc_voice_engine.cc
++++ b/media/engine/webrtc_voice_engine.cc
+@@ -2685,9 +2685,14 @@ bool WebRtcVoiceReceiveChannel::MaybeCreateDefaultReceiveStream(
+   // it up to the *latest* unsignaled stream we've seen, in order to support
+   // the case where the SSRC of one unsignaled stream changes.
+   if (default_sink_) {
+-    for (uint32_t drop_ssrc : unsignaled_recv_ssrcs_) {
+-      auto it = recv_streams_.find(drop_ssrc);
+-      it->second->SetRawAudioSink(nullptr);
++    // The new ssrc has already been appended to `unsignaled_recv_ssrcs_`.
++    // If there are 2 or more streams, the stream at `size - 2` is the previous
++    // latest stream which currently possesses the default sink.
++    if (unsignaled_recv_ssrcs_.size() >= 2) {
++      // Detach the default sink from the previous latest stream.
++      uint32_t prev_ssrc =
++          unsignaled_recv_ssrcs_[unsignaled_recv_ssrcs_.size() - 2];
++      SetRawAudioSink(prev_ssrc, nullptr);
+     }
+     std::unique_ptr<AudioSinkInterface> proxy_sink(
+         new ProxySink(default_sink_.get()));
+@@ -2894,7 +2899,22 @@ bool WebRtcVoiceReceiveChannel::MaybeDeregisterUnsignaledRecvStream(
+   RTC_DCHECK_RUN_ON(worker_thread_);
+   auto it = absl::c_find(unsignaled_recv_ssrcs_, ssrc);
+   if (it != unsignaled_recv_ssrcs_.end()) {
++    bool is_latest_unsignaled = (it == unsignaled_recv_ssrcs_.end() - 1);
+     unsignaled_recv_ssrcs_.erase(it);
++    if (default_sink_) {
++      // Detach the default sink from the deregistered stream. This is needed
++      // to prevent the ProxySink from holding a dangling pointer to the
++      // default_sink_.
++      SetRawAudioSink(ssrc, nullptr);
++      if (is_latest_unsignaled && !unsignaled_recv_ssrcs_.empty()) {
++        // The deregistered stream was the latest unsignaled stream, so it held
++        // the default sink. Since it was removed, we must pass the default sink
++        // to the *new* latest unsignaled stream via a new ProxySink.
++        std::unique_ptr<AudioSinkInterface> proxy_sink(
++            new ProxySink(default_sink_.get()));
++        SetRawAudioSink(unsignaled_recv_ssrcs_.back(), std::move(proxy_sink));
++      }
++    }
+     return true;
+   }
+   return false;
+diff --git a/media/engine/webrtc_voice_engine_unittest.cc b/media/engine/webrtc_voice_engine_unittest.cc
+index 88a6acf7a5..70d9ed871e 100644
+--- a/media/engine/webrtc_voice_engine_unittest.cc
++++ b/media/engine/webrtc_voice_engine_unittest.cc
+@@ -3742,6 +3742,37 @@ TEST_P(WebRtcVoiceEngineTestFake, OnReadyToSendSignalsNetworkState) {
+   EXPECT_EQ(kNetworkUp, call_.GetNetworkState(MediaType::VIDEO));
+ }
+ 
++// Test that when an unsignaled stream is promoted to a signaled stream,
++// its ProxySink doesn't hold a dangling raw pointer if the default sink
++// is subsequently destroyed.
++TEST_P(WebRtcVoiceEngineTestFake,
++       ProxySinkSurvivesUnsignaledToSignaledPromotion) {
++  EXPECT_TRUE(SetupChannel());
++  std::unique_ptr<FakeAudioSink> fake_sink(new FakeAudioSink());
++
++  // Set the default sink.
++  receive_channel_->SetDefaultRawAudioSink(std::move(fake_sink));
++
++  // Deliver an RTP packet to create an unsignaled stream.
++  DeliverPacket(kPcmuFrame);
++  const AudioSinkInterface* proxy_sink = GetRecvStream(kSsrc1).sink();
++  EXPECT_NE(nullptr, proxy_sink);
++
++  // Promote the unsignaled stream to a signaled stream.
++  StreamParams sp = StreamParams::CreateLegacy(kSsrc1);
++  EXPECT_TRUE(receive_channel_->AddRecvStream(sp));
++
++  // The proxy sink should be removed from the stream upon promotion.
++  EXPECT_EQ(nullptr, GetRecvStream(kSsrc1).sink());
++
++  // Destroy the original sink by passing nullptr.
++  receive_channel_->SetDefaultRawAudioSink(nullptr);
++
++  // Note: calling proxy_sink->OnData would crash here if the proxy_sink
++  // would still be attached to the stream and hold a dangling pointer to
++  // default_sink_. But we've verified that it's detached, so that won't happen.
++}
++
+ // Test that playout is still started after changing parameters
+ TEST_P(WebRtcVoiceEngineTestFake, PreservePlayoutWhenRecreateRecvStream) {
+   SetupRecvStream();
