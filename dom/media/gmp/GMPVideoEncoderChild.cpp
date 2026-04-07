@@ -129,6 +129,12 @@ mozilla::ipc::IPCResult GMPVideoEncoderChild::RecvEncode(
     return IPC_FAIL(this, "!mVideoDecoder");
   }
 
+  if (!GMPVideoi420FrameImpl::CheckFrameData(aInputFrame,
+                                             aInputShmem.Size<uint8_t>())) {
+    DeallocShmem(aInputShmem);
+    return IPC_FAIL(this, "invalid i420 frame data");
+  }
+
   // The `this` destroyed callback outlives the frame, because `mVideoEncoder`
   // is responsible for destroying the frame, and we outlive `mVideoEncoder`.
   auto* f = new GMPVideoi420FrameImpl(aInputFrame, std::move(aInputShmem), this,
