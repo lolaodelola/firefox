@@ -543,10 +543,6 @@ criteria = "safe-to-deploy"
 version = "0.7.0"
 criteria = "safe-to-deploy"
 
-[[exemptions.hexf-parse]]
-version = "0.2.1"
-criteria = "safe-to-deploy"
-
 [[exemptions.ioctl-sys]]
 version = "0.7.1"
 criteria = "safe-to-deploy"
