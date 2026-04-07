@@ -224,9 +224,11 @@
     /**
      * Show all Split View tabs in the content area.
      */
-    #activate() {
+    #activate(skipShowPanels = false) {
       updateUrlbarButton.arm();
-      gBrowser.showSplitViewPanels(this.#tabs);
+      if (!skipShowPanels) {
+        gBrowser.showSplitViewPanels(this.#tabs);
+      }
       this.container.dispatchEvent(
         new CustomEvent("TabSplitViewActivate", {
           detail: { tabs: this.#tabs, splitview: this },
@@ -324,7 +326,7 @@
         }
       }
 
-      if (this.hasActiveTab) {
+      if (this.hasActiveTab || isSessionRestore) {
         this.#activate();
       }
       // Attempt to update uriCount metric using the resulting tabs collection,

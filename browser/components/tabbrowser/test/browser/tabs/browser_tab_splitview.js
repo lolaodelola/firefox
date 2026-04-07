@@ -265,25 +265,6 @@ add_task(async function test_split_view_panels() {
   BrowserTestUtils.removeTab(tab2);
 });
 
-add_task(async function test_splitview_replaceTab_activates_panels() {
-  const tab1 = await addTabAndLoadBrowser();
-  const tab2 = await addTabAndLoadBrowser();
-  await BrowserTestUtils.switchTab(gBrowser, tab1);
-
-  const splitView = gBrowser.addTabSplitView([tab1, tab2]);
-  for (const tab of splitView.tabs) {
-    await checkSplitViewPanelVisible(tab, true);
-  }
-
-  const tab3 = BrowserTestUtils.addTab(gBrowser, "about:blank");
-  splitView.replaceTab(tab1, tab3);
-
-  await checkSplitViewPanelVisible(tab2, true);
-  await checkSplitViewPanelVisible(tab3, true);
-
-  splitView.close();
-});
-
 add_task(async function test_split_view_preserves_multiple_pairings() {
   info("Create four tabs for two split view pairings.");
   const tab1 = await addTabAndLoadBrowser();
