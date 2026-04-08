@@ -492,6 +492,7 @@ class OnboardingFragment : Fragment() {
         requireComponents.fenixOnboarding.finish()
 
         val settings = requireContext().settings()
+        settings.onboardingCompletedTimestamp = System.currentTimeMillis()
 
         // Telemetry and daily usage ping get enabled after ToU acceptance.
         startMetricsIfEnabled(
