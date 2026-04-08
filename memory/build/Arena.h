@@ -96,15 +96,27 @@ struct ArenaChunkMapLink {
 };
 
 struct ArenaAvailTreeTrait : public ArenaChunkMapLink {
+  // This compare function is used to compare to existing runs within a red
+  // black tree.  It compares both size and address to create a consistent
+  // total order.
   static inline Order Compare(arena_chunk_map_t* aNode,
                               arena_chunk_map_t* aOther) {
     size_t size1 = aNode->bits & ~mozilla::gPageSizeMask;
     size_t size2 = aOther->bits & ~mozilla::gPageSizeMask;
     Order ret = CompareInt(size1, size2);
-    return (ret != Order::eEqual)
-               ? ret
-               : CompareAddr((aNode->bits & CHUNK_MAP_KEY) ? nullptr : aNode,
-                             aOther);
+    return (ret != Order::eEqual) ? ret : CompareAddr(aNode, aOther);
+  }
+
+  using SearchKey = size_t;
+
+  // This Compare function is used to search for a run of a given size
+  // within a red-black tree. It will first compare size and if that's equal
+  // it will return eLess so that the leftmost node of the tree of that size
+  // is returned.
+  static inline Order Compare(SearchKey aSize, arena_chunk_map_t* aOther) {
+    size_t size2 = aOther->bits & ~mozilla::gPageSizeMask;
+    Order ret = CompareInt(aSize, size2);
+    return (ret != Order::eEqual) ? ret : Order::eLess;
   }
 };
 

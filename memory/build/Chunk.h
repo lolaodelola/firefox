@@ -126,8 +126,6 @@ struct arena_chunk_map_t {
 // CHUNK_MAP_DIRTY, _DECOMMITED _MADVISED and _FRESH are always mutually
 // exclusive.
 //
-// CHUNK_MAP_KEY is never used on real pages, only on lookup keys.
-//
 #define CHUNK_MAP_BUSY ((size_t)0x100U)
 #define CHUNK_MAP_FRESH ((size_t)0x80U)
 #define CHUNK_MAP_MADVISED ((size_t)0x40U)
@@ -139,7 +137,6 @@ struct arena_chunk_map_t {
 #define CHUNK_MAP_FRESH_MADVISED_DECOMMITTED_OR_BUSY              \
   (CHUNK_MAP_FRESH | CHUNK_MAP_MADVISED | CHUNK_MAP_DECOMMITTED | \
    CHUNK_MAP_BUSY)
-#define CHUNK_MAP_KEY ((size_t)0x10U)
 #define CHUNK_MAP_DIRTY ((size_t)0x08U)
 #define CHUNK_MAP_ZEROED ((size_t)0x04U)
 #define CHUNK_MAP_LARGE ((size_t)0x02U)
@@ -193,6 +190,8 @@ struct DirtyChunkListTrait {
       const arena_chunk_t* aThis) {
     return aThis->mChunksDirtyElim;
   }
+
+  using SearchKey = arena_chunk_t*;
 };
 }  // namespace mozilla
 
