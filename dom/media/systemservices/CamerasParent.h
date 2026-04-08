@@ -298,6 +298,9 @@ class CamerasParent : public PCamerasParent {
   // Set to true in ActorDestroy. PBackground only.
   bool mDestroyed;
 
+  // Set to true after one hop to mVideoCaptureThread from ActorDestroy.
+  bool mDestroyedCaptureThread;
+
   std::map<nsCString, nsTArray<webrtc::VideoCaptureCapability>>
       mAllCandidateCapabilities;
 

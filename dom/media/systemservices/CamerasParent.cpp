@@ -851,6 +851,7 @@ void CamerasParent::CloseEngines() {
 
   mDeviceChangeEventListener.DisconnectIfExists();
   mDeviceChangeEventListenerConnected = false;
+  mDestroyedCaptureThread = true;
 }
 
 std::shared_ptr<webrtc::VideoCaptureModule::DeviceInfo>
@@ -876,6 +877,10 @@ CamerasParent::GetDeviceInfo(int aEngine) {
 VideoEngine* CamerasParent::EnsureInitialized(int aEngine) {
   MOZ_ASSERT(mVideoCaptureThread->IsOnCurrentThread());
   LOG_VERBOSE("CamerasParent(%p)::%s", this, __func__);
+  if (mDestroyedCaptureThread) {
+    return nullptr;
+  }
+
   CaptureEngine capEngine = static_cast<CaptureEngine>(aEngine);
 
   if (VideoEngine* engine = mEngines->ElementAt(capEngine); engine) {
@@ -1604,7 +1609,8 @@ CamerasParent::CamerasParent()
       mVideoCaptureFactory(EnsureVideoCaptureFactory()),
       mShmemPools("CamerasParent::mShmemPools"),
       mPBackgroundEventTarget(GetCurrentSerialEventTarget()),
-      mDestroyed(false) {
+      mDestroyed(false),
+      mDestroyedCaptureThread(!mVideoCaptureThread) {
   MOZ_ASSERT(mPBackgroundEventTarget != nullptr,
              "GetCurrentThreadEventTarget failed");
   LOG("CamerasParent: %p", this);
