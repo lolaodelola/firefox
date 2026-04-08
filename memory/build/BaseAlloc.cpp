@@ -295,3 +295,7 @@ void* BaseAlloc::calloc(size_t aNumber, size_t aSize) {
   }
   return ret;
 }
+
+size_t BaseAlloc::usable_size(void* aPtr) {
+  return reinterpret_cast<BaseAllocCell*>(aPtr)->Size();
+}
