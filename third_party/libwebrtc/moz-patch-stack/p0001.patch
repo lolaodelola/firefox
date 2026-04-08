@@ -1,64 +1,173 @@
-From: Michael Froman <mfroman@mozilla.com>
-Date: Tue, 7 Apr 2026 23:53:03 -0500
-Subject: (tmp-cherry-pick) Revert "Disable android_chromium_compile from CQ."
- (6f9db9ffc6)
+From: Philip Eliasson <philipel@webrtc.org>
+Date: Wed, 4 Mar 2026 13:51:43 +0100
+Subject: (cherry-pick-branch-heads/7680) Let dav1d retain references to
+ wrapped bitstream buffers.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-This reverts commit 7ec1333a0b9fa55178c3fa7835a8924bc826f8b5.
+(cherry picked from commit fcea1cf20ab03a15d2ca702629208e965edb3990)
 
-Reason for revert: issue seems to be fixed
-
-Original change's description:
-> Disable android_chromium_compile from CQ.
->
-> Change-Id: Iaa9095b5a7f2cce02a59590a29e13cb0c06fa620
-> Bug: None
-> Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/453261
-> Commit-Queue: Harald Alvestrand <hta@webrtc.org>
-> Auto-Submit: Jeremy Leconte <jleconte@google.com>
-> Reviewed-by: Harald Alvestrand <hta@webrtc.org>
-> Cr-Commit-Position: refs/heads/main@{#47030}
-
-Bug: None
-No-Presubmit: true
-No-Tree-Checks: true
-No-Try: true
-Change-Id: I090fa2a5cb339228d48edd73280f1f619ebbc3f4
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/453400
-Bot-Commit: Rubber Stamper <rubber-stamper@appspot.gserviceaccount.com>
-Auto-Submit: Jeremy Leconte <jleconte@google.com>
-Commit-Queue: Jeremy Leconte <jleconte@google.com>
-Cr-Commit-Position: refs/heads/main@{#47042}
+Bug: chromium:486421953
+Change-Id: I855616d8206711b371df05a306730468ec8d23e7
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/453200
+Commit-Queue: Philip Eliasson <philipel@webrtc.org>
+Reviewed-by: Erik Språng <sprang@webrtc.org>
+Cr-Original-Commit-Position: refs/heads/main@{#47051}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/454341
+Reviewed-by: Johannes Kron <kron@webrtc.org>
+Cr-Commit-Position: refs/branch-heads/7680@{#1}
+Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#46853}
 ---
- infra/config/builders.star                   | 4 +---
- infra/config/generated/luci/commit-queue.cfg | 3 +++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ .../video_coding/codecs/av1/dav1d_decoder.cc  | 25 ++++++--
+ .../codecs/av1/dav1d_decoder_unittest.cc      | 59 ++++++++++++++-----
+ 2 files changed, 64 insertions(+), 20 deletions(-)
 
-diff --git a/infra/config/builders.star b/infra/config/builders.star
-index 9e9a92fac0..8816ef06fa 100644
---- a/infra/config/builders.star
-+++ b/infra/config/builders.star
-@@ -332,9 +332,7 @@ ci_builder("Android32 Builder x86", "Android|x86|rel")
- try_builder("android_compile_x86_rel")
- ci_builder("Android32 (more configs)", "Android|arm|more")
- try_builder("android_arm_more_configs")
--
--# TODO(jleconte): re-enable when the issue is fixed in Chromium.
--chromium_try_builder("android_chromium_compile", cq = None)
-+chromium_try_builder("android_chromium_compile")
+diff --git a/modules/video_coding/codecs/av1/dav1d_decoder.cc b/modules/video_coding/codecs/av1/dav1d_decoder.cc
+index 7a52dfa1a3..9356dcb545 100644
+--- a/modules/video_coding/codecs/av1/dav1d_decoder.cc
++++ b/modules/video_coding/codecs/av1/dav1d_decoder.cc
+@@ -82,9 +82,6 @@ class ScopedDav1dPicture : public RefCountedNonVirtual<ScopedDav1dPicture> {
  
- ios_builder("iOS64 Debug", "iOS|arm64|dbg")
- ios_try_job("ios_compile_arm64_dbg")
-diff --git a/infra/config/generated/luci/commit-queue.cfg b/infra/config/generated/luci/commit-queue.cfg
-index 48d7850133..b7c3a0c960 100644
---- a/infra/config/generated/luci/commit-queue.cfg
-+++ b/infra/config/generated/luci/commit-queue.cfg
-@@ -56,6 +56,9 @@ config_groups {
-       builders {
-         name: "webrtc/try/android_arm_rel"
-       }
-+      builders {
-+        name: "webrtc/try/android_chromium_compile"
-+      }
-       builders {
-         name: "webrtc/try/android_compile_arm64_rel"
-       }
+ constexpr char kDav1dName[] = "dav1d";
+ 
+-// Calling `dav1d_data_wrap` requires a `free_callback` to be registered.
+-void NullFreeCallback(const uint8_t* /* buffer */, void* /* opaque */) {}
+-
+ Dav1dDecoder::Dav1dDecoder() = default;
+ 
+ Dav1dDecoder::Dav1dDecoder(const Environment& env)
+@@ -142,9 +139,25 @@ int32_t Dav1dDecoder::Decode(const EncodedImage& encoded_image,
+ 
+   ScopedDav1dData scoped_dav1d_data;
+   Dav1dData& dav1d_data = scoped_dav1d_data.Data();
+-  dav1d_data_wrap(&dav1d_data, encoded_image.data(), encoded_image.size(),
+-                  /*free_callback=*/&NullFreeCallback,
+-                  /*user_data=*/nullptr);
++
++  // Calling GetEncodedData will create a new `scoped_refptr` and increment the
++  // ref count. By simply releasing we are now responsible for decrementing
++  // the ref count when appropriate, which is when dav1d calls the
++  // `free_callback` to indicate that the buffer is no longer needed.
++  EncodedImageBufferInterface* bitstream_buffer =
++      encoded_image.GetEncodedData().release();
++
++  // Note that the `bitstream_buffer` can have a higher capacity than what is
++  // actually being used, so `encoded_image.size()` should be used to get the
++  // actual size of the bitstream.
++  dav1d_data_wrap(
++      &dav1d_data, encoded_image.data(), encoded_image.size(),
++      /*free_callback=*/
++      [](const uint8_t* /* buffer */, void* user_data) {
++        auto* bb = static_cast<EncodedImageBufferInterface*>(user_data);
++        bb->Release();
++      },
++      /*user_data=*/bitstream_buffer);
+ 
+   if (int decode_res = dav1d_send_data(context_, &dav1d_data)) {
+     RTC_LOG(LS_WARNING)
+diff --git a/modules/video_coding/codecs/av1/dav1d_decoder_unittest.cc b/modules/video_coding/codecs/av1/dav1d_decoder_unittest.cc
+index 1c6477bac1..217edc1048 100644
+--- a/modules/video_coding/codecs/av1/dav1d_decoder_unittest.cc
++++ b/modules/video_coding/codecs/av1/dav1d_decoder_unittest.cc
+@@ -67,13 +67,9 @@ class TestAv1Decoder : public DecodedImageCallback {
+   TestAv1Decoder(const TestAv1Decoder&) = delete;
+   TestAv1Decoder& operator=(const TestAv1Decoder&) = delete;
+ 
+-  void Decode(const EncodedImage& image) {
+-    ASSERT_THAT(decoder_, NotNull());
++  int32_t Decode(const EncodedImage& image) {
+     decoded_frame_ = std::nullopt;
+-    int32_t error =
+-        decoder_->Decode(image, /*render_time_ms=*/image.capture_time_ms_);
+-    ASSERT_EQ(error, WEBRTC_VIDEO_CODEC_OK);
+-    ASSERT_THAT(decoded_frame_, Not(Eq(std::nullopt)));
++    return decoder_->Decode(image, /*render_time_ms=*/image.capture_time_ms_);
+   }
+ 
+   VideoFrame& decoded_frame() { return *decoded_frame_; }
+@@ -95,8 +91,9 @@ class TestAv1Decoder : public DecodedImageCallback {
+ 
+ TEST(Dav1dDecoderTest, KeepsDecodedResolutionByDefault) {
+   TestAv1Decoder decoder(CreateEnvironment());
+-  decoder.Decode(
+-      CreateEncodedImage(kAv1FrameWith36x20EncodededAnd32x16RenderResolution));
++  EXPECT_EQ(decoder.Decode(CreateEncodedImage(
++                kAv1FrameWith36x20EncodededAnd32x16RenderResolution)),
++            WEBRTC_VIDEO_CODEC_OK);
+   EXPECT_EQ(decoder.decoded_frame().width(), 36);
+   EXPECT_EQ(decoder.decoded_frame().height(), 20);
+ }
+@@ -104,8 +101,9 @@ TEST(Dav1dDecoderTest, KeepsDecodedResolutionByDefault) {
+ TEST(Dav1dDecoderTest, CropsToRenderResolutionWhenCropIsEnabled) {
+   TestAv1Decoder decoder(CreateEnvironment(CreateTestFieldTrialsPtr(
+       "WebRTC-Dav1dDecoder-CropToRenderResolution/Enabled/")));
+-  decoder.Decode(
+-      CreateEncodedImage(kAv1FrameWith36x20EncodededAnd32x16RenderResolution));
++  EXPECT_EQ(decoder.Decode(CreateEncodedImage(
++                kAv1FrameWith36x20EncodededAnd32x16RenderResolution)),
++            WEBRTC_VIDEO_CODEC_OK);
+   EXPECT_EQ(decoder.decoded_frame().width(), 32);
+   EXPECT_EQ(decoder.decoded_frame().height(), 16);
+ }
+@@ -113,16 +111,18 @@ TEST(Dav1dDecoderTest, CropsToRenderResolutionWhenCropIsEnabled) {
+ TEST(Dav1dDecoderTest, DoesNotCropToRenderResolutionWhenCropIsDisabled) {
+   TestAv1Decoder decoder(CreateEnvironment(CreateTestFieldTrialsPtr(
+       "WebRTC-Dav1dDecoder-CropToRenderResolution/Disabled/")));
+-  decoder.Decode(
+-      CreateEncodedImage(kAv1FrameWith36x20EncodededAnd32x16RenderResolution));
++  EXPECT_EQ(decoder.Decode(CreateEncodedImage(
++                kAv1FrameWith36x20EncodededAnd32x16RenderResolution)),
++            WEBRTC_VIDEO_CODEC_OK);
+   EXPECT_EQ(decoder.decoded_frame().width(), 36);
+   EXPECT_EQ(decoder.decoded_frame().height(), 20);
+ }
+ 
+ TEST(Dav1dDecoderTest, SetsColorSpaceOnDecodedFrame) {
+   TestAv1Decoder decoder(CreateEnvironment());
+-  decoder.Decode(
+-      CreateEncodedImage(kAv1FrameWithBT709FullRangeColorSpace));
++  EXPECT_EQ(
++      decoder.Decode(CreateEncodedImage(kAv1FrameWithBT709FullRangeColorSpace)),
++      WEBRTC_VIDEO_CODEC_OK);
+   auto color_space = decoder.decoded_frame().color_space();
+   EXPECT_TRUE(color_space.has_value());
+   EXPECT_EQ(color_space->primaries(), ColorSpace::PrimaryID::kBT709);
+@@ -131,6 +131,37 @@ TEST(Dav1dDecoderTest, SetsColorSpaceOnDecodedFrame) {
+   EXPECT_EQ(color_space->range(), ColorSpace::RangeID::kFull);
+ }
+ 
++TEST(Dav1dDecoderTest, FailDecoderOnTiles) {
++  // This test tests buffer management, any failures would be detected
++  // by running this test under ASAN.
++  static constexpr uint8_t kTile0[] = {
++      0x0a, 0x0a, 0x00, 0x00, 0x00, 0x04, 0x3c, 0xff, 0xbc, 0x01, 0xa0, 0x08,
++      0x32, 0xbd, 0x01, 0x10, 0x60, 0xb0, 0x01, 0xa6, 0x9a, 0x68, 0x50, 0x91,
++      0xb0, 0x80, 0xb0, 0xd9, 0x8a, 0x40, 0xe4, 0x3e, 0xfb, 0x06, 0x1f, 0x0e,
++      0xcc, 0xdc, 0xcb, 0x8c, 0x2d, 0x5c, 0xb0, 0x52, 0xe0, 0xb3, 0x89, 0x2b,
++      0x6b, 0x8b, 0x56, 0xd3, 0x0a, 0x70, 0xad, 0x26, 0xf0, 0xca, 0xfa, 0xad,
++      0x27, 0xcc, 0x5b, 0x8c, 0x0c, 0x72, 0x76, 0xa7, 0x42, 0x69, 0x4c, 0x47,
++      0xf4, 0x2b, 0xa9, 0x5e, 0x13, 0x81, 0x69, 0x47, 0x40, 0x13, 0x3e, 0xac,
++      0xef, 0x0f, 0x74, 0x02, 0x79, 0xa7, 0x50, 0xf4, 0x50, 0x82, 0x4d, 0x4f,
++      0x70, 0x02, 0x9c, 0x0f, 0x61, 0xbc, 0x1c, 0x22, 0xc2, 0xac, 0x9f, 0x88,
++      0xbd, 0x2a, 0xdc, 0xdb, 0xf0, 0xbe, 0x95, 0x54, 0x6e, 0xda, 0x08, 0x76,
++      0x2c, 0x86, 0xd2, 0x0f, 0x86, 0xc1, 0x86, 0xcb, 0x98, 0x35, 0xfc, 0x2c,
++      0xe7, 0x51, 0x44, 0x62, 0xfe, 0xf1, 0x97, 0x1f, 0xb0, 0x7f, 0x14, 0xc4,
++      0xef, 0xb0, 0x01, 0x7c, 0x07, 0x22, 0x3e, 0xda, 0x2b, 0xef, 0x59, 0xcc,
++      0x57, 0x65, 0xc5, 0x22, 0xe9, 0x61, 0x99, 0x0c, 0xd6, 0x07, 0x68, 0x1a,
++      0x26, 0xad, 0x9b, 0x1e, 0x91, 0x2c, 0xee, 0xe2, 0xe4, 0x7c, 0x4d, 0x07,
++      0x51, 0x72, 0x89, 0x51, 0xbf, 0x17, 0x67, 0xc0, 0x6d, 0x02, 0x69, 0x92,
++      0x20, 0x7b, 0xeb, 0x11, 0xea, 0xc1, 0x43, 0x59, 0x4f, 0x75, 0xbb, 0x20};
++  static constexpr uint8_t kTile1[] = {
++      0x22, 0x1e, 0xe0, 0xc1, 0xb6, 0x2f, 0x07, 0xd0, 0x0b, 0xaf, 0x14,
++      0xbf, 0x51, 0xa3, 0x0d, 0xf4, 0xb6, 0x45, 0xd8, 0x16, 0xda, 0x8c,
++      0xb0, 0xbf, 0x29, 0x39, 0xdf, 0x9a, 0x9e, 0x9c, 0x69, 0x80};
++
++  TestAv1Decoder decoder(CreateEnvironment());
++  decoder.Decode(CreateEncodedImage(kTile0));
++  decoder.Decode(CreateEncodedImage(kTile1));
++}
++
+ }  // namespace
+ }  // namespace test
+ }  // namespace webrtc

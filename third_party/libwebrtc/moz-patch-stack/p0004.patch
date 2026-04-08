@@ -1,126 +1,91 @@
-From: Tommi <tommi@webrtc.org>
-Date: Thu, 5 Mar 2026 23:12:04 +0100
-Subject: (cherry-pick-branch-heads/7680) [146] Update raw audio sink
- management for unsignaled streams
+From: =?UTF-8?q?Erik=20Spr=C3=A5ng?= <sprang@webrtc.org>
+Date: Thu, 12 Mar 2026 11:55:13 +0100
+Subject: (cherry-pick-branch-heads/7680) [M146] Add workaround for OpenH264
+ related to U/V strides.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Ensure the default raw audio sink is correctly detached when an
-unsignaled stream is removed or promoted. Previously, when a stream
-was deregistered, the associated ProxySink could retain a bad
-pointer to the default sink.
+This CL adds a workaround for a bug in OpenH264, where using an input
+frame where the U and V strides are different may result in a crash.
 
-This change modifies the VoiceEngine to:
-* Explicitly clear the raw audio sink from a stream when it is
-  removed from the unsignaled stream list.
-* Properly hand over the default sink to the next available
-  unsignaled stream if the current primary stream is deregistered.
-* Simplify the logic for detaching the sink from the previous latest
-  stream when a new unsignaled stream is identified.
+This fix should be removed once the root cause has been addressed.
 
-(cherry picked from commit af411f52472297833af0813b727c7b4644221f04)
+(cherry picked from commit 7c36f795d925c3f08fb89611166cc6b2e2de02a6)
 
-Bug: chromium:486421954
-Fixes: chromium:486421954
-Change-Id: Ied7062e95a1749a9d8f95f77ec2b0dc81ab00ad1
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/454040
-Reviewed-by: Per Åhgren <peah@webrtc.org>
-Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#47074}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456182
-Reviewed-by: Jeremy Leconte <jleconte@google.com>
-Cr-Commit-Position: refs/branch-heads/7680@{#3}
+Bug: chromium:491655161
+Change-Id: I2e8bccefab3ffcd08bf1e086763407ceb461bba7
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456121
+Reviewed-by: Sergey Silkin <ssilkin@webrtc.org>
+Commit-Queue: Sergey Silkin <ssilkin@webrtc.org>
+Auto-Submit: Erik Språng <sprang@webrtc.org>
+Cr-Original-Commit-Position: refs/heads/main@{#47131}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/459701
+Commit-Queue: Erik Språng <sprang@webrtc.org>
+Cr-Commit-Position: refs/branch-heads/7680@{#4}
 Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#46853}
 ---
- media/engine/webrtc_voice_engine.cc          | 26 ++++++++++++++--
- media/engine/webrtc_voice_engine_unittest.cc | 31 ++++++++++++++++++++
- 2 files changed, 54 insertions(+), 3 deletions(-)
+ .../codecs/h264/h264_encoder_impl.cc          |  5 ++++
+ .../codecs/h264/h264_encoder_impl_unittest.cc | 26 +++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/media/engine/webrtc_voice_engine.cc b/media/engine/webrtc_voice_engine.cc
-index dd04d4ec7a..2591da23ba 100644
---- a/media/engine/webrtc_voice_engine.cc
-+++ b/media/engine/webrtc_voice_engine.cc
-@@ -2668,9 +2668,14 @@ bool WebRtcVoiceReceiveChannel::MaybeCreateDefaultReceiveStream(
-   // it up to the *latest* unsignaled stream we've seen, in order to support
-   // the case where the SSRC of one unsignaled stream changes.
-   if (default_sink_) {
--    for (uint32_t drop_ssrc : unsignaled_recv_ssrcs_) {
--      auto it = recv_streams_.find(drop_ssrc);
--      it->second->SetRawAudioSink(nullptr);
-+    // The new ssrc has already been appended to `unsignaled_recv_ssrcs_`.
-+    // If there are 2 or more streams, the stream at `size - 2` is the previous
-+    // latest stream which currently possesses the default sink.
-+    if (unsignaled_recv_ssrcs_.size() >= 2) {
-+      // Detach the default sink from the previous latest stream.
-+      uint32_t prev_ssrc =
-+          unsignaled_recv_ssrcs_[unsignaled_recv_ssrcs_.size() - 2];
-+      SetRawAudioSink(prev_ssrc, nullptr);
-     }
-     std::unique_ptr<AudioSinkInterface> proxy_sink(
-         new ProxySink(default_sink_.get()));
-@@ -2877,7 +2882,22 @@ bool WebRtcVoiceReceiveChannel::MaybeDeregisterUnsignaledRecvStream(
-   RTC_DCHECK_RUN_ON(worker_thread_);
-   auto it = absl::c_find(unsignaled_recv_ssrcs_, ssrc);
-   if (it != unsignaled_recv_ssrcs_.end()) {
-+    bool is_latest_unsignaled = (it == unsignaled_recv_ssrcs_.end() - 1);
-     unsignaled_recv_ssrcs_.erase(it);
-+    if (default_sink_) {
-+      // Detach the default sink from the deregistered stream. This is needed
-+      // to prevent the ProxySink from holding a dangling pointer to the
-+      // default_sink_.
-+      SetRawAudioSink(ssrc, nullptr);
-+      if (is_latest_unsignaled && !unsignaled_recv_ssrcs_.empty()) {
-+        // The deregistered stream was the latest unsignaled stream, so it held
-+        // the default sink. Since it was removed, we must pass the default sink
-+        // to the *new* latest unsignaled stream via a new ProxySink.
-+        std::unique_ptr<AudioSinkInterface> proxy_sink(
-+            new ProxySink(default_sink_.get()));
-+        SetRawAudioSink(unsignaled_recv_ssrcs_.back(), std::move(proxy_sink));
-+      }
-+    }
-     return true;
+diff --git a/modules/video_coding/codecs/h264/h264_encoder_impl.cc b/modules/video_coding/codecs/h264/h264_encoder_impl.cc
+index 02602029b8..b682013e62 100644
+--- a/modules/video_coding/codecs/h264/h264_encoder_impl.cc
++++ b/modules/video_coding/codecs/h264/h264_encoder_impl.cc
+@@ -450,6 +450,11 @@ int32_t H264EncoderImpl::Encode(
+                       << " image to I420. Can't encode frame.";
+     return WEBRTC_VIDEO_CODEC_ENCODER_FAILURE;
    }
-   return false;
-diff --git a/media/engine/webrtc_voice_engine_unittest.cc b/media/engine/webrtc_voice_engine_unittest.cc
-index 8329713ca1..773a65662a 100644
---- a/media/engine/webrtc_voice_engine_unittest.cc
-+++ b/media/engine/webrtc_voice_engine_unittest.cc
-@@ -3708,6 +3708,37 @@ TEST_P(WebRtcVoiceEngineTestFake, OnReadyToSendSignalsNetworkState) {
-   EXPECT_EQ(kNetworkUp, call_.GetNetworkState(MediaType::VIDEO));
++  if (frame_buffer->StrideU() != frame_buffer->StrideV()) {
++    // TODO: crbug.com/chromium:491655161 - Remove once the root cause is fixed.
++    RTC_LOG(LS_ERROR) << "OpenH264 requires the U and V strides to be equal.";
++    return WEBRTC_VIDEO_CODEC_ENCODER_FAILURE;
++  }
+   RTC_CHECK(frame_buffer->type() == VideoFrameBuffer::Type::kI420 ||
+             frame_buffer->type() == VideoFrameBuffer::Type::kI420A);
+ 
+diff --git a/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc b/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
+index 0149a8cd86..e5aade5188 100644
+--- a/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
++++ b/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
+@@ -18,6 +18,7 @@
+ #include "api/test/create_frame_generator.h"
+ #include "api/test/frame_generator_interface.h"
+ #include "api/test/mock_video_encoder.h"
++#include "api/video/i420_buffer.h"
+ #include "api/video/video_codec_type.h"
+ #include "api/video/video_frame.h"
+ #include "api/video_codecs/video_codec.h"
+@@ -137,6 +138,31 @@ TEST(H264EncoderImplTest, OnFrameDropped) {
+   }
  }
  
-+// Test that when an unsignaled stream is promoted to a signaled stream,
-+// its ProxySink doesn't hold a dangling raw pointer if the default sink
-+// is subsequently destroyed.
-+TEST_P(WebRtcVoiceEngineTestFake,
-+       ProxySinkSurvivesUnsignaledToSignaledPromotion) {
-+  EXPECT_TRUE(SetupChannel());
-+  std::unique_ptr<FakeAudioSink> fake_sink(new FakeAudioSink());
++TEST(H264EncoderImplTest, RejectsFramesWithUnequalChromaStrides) {
++  H264EncoderImpl encoder(CreateEnvironment(), {});
++  VideoCodec codec_settings;
++  SetDefaultSettings(&codec_settings);
++  MockEncodedImageCallback callback;
++  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
++            encoder.InitEncode(&codec_settings, kSettings));
++  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
++            encoder.RegisterEncodeCompleteCallback(&callback));
++  // Create a VideoFrame where the U and V strides are different.
++  auto buffer = I420Buffer::Create(
++      /*width=*/codec_settings.width,
++      /*height=*/codec_settings.height,
++      /*stride_y=*/codec_settings.width,
++      /*stride_u=*/(codec_settings.width + 1) / 2,
++      /*stride_v=*/(codec_settings.width + 1) / 2 + 1);
 +
-+  // Set the default sink.
-+  receive_channel_->SetDefaultRawAudioSink(std::move(fake_sink));
++  VideoFrame frame = VideoFrame::Builder()
++                         .set_video_frame_buffer(buffer)
++                         .set_rtp_timestamp(0)
++                         .build();
 +
-+  // Deliver an RTP packet to create an unsignaled stream.
-+  DeliverPacket(kPcmuFrame);
-+  const AudioSinkInterface* proxy_sink = GetRecvStream(kSsrc1).sink();
-+  EXPECT_NE(nullptr, proxy_sink);
-+
-+  // Promote the unsignaled stream to a signaled stream.
-+  StreamParams sp = StreamParams::CreateLegacy(kSsrc1);
-+  EXPECT_TRUE(receive_channel_->AddRecvStream(sp));
-+
-+  // The proxy sink should be removed from the stream upon promotion.
-+  EXPECT_EQ(nullptr, GetRecvStream(kSsrc1).sink());
-+
-+  // Destroy the original sink by passing nullptr.
-+  receive_channel_->SetDefaultRawAudioSink(nullptr);
-+
-+  // Note: calling proxy_sink->OnData would crash here if the proxy_sink
-+  // would still be attached to the stream and hold a dangling pointer to
-+  // default_sink_. But we've verified that it's detached, so that won't happen.
++  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE, encoder.Encode(frame, nullptr));
 +}
 +
- // Test that playout is still started after changing parameters
- TEST_P(WebRtcVoiceEngineTestFake, PreservePlayoutWhenRecreateRecvStream) {
-   SetupRecvStream();
+ }  // anonymous namespace
+ 
+ }  // namespace webrtc
