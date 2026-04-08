@@ -1360,12 +1360,13 @@ class UrlbarInputTestUtils {
    * @returns {UrlbarController} A new controller.
    */
   newMockController(options = {}) {
+    let sapName = options.sapName || "urlbar";
     // Ensure a sapName is defined, as otherwise we'd not get the same
     // ProvidersManager instance across tests.
     if (options.input && !options.input.sapName) {
       Object.defineProperty(options.input, "sapName", {
         get() {
-          return "urlbar";
+          return sapName;
         },
         configurable: true,
       });
@@ -1376,7 +1377,7 @@ class UrlbarInputTestUtils {
           input: {
             isPrivate: false,
             get sapName() {
-              return "urlbar";
+              return sapName;
             },
             onFirstResult() {
               return false;
