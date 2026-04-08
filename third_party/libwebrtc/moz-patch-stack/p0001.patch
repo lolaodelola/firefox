@@ -1,220 +1,195 @@
-From: Michael Froman <mfroman@mozilla.com>
-Date: Wed, 8 Apr 2026 01:09:46 -0500
-Subject: (tmp-cherry-pick) Revert "Use clock from webrtc::Environment in java
- TimestamplAligner" (59486f6d13)
+From: Tommi <tommi@webrtc.org>
+Date: Fri, 6 Mar 2026 09:37:17 +0100
+Subject: (cherry-pick-branch-heads/7680) [146] Check maximum buffer size in
+ ResamplerHelper::MaybeResample
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-This reverts commit e3798d21b8ebab896d888a7097e92f3eb32d31d9.
+Verify that the target sample count does not exceed the maximum allowed
+size for an AudioFrame. Previously, requesting a resample operation with
+a high number of channels or a high sample rate could result in a target
+data size that exceeded the internal limits of the AudioFrame class.
 
-Reason for revert: breaks downstream
+This change adds a validation check before starting the resampling
+process. If the calculated target size—based on the desired sample rate
+and channel count—surpasses kMaxDataSizeSamples, the operation now
+safely aborts. In such cases, the error is logged, the audio frame is
+muted to avoid undefined behavior, and the function returns false.
 
-Original change's description:
-> Use clock from webrtc::Environment in java TimestamplAligner
->
-> Move function to query webrtc time from static function in
-> TimestampAligner to local in Environment
->
-> Bug: webrtc:42223992
-> Change-Id: I59cea50399cb873b875a5e9efafbc2ea58af35f1
-> Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/452943
-> Commit-Queue: Danil Chapovalov <danilchap@webrtc.org>
-> Reviewed-by: Zoé Lepaul <zlep@webrtc.org>
-> Cr-Commit-Position: refs/heads/main@{#47063}
+(cherry picked from commit ecde302f3f4e4f4149ad7eda697bb9309955e57d)
 
-Bug: webrtc:42223992
-No-Presubmit: true
-No-Tree-Checks: true
-No-Try: true
-Change-Id: I878ee497f63ee8f61ab2f9c259e36fe1950f4c6b
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/453940
-Bot-Commit: Rubber Stamper <rubber-stamper@appspot.gserviceaccount.com>
-Commit-Queue: Danil Chapovalov <danilchap@webrtc.org>
-Cr-Commit-Position: refs/heads/main@{#47064}
+Bug: chromium:486349161
+Fixes: chromium:486349161
+Change-Id: Ia0d8abcd390f90a590c07c0606f9b6c968f663e6
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/454000
+Reviewed-by: Per Åhgren <peah@webrtc.org>
+Reviewed-by: Henrik Lundin <henrik.lundin@webrtc.org>
+Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
+Cr-Original-Commit-Position: refs/heads/main@{#47076}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456340
+Reviewed-by: Jeremy Leconte <jleconte@google.com>
+Cr-Commit-Position: refs/branch-heads/7680@{#2}
+Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#46853}
 ---
- sdk/android/BUILD.gn                          |  1 -
- sdk/android/api/org/webrtc/Environment.java   | 10 +----
- .../api/org/webrtc/TimestampAligner.java      | 26 ++++-------
- sdk/android/src/jni/environment.cc            |  4 --
- sdk/android/src/jni/timestamp_aligner.cc      | 45 ++++++-------------
- 5 files changed, 23 insertions(+), 63 deletions(-)
+ modules/audio_coding/BUILD.gn                 |  2 +
+ modules/audio_coding/DEPS                     |  1 +
+ modules/audio_coding/acm2/acm_resampler.cc    | 15 ++++
+ .../acm2/acm_resampler_unittest.cc            | 79 +++++++++++++++++++
+ 4 files changed, 97 insertions(+)
+ create mode 100644 modules/audio_coding/acm2/acm_resampler_unittest.cc
 
-diff --git a/sdk/android/BUILD.gn b/sdk/android/BUILD.gn
-index bcaddfae3a..35d1ea4176 100644
---- a/sdk/android/BUILD.gn
-+++ b/sdk/android/BUILD.gn
-@@ -272,7 +272,6 @@ if (is_android) {
+diff --git a/modules/audio_coding/BUILD.gn b/modules/audio_coding/BUILD.gn
+index 016485c4e8..132b293f79 100644
+--- a/modules/audio_coding/BUILD.gn
++++ b/modules/audio_coding/BUILD.gn
+@@ -47,6 +47,7 @@ rtc_library("audio_coding") {
+     "../../api/neteq:default_neteq_factory",
+     "../../api/neteq:neteq_api",
+     "../../api/units:timestamp",
++    "../../audio/utility:audio_frame_operations",
+     "../../common_audio",
+     "../../common_audio:common_audio_c",
+     "../../rtc_base:buffer",
+@@ -1400,6 +1401,7 @@ if (rtc_include_tests) {
  
-     deps = [
-       ":base_java",
--      ":environment_java",
-       ":generated_video_egl_jni_java",
-       ":generated_video_jni_java",
-       ":video_api_java",
-diff --git a/sdk/android/api/org/webrtc/Environment.java b/sdk/android/api/org/webrtc/Environment.java
-index 5808776d01..10749ec4e2 100644
---- a/sdk/android/api/org/webrtc/Environment.java
-+++ b/sdk/android/api/org/webrtc/Environment.java
-@@ -39,14 +39,6 @@ public final class Environment implements AutoCloseable {
-     return webrtcEnv;
-   }
+       sources = [
+         "acm2/acm_remixing_unittest.cc",
++        "acm2/acm_resampler_unittest.cc",
+         "acm2/audio_coding_module_unittest.cc",
+         "acm2/call_statistics_unittest.cc",
+         "audio_network_adaptor/audio_network_adaptor_impl_unittest.cc",
+diff --git a/modules/audio_coding/DEPS b/modules/audio_coding/DEPS
+index 3dc9624a4b..be1291bf2c 100644
+--- a/modules/audio_coding/DEPS
++++ b/modules/audio_coding/DEPS
+@@ -1,4 +1,5 @@
+ include_rules = [
++  "+audio/utility",
+   "+call",
+   "+common_audio",
+   "+logging/rtc_event_log",
+diff --git a/modules/audio_coding/acm2/acm_resampler.cc b/modules/audio_coding/acm2/acm_resampler.cc
+index a8c4ba8ef0..e9c2861101 100644
+--- a/modules/audio_coding/acm2/acm_resampler.cc
++++ b/modules/audio_coding/acm2/acm_resampler.cc
+@@ -11,12 +11,15 @@
+ #include "modules/audio_coding/acm2/acm_resampler.h"
  
--  /**
--   * Returns current time as controlled by webrtcEnv. By default this is
--   * normally same as System.nanoTime(), but call this function to be safe.
--   */
--  public long getCurrentTimeNanos() {
--    return nativeCurrentTimeNanos(webrtcEnv);
--  }
--
-   @Override
-   public void close() {
-     nativeFree(webrtcEnv);
-@@ -57,6 +49,6 @@ public final class Environment implements AutoCloseable {
-   }
+ #include <array>
++#include <cstddef>
+ #include <cstdint>
  
-   private static native long nativeCreate(@Nullable String fieldTrials);
--  private static native long nativeCurrentTimeNanos(long webrtcEnv);
-+
-   private static native void nativeFree(long webrtcEnv);
- }
-diff --git a/sdk/android/api/org/webrtc/TimestampAligner.java b/sdk/android/api/org/webrtc/TimestampAligner.java
-index a93f07c37f..37c92b31e1 100644
---- a/sdk/android/api/org/webrtc/TimestampAligner.java
-+++ b/sdk/android/api/org/webrtc/TimestampAligner.java
-@@ -12,33 +12,22 @@ package org.webrtc;
- 
- /**
-  * The TimestampAligner class helps translating camera timestamps into the same timescale as is
-- * used by webrtc. Some cameras have built in timestamping which is more accurate than
-+ * used by webrtc::TimeNanos(). Some cameras have built in timestamping which is more accurate than
-  * reading the system clock, but using a different epoch and unknown clock drift. Frame timestamps
-- * in webrtc should use clock from the webrtc::Environment (usually the system monotonic time), and
-- * this class provides a filter which lets us use the webrtc::Environment timescale, and at the same
-- * time take advantage of higheraccuracy of the camera clock.
-- * This class is a wrapper on top of webrtc::TimestampAligner.
-+ * in webrtc should use webrtc::TimeNanos (system monotonic time), and this class provides a filter
-+ * which lets us use the webrtc::TimeNanos timescale, and at the same time take advantage of higher
-+ * accuracy of the camera clock. This class is a wrapper on top of webrtc::TimestampAligner.
-  */
- public class TimestampAligner {
-   /**
-    * Wrapper around webrtc::TimeNanos(). This is normally same as System.nanoTime(), but call this
-    * function to be safe.
-    */
--  @Deprecated
-   public static long getRtcTimeNanos() {
--    return Environment.builder().build().getCurrentTimeNanos();
-+    return nativeRtcTimeNanos();
-   }
- 
--  private volatile long nativeTimestampAligner;
--
--  @Deprecated
--  public TimestampAligner() {
--    this(Environment.builder().build());
--  }
--
--  public TimestampAligner(Environment webrtcEnv) {
--    nativeTimestampAligner = nativeCreateTimestampAligner(webrtcEnv.ref());
--  }
-+  private volatile long nativeTimestampAligner = nativeCreateTimestampAligner();
- 
-   /**
-    * Translates camera timestamps to the same timescale as is used by webrtc::TimeNanos().
-@@ -63,7 +52,8 @@ public class TimestampAligner {
-     }
-   }
- 
--  private static native long nativeCreateTimestampAligner(long webrtcEnvRef);
-+  private static native long nativeRtcTimeNanos();
-+  private static native long nativeCreateTimestampAligner();
-   private static native void nativeReleaseTimestampAligner(long timestampAligner);
-   private static native long nativeTranslateTimestamp(long timestampAligner, long cameraTimeNs);
- }
-diff --git a/sdk/android/src/jni/environment.cc b/sdk/android/src/jni/environment.cc
-index bf751e47d1..a93afe7bb0 100644
---- a/sdk/android/src/jni/environment.cc
-+++ b/sdk/android/src/jni/environment.cc
-@@ -27,10 +27,6 @@ void JNI_Environment_Free(JNIEnv* /*env*/, jlong webrtcEnv) {
-   delete reinterpret_cast<Environment*>(webrtcEnv);
- }
- 
--jlong JNI_Environment_CurrentTimeNanos(JNIEnv* env, jlong webrtcEnv) {
--  return reinterpret_cast<Environment*>(webrtcEnv)->clock().CurrentTime().ns();
--}
--
- jlong JNI_Environment_Create(JNIEnv* env,
-                              const jni_zero::JavaRef<jstring>& fieldTrials) {
-   std::unique_ptr<FieldTrialsView> field_trials;
-diff --git a/sdk/android/src/jni/timestamp_aligner.cc b/sdk/android/src/jni/timestamp_aligner.cc
-index 12fbd0052f..7226886cb0 100644
---- a/sdk/android/src/jni/timestamp_aligner.cc
-+++ b/sdk/android/src/jni/timestamp_aligner.cc
-@@ -12,51 +12,34 @@
- 
- #include <jni.h>
- 
--#include <cstdint>
--
--#include "api/environment/environment.h"
-+#include "rtc_base/time_utils.h"
- #include "sdk/android/generated_video_jni/TimestampAligner_jni.h"
--#include "sdk/android/native_api/jni/java_types.h"
-+#include "sdk/android/src/jni/jni_helpers.h"
+ #include "absl/algorithm/container.h"
+ #include "api/audio/audio_frame.h"
+ #include "api/audio/audio_view.h"
++#include "audio/utility/audio_frame_operations.h"
+ #include "rtc_base/checks.h"
++#include "rtc_base/logging.h"
  
  namespace webrtc {
- namespace jni {
--namespace {
--
--class TimestampAlignerWithClock {
-- public:
--  explicit TimestampAlignerWithClock(const Environment& env) : env_(env) {}
--
--  int64_t TranslateTimestampNs(int64_t camera_time_ns) {
--    return aligner_.TranslateTimestamp(
--               /*capture_time_us=*/camera_time_ns / 1'000,
--               /*system_time_us=*/env_.clock().TimeInMicroseconds()) *
--           1'000;
--  }
--
-- private:
--  const Environment env_;
--  TimestampAligner aligner_;
--};
--
--}  // namespace
--
--static jlong JNI_TimestampAligner_CreateTimestampAligner(JNIEnv* env,
--                                                         jlong webrtcEnvRef) {
--  return NativeToJavaPointer(new TimestampAlignerWithClock(
--      *reinterpret_cast<const Environment*>(webrtcEnvRef)));
+ namespace acm2 {
+@@ -38,6 +41,18 @@ bool ResamplerHelper::MaybeResample(int desired_sample_rate_hz,
+       (desired_sample_rate_hz != -1) &&
+       (current_sample_rate_hz != desired_sample_rate_hz);
+ 
++  if (need_resampling) {
++    const size_t target_size =
++        audio_frame->num_channels_ *
++        SampleRateToDefaultChannelSize(desired_sample_rate_hz);
++    if (target_size > AudioFrame::kMaxDataSizeSamples) {
++      RTC_LOG(LS_ERROR) << "AudioFrame cannot hold resampled data.";
++      AudioFrameOperations::Mute(audio_frame);
++      audio_frame->SetSampleRateAndChannelSize(desired_sample_rate_hz);
++      return false;
++    }
++  }
 +
-+static jlong JNI_TimestampAligner_RtcTimeNanos(JNIEnv* env) {
-+  return TimeNanos();
+   if (need_resampling && !resampled_last_output_frame_) {
+     // Prime the resampler with the last frame.
+     InterleavedView<const int16_t> src(last_audio_buffer_.data(),
+diff --git a/modules/audio_coding/acm2/acm_resampler_unittest.cc b/modules/audio_coding/acm2/acm_resampler_unittest.cc
+new file mode 100644
+index 0000000000..f59715150b
+--- /dev/null
++++ b/modules/audio_coding/acm2/acm_resampler_unittest.cc
+@@ -0,0 +1,79 @@
++/*
++ *  Copyright (c) 2026 The WebRTC project authors. All Rights Reserved.
++ *
++ *  Use of this source code is governed by a BSD-style license
++ *  that can be found in the LICENSE file in the root of the source
++ *  tree. An additional intellectual property rights grant can be found
++ *  in the file PATENTS.  All contributing project authors may
++ *  be found in the AUTHORS file in the root of the source tree.
++ */
++
++#include "modules/audio_coding/acm2/acm_resampler.h"
++
++#include <cstddef>
++#include <cstdint>
++#include <vector>
++
++#include "api/audio/audio_frame.h"
++#include "test/gtest.h"
++
++namespace webrtc {
++namespace acm2 {
++
++TEST(ResamplerHelperTest, MaybeResampleCheckForMaxSize) {
++  ResamplerHelper resampler;
++  AudioFrame audio_frame;
++
++  // Create an audio frame that requires resampling from 32kHz to 48kHz
++  // with a very high number of channels (24).
++  const int kCurrentSampleRateHz = 32000;
++  const int kDesiredSampleRateHz = 48000;
++  const size_t kChannels = 24;
++
++  // 10 ms of data at 32kHz = 320 samples per channel.
++  std::vector<int16_t> dummy_data(320 * 24, 0);
++  audio_frame.UpdateFrame(0, dummy_data.data(), 320, kCurrentSampleRateHz,
++                          AudioFrame::kNormalSpeech, AudioFrame::kVadActive,
++                          kChannels);
++
++  // The resampler prime path will attempt to allocate a buffer that is
++  // kChannels * (kDesiredSampleRateHz / 100) = 24 * 480 = 11520 samples,
++  // which exceeds AudioFrame::kMaxDataSizeSamples (7680).
++  const bool resample_success =
++      resampler.MaybeResample(kDesiredSampleRateHz, &audio_frame);
++
++  // Verify that MaybeResample correctly detects the buffer size condition and
++  // safely aborts the operation by returning false and muting the frame.
++  EXPECT_FALSE(resample_success);
++  EXPECT_TRUE(audio_frame.muted());
++  EXPECT_EQ(audio_frame.sample_rate_hz_, kDesiredSampleRateHz);
++  EXPECT_EQ(audio_frame.num_channels_, kChannels);
 +}
 +
-+static jlong JNI_TimestampAligner_CreateTimestampAligner(JNIEnv* env) {
-+  return jlongFromPointer(new TimestampAligner());
- }
- 
- static void JNI_TimestampAligner_ReleaseTimestampAligner(
-     JNIEnv* env,
-     jlong timestamp_aligner) {
--  delete reinterpret_cast<TimestampAlignerWithClock*>(timestamp_aligner);
-+  delete reinterpret_cast<TimestampAligner*>(timestamp_aligner);
- }
- 
- static jlong JNI_TimestampAligner_TranslateTimestamp(JNIEnv* env,
-                                                      jlong timestamp_aligner,
-                                                      jlong camera_time_ns) {
--  return reinterpret_cast<TimestampAlignerWithClock*>(timestamp_aligner)
--      ->TranslateTimestampNs(camera_time_ns);
-+  return reinterpret_cast<TimestampAligner*>(timestamp_aligner)
-+             ->TranslateTimestamp(camera_time_ns / kNumNanosecsPerMicrosec,
-+                                  TimeMicros()) *
-+         kNumNanosecsPerMicrosec;
- }
- 
- }  // namespace jni
++TEST(ResamplerHelperTest, MaybeResampleValidMaxSize) {
++  ResamplerHelper resampler;
++  AudioFrame audio_frame;
++
++  // Ensure that resampling within the valid buffer size does not trigger the
++  // muting behavior. We'll use a valid number of channels (e.g. 1) that will
++  // not exceed the bounds.
++  const int kCurrentSampleRateHz = 32000;
++  const int kDesiredSampleRateHz = 48000;
++  const size_t kChannels = 1;
++
++  std::vector<int16_t> dummy_data(320 * 1, 1000);
++  audio_frame.UpdateFrame(0, dummy_data.data(), 320, kCurrentSampleRateHz,
++                          AudioFrame::kNormalSpeech, AudioFrame::kVadActive,
++                          kChannels);
++
++  const bool resample_success =
++      resampler.MaybeResample(kDesiredSampleRateHz, &audio_frame);
++
++  EXPECT_TRUE(resample_success);
++  EXPECT_FALSE(audio_frame.muted());
++  EXPECT_EQ(audio_frame.sample_rate_hz_, kDesiredSampleRateHz);
++  EXPECT_EQ(audio_frame.num_channels_, kChannels);
++}
++
++}  // namespace acm2
++}  // namespace webrtc
