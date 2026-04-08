@@ -12,10 +12,10 @@ Differential Revision: https://phabricator.services.mozilla.com/D196729
 Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/d92a578327f524ec3e1c144c82492a4c76b8266f
 ---
  call/rtp_video_sender.cc                      |  1 +
- modules/rtp_rtcp/source/rtcp_sender.cc        | 24 +++++++++++++++++--
+ modules/rtp_rtcp/source/rtcp_sender.cc        | 23 +++++++++++++++----
  .../rtp_rtcp/source/rtcp_sender_unittest.cc   |  5 ++--
  modules/rtp_rtcp/source/rtp_rtcp_interface.h  |  2 +-
- 4 files changed, 27 insertions(+), 5 deletions(-)
+ 4 files changed, 24 insertions(+), 7 deletions(-)
 
 diff --git a/call/rtp_video_sender.cc b/call/rtp_video_sender.cc
 index c25fe194bf..615db18574 100644
@@ -30,19 +30,17 @@ index c25fe194bf..615db18574 100644
    rtp_module.SetSendingMediaStatus(sending);
    if (sending) {
 diff --git a/modules/rtp_rtcp/source/rtcp_sender.cc b/modules/rtp_rtcp/source/rtcp_sender.cc
-index cc9776d926..0b32cb94ff 100644
+index cc9776d926..14f8b84662 100644
 --- a/modules/rtp_rtcp/source/rtcp_sender.cc
 +++ b/modules/rtp_rtcp/source/rtcp_sender.cc
-@@ -198,10 +198,30 @@ bool RTCPSender::Sending() const {
+@@ -198,10 +198,25 @@ bool RTCPSender::Sending() const {
  
  void RTCPSender::SetSendingStatus(const FeedbackState& /* feedback_state */,
                                    bool sending) {
-+<<<<<<< HEAD
-   MutexLock lock(&mutex_rtcp_sender_);
+-  MutexLock lock(&mutex_rtcp_sender_);
 -  RTC_DCHECK(is_rtp_sender_ || !sending)
 -      << "Only senders can have sending turned on";
-   sending_ = sending;
-+=======
+-  sending_ = sending;
 +  bool sendRTCPBye = false;
 +  {
 +    MutexLock lock(&mutex_rtcp_sender_);
@@ -62,7 +60,6 @@ index cc9776d926..0b32cb94ff 100644
 +      RTC_LOG(LS_WARNING) << "Failed to send RTCP BYE";
 +    }
 +  }
-+>>>>>>> 7c6f039002 (Bug 1867099 - revert libwebrtc 8602f604e0. r=bwc)
  }
  
  void RTCPSender::SetNonSenderRttMeasurement(bool enabled) {
