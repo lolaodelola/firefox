@@ -1062,6 +1062,15 @@ skip-if = [
   # connection. Disable test on MacOS 10.15.
 ]
 
+["test_http3_quic_token_partition.js"]
+skip-if = [
+  "os == 'win' && os_version == '10.2009' && arch == 'x86_64'",
+  "os == 'win' && os_version == '11.26100' && arch == 'x86'",
+  "os == 'win' && os_version == '11.26100' && arch == 'x86_64'",
+  "os == 'win' && os_version == '11.26200' && arch == 'x86'",
+  "os == 'win' && os_version == '11.26200' && arch == 'x86_64'",
+]
+
 ["test_http3_server.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
 skip-if = [
