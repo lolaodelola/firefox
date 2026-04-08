@@ -211,10 +211,10 @@ static bool BestAvailableLocale(JSContext* cx,
 /**
  * 9.2.2 BestAvailableLocale ( availableLocales, locale )
  */
-bool js::intl::BestAvailableLocale(JSContext* cx,
-                                   AvailableLocaleKind availableLocales,
-                                   LanguageId locale,
-                                   mozilla::Maybe<LanguageId>* result) {
+static bool BestAvailableLocale(JSContext* cx,
+                                AvailableLocaleKind availableLocales,
+                                LanguageId locale,
+                                mozilla::Maybe<LanguageId>* result) {
   return BestAvailableLocale(cx, availableLocales, locale, mozilla::Nothing(),
                              result);
 }

@@ -321,67 +321,6 @@ class SharedIntlData {
   ArrayObject* availableLocalesOf(JSContext* cx, AvailableLocaleKind kind);
 
  private:
-  /**
-   * The case first parameter (BCP47 key "kf") allows to switch the order of
-   * upper- and lower-case characters. ICU doesn't directly provide an API
-   * to query the default case first value of a given locale, but instead
-   * requires to instantiate a collator object and then query the case first
-   * attribute (UCOL_CASE_FIRST).
-   * To avoid instantiating an additional collator object whenever we need
-   * to retrieve the default case first value of a specific locale, we
-   * compute the default case first value for every supported locale only
-   * once and then keep a list of all locales which don't use the default
-   * case first setting.
-   * There is almost no difference between lower-case first and when case
-   * first is disabled (UCOL_LOWER_FIRST resp. UCOL_OFF), so we only need to
-   * track locales which use upper-case first as their default setting.
-   *
-   * Instantiating collator objects for each available locale is slow
-   * (bug 1527879), therefore we're hardcoding the two locales using upper-case
-   * first ("da" (Danish) and "mt" (Maltese)) and only assert in debug-mode
-   * these two locales match the upper-case first locales returned by ICU. A
-   * system-ICU may support a different set of locales, therefore we're always
-   * calling into ICU to find the upper-case first locales in that case.
-   */
-
-#if DEBUG
-  LocaleSet upperCaseFirstLocales;
-
-  bool upperCaseFirstInitialized = false;
-
-  /**
-   * Precomputes the available locales which use upper-case first sorting.
-   */
-  bool ensureUpperCaseFirstLocales(JSContext* cx);
-#endif
-
- public:
-  /**
-   * Sets |isUpperFirst| to true if |locale| sorts upper-case characters
-   * before lower-case characters.
-   */
-  bool isUpperCaseFirst(JSContext* cx, LanguageId locale, bool* isUpperFirst);
-
- private:
-#if DEBUG
-  LocaleSet ignorePunctuationLocales;
-
-  bool ignorePunctuationInitialized = false;
-
-  /**
-   * Precomputes the available locales which ignore punctuation.
-   */
-  bool ensureIgnorePunctuationLocales(JSContext* cx);
-#endif
-
- public:
-  /**
-   * Sets |ignorePunctuation| to true if |locale| ignores punctuation.
-   */
-  bool isIgnorePunctuation(JSContext* cx, LanguageId locale,
-                           bool* ignorePunctuation);
-
- private:
   using UniqueDateTimePatternGenerator =
       mozilla::UniquePtr<mozilla::intl::DateTimePatternGenerator,
                          DateTimePatternGeneratorDeleter>;

@@ -8,7 +8,6 @@
 #include "mozilla/EnumeratedArray.h"
 #include "mozilla/EnumSet.h"
 #include "mozilla/EnumTypeTraits.h"
-#include "mozilla/Maybe.h"
 
 #include <stdint.h>
 
@@ -61,17 +60,6 @@ bool CanonicalizeLocaleList(JSContext* cx, JS::Handle<JS::Value> locales,
  */
 ArrayObject* CanonicalizeLocaleList(JSContext* cx,
                                     JS::Handle<JS::Value> locales);
-
-/**
- * Compares a BCP 47 language tag against the locales in availableLocales and
- * returns the best available match -- or |nullptr| if no match was found.
- * Uses the fallback mechanism of RFC 4647, section 3.4.
- *
- * Spec: ECMAScript Internationalization API Specification, 9.2.2.
- * Spec: RFC 4647, section 3.4.
- */
-bool BestAvailableLocale(JSContext* cx, AvailableLocaleKind availableLocales,
-                         LanguageId locale, mozilla::Maybe<LanguageId>* result);
 
 /**
  * Locale data selection for ResolveLocale.

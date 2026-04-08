@@ -516,62 +516,6 @@ fn is_supported_collation(locale: &[u8], collation: &[u8]) -> bool {
         .any(|combination| combination == &langcoll)
 }
 
-// This function should go away in https://bugzilla.mozilla.org/show_bug.cgi?id=2018920 .
-// In principle this should be #[cfg(feature = "gecko_debug")], but the feature isn't
-// properly connected to the build system in the case of standalone SpiderMonkey builds.
-#[no_mangle]
-pub unsafe extern "C" fn mozilla_collator_glue_locale_is_upper_first(
-    locale: *const c_char,
-    locale_len: usize,
-) -> bool {
-    if locale_len == 0 {
-        return false;
-    }
-    let prefs: CollatorPreferences = if let Ok(locale) =
-        Locale::try_from_utf8(core::slice::from_raw_parts(locale as *const u8, locale_len))
-    {
-        locale.into()
-    } else {
-        return false;
-    };
-    // `unwrap` is OK below, because `CollatorBorrowed::try_new`` never
-    // fails with properly-generated baked data.
-    // See https://github.com/unicode-org/icu4x/issues/6634
-    CollatorBorrowed::try_new(prefs, icu_collator::options::CollatorOptions::default())
-        .unwrap()
-        .resolved_options()
-        .case_first
-        == CollationCaseFirst::Upper
-}
-
-// This function should go away in https://bugzilla.mozilla.org/show_bug.cgi?id=2018920 .
-// In principle this should be #[cfg(feature = "gecko_debug")], but the feature isn't
-// properly connected to the build system in the case of standalone SpiderMonkey builds.
-#[no_mangle]
-pub unsafe extern "C" fn mozilla_collator_glue_locale_ignores_punctuation(
-    locale: *const c_char,
-    locale_len: usize,
-) -> bool {
-    if locale_len == 0 {
-        return false;
-    }
-    let prefs: CollatorPreferences = if let Ok(locale) =
-        Locale::try_from_utf8(core::slice::from_raw_parts(locale as *const u8, locale_len))
-    {
-        locale.into()
-    } else {
-        return false;
-    };
-    // `unwrap` is OK below, because `CollatorBorrowed::try_new`` never
-    // fails with properly-generated baked data.
-    // See https://github.com/unicode-org/icu4x/issues/6634
-    CollatorBorrowed::try_new(prefs, icu_collator::options::CollatorOptions::default())
-        .unwrap()
-        .resolved_options()
-        .alternate_handling
-        == AlternateHandling::Shifted
-}
-
 /// Data holder for enumerating supported locales.
 pub struct LocaleList {
     vec: Vec<TinyLocaleStr>,

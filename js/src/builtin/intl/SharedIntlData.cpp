@@ -572,145 +572,6 @@ js::ArrayObject* js::intl::SharedIntlData::availableLocalesOf(
   return result;
 }
 
-#if DEBUG
-bool js::intl::SharedIntlData::ensureUpperCaseFirstLocales(JSContext* cx) {
-  if (upperCaseFirstInitialized) {
-    return true;
-  }
-
-  // If ensureUpperCaseFirstLocales() was called previously, but didn't
-  // complete due to OOM, clear all data and start from scratch.
-  upperCaseFirstLocales.clearAndCompact();
-
-  for (auto locale : mozilla::intl::Collator::GetAvailableLocales()) {
-    if (!mozilla::intl::Collator::LocaleIsUpperFirst(locale)) {
-      continue;
-    }
-
-    auto parsedLangId = LanguageId::fromBcp49(locale);
-    MOZ_ASSERT(parsedLangId.isSome(), "unparseable ICU4X data locale");
-    MOZ_ASSERT(parsedLangId->second == 0,
-               "ICU4X data locale with unexpected subtags");
-
-    auto langId = parsedLangId->first;
-
-    LocaleSet::AddPtr p = upperCaseFirstLocales.lookupForAdd(langId);
-
-    // ICU shouldn't report any duplicate locales, but if it does, just
-    // ignore the duplicated locale.
-    if (!p && !upperCaseFirstLocales.add(p, langId)) {
-      ReportOutOfMemory(cx);
-      return false;
-    }
-  }
-
-  MOZ_ASSERT(
-      !upperCaseFirstInitialized,
-      "ensureUpperCaseFirstLocales is neither reentrant nor thread-safe");
-  upperCaseFirstInitialized = true;
-
-  return true;
-}
-#endif  // DEBUG
-
-bool js::intl::SharedIntlData::isUpperCaseFirst(JSContext* cx,
-                                                LanguageId locale,
-                                                bool* isUpperFirst) {
-#if DEBUG
-  if (!ensureUpperCaseFirstLocales(cx)) {
-    return false;
-  }
-#endif
-
-  static constexpr auto danish = LanguageId::fromValidBcp49("da");
-  static constexpr auto maltese = LanguageId::fromValidBcp49("mt");
-
-  // "da" (Danish) and "mt" (Maltese) are the only two supported locales using
-  // upper-case first. CLDR also lists "cu" (Church Slavic) as an upper-case
-  // first locale, but since it's not supported in ICU, we don't care about it
-  // here.
-  bool isDefaultUpperCaseFirstLocale = locale == danish || locale == maltese;
-
-#if DEBUG
-  *isUpperFirst = upperCaseFirstLocales.has(locale);
-#else
-  *isUpperFirst = isDefaultUpperCaseFirstLocale;
-#endif
-
-  MOZ_ASSERT(*isUpperFirst == isDefaultUpperCaseFirstLocale,
-             "upper-case first locales don't match hard-coded list");
-
-  return true;
-}
-
-#if DEBUG
-bool js::intl::SharedIntlData::ensureIgnorePunctuationLocales(JSContext* cx) {
-  if (ignorePunctuationInitialized) {
-    return true;
-  }
-
-  // If ensureIgnorePunctuationLocales() was called previously, but didn't
-  // complete due to OOM, clear all data and start from scratch.
-  ignorePunctuationLocales.clearAndCompact();
-
-  for (auto locale : mozilla::intl::Collator::GetAvailableLocales()) {
-    if (!mozilla::intl::Collator::LocaleIgnoresPunctuation(locale)) {
-      continue;
-    }
-
-    auto parsedLangId = LanguageId::fromBcp49(locale);
-    MOZ_ASSERT(parsedLangId.isSome(), "unparseable ICU4X data locale");
-    MOZ_ASSERT(parsedLangId->second == 0,
-               "ICU4X data locale with unexpected subtags");
-
-    auto langId = parsedLangId->first;
-
-    LocaleSet::AddPtr p = ignorePunctuationLocales.lookupForAdd(langId);
-
-    // ICU shouldn't report any duplicate locales, but if it does, just
-    // ignore the duplicated locale.
-    if (!p && !ignorePunctuationLocales.add(p, langId)) {
-      ReportOutOfMemory(cx);
-      return false;
-    }
-  }
-
-  MOZ_ASSERT(
-      !ignorePunctuationInitialized,
-      "ensureIgnorePunctuationLocales is neither reentrant nor thread-safe");
-  ignorePunctuationInitialized = true;
-
-  return true;
-}
-#endif  // DEBUG
-
-bool js::intl::SharedIntlData::isIgnorePunctuation(JSContext* cx,
-                                                   LanguageId locale,
-                                                   bool* ignorePunctuation) {
-#if DEBUG
-  if (!ensureIgnorePunctuationLocales(cx)) {
-    return false;
-  }
-#endif
-
-  static constexpr auto thai = LanguageId::fromValidBcp49("th");
-
-  // "th" (Thai) is the only supported locale which ignores punctuation by
-  // default.
-  bool isDefaultIgnorePunctuationLocale = locale == thai;
-
-#if DEBUG
-  *ignorePunctuation = ignorePunctuationLocales.has(locale);
-#else
-  *ignorePunctuation = isDefaultIgnorePunctuationLocale;
-#endif
-
-  MOZ_ASSERT(*ignorePunctuation == isDefaultIgnorePunctuationLocale,
-             "ignore punctuation locales don't match hard-coded list");
-
-  return true;
-}
-
 void js::intl::DateTimePatternGeneratorDeleter::operator()(
     mozilla::intl::DateTimePatternGenerator* ptr) {
   delete ptr;
@@ -757,10 +618,6 @@ void js::intl::SharedIntlData::destroyInstance() {
   ianaLinksCanonicalizedDifferentlyByICU.clearAndCompact();
   availableLocales.clearAndCompact();
   collatorAvailableLocales.clearAndCompact();
-#if DEBUG
-  upperCaseFirstLocales.clearAndCompact();
-  ignorePunctuationLocales.clearAndCompact();
-#endif
 }
 
 void js::intl::SharedIntlData::trace(JSTracer* trc) {
@@ -780,9 +637,5 @@ size_t js::intl::SharedIntlData::sizeOfExcludingThis(
              mallocSizeOf) +
          availableLocales.shallowSizeOfExcludingThis(mallocSizeOf) +
          collatorAvailableLocales.shallowSizeOfExcludingThis(mallocSizeOf) +
-#if DEBUG
-         upperCaseFirstLocales.shallowSizeOfExcludingThis(mallocSizeOf) +
-         ignorePunctuationLocales.shallowSizeOfExcludingThis(mallocSizeOf) +
-#endif
          mallocSizeOf(dateTimePatternGeneratorLocale.get());
 }

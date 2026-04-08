@@ -138,18 +138,6 @@ class Collator final {
                             mozilla_collator_glue_locale_list_free>();
   }
 
-#if DEBUG
-  static bool LocaleIsUpperFirst(mozilla::Span<const char> aLocale) {
-    return mozilla_collator_glue_locale_is_upper_first(aLocale.Elements(),
-                                                       aLocale.Length());
-  }
-
-  static bool LocaleIgnoresPunctuation(mozilla::Span<const char> aLocale) {
-    return mozilla_collator_glue_locale_ignores_punctuation(aLocale.Elements(),
-                                                            aLocale.Length());
-  }
-#endif
-
   Collator() = delete;
   Collator(const Collator&) = delete;
   Collator& operator=(const Collator&) = delete;
