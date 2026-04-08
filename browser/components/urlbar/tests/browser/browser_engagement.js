@@ -33,6 +33,7 @@ add_task(async function engagement() {
         selType: "history",
         provider: "",
         searchSource: "urlbar",
+        windowMode: "classic",
         isSessionOngoing: false,
       },
     });
@@ -73,6 +74,7 @@ add_task(async function privateWindow_engagement() {
       selType: "history",
       provider: "",
       searchSource: "urlbar",
+      windowMode: "private",
       isSessionOngoing: false,
     },
   });
