@@ -553,7 +553,7 @@ static void chunk_record(void* aChunk, size_t aSize, ChunkType aType) {
   // be needed, because TypedBaseAlloc::alloc() may cause a new base chunk to
   // be allocated, which could cause deadlock if chunks_mtx were already
   // held.
-  UniqueBaseNode xnode(ExtentAlloc::alloc());
+  UniqueBaseNode xnode(new (fallible) extent_node_t());
   // Use xprev to implement conditional deferred deallocation of prev.
   UniqueBaseNode xprev;
 
@@ -690,13 +690,12 @@ static void* chunk_recycle(size_t aSize, size_t aAlignment) {
   if (trailsize != 0) {
     // Insert the trailing space as a smaller chunk.
     if (!node) {
-      // An additional node is required, but
-      // TypedBaseAlloc::alloc() can cause a new base chunk to be
-      // allocated.  Drop chunks_mtx in order to avoid
-      // deadlock, and if node allocation fails, deallocate
-      // the result before returning an error.
+      // An additional node is required, but BaseAlloc::alloc() may cause a
+      // new base chunk to be allocated.  Drop chunks_mtx in order to avoid
+      // deadlock, and if node allocation fails, deallocate the result
+      // before returning an error.
       chunks_mtx.Unlock();
-      node = ExtentAlloc::alloc();
+      node = new (fallible) extent_node_t();
       if (!node) {
         chunk_dealloc(ret, aSize, ZEROED_CHUNK);
         return nullptr;
@@ -716,7 +715,7 @@ static void* chunk_recycle(size_t aSize, size_t aAlignment) {
   chunks_mtx.Unlock();
 
   if (node) {
-    ExtentAlloc::dealloc(node);
+    delete node;
   }
   if (!pages_commit(ret, aSize)) {
     return nullptr;
@@ -757,11 +756,6 @@ void* chunk_alloc(size_t aSize, size_t aAlignment, bool aBase) {
   MOZ_ASSERT(GetChunkOffsetForPtr(ret) == 0);
   return ret;
 }
-
-// This would be all alone in an Extent.cpp file, instead put it here where
-// it is used.
-template <>
-extent_node_t* ExtentAlloc::sFirstFree = nullptr;
 
 arena_chunk_t::arena_chunk_t(arena_t* aArena)
     : mArena(aArena), mDirtyRunHint(gChunkHeaderNumPages) {}

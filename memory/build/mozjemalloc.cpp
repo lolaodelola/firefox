@@ -646,15 +646,6 @@ void jemalloc_set_profiler_callbacks(
 }  // namespace mozilla
 #endif
 
-template <>
-arena_t* TypedBaseAlloc<arena_t>::sFirstFree = nullptr;
-
-template <>
-size_t TypedBaseAlloc<arena_t>::size_of() {
-  // Allocate enough space for trailing bins.
-  return sizeof(arena_t) + (sizeof(arena_bin_t) * NUM_SMALL_CLASSES);
-}
-
 // End Utility functions/macros.
 // ***************************************************************************
 // Begin arena.
@@ -2959,11 +2950,10 @@ void* arena_t::Ralloc(void* aPtr, size_t aSize, size_t aOldSize) {
 
 void* arena_t::operator new(size_t aCount, const fallible_t&) noexcept {
   MOZ_ASSERT(aCount == sizeof(arena_t));
-  return TypedBaseAlloc<arena_t>::alloc();
-}
-
-void arena_t::operator delete(void* aPtr) {
-  TypedBaseAlloc<arena_t>::dealloc((arena_t*)aPtr);
+  // Ignore aCount, instead allocate axtra space for the trailing array of
+  // bins.
+  return sBaseAlloc.alloc(sizeof(arena_t) +
+                          (sizeof(arena_bin_t) * NUM_SMALL_CLASSES));
 }
 
 arena_t::arena_t(arena_params_t* aParams, bool aIsPrivate)
@@ -3188,7 +3178,7 @@ void* arena_t::PallocHuge(size_t aSize, size_t aAlignment, bool aZero) {
   }
 
   // Allocate an extent node with which to track the chunk.
-  node = ExtentAlloc::alloc();
+  node = new (fallible) extent_node_t();
   if (!node) {
     return nullptr;
   }
@@ -3196,7 +3186,7 @@ void* arena_t::PallocHuge(size_t aSize, size_t aAlignment, bool aZero) {
   // Allocate one or more contiguous chunks for this request.
   ret = chunk_alloc(csize, aAlignment, false);
   if (!ret) {
-    ExtentAlloc::dealloc(node);
+    delete node;
     return nullptr;
   }
   psize = REAL_PAGE_CEILING(aSize);
@@ -3353,7 +3343,7 @@ static void huge_dalloc(void* aPtr, arena_t* aArena) {
   // Unmap chunk.
   chunk_dealloc(node->mAddr, mapped, HUGE_CHUNK);
 
-  ExtentAlloc::dealloc(node);
+  delete node;
 }
 
 // Returns whether the allocator was successfully initialized.

@@ -7,8 +7,10 @@
 
 #include "Constants.h"
 #include "Mutex.h"
+#include "Utils.h"
 
 #include "mozilla/DoublyLinkedList.h"
+#include "mozilla/fallible.h"
 
 // Allocation sizes must fit in a uint32_t
 typedef uint32_t base_alloc_size_t;
@@ -90,39 +92,34 @@ class BaseAlloc {
 
 extern BaseAlloc sBaseAlloc;
 
-// A specialization of the base allocator with a free list.
-template <typename T>
-struct TypedBaseAlloc {
-  static T* sFirstFree;
-
-  static size_t size_of() { return sizeof(T); }
-
-  static T* alloc() {
-    {
-      MutexAutoLock lock(sBaseAlloc.mMutex);
-      T* ret = sFirstFree;
-      if (ret) {
-        sFirstFree = *(T**)ret;
-        return ret;
-      }
+// Other classes may inherit from BaseAllocClass to get new and delete
+// methods that use the base allocator.
+struct BaseAllocClass {
+  void* operator new(size_t aSize) noexcept {
+    void* ret = sBaseAlloc.alloc(aSize);
+    if (!ret) {
+      _malloc_message(_getprogname(), ": (malloc) Out of memory\n");
+      MOZ_CRASH();
     }
-
-    return (T*)sBaseAlloc.alloc(size_of());
+    return ret;
+  }
+  void* operator new[](size_t aSize) noexcept {
+    void* ret = sBaseAlloc.alloc(aSize);
+    if (!ret) {
+      _malloc_message(_getprogname(), ": (malloc) Out of memory\n");
+      MOZ_CRASH();
+    }
+    return ret;
+  }
+  void* operator new(size_t aCount, const mozilla::fallible_t&) noexcept {
+    return sBaseAlloc.alloc(aCount);
+  }
+  void* operator new[](size_t aCount, const mozilla::fallible_t&) noexcept {
+    return sBaseAlloc.alloc(aCount);
   }
 
-  static void dealloc(T* aNode) {
-    MutexAutoLock lock(sBaseAlloc.mMutex);
-    *(T**)aNode = sFirstFree;
-    sFirstFree = aNode;
-  }
-};
-
-template <typename T>
-T* TypedBaseAlloc<T>::sFirstFree = nullptr;
-
-template <typename T>
-struct BaseAllocFreePolicy {
-  void operator()(T* aPtr) { TypedBaseAlloc<T>::dealloc(aPtr); }
+  void operator delete(void* aPtr) { sBaseAlloc.free(aPtr); }
+  void operator delete[](void* aPtr) { sBaseAlloc.free(aPtr); }
 };
 
 #endif /* ! BASEALLOC_H */

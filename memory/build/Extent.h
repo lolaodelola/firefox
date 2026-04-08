@@ -20,7 +20,7 @@ struct arena_t;
 enum ChunkType;
 
 // Tree of extents.
-struct extent_node_t {
+struct extent_node_t : public BaseAllocClass {
   union {
     // Linkage for the size/address-ordered tree for chunk recycling.
     RedBlackTreeNode<extent_node_t> mLinkBySize;
@@ -84,12 +84,6 @@ struct ExtentTreeBoundsTrait : public ExtentTreeTrait {
   }
 };
 
-using ExtentAlloc = TypedBaseAlloc<extent_node_t>;
-
-template <>
-extent_node_t* ExtentAlloc::sFirstFree;
-
-using UniqueBaseNode =
-    mozilla::UniquePtr<extent_node_t, BaseAllocFreePolicy<extent_node_t>>;
+using UniqueBaseNode = mozilla::UniquePtr<extent_node_t>;
 
 #endif /* ! EXTENT_H */

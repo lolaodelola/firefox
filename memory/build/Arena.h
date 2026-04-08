@@ -250,7 +250,7 @@ static_assert(sizeof(arena_bin_t) == 32);
 
 enum PurgeCondition { PurgeIfThreshold, PurgeUnconditional };
 
-struct arena_t {
+struct arena_t : public BaseAllocClass {
 #if defined(MOZ_DIAGNOSTIC_ASSERT_ENABLED)
 #  define ARENA_MAGIC 0x947d3d24
   uint32_t mMagic = ARENA_MAGIC;
@@ -698,11 +698,15 @@ struct arena_t {
 
   bool IsMainThreadOnly() const { return !mLock.LockIsEnabled(); }
 
-  void* operator new(size_t aCount) = delete;
-
+  // Overload new to customise the size.
   void* operator new(size_t aCount, const mozilla::fallible_t&) noexcept;
 
-  void operator delete(void*);
+  // Fallible allocation is unused and an array of arena_t is impossible.
+  void* operator new(size_t aCount) noexcept = delete;
+  void* operator new[](size_t aCount) noexcept = delete;
+  void* operator new[](size_t aCount,
+                       const mozilla::fallible_t&) noexcept = delete;
+  void operator delete[](void* aPtr) = delete;
 };
 
 #endif /* ! ARENA_H */
