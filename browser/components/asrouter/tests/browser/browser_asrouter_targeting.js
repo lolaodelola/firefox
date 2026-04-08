@@ -596,13 +596,13 @@ add_task(async function checkisDefaultBrowser() {
 
 add_task(async function checkisPrivateWindow_false() {
   const win = await BrowserTestUtils.openNewBrowserWindow();
-  const expected = PrivateBrowsingUtils.isWindowPrivate(win);
+  const expected = PrivateBrowsingUtils.isContentWindowPrivate(win);
   const result = await ASRouterTargeting.Environment.isPrivateWindow;
   is(typeof result, "boolean", "isPrivateWindow should be a boolean value");
   is(
     result,
     expected,
-    "isPrivateWindow should be equal to PrivateBrowsingUtils.isWindowPrivate()"
+    "isPrivateWindow should be equal to PrivateBrowsingUtils.isContentWindowPrivate()"
   );
   const message = {
     id: "foo",
@@ -621,13 +621,13 @@ add_task(async function checkisPrivateWindow_true() {
   const privateWin = await BrowserTestUtils.openNewBrowserWindow({
     private: true,
   });
-  const expected = PrivateBrowsingUtils.isWindowPrivate(privateWin);
+  const expected = PrivateBrowsingUtils.isContentWindowPrivate(privateWin);
   const result = await ASRouterTargeting.Environment.isPrivateWindow;
   is(typeof result, "boolean", "isPrivateWindow should be a boolean value");
   is(
     result,
     expected,
-    "isPrivateWindow should be equal to PrivateBrowsingUtils.isWindowPrivate()"
+    "isPrivateWindow should be equal to PrivateBrowsingUtils.isContentWindowPrivate()"
   );
   const message = {
     id: "foo",

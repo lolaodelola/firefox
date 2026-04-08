@@ -71,8 +71,6 @@ run-if = [
   "os == 'win' && msix",
 ]
 
-["browser_sma_restore_session.js"]
-
 ["browser_sma_set_bookmarks_toolbar_visibility.js"]
 
 ["browser_sma_set_prefs.js"]

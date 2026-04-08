@@ -25,11 +25,9 @@ ChromeUtils.defineESModuleGetters(lazy, {
   // eslint-disable-next-line mozilla/no-browser-refs-in-toolkit
   PlacesUIUtils: "moz-src:///browser/components/places/PlacesUIUtils.sys.mjs",
   PlacesUtils: "resource://gre/modules/PlacesUtils.sys.mjs",
-  PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.sys.mjs",
   // eslint-disable-next-line mozilla/no-browser-refs-in-toolkit
   SelectableProfileService:
     "resource:///modules/profiles/SelectableProfileService.sys.mjs",
-  SessionStore: "resource:///modules/sessionstore/SessionStore.sys.mjs",
   // eslint-disable-next-line mozilla/no-browser-refs-in-toolkit
   Spotlight: "resource:///modules/asrouter/Spotlight.sys.mjs",
   // eslint-disable-next-line mozilla/no-browser-refs-in-toolkit
@@ -449,7 +447,8 @@ export const SpecialMessageActions = {
         { once: true, signal }
       );
 
-      fxaTab.ownerGlobal.addEventListener("unload", () => {
+      let window = fxaTab.ownerGlobal;
+      window.addEventListener("unload", () => {
         // If the hosting window unload event was fired before the event handler
         // was removed, this means that the window was closed and sign-in was
         // not completed, which means we should resolve didSignIn to false.
@@ -933,15 +932,6 @@ export const SpecialMessageActions = {
       case "CREATE_TASKBAR_TAB": {
         let currentTab = window.gBrowser.selectedTab;
         await lazy.TaskbarTabs.moveTabIntoTaskbarTab(currentTab);
-        break;
-      }
-      case "RESTORE_SESSION": {
-        if (
-          lazy.SessionStore.canRestoreLastSession &&
-          !lazy.PrivateBrowsingUtils.isWindowPrivate(window)
-        ) {
-          await lazy.SessionStore.restoreLastSession();
-        }
         break;
       }
     }

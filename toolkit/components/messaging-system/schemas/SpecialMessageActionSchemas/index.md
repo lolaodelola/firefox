@@ -481,15 +481,10 @@ Open a panel associated with a given widget.
 }
 ```
 
+
 ### `CREATE_TASKBAR_TAB`
 
 Creates a taskbar tab from the current URL and asks to pin it to the taskbar. Windows only.
-
-- args: (none)
-
-### `RESTORE_SESSION`
-
-Restores the previous Firefox session if possible.
 
 - args: (none)
 

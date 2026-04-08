@@ -835,18 +835,6 @@
           "required": ["type"],
           "additionalProperties": false,
           "description": "Creates a new tab group in the place of the current tab and puts the current tab in the new group. If the current tab is already in a tab group, creates a new tab and places that into a new tab group after the current tab's tab group."
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["RESTORE_SESSION"]
-            }
-          },
-          "required": ["type"],
-          "additionalProperties": false,
-          "description": "Restores the previous Firefox session if possible."
         }
       ]
     }

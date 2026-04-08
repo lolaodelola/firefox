@@ -1213,23 +1213,7 @@ A boolean. `true` when [RTAMO](first-run.md#return-to-amo-rtamo) has been used t
 
 ### `isPrivateWindow`
 
-A boolean. `true` when the top window is in Private Browsing Mode; `false` otherwise.
-
-### `isTaskbarTabWindow`
-
-A boolean. `true` when the top window is a taskbar tab; `false` otherwise.
-
-### `canRestoreLastSession`
-
-A boolean. `true` when the user has a previous session saved that can be
-restored; `false` otherwise. Typically false when the previous session has
-already been restored, when the user has configured the browser to not save
-sessions, or on first run.
-
-### `autoRestoreSessionEnabled`
-
-A boolean. `true` when the user has configured the browser to automatically
-restore the previous session on startup; `false` otherwise.
+A boolean. `true` when the current active content window is in Private Browsing Mode; `false` otherwise.
 
 ### `canCreateSelectableProfiles`
 

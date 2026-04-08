@@ -1413,30 +1413,7 @@ const TargetingGetters = {
     if (!win) {
       return false;
     }
-    return lazy.PrivateBrowsingUtils.isWindowPrivate(win);
-  },
-
-  get isTaskbarTabWindow() {
-    let win = lazy.BrowserWindowTracker.getTopWindow({
-      allowFromInactiveWorkspace: true,
-    });
-    if (!win) {
-      return false;
-    }
-    return win.document.documentElement.hasAttribute("taskbartab");
-  },
-
-  get canRestoreLastSession() {
-    return lazy.SessionStore.canRestoreLastSession;
-  },
-
-  // This is implemented as a targeting attribute because it is needed for
-  // background task messages, which don't share preferences with the main
-  // browser profile (aside from a short allowlist of synced prefs, but we don't
-  // want to sync this pref and possibly affect behavior in the background
-  // task).
-  get autoRestoreSessionEnabled() {
-    return Services.prefs.getIntPref("browser.startup.page") === 3;
+    return lazy.PrivateBrowsingUtils.isContentWindowPrivate(win);
   },
 
   /**
