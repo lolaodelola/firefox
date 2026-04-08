@@ -2191,7 +2191,6 @@ html {
     margin-inline: auto;
   }
   .onboardingContainer .screen[pos=split][fullscreen] .section-secondary {
-    --mr-secondary-position: center var(--mr-secondary-background-position-y) / 50%;
     height: 250px;
   }
   .onboardingContainer .screen[pos=split][fullscreen] .section-secondary .hero-image img {
@@ -2226,7 +2225,6 @@ html {
   margin-inline: auto;
 }
 [narrow] .onboardingContainer .screen[pos=split][fullscreen] .section-secondary {
-  --mr-secondary-position: center var(--mr-secondary-background-position-y) / 50%;
   height: 250px;
 }
 [narrow] .onboardingContainer .screen[pos=split][fullscreen] .section-secondary .hero-image img {
@@ -2270,8 +2268,7 @@ html {
     width: 400px;
   }
   .onboardingContainer .screen[pos=split]:where(:not([no-rdm])) .section-secondary {
-    --mr-secondary-background-position-y: top;
-    --mr-secondary-position: center var(--mr-secondary-background-position-y) / 75%;
+    --mr-secondary-position: center center / 75%;
     border-radius: var(--border-radius-medium) var(--border-radius-medium) 0 0;
     margin: auto;
     margin-bottom: 0;
@@ -2458,8 +2455,7 @@ html {
   width: 400px;
 }
 [narrow] .onboardingContainer .screen[pos=split]:where(:not([no-rdm])) .section-secondary {
-  --mr-secondary-background-position-y: top;
-  --mr-secondary-position: center var(--mr-secondary-background-position-y) / 75%;
+  --mr-secondary-position: center center / 75%;
   border-radius: var(--border-radius-medium) var(--border-radius-medium) 0 0;
   margin: auto;
   margin-bottom: 0;
