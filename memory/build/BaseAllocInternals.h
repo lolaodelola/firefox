@@ -14,6 +14,10 @@
 typedef uint32_t base_alloc_size_t;
 constexpr static base_alloc_size_t BASE_ALLOC_SIZE_MAX = UINT32_MAX >> 1;
 
+// Cells at least this large are candidates for decommitting, but the first
+// and last pages can never be decommited since they contain metadata.
+constexpr base_alloc_size_t kDecommitThreshold = 4096 * 4;
+
 // Implemtnation details for the base allocator.  These must be in a header
 // file so that the C++ compiler can find them, but they're not part of the
 // interface.
@@ -165,26 +169,39 @@ class BaseAllocCell {
   // returned or 0 if splitting would not make a 2nd viable cell.
   uintptr_t CanSplit(base_alloc_size_t aSizeRequest);
 
+  // Test if the cell can be split at this address.
+  bool CanSplitHere(uintptr_t aNextAddr);
+
   // Perform the split with the new address calculated by CanSplit(), the
   // next cell with the remaining size is returned.  This always succeeds.
   BaseAllocCell* Split(uintptr_t aNewSize);
 
-  // The result of committing a cell.  The number of committed bytes and any
-  // new cell that may have been created are returned.
-  struct CommitResult {
-    size_t mBytesCommitted = 0;
-    BaseAllocCell* mNewCell = nullptr;
+  // The result of committing or decommitting a cell.  The change in
+  // committed bytes and any new cells that may have been created are
+  // returned.
+  struct DeCommitResult {
+    size_t mChange = 0;
+    BaseAllocCell* mNewCell1 = nullptr;
+    BaseAllocCell* mNewCell2 = nullptr;
 
-    CommitResult(size_t aBytesCommitted, BaseAllocCell* aNewCell)
-        : mBytesCommitted(aBytesCommitted), mNewCell(aNewCell) {}
+    DeCommitResult(size_t aChange, BaseAllocCell* aNewCell1 = nullptr,
+                   BaseAllocCell* aNewCell2 = nullptr)
+        : mChange(aChange), mNewCell1(aNewCell1), mNewCell2(aNewCell2) {}
   };
 
-  mozilla::Maybe<CommitResult> Commit(base_alloc_size_t aSizeRequest);
+  mozilla::Maybe<DeCommitResult> Commit(base_alloc_size_t aSizeRequest);
 
   // Decommit as much of the cell as possible.  The boundaries and free list
-  // information cannot be decommited.  It returns the number of pages
-  // decommitted, possibly 0.
-  size_t Decommit();
+  // information cannot be decommited.  Depending on where the page
+  // boundaries fall the cell may be split first to make more memory at the
+  // beginning and end of the cell available as committed cells.
+  //
+  // The `this` cell is not necessarily the one that was decommitted.
+  DeCommitResult Decommit();
+
+ private:
+  // Decommit pages within this cell cell.
+  void DoDecommit(uintptr_t aFirstDecommit, uintptr_t aNBytes);
 
   // disable copy, move and new since this class must only be used in-place.
   BaseAllocCell(const BaseAllocCell&) = delete;
@@ -192,11 +209,13 @@ class BaseAllocCell {
   BaseAllocCell(BaseAllocCell&&) = delete;
   void operator=(BaseAllocCell&&) = delete;
   void* operator new(size_t) = delete;
+  void* operator new[](size_t) = delete;
+
+ public:
   void* operator new(size_t aSize, void* aPtr) {
     MOZ_ASSERT(aSize == sizeof(BaseAllocCell));
     return aPtr;
   }
-  void* operator new[](size_t) = delete;
 };
 
 template <>
