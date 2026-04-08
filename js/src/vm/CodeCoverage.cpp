@@ -524,7 +524,7 @@ bool LCovRuntime::fillWithFilename(char* name, size_t length) {
     return false;
   }
 
-  int64_t timestamp = static_cast<double>(PRMJ_Now()) / PRMJ_USEC_PER_SEC;
+  int64_t timestamp = PRMJ_Now() / PRMJ_USEC_PER_SEC;
   static mozilla::Atomic<size_t> globalRuntimeId(0);
   size_t rid = globalRuntimeId++;
 

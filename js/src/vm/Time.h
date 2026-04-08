@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+namespace js {
+
 #if !JS_HAS_INTL_API
 /*
  * Broken down form of 64 bit time value.
@@ -29,8 +31,9 @@ struct PRMJTime {
 #endif
 
 /* Some handy constants */
-#define PRMJ_USEC_PER_SEC 1000000L
-#define PRMJ_USEC_PER_MSEC 1000L
+constexpr inline int64_t PRMJ_USEC_PER_SEC = 1000000;
+constexpr inline int64_t PRMJ_USEC_PER_MSEC = 1000;
+constexpr inline int64_t PRMJ_NSEC_PER_USEC = 1000;
 
 /* Return the current local time in micro-seconds */
 extern int64_t PRMJ_Now();
@@ -41,8 +44,6 @@ extern size_t PRMJ_FormatTime(char* buf, size_t buflen, const char* fmt,
                               const PRMJTime* tm, int timeZoneYear,
                               int offsetInSeconds);
 #endif
-
-namespace js {
 
 class MOZ_RAII AutoIncrementalTimer {
   mozilla::TimeStamp startTime;
