@@ -274,7 +274,12 @@ export default class MozSelect extends MozBaseInputElement {
     for (let i = 1; i < options.length; i++) {
       let nextIndex = currentIndex + direction * i;
       let nextOption = options[nextIndex];
-      if (nextOption && !nextOption.disabled && !nextOption.hidden) {
+      if (
+        nextOption &&
+        !nextOption.disabled &&
+        !nextOption.hidden &&
+        !nextOption.separator
+      ) {
         this.value = nextOption.value;
         this.redispatchEvent(new Event("change", { bubbles: true }));
         return;
