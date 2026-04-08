@@ -9,8 +9,21 @@
 #include "mozilla/Saturate.h"
 
 #include "Globals.h"
+#include "FdPrintf.h"
 
 using namespace mozilla;
+
+// Change this to 1 to enable some BaseAlloc logging. Useful for debugging.
+#define BASE_ALLOC_LOGGING 0
+
+// By using a macro "Log" won't collide with PHC's Log function in unified
+// builds.
+#if BASE_ALLOC_LOGGING
+#  define Log BaseLog
+static void BaseLog(const char* fmt, ...);
+#else
+#  define Log(...)
+#endif
 
 constinit BaseAlloc sBaseAlloc;
 
@@ -123,6 +136,8 @@ void BaseAlloc::free(void* aPtr) MOZ_EXCLUDES(mMutex) {
   cell->ClearPayload();
   cell->SetFreed();
 
+  Log("free(%p), size: %u\n", aPtr, cell->Size());
+
   // Attempt to merge backwards
   BaseAllocCell* left = cell->LeftCell();
   if (left && !left->Allocated()) {
@@ -155,10 +170,17 @@ void* BaseAlloc::alloc(size_t aSize) {
 
   void* ret = alloc_from_list(aSize);
   if (ret) {
+    Log("alloc(%u) = %p (from free list)\n", aSize, ret);
     return ret;
   }
 
-  return wilderness_alloc(aSize);
+  ret = wilderness_alloc(aSize);
+  if (ret) {
+    Log("alloc(%u) = %p (from wilderness)\n", aSize, ret);
+    return ret;
+  }
+  Log("alloc(%u) failed\n", aSize);
+  return nullptr;
 }
 
 void* BaseAlloc::alloc_from_list(base_alloc_size_t aSize) {
@@ -367,6 +389,9 @@ void BaseAllocCell::Merge(BaseAllocCell* aOther) {
   base_alloc_size_t new_size =
       Size() + aOther->Size() + BaseAlloc::kBaseQuantum;
 
+  Log("Merge %p (size %u) with %p (size %u) -> size %u\n", this, Size(), aOther,
+      aOther->Size(), new_size);
+
 #ifdef MOZ_DEBUG
   BaseAllocMetadata* right_metadata = aOther->RightMetadata();
 #endif
@@ -429,6 +454,9 @@ BaseAllocCell* BaseAllocCell::Split(uintptr_t aNewAddr) {
   BaseAllocCell* right = new (reinterpret_cast<BaseAllocCell*>(RightCellRaw()))
       BaseAllocCell(old_size - new_size - BaseAlloc::kBaseQuantum);
 
+  Log("Split %p (size %u) -> (size %u) and %p (size %u)\n", this, old_size,
+      Size(), right, right->Size());
+
   // Prove that the alignment code above is correct.
   MOZ_ASSERT(new_size == BaseAlloc::size_round_up(new_size));
   MOZ_ASSERT(right->Size() == BaseAlloc::size_round_up(right->Size()));
@@ -437,3 +465,28 @@ BaseAllocCell* BaseAllocCell::Split(uintptr_t aNewAddr) {
 
   return right;
 }
+
+#if BASE_ALLOC_LOGGING
+static size_t GetPid() { return size_t(getpid()); }
+
+static void BaseLog(const char* fmt, ...) {
+#  if defined(XP_WIN)
+#    define LOG_STDERR \
+      reinterpret_cast<intptr_t>(GetStdHandle(STD_ERROR_HANDLE))
+#  else
+#    define LOG_STDERR 2
+#  endif
+
+  char buf[256];
+  size_t pos = SNPrintf(buf, sizeof(buf), "BaseAlloc[%zu] ", GetPid());
+  va_list vargs;
+  va_start(vargs, fmt);
+  pos += VSNPrintf(&buf[pos], sizeof(buf) - pos, fmt, vargs);
+  MOZ_ASSERT(pos < sizeof(buf));
+  va_end(vargs);
+
+  FdPuts(LOG_STDERR, buf, pos);
+}
+#endif  // BASE_ALLOC_LOGGING
+
+#undef Log
