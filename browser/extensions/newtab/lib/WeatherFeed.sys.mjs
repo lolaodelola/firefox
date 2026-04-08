@@ -136,18 +136,9 @@ export class WeatherFeed {
       this.merino = await this.MerinoClient(MERINO_CLIENT_KEY);
     }
 
-    // @backward-compat { version 149 }
-    // MerinoClient.fetchWeatherReport() and MerinoClient.fetchHourlyForecast() were introduced in 149 Nightly.
-    // The fetchHelperUntil_149() does not use the function.
-    // Starting from 148, TemporaryMerinoClientShim backports these methods so the new path is safe there too.
-    if (Services.vc.compare(AppConstants.MOZ_APP_VERSION, "148.0a1") >= 0) {
-      const { suggestions, hourlyForecasts } = await this._fetchHelper();
-      this.suggestions = suggestions;
-      this.hourlyForecasts = hourlyForecasts;
-    } else {
-      this.suggestions = await this._fetchHelperUntil_149();
-      this.hourlyForecasts = [];
-    }
+    const { suggestions, hourlyForecasts } = await this._fetchHelper();
+    this.suggestions = suggestions;
+    this.hourlyForecasts = hourlyForecasts;
 
     if (this.suggestions.length || this.hourlyForecasts.length) {
       const hasLocationData =
@@ -227,26 +218,11 @@ export class WeatherFeed {
     const query = this.store.getState().Weather.locationSearchString;
     let data;
 
-    // @backward-compat { version 149 }
-    // MerinoClient.autoCompleteWeatherLocation() was introduced in 149 Nightly.
-    if (Services.vc.compare(AppConstants.MOZ_APP_VERSION, "149.0a1") >= 0) {
-      data = await this.merino.autoCompleteWeatherLocation({
-        query,
-        source: "newtab",
-        timeoutMs: 7000,
-      });
-    } else {
-      let response = await this.merino.fetch({
-        query: query || "",
-        providers: MERINO_PROVIDER,
-        timeoutMs: 7000,
-        otherParams: {
-          request_type: "location",
-          source: "newtab",
-        },
-      });
-      data = response?.[0];
-    }
+    data = await this.merino.autoCompleteWeatherLocation({
+      query,
+      source: "newtab",
+      timeoutMs: 7000,
+    });
 
     if (data?.locations.length) {
       this.store.dispatch(
@@ -455,78 +431,6 @@ export class WeatherFeed {
         // and give up if we try more than maxRetries number of times.
         if (retry >= maxRetries) {
           return { suggestions: [], hourlyForecasts: [] };
-        }
-        await new Promise(res => {
-          // store the timeout so it can be cancelled elsewhere
-          this.retryTimer = this.setTimeout(() => {
-            this.retryTimer = null; // cleanup once it fires
-            res();
-          }, RETRY_DELAY_MS);
-        });
-        return attempt(retry + 1);
-      }
-    };
-
-    // results from the API or empty array
-    return await attempt();
-  }
-
-  /**
-   * @backward-compat { version 149 }
-   *
-   * MerinoClient.fetchWeatherReport() was introduced in 149 Nightly.
-   * This function does not use it.
-   */
-  async _fetchHelperUntil_149(maxRetries = 1, queryOverride = null) {
-    this.restartFetchTimer();
-
-    const weatherQuery = this.store.getState().Prefs.values[PREF_WEATHER_QUERY];
-    const query = queryOverride ?? weatherQuery ?? "";
-    const otherParams = {
-      request_type: "weather",
-      source: "newtab",
-    };
-
-    if (!query) {
-      let geolocation = await lazy.GeolocationUtils.geolocation();
-      if (!geolocation) {
-        return [];
-      }
-
-      const country = geolocation.country_code;
-      // Adding geolocation.city as an option for region to count for city-states (i.e. Singapore)
-      const region =
-        geolocation.region_code || geolocation.region || geolocation.city;
-      const city = geolocation.city || geolocation.region;
-
-      // Merino requires all three parameters (city, region, country) when query is not provided
-      if (!country || !region || !city) {
-        return [];
-      }
-
-      otherParams.country = country;
-      otherParams.region = region;
-      otherParams.city = city;
-    }
-    const attempt = async (retry = 0) => {
-      try {
-        // Because this can happen after a timeout,
-        // we want to ensure if it was called later after a teardown,
-        // we don't throw. If we throw, we end up in another retry.
-        if (!this.merino) {
-          return [];
-        }
-        return await this.merino.fetch({
-          query,
-          providers: MERINO_PROVIDER,
-          timeoutMs: 7000,
-          otherParams,
-        });
-      } catch (e) {
-        // If we get an error, we try again in 1 minute,
-        // and give up if we try more than maxRetries number of times.
-        if (retry >= maxRetries) {
-          return [];
         }
         await new Promise(res => {
           // store the timeout so it can be cancelled elsewhere
