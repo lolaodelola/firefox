@@ -4,128 +4,11 @@
 
 #include "BaseAlloc.h"
 
-#include <algorithm>
 #include <cstring>
 
 #include "Globals.h"
 
 using namespace mozilla;
-
-// The BaseAllocMetadata and BaseAllocCell classes provide an abstraction for
-// cell metadata in the base allocator.
-//
-// The layout of a cell is:
-//
-// +-------------------+---------------+-------------------
-// | BaseAllocMetadata | BaseAllocCell | BaseAllocMetadata
-// +-------------------+---------------+-------------------
-//                     ^
-//                     Pointer, 16-byte aligned.
-//
-// All cells track their size in the `sizeof(base_alloc_size_t)` bytes
-// immediately before their payload,
-//
-// Each cell's payload shall be 16-byte aligned as some platforms make it
-// the minimum.
-//
-// Each cell's payload should be on its own cache line(s) (from other
-// payloads) to avoid false sharing during use.  Note that this allows the
-// size field of one cell to be on another cell's cache line.  We assume
-// that allocations and frees in the base allocator are rare and this false
-// sharing of the metadata acceptable.
-//
-// Unallocated cell layout replaces the payload with pointers to manage a
-// free list.  This is not a security risk since these allocations are never
-// used outside of mozjemalloc.
-//
-// +--------------+-------------------+-------------------
-// | Size / Alloc | Free list ptr     | Next Size / Alloc
-// +--------------+-------------------+-------------------
-//
-
-struct BaseAllocMetadata {
-  base_alloc_size_t mSize : 31;
-
-  // Allocated is only used for assertions, but will be used with future
-  // patches.
-  bool mAllocated : 1;
-
-  explicit BaseAllocMetadata(base_alloc_size_t aSize)
-      : mSize(aSize), mAllocated(false) {}
-};
-
-class BaseAllocCell {
- private:
-  DoublyLinkedListElement<BaseAllocCell> mListElem;
-
-  friend struct GetDoublyLinkedListElement<BaseAllocCell>;
-
-  BaseAllocMetadata* Metadata() {
-    // Assert that the address computation here produces a properly aligned
-    // result.
-    static_assert(((alignof(BaseAllocCell) - sizeof(BaseAllocMetadata)) %
-                   alignof(BaseAllocMetadata)) == 0);
-
-    return reinterpret_cast<BaseAllocMetadata*>(
-        reinterpret_cast<uintptr_t>(this) - sizeof(BaseAllocMetadata));
-  }
-
- public:
-  static constexpr uintptr_t RoundUp(uintptr_t aValue) {
-    const size_t align = std::max(alignof(BaseAllocCell), size_t(16));
-    return ALIGNMENT_CEILING(aValue, align);
-  }
-
-  explicit BaseAllocCell(base_alloc_size_t aSize) {
-    new (Metadata()) BaseAllocMetadata(aSize);
-  }
-
-  static BaseAllocCell* GetCell(void* aPtr) {
-    return reinterpret_cast<BaseAllocCell*>(aPtr);
-  }
-
-  base_alloc_size_t Size() { return Metadata()->mSize; }
-
-  bool Allocated() { return Metadata()->mAllocated; }
-
-  void* Ptr() { return this; }
-
-  void SetAllocated() {
-    MOZ_ASSERT(!Allocated());
-    Metadata()->mAllocated = true;
-  }
-  void SetFreed() {
-    MOZ_ASSERT(Allocated());
-    Metadata()->mAllocated = false;
-  }
-
-  // After freeing a cell but before we can use the list pointers we must
-  // clear them to avoid assertions in DoublyLinkedList.
-  void ClearPayload() { memset(&mListElem, 0, sizeof(mListElem)); }
-
-  // disable copy, move and new since this class must only be used in-place.
-  BaseAllocCell(const BaseAllocCell&) = delete;
-  void operator=(const BaseAllocCell&) = delete;
-  BaseAllocCell(BaseAllocCell&&) = delete;
-  void operator=(BaseAllocCell&&) = delete;
-  void* operator new(size_t) = delete;
-  void* operator new(size_t aSize, void* aPtr) {
-    MOZ_ASSERT(aSize == sizeof(BaseAllocCell));
-    return aPtr;
-  }
-  void* operator new[](size_t) = delete;
-};
-
-template <>
-struct GetDoublyLinkedListElement<BaseAllocCell> {
-  static DoublyLinkedListElement<BaseAllocCell>& Get(BaseAllocCell* aCell) {
-    return aCell->mListElem;
-  }
-  static const DoublyLinkedListElement<BaseAllocCell>& Get(
-      const BaseAllocCell* aCell) {
-    return aCell->mListElem;
-  }
-};
 
 constinit BaseAlloc sBaseAlloc;
 
@@ -319,3 +202,5 @@ void* BaseAlloc::calloc(size_t aNumber, size_t aSize) {
 size_t BaseAlloc::usable_size(void* aPtr) {
   return reinterpret_cast<BaseAllocCell*>(aPtr)->Size();
 }
+
+void BaseAllocCell::ClearPayload() { memset(&mListElem, 0, sizeof(mListElem)); }
