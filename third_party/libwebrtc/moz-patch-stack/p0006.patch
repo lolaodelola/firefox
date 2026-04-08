@@ -33,11 +33,11 @@ Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#468
  4 files changed, 28 insertions(+)
 
 diff --git a/pc/BUILD.gn b/pc/BUILD.gn
-index 0ac4ec4cf0..e93ff8e0d5 100644
+index d1d436c1d7..4f25beac66 100644
 --- a/pc/BUILD.gn
 +++ b/pc/BUILD.gn
-@@ -1454,6 +1454,7 @@ rtc_library("legacy_stats_collector") {
-     "../rtc_base:timeutils",
+@@ -1457,6 +1457,7 @@ rtc_library("legacy_stats_collector") {
+     "../rtc_base/system:plan_b_only",
      "../system_wrappers",
      "//third_party/abseil-cpp/absl/base:nullability",
 +    "//third_party/abseil-cpp/absl/container:flat_hash_set",
@@ -45,7 +45,7 @@ index 0ac4ec4cf0..e93ff8e0d5 100644
      "//third_party/abseil-cpp/absl/strings",
      "//third_party/abseil-cpp/absl/strings:string_view",
 diff --git a/pc/legacy_stats_collector.cc b/pc/legacy_stats_collector.cc
-index fdb1f99412..5ab7a9efd7 100644
+index f41de1cded..6978f1b06b 100644
 --- a/pc/legacy_stats_collector.cc
 +++ b/pc/legacy_stats_collector.cc
 @@ -21,6 +21,7 @@
@@ -56,7 +56,7 @@ index fdb1f99412..5ab7a9efd7 100644
  #include "absl/functional/any_invocable.h"
  #include "absl/strings/str_cat.h"
  #include "absl/strings/string_view.h"
-@@ -791,8 +792,13 @@ StatsReport* LegacyStatsCollector::AddCertificateReports(
+@@ -792,8 +793,13 @@ StatsReport* LegacyStatsCollector::AddCertificateReports(
  
    StatsReport* first_report = nullptr;
    StatsReport* prev_report = nullptr;
