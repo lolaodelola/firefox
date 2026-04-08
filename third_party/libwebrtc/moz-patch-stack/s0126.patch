@@ -11,7 +11,7 @@ Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/6bcf80824ecafc424
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/rtc_base/cpu_info.cc b/rtc_base/cpu_info.cc
-index b51c9e950e..d8469535c6 100644
+index a0f289e2ed..fb8c47794b 100644
 --- a/rtc_base/cpu_info.cc
 +++ b/rtc_base/cpu_info.cc
 @@ -38,7 +38,7 @@

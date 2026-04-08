@@ -117,6 +117,8 @@ typedef char* SockOptArg;
 #endif  // !defined(EPOLLRDHUP)
 #endif  // defined(WEBRTC_LINUX)
 
+namespace webrtc {
+
 namespace {
 
 // RFC-3168, Section 5. ECN is the two least significant bits.
@@ -124,7 +126,7 @@ constexpr uint8_t kEcnMask = 0x03;
 
 #if defined(WEBRTC_POSIX)
 
-webrtc::EcnMarking EcnFromDs(uint8_t ds) {
+EcnMarking EcnFromDs(uint8_t ds) {
   // RFC-3168, Section 5.
   constexpr uint8_t ECN_ECT1 = 0x01;
   constexpr uint8_t ECN_ECT0 = 0x02;
@@ -132,15 +134,15 @@ webrtc::EcnMarking EcnFromDs(uint8_t ds) {
   const uint8_t ecn = ds & kEcnMask;
 
   if (ecn == ECN_ECT1) {
-    return webrtc::EcnMarking::kEct1;
+    return EcnMarking::kEct1;
   }
   if (ecn == ECN_ECT0) {
-    return webrtc::EcnMarking::kEct0;
+    return EcnMarking::kEct0;
   }
   if (ecn == ECN_CE) {
-    return webrtc::EcnMarking::kCe;
+    return EcnMarking::kCe;
   }
-  return webrtc::EcnMarking::kNotEct;
+  return EcnMarking::kNotEct;
 }
 
 #endif
@@ -159,7 +161,6 @@ class ScopedSetTrue {
 
 }  // namespace
 
-namespace webrtc {
 
 PhysicalSocket::PhysicalSocket(PhysicalSocketServer* ss, SOCKET s)
     : ss_(ss),

@@ -492,10 +492,10 @@ index ec118ea77e..4c00265d03 100644
  }
  
 diff --git a/modules/desktop_capture/linux/x11/mouse_cursor_monitor_x11.cc b/modules/desktop_capture/linux/x11/mouse_cursor_monitor_x11.cc
-index 732aa4d29d..50a3147b31 100644
+index 72f2716e03..dc96455f99 100644
 --- a/modules/desktop_capture/linux/x11/mouse_cursor_monitor_x11.cc
 +++ b/modules/desktop_capture/linux/x11/mouse_cursor_monitor_x11.cc
-@@ -39,6 +39,7 @@ namespace {
+@@ -41,6 +41,7 @@ namespace {
  // searches up the list of the windows to find the root child that corresponds
  // to `window`.
  Window GetTopLevelWindow(Display* display, Window window) {
