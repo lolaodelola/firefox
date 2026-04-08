@@ -317,13 +317,13 @@ void ConnectionEstablisher::FinishInternal(nsresult aResult) {
     // (which refs the establisher).
     mHandle = nullptr;
 
-    if (NS_SUCCEEDED(aResult) && mResultConn) {
+    if (NS_SUCCEEDED(aResult) && mResultConn && mResultConn->CanReuse()) {
       if (!mConnectStart.IsNull()) {
         mResultConn->SetConnectBootstrapTimings(mConnectStart, mTcpConnectEnd);
       }
       cb(std::move(mResultConn));
     } else {
-      cb(Err(aResult));
+      cb(Err(NS_FAILED(aResult) ? aResult : NS_ERROR_ABORT));
     }
   }
 }
