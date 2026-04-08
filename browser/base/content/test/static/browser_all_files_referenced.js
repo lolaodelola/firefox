@@ -241,6 +241,9 @@ var allowlist = [
   // File from the ipp-activator add-on
   { file: "resource://builtin-addons/ipp-activator/breakages/tab.json" },
 
+  // Bug 2025853 - ContentSharingUtils is not yet imported anywhere.
+  { file: "resource://app/modules/contentsharing/ContentSharingUtils.sys.mjs" },
+
   // Starting from here, files in the allowlist are bugs that need fixing.
   // Bug 1339424 (wontfix?)
   {

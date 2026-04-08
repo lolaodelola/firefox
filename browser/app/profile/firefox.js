@@ -3576,3 +3576,6 @@ pref("browser.settings-redesign.enabled", false);
 #if defined(MOZ_WIDGET_GTK)
 pref("widget.support-xdg-config", true, locked);
 #endif
+
+// A preference that enables Content Sharing
+pref("browser.contentsharing.enabled", false);
