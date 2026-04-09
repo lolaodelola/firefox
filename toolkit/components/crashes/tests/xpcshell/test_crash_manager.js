@@ -263,9 +263,6 @@ add_task(async function test_prune_old() {
 
 add_task(async function test_schedule_maintenance() {
   let m = await getManager();
-  // Make sure the cleanupPings() maintenance is run (though we can't test much
-  // more about it).
-  m._disableGleanPing = false;
   await m.createEventsFile("1", "crash.main.3", DUMMY_DATE, "id1", "{}");
 
   let oldDate = new Date(
@@ -277,7 +274,6 @@ add_task(async function test_schedule_maintenance() {
   let crashes = await m.getCrashes();
   Assert.equal(crashes.length, 1);
   Assert.equal(crashes[0].id, "id1");
-  Assert.ok(m._cleanupPingsResult);
 });
 
 const crashId = "3cb67eba-0dc7-6f78-6a569a0e-172287ec";
@@ -719,31 +715,6 @@ add_task(async function test_glean_crash_ping() {
   // Tests for all fields are in the crashping crate. We forward the
   // annotations directly to the crash reporter to submit using the crashping
   // crate.
-});
-
-const TELEMETRY_ENABLE_PREF = "datareporting.healthreport.uploadEnabled";
-
-add_task(async function test_glean_crash_ping_disabled_by_telemetry_pref() {
-  let m = await getManager();
-  m._disableGleanPing = false;
-
-  const originalPref = Services.prefs.getBoolPref(TELEMETRY_ENABLE_PREF);
-  Services.prefs.setBoolPref(TELEMETRY_ENABLE_PREF, false);
-
-  try {
-    let id = await m.createDummyDump();
-
-    await m.addCrash(
-      m.processTypes[Ci.nsIXULRuntime.PROCESS_TYPE_CONTENT],
-      m.CRASH_TYPE_CRASH,
-      id,
-      DUMMY_DATE,
-      {}
-    );
-    Assert.equal(m._gleanPingPromise, null);
-  } finally {
-    Services.prefs.setBoolPref(TELEMETRY_ENABLE_PREF, originalPref);
-  }
 });
 
 add_task(async function test_generateSubmissionID() {

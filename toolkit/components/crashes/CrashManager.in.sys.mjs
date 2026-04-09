@@ -78,46 +78,6 @@ function sendGleanPing(reason, annotations) {
   ));
 }
 
-/*
- * Clean up pending Glean pings.
- *
- * We don't care about synchronizing with lastSendPing here because this will
- * only occur once per application session, and the crashreporter already
- * handles its own exclusive locking.
- *
- * Returns whether the crashreporter exited without error.
- */
-async function cleanupPings() {
-  const uAppDataPath = Services.dirsvc.get("UAppData", Ci.nsIFile).path;
-  const crashDataPath = PathUtils.join(uAppDataPath, "Crash Reports");
-  const telemetryEnabled = Services.prefs.getBoolPref(
-    "datareporting.healthreport.uploadEnabled",
-    true
-  );
-
-  const process = await lazy.Subprocess.call({
-    command: lazy.CrashServiceUtils.getCrashReporterPath().path,
-    arguments: ["--ping-cleanup", crashDataPath, telemetryEnabled.toString()],
-  });
-
-  const blocker = () => process.kill();
-
-  lazy.AsyncShutdown.profileBeforeChange.addBlocker(
-    "CrashManager: killing ping cleanup process",
-    blocker
-  );
-
-  await process.stdin.close();
-  // This is best-effort: we don't care about failure.
-  const { exitCode } = await process.wait();
-  lazy.AsyncShutdown.profileBeforeChange.removeBlocker(blocker);
-  while ((await process.stdout.read()).byteLength) {
-    // Flush stdout to avoid leaking buffered data.
-  }
-
-  return exitCode === 0;
-}
-
 /**
  * A gateway to crash-related data.
  *
@@ -447,10 +407,6 @@ CrashManager.prototype = Object.freeze({
 
       let offset = this.PURGE_OLDER_THAN_DAYS * MILLISECONDS_IN_DAY;
       await this.pruneOldCrashes(new Date(Date.now() - offset));
-
-      if (AppConstants.platform !== "android" && !this._disableGleanPing) {
-        this._cleanupPingsResult = await cleanupPings();
-      }
     })();
   },
 
@@ -747,15 +703,7 @@ CrashManager.prototype = Object.freeze({
     // separately in lib-crash for Fenix (and potentially other GeckoView
     // users).
     this._gleanPingPromise = null;
-    const telemetryEnabled = Services.prefs.getBoolPref(
-      "datareporting.healthreport.uploadEnabled",
-      true
-    );
-    if (
-      telemetryEnabled &&
-      AppConstants.platform !== "android" &&
-      !this._disableGleanPing
-    ) {
+    if (AppConstants.platform !== "android" && !this._disableGleanPing) {
       const pingMeta = Cu.cloneInto(metadata, {});
       // Delete unused fields from legacy telemetry
       delete pingMeta.TelemetryEnvironment;
