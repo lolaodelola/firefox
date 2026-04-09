@@ -2719,6 +2719,16 @@ class Settings(
     )
 
     /**
+     * Persists IPProtection state set through Secret Settings.
+     *
+     * `true` makes the IPProtection UI elements visible across the app, while `false` hides them.
+     */
+    var isIPProtectionEnabled by booleanPreference(
+        key = appContext.getPreferenceKey(R.string.pref_key_enable_ip_protection),
+        default = false,
+    )
+
+    /**
      * Tracks how many times the summarize menu item has been shown.
      * Used to control highlight/badge visibility for feature discovery.
      */
