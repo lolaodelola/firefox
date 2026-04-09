@@ -20,9 +20,11 @@ ChromeUtils.defineESModuleGetters(lazy, {
     "resource://services-settings/RemoteSettingsWorker.sys.mjs",
   RemoteSettings: "resource://services-settings/remote-settings.sys.mjs",
   SharedUtils: "resource://services-settings/SharedUtils.sys.mjs",
-  UptakeTelemetry: "resource://services-settings/UptakeTelemetry.sys.mjs",
+  UptakeTelemetry: "resource://services-common/uptake-telemetry.sys.mjs",
   Utils: "resource://services-settings/Utils.sys.mjs",
 });
+
+const TELEMETRY_COMPONENT = "Remotesettings";
 
 ChromeUtils.defineLazyGetter(lazy, "console", () => lazy.Utils.log);
 
@@ -211,6 +213,7 @@ class AttachmentDownloader extends Downloader {
    */
   async download(record, options) {
     await lazy.UptakeTelemetry.report(
+      TELEMETRY_COMPONENT,
       lazy.UptakeTelemetry.STATUS.DOWNLOAD_START,
       {
         source: this._client.identifier,
@@ -228,7 +231,7 @@ class AttachmentDownloader extends Downloader {
         status = lazy.UptakeTelemetry.STATUS.NETWORK_ERROR;
       }
       // If the file failed to be downloaded, report it as such in Telemetry.
-      await lazy.UptakeTelemetry.report(status, {
+      await lazy.UptakeTelemetry.report(TELEMETRY_COMPONENT, status, {
         source: this._client.identifier,
         errorName: err.name,
       });
@@ -713,10 +716,14 @@ export class RemoteSettingsClient extends EventEmitter {
 
     this._syncRunning = true;
 
-    await lazy.UptakeTelemetry.report(lazy.UptakeTelemetry.STATUS.SYNC_START, {
-      source: this.identifier,
-      trigger,
-    });
+    await lazy.UptakeTelemetry.report(
+      TELEMETRY_COMPONENT,
+      lazy.UptakeTelemetry.STATUS.SYNC_START,
+      {
+        source: this.identifier,
+        trigger,
+      }
+    );
 
     let importedFromDump = [];
     const startedAt = new Date();
@@ -958,7 +965,11 @@ export class RemoteSettingsClient extends EventEmitter {
         reportArgs = { ...reportArgs, errorName: thrownError.name };
       }
 
-      await lazy.UptakeTelemetry.report(reportStatus, reportArgs);
+      await lazy.UptakeTelemetry.report(
+        TELEMETRY_COMPONENT,
+        reportStatus,
+        reportArgs
+      );
 
       lazy.console.debug(`${this.identifier} sync status is ${reportStatus}`);
       this._syncRunning = false;
