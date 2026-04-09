@@ -1057,6 +1057,13 @@ let gPermissions = {
       },
     },
 
+    serial: {
+      exactHostMatch: true,
+      get disabled() {
+        return !SitePermissions.serialPermissionEnabled;
+      },
+    },
+
     "storage-access": {
       labelID: null,
       getDefault() {
@@ -1071,6 +1078,9 @@ let gPermissions = {
 
 SitePermissions.midiPermissionEnabled = Services.prefs.getBoolPref(
   "dom.webmidi.enabled"
+);
+SitePermissions.serialPermissionEnabled = Services.prefs.getBoolPref(
+  "dom.webserial.enabled"
 );
 
 XPCOMUtils.defineLazyPreferenceGetter(

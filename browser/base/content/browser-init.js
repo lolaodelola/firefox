@@ -7,6 +7,44 @@ const { CustomKeys } = ChromeUtils.importESModule(
   "resource:///modules/CustomKeys.sys.mjs"
 );
 
+var gSerialDeviceObserver = {
+  _activePortCounts: new WeakMap(),
+
+  observe(subject, topic, _data) {
+    if (topic != "serial-device-state-changed") {
+      return;
+    }
+
+    let props = subject.QueryInterface(Ci.nsIPropertyBag2);
+    const browserId = props.getPropertyAsUint64("browserId");
+    let bc = BrowsingContext.getCurrentTopByBrowserId(browserId);
+    if (!bc) {
+      console.warn("BrowsingContext not found for browser ID:", browserId);
+      return;
+    }
+    let browser = bc.embedderElement;
+    if (!browser) {
+      console.warn("No embedder element for BrowsingContext");
+      return;
+    }
+
+    let connected = props.getPropertyAsBool("connected");
+    let count = this._activePortCounts.get(browser) || 0;
+    count = connected ? count + 1 : Math.max(0, count - 1);
+    this._activePortCounts.set(browser, count);
+
+    if (gBrowser) {
+      gBrowser.updateBrowserSharing(browser, {
+        serial: count > 0 ? "serial" : null,
+      });
+    }
+  },
+
+  resetBrowserCount(browser) {
+    this._activePortCounts.delete(browser);
+  },
+};
+
 let _resolveDelayedStartup;
 var delayedStartupPromise = new Promise(resolve => {
   _resolveDelayedStartup = resolve;
@@ -485,6 +523,10 @@ var gBrowserInit = {
     Services.obs.addObserver(
       this._translationsEnabledStateObserver,
       "translations:enabled-state-changed"
+    );
+    Services.obs.addObserver(
+      gSerialDeviceObserver,
+      "serial-device-state-changed"
     );
 
     BrowserOffline.init();
@@ -1235,6 +1277,10 @@ var gBrowserInit = {
       Services.obs.removeObserver(
         this._translationsEnabledStateObserver,
         "translations:enabled-state-changed"
+      );
+      Services.obs.removeObserver(
+        gSerialDeviceObserver,
+        "serial-device-state-changed"
       );
 
       BrowserOffline.uninit();

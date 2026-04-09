@@ -246,6 +246,12 @@
   list-style-image: url("chrome://browser/skin/notification-icons/geo.svg");
 }
 
+#serial-sharing-icon[sharing] {
+  list-style-image: url("chrome://browser/skin/notification-icons/serial.svg");
+  -moz-context-properties: fill;
+  fill: rgb(224, 41, 29);
+}
+
 .sharing-icon:not([sharing]) {
   display: none;
 }

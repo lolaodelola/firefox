@@ -194,6 +194,10 @@
   list-style-image: url(chrome://browser/skin/notification-icons/midi.svg);
 }
 
+.serial-icon {
+  list-style-image: url(chrome://browser/skin/notification-icons/serial.svg);
+}
+
 #canvas-notification-icon,
 .canvas-icon {
   list-style-image: url(chrome://browser/skin/canvas.svg);
