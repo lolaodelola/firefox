@@ -12,6 +12,7 @@
 #include "nsCSSRendering.h"
 #include "nsDisplayList.h"
 #include "nsFrameManager.h"
+#include "nsGkAtoms.h"
 #include "nsGridContainerFrame.h"
 #include "nsHTMLParts.h"
 #include "nsIContent.h"

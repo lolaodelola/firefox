@@ -8,6 +8,7 @@
 #include "EventListenerManager.h"
 #include "jsapi.h"
 #include "nsCycleCollectionParticipant.h"
+#include "nsGkAtoms.h"
 #include "nsIEventListenerService.h"
 #include "nsString.h"
 #include "nsTHashMap.h"

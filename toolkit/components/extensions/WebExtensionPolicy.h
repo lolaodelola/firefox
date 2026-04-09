@@ -20,6 +20,7 @@
 #include "mozilla/Result.h"
 #include "nsCOMPtr.h"
 #include "nsCycleCollectionParticipant.h"
+#include "nsGkAtoms.h"
 #include "nsISupports.h"
 #include "nsWrapperCache.h"
 

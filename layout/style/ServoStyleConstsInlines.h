@@ -502,10 +502,6 @@ StyleGradient::ColorInterpolationMethod() const {
   return AsConic().color_interpolation_method;
 }
 
-inline StyleAnimationName::StyleAnimationName() : _0(nsGkAtoms::_empty) {};
-
-inline StyleTimelineIdent::StyleTimelineIdent() : _0(nsGkAtoms::_empty) {};
-
 template <typename Integer>
 inline StyleGenericGridLine<Integer>::StyleGenericGridLine()
     : ident{StyleAtom(nsGkAtoms::_empty)}, line_num(0), is_span(false) {}
@@ -1132,10 +1128,6 @@ inline float StyleFontStyle::SlantAngle() const {
 using FontStretch = StyleFontStretch;
 using FontSlantStyle = StyleFontStyle;
 using FontWeight = StyleFontWeight;
-
-inline StyleFontPalette StyleFontPalette::Normal() {
-  return StyleFontPalette{StyleAtom(nsGkAtoms::normal->ToAddRefed())};
-}
 
 template <>
 inline double StyleComputedTimingFunction::At(double aPortion,

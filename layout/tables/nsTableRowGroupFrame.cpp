@@ -13,6 +13,7 @@
 #include "nsCSSRendering.h"
 #include "nsCellMap.h"  //table cell navigation
 #include "nsDisplayList.h"
+#include "nsGkAtoms.h"
 #include "nsHTMLParts.h"
 #include "nsIContent.h"
 #include "nsIFrame.h"

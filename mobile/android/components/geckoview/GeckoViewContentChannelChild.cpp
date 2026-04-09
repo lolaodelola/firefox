@@ -9,6 +9,7 @@
 #include "mozilla/ipc/URIUtils.h"
 #include "mozilla/net/NeckoChild.h"
 #include "nsContentSecurityManager.h"
+#include "nsGkAtoms.h"
 #include "nsIBrowserChild.h"
 #include "nsIURIMutator.h"
 #include "nsStringStream.h"

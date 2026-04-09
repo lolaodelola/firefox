@@ -5,4 +5,6 @@
 #ifndef nsMathMLAtoms_h_
 #define nsMathMLAtoms_h_
 
+#include "nsGkAtoms.h"
+
 #endif /* nsMathMLAtoms_h_ */

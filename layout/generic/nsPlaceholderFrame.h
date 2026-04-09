@@ -33,6 +33,7 @@
 #ifndef nsPlaceholderFrame_h_
 #define nsPlaceholderFrame_h_
 
+#include "nsGkAtoms.h"
 #include "nsIFrame.h"
 
 namespace mozilla {

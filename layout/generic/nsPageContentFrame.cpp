@@ -11,6 +11,7 @@
 #include "mozilla/dom/Document.h"
 #include "nsCSSFrameConstructor.h"
 #include "nsContentUtils.h"
+#include "nsGkAtoms.h"
 #include "nsLayoutUtils.h"
 #include "nsPageFrame.h"
 #include "nsPageSequenceFrame.h"

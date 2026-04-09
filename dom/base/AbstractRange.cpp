@@ -21,6 +21,7 @@
 #include "nsContentUtils.h"
 #include "nsCycleCollectionParticipant.h"
 #include "nsFmtString.h"
+#include "nsGkAtoms.h"
 #include "nsINode.h"
 #include "nsLayoutUtils.h"
 #include "nsRange.h"

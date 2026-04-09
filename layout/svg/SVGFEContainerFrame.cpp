@@ -7,6 +7,7 @@
 #include "mozilla/SVGObserverUtils.h"
 #include "mozilla/dom/SVGFilters.h"
 #include "nsContainerFrame.h"
+#include "nsGkAtoms.h"
 #include "nsIFrame.h"
 #include "nsLiteralString.h"
 

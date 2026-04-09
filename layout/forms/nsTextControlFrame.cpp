@@ -31,6 +31,7 @@
 #include "nsFontMetrics.h"
 #include "nsFrameSelection.h"
 #include "nsGenericHTMLElement.h"
+#include "nsGkAtoms.h"
 #include "nsIContent.h"
 #include "nsIEditor.h"
 #include "nsILayoutHistoryState.h"

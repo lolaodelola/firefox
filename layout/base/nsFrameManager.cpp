@@ -18,6 +18,7 @@
 #include "nsCOMPtr.h"
 #include "nsContainerFrame.h"
 #include "nsError.h"
+#include "nsGkAtoms.h"
 #include "nsILayoutHistoryState.h"
 #include "nsIStatefulFrame.h"
 #include "nsPlaceholderFrame.h"

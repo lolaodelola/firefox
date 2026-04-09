@@ -30,6 +30,7 @@
 #include "nsColor.h"
 #include "nsCompatibility.h"
 #include "nsCoord.h"
+#include "nsGkAtoms.h"
 #include "nsIURI.h"
 
 struct RawServoAnimationValueTable;
@@ -40,7 +41,6 @@ class nsINode;
 class nsIContent;
 class nsCSSPropertyIDSet;
 class nsPresContext;
-class nsStaticAtom;
 class nsSimpleContentList;
 class imgRequestProxy;
 struct nsCSSValueSharedList;
