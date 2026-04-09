@@ -342,11 +342,7 @@ class TabGroupReducerTest {
             action = TabGroupAction.EditTabGroupClicked(group = group),
         )
         val expectedState = initialState.copy(
-            tabGroupFormState = TabGroupFormState(
-                tabGroupId = group.id,
-                name = group.title,
-                theme = group.theme,
-            ),
+            tabGroupFormState = group.initializeTabGroupForm(),
             backStack = initialState.backStack + EditTabGroup,
         )
 

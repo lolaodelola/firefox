@@ -18,8 +18,10 @@ import org.junit.runner.RunWith
 import org.mozilla.fenix.tabstray.TabsTrayTestTag.BOTTOM_SHEET_COLOR_LIST
 import org.mozilla.fenix.tabstray.TabsTrayTestTag.GROUP_NAME
 import org.mozilla.fenix.tabstray.data.TabGroupTheme
+import org.mozilla.fenix.tabstray.data.createTabGroup
 import org.mozilla.fenix.tabstray.redux.state.TabGroupFormState
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
+import org.mozilla.fenix.tabstray.redux.state.initializeTabGroupForm
 import org.mozilla.fenix.tabstray.redux.store.TabsTrayStore
 import org.mozilla.fenix.theme.FirefoxTheme
 import org.mozilla.fenix.theme.Theme
@@ -176,6 +178,48 @@ class EditTabGroupTest {
         composeTestRule.runOnIdle {
             assertEquals(expectedName, store.state.tabGroupFormState?.name)
         }
+    }
+
+    @Test
+    fun `WHEN the UI is opened to edit an existing tab group THEN the group's name is shown and saved in form state`() {
+        val expectedName = "test group"
+        val group = createTabGroup(title = expectedName)
+        val store = TabsTrayStore(
+            initialState = TabsTrayState(
+                tabGroupFormState = group.initializeTabGroupForm(),
+            ),
+        )
+
+        composeTestRule.setContent {
+            ComposableUnderTest(store = store)
+        }
+
+        composeTestRule
+            .onNodeWithText(expectedName)
+            .assertIsDisplayed()
+
+        composeTestRule.runOnIdle {
+            assertEquals(expectedName, store.state.tabGroupFormState?.name)
+        }
+    }
+
+    @Test
+    fun `WHEN the UI is opened to edit an existing tab group THEN the header text displays EDIT_GROUP`() {
+        val expectedName = "test group"
+        val group = createTabGroup(title = expectedName)
+        val store = TabsTrayStore(
+            initialState = TabsTrayState(
+                tabGroupFormState = group.initializeTabGroupForm(),
+            ),
+        )
+
+        composeTestRule.setContent {
+            ComposableUnderTest(store = store)
+        }
+
+        composeTestRule
+            .onNodeWithText("Edit group")
+            .assertIsDisplayed()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

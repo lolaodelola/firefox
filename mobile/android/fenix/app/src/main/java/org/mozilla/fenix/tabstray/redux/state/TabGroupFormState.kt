@@ -6,6 +6,7 @@ package org.mozilla.fenix.tabstray.redux.state
 
 import org.mozilla.fenix.tabgroups.EditTabGroup
 import org.mozilla.fenix.tabstray.data.TabGroupTheme
+import org.mozilla.fenix.tabstray.data.TabsTrayItem.TabGroup
 
 /**
  * Value type that represents the form state when creating or editing a Tab Group.
@@ -51,4 +52,13 @@ fun TabsTrayState.initializeTabGroupForm() = TabGroupFormState(
     name = "",
     nextTabGroupNumber = tabGroups.size + 1,
     edited = false,
+)
+
+/**
+ * Returns an initial [TabGroupFormState] derived from a [TabGroup].
+ */
+fun TabGroup.initializeTabGroupForm() = TabGroupFormState(
+    tabGroupId = id,
+    name = title,
+    theme = theme,
 )
