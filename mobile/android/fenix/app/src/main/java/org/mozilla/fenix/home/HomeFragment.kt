@@ -15,7 +15,9 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -149,6 +151,7 @@ import org.mozilla.fenix.home.topsites.getTopSitesConfig
 import org.mozilla.fenix.home.ui.HomeSwipeIntegration
 import org.mozilla.fenix.home.ui.Homepage
 import org.mozilla.fenix.home.ui.MiddleSearchHomepage
+import org.mozilla.fenix.home.ui.WallpaperBackground
 import org.mozilla.fenix.messaging.DefaultMessageController
 import org.mozilla.fenix.messaging.FenixMessageSurfaceId
 import org.mozilla.fenix.messaging.MessagingFeature
@@ -373,12 +376,7 @@ class HomeFragment : Fragment(), SystemInsetsPaddedFragment {
         val activity = activity as HomeActivity
         val components = requireComponents
 
-        val currentWallpaperName = requireContext().settings().currentWallpaperName
-        applyWallpaper(
-            wallpaperName = currentWallpaperName,
-            orientationChange = false,
-            orientation = requireContext().resources.configuration.orientation,
-        )
+        initWallpaper()
 
         lifecycleScope.launch(IO) {
             val settings = requireContext().settings()
@@ -788,12 +786,7 @@ class HomeFragment : Fragment(), SystemInsetsPaddedFragment {
             )
         }
 
-        val currentWallpaperName = requireContext().settings().currentWallpaperName
-        applyWallpaper(
-            wallpaperName = currentWallpaperName,
-            orientationChange = true,
-            orientation = newConfig.orientation,
-        )
+        initWallpaper(orientationChange = true)
     }
 
     private fun showEncourageSearchCfr() {
@@ -1055,37 +1048,46 @@ class HomeFragment : Fragment(), SystemInsetsPaddedFragment {
                         }
                     }
 
-                    if (settings.enableHomepageSearchBar) {
-                        MiddleSearchHomepage(
-                            state = HomepageState.build(
-                                appState = appState.value,
-                                privacyNoticeBannerState = privacyNoticeBannerState.value,
-                                settings = settings,
-                                browsingModeManager = browsingModeManager,
-                            ),
-                            interactor = sessionControlInteractor,
-                            onMiddleSearchBarVisibilityChanged = { isVisible ->
-                                // Hide the main address bar in the toolbar when the middle search is
-                                // visible (and vice versa)
-                                toolbarView.updateAddressBarVisibility(!isVisible)
-                            },
-                            onTopSitesItemBound = {
-                                StartupTimeline.onTopSitesItemBound(activity = (requireActivity() as HomeActivity))
-                            },
-                        )
-                    } else {
-                        Homepage(
-                            state = HomepageState.build(
-                                appState = appState.value,
-                                privacyNoticeBannerState = privacyNoticeBannerState.value,
-                                settings = settings,
-                                browsingModeManager = browsingModeManager,
-                            ),
-                            interactor = sessionControlInteractor,
-                            onTopSitesItemBound = {
-                                StartupTimeline.onTopSitesItemBound(activity = (requireActivity() as HomeActivity))
-                            },
-                        )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (settings.shouldUseComposeWallpaper && !appState.value.mode.isPrivate) {
+                            WallpaperBackground(
+                                wallpaper = appState.value.wallpaperState.currentWallpaper,
+                                loadBitmap = components.useCases.wallpaperUseCases.loadBitmap::invoke,
+                            )
+                        }
+
+                        if (settings.enableHomepageSearchBar) {
+                            MiddleSearchHomepage(
+                                state = HomepageState.build(
+                                    appState = appState.value,
+                                    privacyNoticeBannerState = privacyNoticeBannerState.value,
+                                    settings = settings,
+                                    browsingModeManager = browsingModeManager,
+                                ),
+                                interactor = sessionControlInteractor,
+                                onMiddleSearchBarVisibilityChanged = { isVisible ->
+                                    // Hide the main address bar in the toolbar when the middle search is
+                                    // visible (and vice versa)
+                                    toolbarView.updateAddressBarVisibility(!isVisible)
+                                },
+                                onTopSitesItemBound = {
+                                    StartupTimeline.onTopSitesItemBound(activity = (requireActivity() as HomeActivity))
+                                },
+                            )
+                        } else {
+                            Homepage(
+                                state = HomepageState.build(
+                                    appState = appState.value,
+                                    privacyNoticeBannerState = privacyNoticeBannerState.value,
+                                    settings = settings,
+                                    browsingModeManager = browsingModeManager,
+                                ),
+                                interactor = sessionControlInteractor,
+                                onTopSitesItemBound = {
+                                    StartupTimeline.onTopSitesItemBound(activity = (requireActivity() as HomeActivity))
+                                },
+                            )
+                        }
                     }
 
                     LaunchedEffect(Unit) {
@@ -1354,6 +1356,18 @@ class HomeFragment : Fragment(), SystemInsetsPaddedFragment {
     @VisibleForTesting
     internal fun shouldEnableWallpaper() =
         (activity as? HomeActivity)?.themeManager?.currentTheme?.isPrivate?.not() ?: false
+
+    private fun initWallpaper(orientationChange: Boolean = false) {
+        if (requireContext().settings().shouldUseComposeWallpaper) {
+            binding.wallpaperImageView.isVisible = false
+        } else {
+            applyWallpaper(
+                wallpaperName = requireContext().settings().currentWallpaperName,
+                orientationChange = orientationChange,
+                orientation = requireContext().resources.configuration.orientation,
+            )
+        }
+    }
 
     internal fun isEdgeToEdgeBackgroundEnabled(): Boolean {
         val settings = requireContext().settings()

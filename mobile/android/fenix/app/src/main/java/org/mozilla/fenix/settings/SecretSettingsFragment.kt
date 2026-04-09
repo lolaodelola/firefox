@@ -222,6 +222,11 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
 
+        requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_compose_wallpaper).apply {
+            isChecked = context.settings().shouldUseComposeWallpaper
+            onPreferenceChangeListener = SharedPreferenceUpdater()
+        }
+
         requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_homepage_searchbar).apply {
             isVisible = true
             isChecked = context.settings().enableHomepageSearchBar
