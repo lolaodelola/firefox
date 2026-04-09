@@ -3157,7 +3157,7 @@ nsresult PresShell::GoToAnchor(const nsAString& aAnchorName,
             SelectionType::eTargetText,
             nsISelectionController::SELECTION_ANCHOR_REGION,
             ScrollAxis(WhereToScroll::Center, WhenToScroll::Always),
-            ScrollAxis(),
+            ScrollAxis(WhereToScroll::Center, WhenToScroll::Always),
             ScrollFlags::AnchorScrollFlags | aAdditionalScrollFlags,
             SelectionScrollMode::SyncFlush));
       } else {
@@ -3299,7 +3299,8 @@ nsresult PresShell::ScrollToAnchor() {
   return ScrollSelectionIntoView(
       SelectionType::eTargetText,
       nsISelectionController::SELECTION_ANCHOR_REGION,
-      ScrollAxis(WhereToScroll::Center, WhenToScroll::Always), ScrollAxis(),
+      ScrollAxis(WhereToScroll::Center, WhenToScroll::Always),
+      ScrollAxis(WhereToScroll::Center, WhenToScroll::Always),
       ScrollFlags::AnchorScrollFlags, SelectionScrollMode::SyncFlush);
 }
 
