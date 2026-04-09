@@ -13,7 +13,6 @@
 #include "nsComponentManagerUtils.h"
 #include "nsContentPolicyUtils.h"
 #include "nsError.h"
-#include "nsGkAtoms.h"
 #include "nsIAuthPrompt.h"
 #include "nsIExpatSink.h"
 #include "nsIHttpChannel.h"

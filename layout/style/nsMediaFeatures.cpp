@@ -20,7 +20,6 @@
 #include "nsCSSValue.h"
 #include "nsContentUtils.h"
 #include "nsDeviceContext.h"
-#include "nsGkAtoms.h"
 #include "nsGlobalWindowOuter.h"
 #include "nsIBaseWindow.h"
 #include "nsIDocShell.h"

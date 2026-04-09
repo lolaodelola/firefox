@@ -8,7 +8,6 @@
 #include "nsCRT.h"
 #include "nsColor.h"
 #include "nsCoord.h"
-#include "nsGkAtoms.h"
 #include "nsStringFwd.h"
 #include "nsTArrayForwardDeclare.h"
 
