@@ -1710,9 +1710,11 @@ Tester.prototype = {
               self.nextTest();
             } else {
               await self.notifyProfilerOfTestEnd();
+              // failCount > 1 (not > 0) because the "Test timed out"
+              // result above already incremented failCount by one.
               self.structuredLogger.testEnd(
                 self.currentTest.path,
-                "TIMEOUT",
+                self.currentTest.failCount > 1 ? "FAIL" : "TIMEOUT",
                 "PASS",
                 "Test timed out"
               );

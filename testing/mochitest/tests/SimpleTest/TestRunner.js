@@ -136,6 +136,7 @@ TestRunner._structuredFormatter = new StructuredFormatter();
 TestRunner._numTimeouts = 0;
 TestRunner._currentTestStartTime = new Date().valueOf();
 TestRunner._timeoutFactor = 1;
+TestRunner._currentTestTimedOut = false;
 
 function record(succeeded, expectedFail, msg) {
   let successInfo;
@@ -206,6 +207,7 @@ TestRunner._checkForHangs = function () {
       var frameWindow =
         (!testInXOriginFrame() && testIframe.contentWindow.wrappedJSObject) ||
         testIframe.contentWindow;
+      TestRunner._currentTestTimedOut = true;
       reportError(frameWindow, "Test timed out.");
       TestRunner.updateUI([{ result: false }]);
 
@@ -576,6 +578,7 @@ async function _runNextTest() {
     TestRunner._currentTestStartTimestamp = SpecialPowers.ChromeUtils.now();
     TestRunner._currentTestStartTime = new Date().valueOf();
     TestRunner._timeoutFactor = 1;
+    TestRunner._currentTestTimedOut = false;
     TestRunner._expectedMinAsserts = 0;
     TestRunner._expectedMaxAsserts = 0;
 
@@ -955,11 +958,17 @@ TestRunner.testUnloaded = function (result, runtime) {
     }
   }
 
+  if (TestRunner._currentTestTimedOut && result == "PASS") {
+    result = "TIMEOUT";
+  }
+
   TestRunner.structuredLogger.testEnd(
     TestRunner.currentTestURL,
     result,
     "PASS",
-    "Finished in " + runtime + "ms",
+    TestRunner._currentTestTimedOut
+      ? "Test timed out"
+      : "Finished in " + runtime + "ms",
     { runtime }
   );
 
