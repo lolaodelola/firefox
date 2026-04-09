@@ -195,49 +195,82 @@ void ViewTimeline::UpdateCachedCurrentTime() {
   }
 }
 
-/* static */
+// https://drafts.csswg.org/scroll-animations-1/#view-timelines-ranges
 std::pair<nscoord, nscoord> ViewTimeline::IntervalForTimelineRangeName(
     const StyleTimelineRangeName aName,
-    const ScrollTimeline::ComputedTimelineData& aData) {
-  nscoord rangeStart = 0;
-  switch (aName) {
-    case StyleTimelineRangeName::None:
-    case StyleTimelineRangeName::Normal:
-    case StyleTimelineRangeName::Cover:
-      rangeStart = aData.mStart;
-      break;
-    case StyleTimelineRangeName::Contain:
-    case StyleTimelineRangeName::Entry:
-    case StyleTimelineRangeName::Exit:
-    case StyleTimelineRangeName::EntryCrossing:
-    case StyleTimelineRangeName::ExitCrossing:
-    case StyleTimelineRangeName::Scroll:
-      // TODO: Bug 2015125, Bug 2015128, Bug 2015130, Bug 2015131. Implement
-      // the other keywords.
-      break;
-  }
+    const ScrollTimeline::ComputedTimelineData& aData) const {
+  MOZ_ASSERT(mCachedCurrentTime, "We should have a cached current time");
 
-  nscoord rangeEnd = 0;
-  switch (aName) {
-    case StyleTimelineRangeName::None:
-    case StyleTimelineRangeName::Normal:
-    case StyleTimelineRangeName::Cover:
-      rangeEnd = aData.mEnd;
-      break;
-    case StyleTimelineRangeName::Contain:
-    case StyleTimelineRangeName::Entry:
-    case StyleTimelineRangeName::Exit:
-    case StyleTimelineRangeName::EntryCrossing:
-    case StyleTimelineRangeName::ExitCrossing:
-    case StyleTimelineRangeName::Scroll:
-      // TODO: Bug 2015125, Bug 2015128, Bug 2015130, Bug 2015131. Implement
-      // the other keywords.
-      break;
-  }
+  // The following variable names are based on the vertical scrolling direction
+  // and the subject becomes visible from the bottom of the scroll port.
 
-  // FIXME: Bug 2015125. Check the case for RTL for horizontal axis. Perhaps we
+  // The scroll offset when we align the start border edge of the subject with
+  // the end edge of the scroll port.
+  const nscoord alignedSubjectStartViewEnd = aData.mStart;
+  // The scroll offset when we align the end border edge of the subject with
+  // the start edge of the scroll port.
+  const nscoord alignedSubjectEndViewStart = aData.mEnd;
+  // The scroll offset when we align the start border edge of the subject with
+  // the start edge of the scroll port.
+  const nscoord alignedSubjectStartViewStart =
+      alignedSubjectEndViewStart - mCachedCurrentTime->mSubjectSize;
+  // The scroll offset when we align the end border edge of the subject with the
+  // end edge of the scroll port.
+  const nscoord alignedSubjectEndViewEnd =
+      alignedSubjectStartViewEnd + mCachedCurrentTime->mSubjectSize;
+
+  // FIXME: Bug 2030453. Check the case for RTL for horizontal axis. Perhaps we
   // have to swap these two values.
-  return {rangeStart, rangeEnd};
+  switch (aName) {
+    case StyleTimelineRangeName::None:
+    case StyleTimelineRangeName::Normal:
+      // The default behavior is equalivant to `cover` for view timeline.
+    case StyleTimelineRangeName::Cover:
+      // Represents the full range of the view progress timeline:
+      // * 0% progress represents the latest position at which the start border
+      //   edge of the element’s principal box coincides with the end edge of
+      //   its view progress visibility range.
+      // * 100% progress represents the earliest position at which the end
+      //   border edge of the element’s principal box coincides with the start
+      //   edge of its view progress visibility range.
+      return {alignedSubjectStartViewEnd, alignedSubjectEndViewStart};
+
+    case StyleTimelineRangeName::Contain:
+      // Represents the range during which the principal box is either fully
+      // contained by, or fully covers, its view progress visibility range
+      // within the scrollport.
+      // 0% progress represents the earliest position at which either:
+      //   1. the start border edge of the element’s principal box coincides
+      //      with the start edge of its view progress visibility range.
+      //   2. the end border edge of the element’s principal box coincides with
+      //      the end edge of its view progress visibility range.
+      // 100% progress represents the latest position at which either:
+      //   1. the start border edge of the element’s principal box coincides
+      //      with the start edge of its view progress visibility range.
+      //   2. the end border edge of the element’s principal box coincides with
+      //      the end edge of its view progress visibility range.
+      //
+      // Note that we swap the values if the subject size is larger than the
+      // scrollport size. That's why there are 2 options for 0% and 2 options
+      // for 100% in the spec.
+      //
+      // For more visual explanation, see:
+      // https://github.com/w3c/csswg-drafts/issues/7973#issuecomment-1427150014
+      return {std::min(alignedSubjectStartViewStart, alignedSubjectEndViewEnd),
+              std::max(alignedSubjectStartViewStart, alignedSubjectEndViewEnd)};
+
+    case StyleTimelineRangeName::Entry:
+    case StyleTimelineRangeName::Exit:
+    case StyleTimelineRangeName::EntryCrossing:
+    case StyleTimelineRangeName::ExitCrossing:
+    case StyleTimelineRangeName::Scroll:
+      // TODO: Bug 2015128, Bug 2015130, Bug 2015131. Implement other keywords.
+      return {0, 0};
+  }
+
+  MOZ_ASSERT_UNREACHABLE("All cases should be hanlded.");
+  // Use cover as the default value. However, we shouldn't be here.
+  return {alignedSubjectStartViewEnd, alignedSubjectEndViewStart};
 }
 
 // TODO: Bug 2020822. We have to align the start time of animation with this
