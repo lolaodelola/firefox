@@ -548,6 +548,7 @@ var SidebarController = {
       if (
         !this.uiStateInitialized &&
         !this.inSingleTabWindow &&
+        !window.opener &&
         (this.sidebarRevampEnabled || windowPrivacyMatches)
       ) {
         const backupState = this.SidebarManager.getBackupState();

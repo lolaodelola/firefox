@@ -153,3 +153,39 @@ add_task(async function test_focus_history_from_adopted() {
   );
   await BrowserTestUtils.closeWindow(newWin);
 });
+
+add_task(async function test_hide_tabs_and_sidebar_persists_in_new_window() {
+  await SpecialPowers.pushPrefEnv({
+    set: [
+      [VERTICAL_TABS_PREF, true],
+      [SIDEBAR_VISIBILITY_PREF, "hide-sidebar"],
+    ],
+  });
+  await waitForTabstripOrientation("vertical");
+
+  await toggleSidebarPanel(window, "viewCustomizeSidebar");
+
+  // Collapse the launcher (simulates "Hide tabs and sidebar" being active)
+  SidebarController._state.launcherVisible = false;
+
+  const newWin = lazy.BrowserWindowTracker.openWindow({
+    openerWindow: window,
+  });
+
+  try {
+    await BrowserTestUtils.waitForCondition(
+      () => newWin.SidebarController?.uiStateInitialized,
+      "New window sidebar state is initialized"
+    );
+    await newWin.SidebarController.promiseInitialized;
+
+    const newSidebar = newWin.document.getElementById("sidebar-main");
+    ok(
+      newSidebar.hidden,
+      "Sidebar launcher is hidden in new window when 'Hide tabs and sidebar' is set"
+    );
+  } finally {
+    await BrowserTestUtils.closeWindow(newWin);
+    await SpecialPowers.popPrefEnv();
+  }
+});

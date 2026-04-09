@@ -244,6 +244,9 @@ export class SidebarState {
     } else if (this.revampVisibility == "always-show") {
       props.launcherVisible = true;
     }
+    const hasExplicitHiddenLauncher =
+      hasPreviousVisibleState && !props.launcherVisible;
+
     for (const [key, value] of Object.entries(props)) {
       if (value === undefined) {
         // `undefined` means we should use the default value.
@@ -285,9 +288,15 @@ export class SidebarState {
     if (!this.command) {
       props.panelOpen = false;
     }
+
     this.panelOpen = !!props.panelOpen;
+    if (hasExplicitHiddenLauncher) {
+      this.launcherVisible = false;
+    }
     if (this.command && this.panelOpen) {
-      this.launcherVisible = true;
+      if (!hasExplicitHiddenLauncher) {
+        this.launcherVisible = true;
+      }
       // show() is async, so make sure we return its promise here
       return this.#controller.showInitially(this.command);
     }
