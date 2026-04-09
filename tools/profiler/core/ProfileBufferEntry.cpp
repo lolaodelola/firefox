@@ -25,7 +25,6 @@
 #include "nsXULAppAPI.h"
 #include "ProfilerCodeAddressService.h"
 
-#include <ostream>
 #include <type_traits>
 
 using namespace mozilla;

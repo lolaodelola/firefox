@@ -4,8 +4,6 @@
 
 #include "RemotePrintJobParent.h"
 
-#include <fstream>
-
 #include "PrintTranslator.h"
 #include "gfxContext.h"
 #include "mozilla/ProfilerMarkers.h"
