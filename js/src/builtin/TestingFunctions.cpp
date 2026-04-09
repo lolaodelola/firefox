@@ -665,6 +665,35 @@ static bool GetBuildConfiguration(JSContext* cx, unsigned argc, Value* vp) {
     return false;
   }
 
+  // True when the build is suitable for --strict-benchmark-mode (no debug,
+  // sanitizers, simulators, or fuzzing). Must stay in sync with the
+  // compile-time checks in ApplyBenchmarkMode in js.cpp.
+  {
+    bool suitable = true;
+#ifdef JS_DEBUG
+    suitable = false;
+#endif
+#ifdef MOZ_ASAN
+    suitable = false;
+#endif
+#ifdef MOZ_TSAN
+    suitable = false;
+#endif
+#ifdef MOZ_MSAN
+    suitable = false;
+#endif
+#if defined(JS_SIMULATOR)
+    suitable = false;
+#endif
+#ifdef FUZZING
+    suitable = false;
+#endif
+    value = BooleanValue(suitable);
+  }
+  if (!JS_SetProperty(cx, info, "benchmark-suitable", value)) {
+    return false;
+  }
+
   if (args.length() == 1) {
     RootedString str(cx, ToString(cx, args[0]));
     if (!str) {
