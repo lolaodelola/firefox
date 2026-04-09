@@ -56,6 +56,7 @@
 #include "mozilla/dom/DocumentInlines.h"
 #include "mozilla/dom/Event.h"
 #include "mozilla/dom/Exceptions.h"
+#include "mozilla/dom/FeaturePolicyUtils.h"
 #include "mozilla/dom/FunctionBinding.h"
 #include "mozilla/dom/IndexedDatabaseManager.h"
 #include "mozilla/dom/JSExecutionManager.h"
@@ -3346,6 +3347,7 @@ nsresult WorkerPrivate::GetLoadInfo(
     loadInfo.mStorageAccess = aParent->StorageAccess();
     loadInfo.mUseRegularPrincipal = aParent->UseRegularPrincipal();
     loadInfo.mUsingStorageAccess = aParent->UsingStorageAccess();
+    loadInfo.mSerialAllowed = aParent->SerialAllowed();
     loadInfo.mCookieJarSettings = aParent->CookieJarSettings();
     if (loadInfo.mCookieJarSettings) {
       loadInfo.mCookieJarSettingsArgs = aParent->CookieJarSettingsArgs();
@@ -3503,6 +3505,8 @@ nsresult WorkerPrivate::GetLoadInfo(
       loadInfo.mStorageAccess = StorageAllowedForWindow(globalWindow);
       loadInfo.mUseRegularPrincipal = document->UseRegularPrincipal();
       loadInfo.mUsingStorageAccess = document->UsingStorageAccess();
+      loadInfo.mSerialAllowed =
+          FeaturePolicyUtils::IsFeatureAllowed(document, u"serial"_ns);
       loadInfo.mShouldResistFingerprinting =
           document->ShouldResistFingerprinting(
               RFPTarget::IsAlwaysEnabledForPrecompute);

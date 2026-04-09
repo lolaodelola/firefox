@@ -38,6 +38,7 @@ static const DelegateInfo sPermissionsMap[] = {
     {"midi", nullptr, DelegatePolicy::eDelegateUseIframeOrigin},
     // Like "midi" but with sysex support.
     {"midi-sysex", nullptr, DelegatePolicy::eDelegateUseIframeOrigin},
+    {"serial", nullptr, DelegatePolicy::eDelegateUseFeaturePolicy},
     {"storage-access", nullptr, DelegatePolicy::eDelegateUseIframeOrigin},
     {"camera", u"camera", DelegatePolicy::eDelegateUseFeaturePolicy},
     {"microphone", u"microphone", DelegatePolicy::eDelegateUseFeaturePolicy},
