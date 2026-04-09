@@ -4,7 +4,6 @@
 
 #include "PostTraversalTask.h"
 
-#include "gfxTextRun.h"
 #include "mozilla/dom/FontFace.h"
 #include "mozilla/dom/FontFaceSet.h"
 #include "mozilla/dom/FontFaceSetImpl.h"
@@ -14,13 +13,26 @@ namespace mozilla {
 
 using namespace dom;
 
+PostTraversalTask::~PostTraversalTask() {
+  if (!mTarget) {
+    return;
+  }
+  switch (mType) {
+    case Type::DispatchLoadingEventAndReplaceReadyPromise:
+      static_cast<dom::FontFaceSetImpl*>(mTarget)->Release();
+      break;
+    case Type::LoadFontEntry:
+      static_cast<gfxUserFontEntry*>(mTarget)->Release();
+      break;
+  }
+}
+
 void PostTraversalTask::Run() {
   switch (mType) {
     case Type::DispatchLoadingEventAndReplaceReadyPromise:
-      static_cast<FontFaceSet*>(mTarget)
+      static_cast<dom::FontFaceSetImpl*>(mTarget)
           ->DispatchLoadingEventAndReplaceReadyPromise();
       break;
-
     case Type::LoadFontEntry:
       static_cast<gfxUserFontEntry*>(mTarget)->ContinueLoad();
       break;
