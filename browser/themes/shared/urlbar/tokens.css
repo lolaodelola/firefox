@@ -32,6 +32,15 @@
 
     --urlbarview-separator-color: color-mix(in srgb, currentColor 86%, transparent);
   }
+
+  @media (prefers-color-scheme: dark) {
+    /* Increase the contrast of urlbar boxes in dark mode.
+     * In practice these are bumped-up --button-background-color-hover values.
+     */
+    --urlbar-box-background-color: color-mix(in srgb, currentColor 16%, transparent);
+    --urlbar-box-background-color-focus: color-mix(in srgb, currentColor 16%, transparent);
+    --urlbar-box-background-color-hover: color-mix(in srgb, currentColor 22%, transparent);
+  }
 }
 
 @media not ((forced-colors) or (-moz-native-theme)) {
