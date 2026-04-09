@@ -658,6 +658,10 @@ main section {
   }
 }
 
+.nova-outer-wrapper {
+  min-height: 100vh;
+}
+
 /**
  * Nova Grid System
  *
@@ -1970,67 +1974,69 @@ main section {
   max-width: 30ch;
 }
 
-.customize-menu-animate-wrapper {
+.customize-menu {
   color: var(--newtab-text-primary-color);
   background-color: var(--newtab-background-color-secondary);
   width: 432px;
-  height: 100%;
-  display: none;
+  min-height: 100%;
   position: fixed;
   inset-block: 0;
-  inset-inline-end: 0;
+  inset-inline: auto 0;
   z-index: 1001;
   padding-block: 0 var(--space-large);
   padding-inline: var(--space-large);
   transform: translateX(435px);
   visibility: hidden;
   cursor: default;
+  overflow: auto;
+  border: none;
+  margin: 0;
 }
-.customize-menu-animate-wrapper.customize-animate-enter, .customize-menu-animate-wrapper.customize-animate-exit, .customize-menu-animate-wrapper.customize-animate-enter-done, .customize-menu-animate-wrapper.customize-animate-exit-done {
-  display: block;
+.customize-menu::backdrop {
+  background: transparent;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .customize-menu-animate-wrapper.customize-animate-enter, .customize-menu-animate-wrapper.customize-animate-exit, .customize-menu-animate-wrapper.customize-animate-enter-done, .customize-menu-animate-wrapper.customize-animate-exit-done {
+  .customize-menu.customize-animate-enter, .customize-menu.customize-animate-exit, .customize-menu.customize-animate-enter-done, .customize-menu.customize-animate-exit-done {
     transition: transform 250ms cubic-bezier(0.46, 0.03, 0.52, 0.96), visibility 250ms;
   }
 }
 @media (forced-colors: active) {
-  .customize-menu-animate-wrapper {
+  .customize-menu {
     border-inline-start: solid 1px;
   }
 }
-.customize-menu-animate-wrapper:dir(rtl) {
+.customize-menu:dir(rtl) {
   transform: translateX(-435px);
 }
-.customize-menu-animate-wrapper.customize-animate-enter-done, .customize-menu-animate-wrapper.customize-animate-enter-active {
+.customize-menu.customize-animate-enter-done, .customize-menu.customize-animate-enter-active {
   box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.2);
   visibility: visible;
   transform: translateX(0);
 }
-.customize-menu-animate-wrapper.customize-animate-exit-active {
+.customize-menu.customize-animate-exit-active {
   box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.2);
 }
 
-.customize-menu {
+.customize-menu-content {
   overflow: auto;
   height: 100%;
 }
-.customize-menu.subpanel-open {
+.customize-menu-content.subpanel-open {
   overflow: clip;
 }
-.customize-menu .close-button-wrapper {
+.customize-menu-content .close-button-wrapper {
   position: sticky;
   inset-block-start: 0;
   padding-block-start: var(--space-large);
   background-color: var(--newtab-background-color-secondary);
   z-index: 1;
 }
-.customize-menu .close-button-wrapper moz-button {
+.customize-menu-content .close-button-wrapper moz-button {
   margin-inline-start: auto;
   margin-inline-end: var(--space-large);
   display: block;
 }
-.customize-menu *:focus-visible {
+.customize-menu-content *:focus-visible {
   outline: var(--focus-outline);
 }
 

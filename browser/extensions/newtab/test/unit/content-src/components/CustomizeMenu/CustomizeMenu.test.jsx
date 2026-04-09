@@ -87,8 +87,20 @@ describe("<CustomizeMenu>", () => {
       </WrapWithProvider>
     );
 
-    wrapper.find(".personalize-button").simulate("keydown", { key: "Enter" });
+    wrapper.find(".personalize-button").simulate("click");
     assert.calledOnce(DEFAULT_PROPS.onOpen);
+  });
+
+  it("renders the customize menu as a dialog element", () => {
+    wrapper = mount(
+      <WrapWithProvider>
+        <CustomizeMenu {...DEFAULT_PROPS} showing={true} />
+      </WrapWithProvider>
+    );
+
+    const menu = wrapper.find(".customize-menu");
+    assert.isTrue(menu.exists(), "customize menu renders");
+    assert.equal(menu.type(), "dialog", "customize menu is a dialog element");
   });
 
   it("renders the menu when showing = true and calls onClose from the close button", () => {
@@ -158,11 +170,26 @@ describe("<CustomizeMenu>", () => {
     const instance = wrapper.find("_CustomizeMenu").instance();
     const mockFocus = sandbox.stub();
     instance.personalizeButtonRef.current = { focus: mockFocus };
+    instance.dialogRef.current = { open: false };
     instance.onExited();
     assert.calledOnce(mockFocus);
   });
 
-  it("adds subpanel-open class when onSubpanelToggle is called", () => {
+  it("calls close() on the dialog when onExited is called and dialog is open", () => {
+    wrapper = mount(
+      <WrapWithProvider>
+        <CustomizeMenu {...DEFAULT_PROPS} showing={false} />
+      </WrapWithProvider>
+    );
+    const instance = wrapper.find("_CustomizeMenu").instance();
+    const mockClose = sandbox.stub();
+    instance.dialogRef.current = { open: true, close: mockClose };
+    instance.personalizeButtonRef.current = { focus: sandbox.stub() };
+    instance.onExited();
+    assert.calledOnce(mockClose);
+  });
+
+  it("adds subpanel-open class to customize-menu-content when onSubpanelToggle is called", () => {
     wrapper = mount(
       <WrapWithProvider>
         <CustomizeMenu {...DEFAULT_PROPS} showing={true} />
@@ -174,13 +201,66 @@ describe("<CustomizeMenu>", () => {
     instance.onSubpanelToggle(true);
     wrapper.update();
 
-    const menu = wrapper.find(".customize-menu").hostNodes();
-    assert.isTrue(menu.hasClass("subpanel-open"));
+    const content = wrapper.find(".customize-menu-content").hostNodes();
+    assert.isTrue(content.hasClass("subpanel-open"));
 
     instance.onSubpanelToggle(false);
     wrapper.update();
 
-    const menuAfter = wrapper.find(".customize-menu").hostNodes();
-    assert.isFalse(menuAfter.hasClass("subpanel-open"));
+    const contentAfter = wrapper.find(".customize-menu-content").hostNodes();
+    assert.isFalse(contentAfter.hasClass("subpanel-open"));
+  });
+
+  it("calls showModal when showing transitions from false to true", () => {
+    wrapper = mount(
+      <WrapWithProvider>
+        <CustomizeMenu {...DEFAULT_PROPS} showing={true} />
+      </WrapWithProvider>
+    );
+    const instance = wrapper.find("_CustomizeMenu").instance();
+    const mockShowModal = sandbox.stub();
+    instance.dialogRef.current = { open: false, showModal: mockShowModal };
+
+    // Simulate the transition: prevProps.showing was false, now it's true
+    instance.componentDidUpdate({ ...DEFAULT_PROPS, showing: false });
+
+    assert.calledOnce(mockShowModal);
+  });
+
+  it("calls onClose when onCancel is fired (e.g. Escape key)", () => {
+    wrapper = mount(
+      <WrapWithProvider>
+        <CustomizeMenu {...DEFAULT_PROPS} showing={true} />
+      </WrapWithProvider>
+    );
+    const instance = wrapper.find("_CustomizeMenu").instance();
+    const mockPreventDefault = sandbox.stub();
+    instance.onCancel({ preventDefault: mockPreventDefault });
+    assert.calledOnce(mockPreventDefault);
+    assert.calledOnce(DEFAULT_PROPS.onClose);
+  });
+
+  it("calls onClose when clicking the backdrop (dialog element itself)", () => {
+    wrapper = mount(
+      <WrapWithProvider>
+        <CustomizeMenu {...DEFAULT_PROPS} showing={true} />
+      </WrapWithProvider>
+    );
+    const instance = wrapper.find("_CustomizeMenu").instance();
+    const dialogNode = instance.dialogRef.current;
+    instance.onDialogClick({ target: dialogNode });
+    assert.calledOnce(DEFAULT_PROPS.onClose);
+  });
+
+  it("does not call onClose when clicking inside the dialog content", () => {
+    wrapper = mount(
+      <WrapWithProvider>
+        <CustomizeMenu {...DEFAULT_PROPS} showing={true} />
+      </WrapWithProvider>
+    );
+    const instance = wrapper.find("_CustomizeMenu").instance();
+    const innerNode = wrapper.find(".customize-menu-content").getDOMNode();
+    instance.onDialogClick({ target: innerNode });
+    assert.notCalled(DEFAULT_PROPS.onClose);
   });
 });

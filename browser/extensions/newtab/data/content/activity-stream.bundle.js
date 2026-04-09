@@ -16563,8 +16563,10 @@ class _CustomizeMenu extends (external_React_default()).PureComponent {
     this.onEntered = this.onEntered.bind(this);
     this.onExited = this.onExited.bind(this);
     this.onSubpanelToggle = this.onSubpanelToggle.bind(this);
+    this.onCancel = this.onCancel.bind(this);
+    this.onDialogClick = this.onDialogClick.bind(this);
     this.personalizeButtonRef = /*#__PURE__*/external_React_default().createRef();
-    this.customizeMenuRef = /*#__PURE__*/external_React_default().createRef();
+    this.dialogRef = /*#__PURE__*/external_React_default().createRef();
     this.closeButtonRef = /*#__PURE__*/external_React_default().createRef();
     this.state = {
       exitEventFired: false,
@@ -16576,6 +16578,22 @@ class _CustomizeMenu extends (external_React_default()).PureComponent {
       subpanelOpen: isOpen
     });
   }
+  componentDidUpdate(prevProps) {
+    if (this.props.showing && !prevProps.showing) {
+      if (!this.dialogRef.current?.open) {
+        this.dialogRef.current?.showModal();
+      }
+    }
+  }
+  onCancel(e) {
+    e.preventDefault();
+    this.props.onClose();
+  }
+  onDialogClick(e) {
+    if (e.target === this.dialogRef.current) {
+      this.props.onClose();
+    }
+  }
   onEntered() {
     this.setState({
       exitEventFired: false
@@ -16585,6 +16603,9 @@ class _CustomizeMenu extends (external_React_default()).PureComponent {
     }
   }
   onExited() {
+    if (this.dialogRef.current?.open) {
+      this.dialogRef.current.close();
+    }
     this.setState({
       exitEventFired: true
     });
@@ -16608,33 +16629,30 @@ class _CustomizeMenu extends (external_React_default()).PureComponent {
       className: `${activationWindowClass} personalize-button`,
       "data-l10n-id": "newtab-customize-panel-icon-button",
       "aria-haspopup": "dialog",
-      onClick: () => this.props.onOpen(),
-      onKeyDown: e => {
-        if (e.key === "Enter") {
-          this.props.onOpen();
-        }
-      }
+      onClick: () => this.props.onOpen()
     }, /*#__PURE__*/external_React_default().createElement("label", {
       "data-l10n-id": "newtab-customize-panel-icon-button-label"
     }), /*#__PURE__*/external_React_default().createElement("div", null, /*#__PURE__*/external_React_default().createElement("img", {
       role: "presentation",
       src: "chrome://global/skin/icons/edit-outline.svg"
     })))), /*#__PURE__*/external_React_default().createElement(external_ReactTransitionGroup_namespaceObject.CSSTransition, {
-      nodeRef: this.customizeMenuRef,
+      nodeRef: this.dialogRef,
       timeout: 250,
       classNames: "customize-animate",
       in: this.props.showing,
       onEntered: this.onEntered,
       onExited: this.onExited,
       appear: true
-    }, /*#__PURE__*/external_React_default().createElement("div", {
-      ref: this.customizeMenuRef,
-      className: "customize-menu-animate-wrapper"
-    }, /*#__PURE__*/external_React_default().createElement("div", {
+    }, /*#__PURE__*/external_React_default().createElement("dialog", {
+      ref: this.dialogRef
       // @nova-cleanup(remove-conditional): Remove nova-enabled class
-      className: `customize-menu ${this.state.subpanelOpen ? "subpanel-open" : ""} ${novaEnabled ? "nova-enabled" : ""}`,
-      role: "dialog",
-      "data-l10n-id": "newtab-settings-dialog-label"
+      ,
+      className: `customize-menu ${novaEnabled ? "nova-enabled" : ""}`,
+      "data-l10n-id": "newtab-settings-dialog-label",
+      onCancel: this.onCancel,
+      onClick: this.onDialogClick
+    }, /*#__PURE__*/external_React_default().createElement("div", {
+      className: `customize-menu-content${this.state.subpanelOpen ? " subpanel-open" : ""}`
     }, /*#__PURE__*/external_React_default().createElement("div", {
       className: "close-button-wrapper"
     }, /*#__PURE__*/external_React_default().createElement("moz-button", {
@@ -18315,7 +18333,6 @@ class BaseContent extends (external_React_default()).PureComponent {
     this.openPreferences = this.openPreferences.bind(this);
     this.openCustomizationMenu = this.openCustomizationMenu.bind(this);
     this.closeCustomizationMenu = this.closeCustomizationMenu.bind(this);
-    this.handleOnKeyDown = this.handleOnKeyDown.bind(this);
     this.onWindowScroll = Base_debounce(this.onWindowScroll.bind(this), 5);
     this.setPref = this.setPref.bind(this);
     this.shouldShowOMCHighlight = this.shouldShowOMCHighlight.bind(this);
@@ -18404,7 +18421,6 @@ class BaseContent extends (external_React_default()).PureComponent {
   componentDidMount() {
     this.applyBodyClasses();
     __webpack_require__.g.addEventListener("scroll", this.onWindowScroll);
-    __webpack_require__.g.addEventListener("keydown", this.handleOnKeyDown);
     const prefs = this.props.Prefs.values;
     const wallpapersEnabled = prefs["newtabWallpapers.enabled"];
     if (this.props.document.visibilityState === Base_VISIBLE) {
@@ -18540,7 +18556,6 @@ class BaseContent extends (external_React_default()).PureComponent {
   componentWillUnmount() {
     this.prefersDarkQuery?.removeEventListener("change", this.handleColorModeChange);
     __webpack_require__.g.removeEventListener("scroll", this.onWindowScroll);
-    __webpack_require__.g.removeEventListener("keydown", this.handleOnKeyDown);
     if (this._onVisibilityChange) {
       this.props.document.removeEventListener(Base_VISIBILITY_CHANGE_EVENT, this._onVisibilityChange);
     }
@@ -18633,11 +18648,6 @@ class BaseContent extends (external_React_default()).PureComponent {
       this.props.dispatch(actionCreators.UserEvent({
         event: "HIDE_PERSONALIZE"
       }));
-    }
-  }
-  handleOnKeyDown(e) {
-    if (e.key === "Escape") {
-      this.closeCustomizationMenu();
     }
   }
   setPref(pref, value) {
@@ -18929,7 +18939,9 @@ class BaseContent extends (external_React_default()).PureComponent {
       // If ONLY Search or ONLY Shortcuts or ONLY Search AND Shortcuts or NO features
       // the logo should be centered instead of left-sidebar
       const logoShouldBeCentered = false;
-      return /*#__PURE__*/external_React_default().createElement("div", null, /*#__PURE__*/external_React_default().createElement("div", {
+      return /*#__PURE__*/external_React_default().createElement("div", {
+        className: "nova-outer-wrapper"
+      }, /*#__PURE__*/external_React_default().createElement("div", {
         className: "container nova-enabled"
       }, /*#__PURE__*/external_React_default().createElement("div", {
         className: "sidebar-inline-start"
@@ -18947,7 +18959,7 @@ class BaseContent extends (external_React_default()).PureComponent {
       }, showWeatherWidgetInSidebar && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(Weather_Weather, {
         dispatch: props.dispatch,
         size: "small"
-      })))), /*#__PURE__*/external_React_default().createElement("menu", {
+      })))), /*#__PURE__*/external_React_default().createElement(ConfirmDialog, null), /*#__PURE__*/external_React_default().createElement("menu", {
         className: "personalizeButtonWrapper"
       }, /*#__PURE__*/external_React_default().createElement(CustomizeMenu, {
         onClose: this.closeCustomizationMenu,
@@ -18972,8 +18984,9 @@ class BaseContent extends (external_React_default()).PureComponent {
         showSectionsMgmtPanel: this.state.showSectionsMgmtPanel,
         showWidgetsManagementPanel: this.state.showWidgetsManagementPanel,
         toggleWidgetsManagementPanel: this.toggleWidgetsManagementPanel,
-        widgetsEnabled: prefs["widgets.enabled"]
-      })), /*#__PURE__*/external_React_default().createElement(ConfirmDialog, null), this.props.Notifications?.showNotifications && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(Notifications_Notifications, {
+        widgetsEnabled: prefs["widgets.enabled"],
+        dispatch: this.props.dispatch
+      })), this.props.Notifications?.showNotifications && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(Notifications_Notifications, {
         dispatch: this.props.dispatch
       })));
     }
@@ -18996,8 +19009,7 @@ class BaseContent extends (external_React_default()).PureComponent {
       position: `inset-inline-start inset-block-end`,
       dispatch: this.props.dispatch
     })))), /*#__PURE__*/external_React_default().createElement("div", {
-      className: outerClassName,
-      onClick: this.closeCustomizationMenu
+      className: outerClassName
     }, /*#__PURE__*/external_React_default().createElement("main", {
       className: "newtab-main",
       style: this.state.fixedNavStyle
