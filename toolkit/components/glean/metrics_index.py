@@ -68,7 +68,7 @@ gecko_metrics = [
     "security/ct/metrics.yaml",
     "security/manager/ssl/metrics.yaml",
     "security/sandbox/metrics.yaml",
-    "services/common/metrics.yaml",
+    "services/settings/metrics.yaml",
     "services/sync/modules/metrics.yaml",
     "startupcache/metrics.yaml",
     "storage/metrics.yaml",

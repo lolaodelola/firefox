@@ -2,7 +2,7 @@ const { TelemetryTestUtils } = ChromeUtils.importESModule(
   "resource://testing-common/TelemetryTestUtils.sys.mjs"
 );
 const { UptakeTelemetry } = ChromeUtils.importESModule(
-  "resource://services-common/uptake-telemetry.sys.mjs"
+  "resource://services-settings/UptakeTelemetry.sys.mjs"
 );
 
 const COMPONENT = "remotesettings";
