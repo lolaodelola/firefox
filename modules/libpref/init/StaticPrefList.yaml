@@ -5881,6 +5881,24 @@
   value: true
   mirror: always
 
+# Whether the WebSerial API is enabled
+- name: dom.webserial.enabled
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
+# Whether the WebSerial API is addon-gated
+- name: dom.webserial.gated
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
+# whether to use the TestSerialPlatformService
+- name: dom.webserial.testing.enabled
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 - name: dom.webnotifications.allowcrossoriginiframe
   type: RelaxedAtomicBool
   value: false

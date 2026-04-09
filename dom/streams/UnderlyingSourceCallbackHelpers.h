@@ -223,7 +223,7 @@ class InputStreamHolder final : public nsIInputStreamCallback,
 
 // Using this class means you are also passing the lifetime control of your
 // nsIAsyncInputStream, as it will be closed when this class tears down.
-class InputToReadableStreamAlgorithms final
+class InputToReadableStreamAlgorithms
     : public UnderlyingSourceAlgorithmsWrapper,
       public nsIInputStreamCallback,
       public SupportsWeakPtr {
@@ -245,7 +245,7 @@ class InputToReadableStreamAlgorithms final
 
   nsIInputStream* MaybeGetInputStreamIfUnread() override;
 
- private:
+ protected:
   ~InputToReadableStreamAlgorithms();
 
   MOZ_CAN_RUN_SCRIPT_BOUNDARY void CloseAndReleaseObjects(

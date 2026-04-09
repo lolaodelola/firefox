@@ -7,8 +7,8 @@
  * linking directly to it and use dlopen instead.
  */
 
-#ifndef HAL_LINUX_UDEV_H_
-#define HAL_LINUX_UDEV_H_
+#ifndef HAL_LINUX_UDEVLIB_H_
+#define HAL_LINUX_UDEVLIB_H_
 
 #include <dlfcn.h>
 
@@ -147,4 +147,4 @@ class udev_lib {
 
 }  // namespace mozilla
 
-#endif  // HAL_LINUX_UDEV_H_
+#endif  // HAL_LINUX_UDEVLIB_H_

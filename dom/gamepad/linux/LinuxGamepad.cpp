@@ -20,12 +20,12 @@
 
 #include "mozilla/Sprintf.h"
 #include "mozilla/Tainting.h"
+#include "mozilla/UdevLib.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/dom/GamepadHandle.h"
 #include "mozilla/dom/GamepadPlatformService.h"
 #include "mozilla/dom/GamepadRemapping.h"
 #include "nscore.h"
-#include "udev.h"
 
 #define BITS_PER_LONG ((sizeof(unsigned long)) * 8)
 #define BITS_TO_LONGS(x) (((x) + BITS_PER_LONG - 1) / BITS_PER_LONG)
