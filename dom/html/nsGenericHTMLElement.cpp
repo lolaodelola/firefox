@@ -1847,6 +1847,10 @@ const nsAttrValue* nsGenericHTMLElement::GetURIAttr(nsAtom* aAttr,
 }
 
 bool nsGenericHTMLElement::IsContentEditable() const {
+  if (IsInComposedDoc()) {
+    return IsEditable();
+  }
+  // Editable flag is not set for non-connected elements, so we must compute it.
   for (const auto* element : InclusiveAncestorsOfType<nsGenericHTMLElement>()) {
     const ContentEditableState state = element->GetContentEditableState();
     if (state != ContentEditableState::Inherit) {
