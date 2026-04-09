@@ -32,7 +32,6 @@
 #include "nsError.h"
 #include "nsFlexContainerFrame.h"
 #include "nsFrameSelection.h"
-#include "nsGkAtoms.h"
 #include "nsIBaseWindow.h"
 #include "nsIFrameInlines.h"
 #include "nsIWidget.h"

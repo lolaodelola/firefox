@@ -93,7 +93,6 @@
 #  include "WinUtils.h"
 #endif
 
-#include "nsGkAtoms.h"
 #include "gfxPlatformFontList.h"
 #include "gfxContext.h"
 #include "gfxImageSurface.h"

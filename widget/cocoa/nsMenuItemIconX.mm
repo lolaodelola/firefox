@@ -14,7 +14,6 @@
 #include "nsCocoaUtils.h"
 #include "nsComputedDOMStyle.h"
 #include "nsContentUtils.h"
-#include "nsGkAtoms.h"
 #include "nsIContent.h"
 #include "nsIContentPolicy.h"
 #include "nsMenuItemX.h"

@@ -42,7 +42,6 @@
 #include "nsFocusManager.h"
 #include "nsFrameState.h"
 #include "nsGenericHTMLFrameElement.h"
-#include "nsGkAtoms.h"
 #include "nsGlobalWindowInner.h"
 #include "nsGlobalWindowOuter.h"
 #include "nsHTMLTags.h"

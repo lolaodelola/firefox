@@ -1126,12 +1126,12 @@ renaming_overrides_prefixing = true
 
 "AnimationName" = """
  public:
-  StyleAnimationName() : _0(nsGkAtoms::_empty) {}
+  StyleAnimationName();
 """
 
 "TimelineIdent" = """
  public:
-  StyleTimelineIdent() : _0(nsGkAtoms::_empty) {}
+  StyleTimelineIdent();
   nsAtom* AsAtom() const { return _0.AsAtom(); }
 """
 
@@ -1164,9 +1164,7 @@ renaming_overrides_prefixing = true
 """
 
 "FontPalette" = """
-  inline static StyleFontPalette Normal() {
-    return StyleFontPalette{StyleAtom(nsGkAtoms::normal->ToAddRefed())};
-  }
+  inline static StyleFontPalette Normal();
 """
 
 "GenericOffsetPath" = """
