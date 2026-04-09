@@ -1,0 +1,45 @@
+/* -*- Mode: C++; c-basic-offset: 2; indent-tabs-mode: nil; tab-width: 8 -*- */
+/* vim: set sw=2 ts=8 et tw=80 ft=c: */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+include protocol PWindowGlobal;
+include protocol PSerialPort;
+include SerialTypes;
+
+namespace mozilla {
+namespace dom {
+
+async protocol PSerialManager {
+  manager PWindowGlobal;
+
+parent:
+  // Get available ports for chooser UI (does not grant access)
+  async GetAvailablePorts() returns (IPCSerialPortInfo[] ports);
+
+  // Create a toplevel PSerialPort actor for a specific port. The content
+  // process creates both endpoints, sends the parent endpoint here, and
+  // binds the child endpoint locally.
+  async CreatePort(nsString portId,
+                   Endpoint<PSerialPortParent> parentEndpoint);
+
+  // Test-only
+  async SimulateDeviceConnection(nsString deviceId, nsString devicePath,
+                                 uint16_t vendorId, uint16_t productId) returns (nsresult rv);
+
+  // Test-only
+  async SimulateDeviceDisconnection(nsString deviceId) returns (nsresult rv);
+
+  // Test-only
+  async RemoveAllMockDevices() returns (nsresult rv);
+
+  // Test-only
+  async ResetToDefaultMockDevices() returns (nsresult rv);
+
+child:
+  async __delete__();
+};
+
+}  // namespace dom
+}  // namespace mozilla
