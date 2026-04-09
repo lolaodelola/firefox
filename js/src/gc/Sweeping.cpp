@@ -861,7 +861,8 @@ bool Zone::findSweepGroupEdges(Zone* atomsZone) {
     }
   }
 
-  if (gcFinalizationRegistriesMayHaveSymbolRegistrations_ &&
+  if (atomsZone->wasGCStarted() &&
+      gcFinalizationRegistriesMayHaveSymbolRegistrations_ &&
       !atomsZone->addSweepGroupEdgeTo(this)) {
     return false;
   }
