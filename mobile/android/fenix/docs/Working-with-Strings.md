@@ -31,6 +31,48 @@ If the prelanded strings are not yet referenced by any code, also add `tools:ign
 
 It’s possible to temporarily hard-code strings in English, for example if the content is being finalized or if the feature is only available in English. Android products can load arbitrary XML files from the `values` folder, while the localization infrastructure is set up to only look at `values/strings.xml` (via `l10n.toml` [configuration files](https://github.com/mozilla/moz-l10n/wiki/L10nConfigPaths-file-format)). Typically, a file called `static_strings.xml` can be used to hard-code English strings.
 
+## Using plural strings
+
+Android provides built-in support for [plural strings](https://developer.android.com/guide/topics/resources/string-resource#Plurals), allowing different string forms based on a quantity.
+
+Example:
+
+```xml
+<!-- %d represents the number of open tabs. -->
+<plurals name="tabs_count">
+    <item quantity="one">Close %d tab</item>
+    <item quantity="other">Close %d tabs</item>
+</plurals>
+```
+
+Omitting the variable in the `one` form is acceptable when the singular can be expressed as a word or omitted, but the `other` form must always include the variable representing the number.
+
+```xml
+<!-- %d represents the number of open tabs. -->
+<plurals name="tabs_count">
+    <item quantity="one">Close tab</item>
+    <item quantity="other">Close %d tabs</item>
+</plurals>
+```
+
+**Caveat:** do not use plurals to express a "one vs. many" distinction where "one" means a literal single item and "many" means "more than one". Many languages have plural forms that do not map to this binary split. Russian, for example, has three forms: `one` for 1, 21, 31…; `few` for 2–4, 22–24…; and `many` for 5–20, 25–30…. Using a simple "one vs. many" plural for such languages will produce incorrect translations.
+
+A red flag is defining plural strings without including a variable for the quantity (e.g. `%d`): if no quantity is displayed, using a plural string is likely incorrect, and you are in "one vs. many" territory.
+
+Bad example (no quantity shown — "one vs. many" territory):
+
+```xml
+<!-- BAD: use two separate strings instead -->
+<plurals name="close_tabs_dialog_title">
+    <item quantity="one">Close tab?</item>
+    <item quantity="other">Close tabs?</item>
+</plurals>
+```
+
+In this case, use two separate strings and select between them in code based on whether the count is exactly one.
+
+Similarly, avoid using the `zero` quantity category to special-case the empty state: it is not supported in all languages and may be silently ignored. Handle the zero case in code and display a dedicated string instead.
+
 ## Editing localized files
 
 Localized files live in `values-$LOCALE` folders (e.g. `values-fr` for French). They should not be edited directly, since automation will overwrite these changes every 24h (it only runs from `android-l10n` to the Firefox repository). If you spot errors and need to make changes, get in touch with the [localization project manager](https://mozilla-l10n.github.io/localizer-documentation/products/l10n_project_managers.html) in charge of Android projects.
