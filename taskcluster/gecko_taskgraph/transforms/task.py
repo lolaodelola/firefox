@@ -2373,7 +2373,9 @@ def try_task_config_env(config, tasks):
     implementations = {
         name
         for name, builder in payload_builders.items()
-        if hasattr(builder.schema, "schema") and "env" in builder.schema.schema
+        if isinstance(builder.schema, type)
+        and issubclass(builder.schema, msgspec.Struct)
+        and any(f.name == "env" for f in msgspec.structs.fields(builder.schema))
     }
     for task in tasks:
         if task["worker"]["implementation"] in implementations:
