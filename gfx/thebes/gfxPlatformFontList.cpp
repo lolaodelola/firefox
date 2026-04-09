@@ -1983,7 +1983,7 @@ bool gfxPlatformFontList::InitializeFamily(fontlist::Family* aFamily,
   if (index >= list->NumFamilies()) {
     return false;
   }
-  if (!NS_IsMainThread()) {
+  if (!NS_IsMainThread() && (!sInitFontListThread || !IsInitFontListThread())) {
     NS_DispatchToMainThread(new InitializeFamilyRunnable(index, aLoadCmaps));
     return aFamily->IsInitialized();
   }
