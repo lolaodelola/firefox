@@ -23,12 +23,14 @@ add_task(async function test_adopt_from_window() {
   const sidebar = document.querySelector("sidebar-main");
   ok(sidebar, "Sidebar is shown.");
   await sidebar.updateComplete;
-  await SidebarTestUtils.showPanel(window, "viewCustomizeSidebar");
+  await toggleSidebarPanel(window, "viewCustomizeSidebar");
 
   // Set width
   let sidebarBox = document.getElementById("sidebar-box");
-  Assert.ok(BrowserTestUtils.isVisible(sidebarBox), "Sidebar box is visible");
-
+  await BrowserTestUtils.waitForCondition(
+    () => BrowserTestUtils.isVisible(sidebarBox),
+    "Sidebar box is visible"
+  );
   let originalSidebarWidth = sidebarBox.getBoundingClientRect().width;
 
   async function run_test_adopt_from_window(width) {
@@ -40,12 +42,11 @@ add_task(async function test_adopt_from_window() {
     });
 
     // Check category of new window sidebar is that of opener window sidebar
-    await SidebarTestUtils.waitForInitialized(newWin);
-    let newSidebarBox = newWin.document.getElementById("sidebar-box");
-    Assert.ok(
-      BrowserTestUtils.isVisible(newSidebarBox),
-      "New sidebar box is visible"
-    );
+    let newSidebarBox;
+    await BrowserTestUtils.waitForCondition(() => {
+      newSidebarBox = newWin.document.getElementById("sidebar-box");
+      return newSidebarBox && BrowserTestUtils.isVisible(newSidebarBox);
+    }, "New sidebar box is visible");
 
     Assert.notEqual(
       newSidebarBox,
@@ -80,7 +81,7 @@ add_task(async function test_adopt_from_window() {
       private: true,
     });
     const privateSidebar = privateWin.SidebarController;
-    await SidebarTestUtils.waitForInitialized(privateWin);
+    await privateSidebar.promiseInitialized;
 
     Assert.equal(
       privateSidebar.currentID,
@@ -104,7 +105,7 @@ add_task(async function test_focus_history_from_adopted() {
   const sidebar = document.querySelector("sidebar-main");
   ok(sidebar, "Sidebar is shown.");
   await sidebar.updateComplete;
-  await SidebarTestUtils.showPanel(window, "viewHistorySidebar");
+  await toggleSidebarPanel(window, "viewHistorySidebar");
 
   const { contentDocument } = SidebarController.browser;
   const historySidebar = contentDocument.querySelector("sidebar-history");
@@ -124,9 +125,13 @@ add_task(async function test_focus_history_from_adopted() {
   const newWin = lazy.BrowserWindowTracker.openWindow({
     openerWindow: window,
   });
-  await SidebarTestUtils.waitForInitialized(newWin);
 
-  let NewSidebarController = newWin.SidebarController;
+  let NewSidebarController;
+  await BrowserTestUtils.waitForCondition(
+    () => (NewSidebarController = newWin.SidebarController),
+    "newWin SidebarController is present"
+  );
+
   let newWinHistorySidebar;
   let newContentDocument;
   await BrowserTestUtils.waitForCondition(() => {
@@ -156,9 +161,9 @@ add_task(async function test_hide_tabs_and_sidebar_persists_in_new_window() {
       [SIDEBAR_VISIBILITY_PREF, "hide-sidebar"],
     ],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
 
-  await SidebarTestUtils.showPanel(window, "viewCustomizeSidebar");
+  await toggleSidebarPanel(window, "viewCustomizeSidebar");
 
   // Collapse the launcher (simulates "Hide tabs and sidebar" being active)
   SidebarController._state.launcherVisible = false;
@@ -166,12 +171,21 @@ add_task(async function test_hide_tabs_and_sidebar_persists_in_new_window() {
   const newWin = lazy.BrowserWindowTracker.openWindow({
     openerWindow: window,
   });
-  await SidebarTestUtils.waitForInitialized(newWin);
-  const newSidebar = newWin.document.getElementById("sidebar-main");
-  ok(
-    newSidebar.hidden,
-    "Sidebar launcher is hidden in new window when 'Hide tabs and sidebar' is set"
-  );
-  await BrowserTestUtils.closeWindow(newWin);
-  await SpecialPowers.popPrefEnv();
+
+  try {
+    await BrowserTestUtils.waitForCondition(
+      () => newWin.SidebarController?.uiStateInitialized,
+      "New window sidebar state is initialized"
+    );
+    await newWin.SidebarController.promiseInitialized;
+
+    const newSidebar = newWin.document.getElementById("sidebar-main");
+    ok(
+      newSidebar.hidden,
+      "Sidebar launcher is hidden in new window when 'Hide tabs and sidebar' is set"
+    );
+  } finally {
+    await BrowserTestUtils.closeWindow(newWin);
+    await SpecialPowers.popPrefEnv();
+  }
 });

@@ -7,7 +7,7 @@ add_setup(async () => {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, true]],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
   Assert.equal(
     Services.prefs.getStringPref(SIDEBAR_VISIBILITY_PREF),
     "always-show",

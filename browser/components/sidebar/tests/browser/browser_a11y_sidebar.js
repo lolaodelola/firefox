@@ -254,7 +254,7 @@ add_task(async function test_keyboard_navigation_vertical_tabs() {
   SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, true]],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
   const sidebar = document.querySelector("sidebar-main");
   info("Waiting for tool buttons to be present");
   await BrowserTestUtils.waitForMutationCondition(

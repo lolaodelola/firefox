@@ -19,7 +19,7 @@ add_setup(async () => {
 
 async function showBookmarksSidebar() {
   if (SidebarController.currentID !== "viewBookmarksSidebar") {
-    await SidebarTestUtils.showPanel(window, "viewBookmarksSidebar");
+    await toggleSidebarPanel(window, "viewBookmarksSidebar");
   }
   const { contentDocument, contentWindow } = SidebarController.browser;
   await BrowserTestUtils.waitForCondition(

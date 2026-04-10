@@ -15,7 +15,7 @@ add_setup(async () => {
     launcherExpanded: false,
     launcherVisible: true,
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
 });
 
 registerCleanupFunction(async () => {
@@ -188,9 +188,9 @@ add_task(async function test_resize_after_toggling_revamp() {
       [VERTICAL_TABS_PREF, false],
     ],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "horizontal");
+  await waitForTabstripOrientation("horizontal");
   await SpecialPowers.popPrefEnv();
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
 
   info("Resize the vertical tab strip.");
   const originalWidth = getLauncherWidth();

@@ -702,7 +702,7 @@ add_task(async function test_history_context_menu() {
       EventUtils.synthesizeKey("VK_RETURN", {}, dialogWin);
     }
   );
-  await SidebarTestUtils.showPanel(window, "viewBookmarksSidebar");
+  await toggleSidebarPanel(window, "viewBookmarksSidebar");
   let tree =
     SidebarController.browser.contentDocument.getElementById("bookmarks-view");
   let toolbarKey = tree._view._nodeDetails

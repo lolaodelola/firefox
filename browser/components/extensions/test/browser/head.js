@@ -60,14 +60,6 @@ ChromeUtils.defineESModuleGetters(this, {
   Management: "resource://gre/modules/Extension.sys.mjs",
 });
 
-ChromeUtils.defineLazyGetter(this, "SidebarTestUtils", () => {
-  const { SidebarTestUtils: utils } = ChromeUtils.importESModule(
-    "resource://testing-common/SidebarTestUtils.sys.mjs"
-  );
-  utils.init(this);
-  return utils;
-});
-
 var { makeWidgetId, promisePopupShown, getPanelForNode, awaitBrowserLoaded } =
   AppUiTestInternals;
 

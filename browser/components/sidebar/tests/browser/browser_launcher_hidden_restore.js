@@ -24,7 +24,7 @@ add_setup(async () => {
 add_task(async function test_launcher_hidden_restored_after_panel_close() {
   // When the launcher is initially hidden, after opening and closing a panel it
   // should restore to hidden.
-  await SidebarTestUtils.ensureLauncherHidden(window);
+  await ensureSidebarLauncherIsHidden();
 
   await SidebarController.show("viewHistorySidebar");
   await SidebarController.waitUntilStable();
@@ -46,7 +46,7 @@ add_task(
   async function test_launcher_visible_stays_visible_after_panel_close() {
     // If the launcher was initially visible, after opening and closing a panel it
     // should restore to visible.
-    await SidebarTestUtils.ensureLauncherVisible(window);
+    await ensureSidebarLauncherIsVisible();
 
     await SidebarController.show("viewHistorySidebar");
     await SidebarController.waitUntilStable();
@@ -64,7 +64,7 @@ add_task(
   async function test_launcher_hidden_restored_after_panel_switch_and_close() {
     // When the launcher is initially hidden, after opening a couple of sidebar panels
     // then closing the panel, it should restore to hidden.
-    await SidebarTestUtils.ensureLauncherHidden(window);
+    await ensureSidebarLauncherIsHidden();
 
     await SidebarController.show("viewHistorySidebar");
     await SidebarController.waitUntilStable();
@@ -84,7 +84,7 @@ add_task(
 add_task(async function test_launcher_hidden_restored_via_toggle() {
   // When the launcher is initially hidden, after toggling a sidebar panel
   // open then closed, it should restore to hidden.
-  await SidebarTestUtils.ensureLauncherHidden(window);
+  await ensureSidebarLauncherIsHidden();
 
   await SidebarController.show("viewHistorySidebar");
   await SidebarController.waitUntilStable();
@@ -100,7 +100,7 @@ add_task(async function test_launcher_hidden_restored_via_toggle() {
 add_task(async function test_visibility_mode_change_while_panel_open() {
   // When the launcher is initially hidden, if the visibility pref changes to something
   // that isn't hide-sidebar, it should remain visible regardless of the origin state.
-  await SidebarTestUtils.ensureLauncherHidden(window);
+  await ensureSidebarLauncherIsHidden();
 
   await SidebarController.show("viewHistorySidebar");
   await SidebarController.waitUntilStable();

@@ -12,13 +12,13 @@ add_setup(async () => {
   await PlacesUtils.bookmarks.eraseEverything();
   registerCleanupFunction(async () => {
     await PlacesUtils.bookmarks.eraseEverything();
-    SidebarTestUtils.closePanel(window);
+    SidebarController.hide();
   });
 });
 
 async function showBookmarksSidebar() {
   if (SidebarController.currentID !== "viewBookmarksSidebar") {
-    await SidebarTestUtils.showPanel(window, "viewBookmarksSidebar");
+    await toggleSidebarPanel(window, "viewBookmarksSidebar");
   }
   const { contentDocument, contentWindow } = SidebarController.browser;
   await BrowserTestUtils.waitForCondition(
@@ -82,7 +82,7 @@ add_task(async function test_arrow_down_into_expanded_folder() {
   await focusWithKeyboard(firstRow, "KEY_ArrowDown", contentWindow);
   ok(isActiveElement(firstRow), "First bookmark row inside folder is focused.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_up_from_first_row_focuses_parent_summary() {
@@ -115,7 +115,7 @@ add_task(async function test_arrow_up_from_first_row_focuses_parent_summary() {
   await focusWithKeyboard(toolbarSummary, "KEY_ArrowUp", contentWindow);
   ok(isActiveElement(toolbarSummary), "Parent folder summary is focused.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_down_navigates_between_rows() {
@@ -160,7 +160,7 @@ add_task(async function test_arrow_down_navigates_between_rows() {
   await focusWithKeyboard(rows[0], "KEY_ArrowUp", contentWindow);
   ok(isActiveElement(rows[0]), "First row is focused again.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_down_from_last_row_to_next_folder() {
@@ -228,7 +228,7 @@ add_task(async function test_arrow_down_from_last_row_to_next_folder() {
   await focusWithKeyboard(folder2Summary, "KEY_ArrowDown", contentWindow);
   ok(isActiveElement(folder2Summary), "Folder Two summary is focused.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_left_collapses_folder() {
@@ -263,7 +263,7 @@ add_task(async function test_arrow_left_collapses_folder() {
   ok(!toolbarDetails.open, "Folder is collapsed.");
   ok(isActiveElement(toolbarSummary), "Summary retains focus after collapse.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_left_from_row_focuses_parent_summary() {
@@ -296,7 +296,7 @@ add_task(async function test_arrow_left_from_row_focuses_parent_summary() {
   await focusWithKeyboard(toolbarSummary, "KEY_ArrowLeft", contentWindow);
   ok(isActiveElement(toolbarSummary), "Parent folder summary is focused.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_right_expands_folder() {
@@ -337,7 +337,7 @@ add_task(async function test_arrow_right_expands_folder() {
   );
   ok(toolbarDetails.open, "Folder is expanded.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_right_enters_already_expanded_folder() {
@@ -372,7 +372,7 @@ add_task(async function test_arrow_right_enters_already_expanded_folder() {
   await focusWithKeyboard(firstRow, "KEY_ArrowRight", contentWindow);
   ok(isActiveElement(firstRow), "First item inside the folder is focused.");
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });
 
 add_task(async function test_arrow_up_enters_previous_expanded_folder() {
@@ -442,5 +442,5 @@ add_task(async function test_arrow_up_enters_previous_expanded_folder() {
     "Last row in expanded previous folder is focused."
   );
 
-  SidebarTestUtils.closePanel(window);
+  SidebarController.hide();
 });

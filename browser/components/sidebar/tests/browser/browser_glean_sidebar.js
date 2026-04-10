@@ -58,7 +58,7 @@ add_task(async function test_sidebar_expand() {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, true]],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
   // Vertical tabs are expanded by default
   info("Waiting for sidebar main to be expanded");
   await BrowserTestUtils.waitForMutationCondition(
@@ -93,10 +93,7 @@ add_task(async function test_sidebar_expand() {
   Assert.equal(events?.length, 2, "Two events were reported.");
 
   await SpecialPowers.popPrefEnv();
-  await SidebarTestUtils.waitForTabstripOrientation(
-    window,
-    initialTabDirection
-  );
+  await waitForTabstripOrientation(initialTabDirection);
 });
 
 async function testSidebarToggle(commandID, gleanEvent, otherCommandID) {
@@ -447,7 +444,7 @@ add_task(async function test_customize_sidebar_display() {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, true]],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
   await testCustomizeSetting(
     "visibilityInput",
     Glean.sidebarCustomize.sidebarDisplay,
@@ -455,10 +452,7 @@ add_task(async function test_customize_sidebar_display() {
     { preference: "always" }
   );
   await SpecialPowers.popPrefEnv();
-  await SidebarTestUtils.waitForTabstripOrientation(
-    window,
-    initialTabDirection
-  );
+  await waitForTabstripOrientation(initialTabDirection);
 });
 
 add_task(async function test_customize_sidebar_position() {
@@ -497,7 +491,7 @@ add_task(async function test_sidebar_resize() {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, true]],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
   await SidebarController.show("viewHistorySidebar");
   const originalWidth = SidebarController._box.style.width;
   SidebarController._box.style.width = "500px";
@@ -521,17 +515,14 @@ add_task(async function test_sidebar_resize() {
   SidebarController._box.style.width = originalWidth;
   SidebarController.hide();
   await SpecialPowers.popPrefEnv();
-  await SidebarTestUtils.waitForTabstripOrientation(
-    window,
-    initialTabDirection
-  );
+  await waitForTabstripOrientation(initialTabDirection);
 });
 
 add_task(async function test_sidebar_display_settings() {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, true]],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
   await testCustomizeSetting(
     "visibilityInput",
     Glean.sidebar.displaySettings,
@@ -539,10 +530,7 @@ add_task(async function test_sidebar_display_settings() {
     "always"
   );
   await SpecialPowers.popPrefEnv();
-  await SidebarTestUtils.waitForTabstripOrientation(
-    window,
-    initialTabDirection
-  );
+  await waitForTabstripOrientation(initialTabDirection);
 });
 
 add_task(async function test_sidebar_position_settings() {
@@ -594,7 +582,7 @@ async function testIconClick(expanded) {
       ["browser.contextual-password-manager.enabled", true],
     ],
   });
-  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
+  await waitForTabstripOrientation("vertical");
 
   await SidebarController.waitUntilStable();
   await SidebarController.show("viewCustomizeSidebar");
@@ -702,10 +690,7 @@ async function testIconClick(expanded) {
   await extension.unload();
 
   await SpecialPowers.popPrefEnv();
-  await SidebarTestUtils.waitForTabstripOrientation(
-    window,
-    initialTabDirection
-  );
+  await waitForTabstripOrientation(initialTabDirection);
   Services.fog.testResetFOG();
 }
 
