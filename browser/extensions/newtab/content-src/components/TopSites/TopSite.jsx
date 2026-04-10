@@ -996,6 +996,7 @@ export class _TopSiteList extends React.PureComponent {
       } else if (i >= maxNarrowVisibleIndex) {
         slotProps.className = "hide-for-narrow";
       }
+      const { key: slotKey, ...restSlotProps } = slotProps;
 
       let topSiteLink = null;
       // Use a placeholder if the link is empty or it's rendering a sponsored
@@ -1005,12 +1006,19 @@ export class _TopSiteList extends React.PureComponent {
         (props.App.isForStartupCache.TopSites && isSponsored(link))
       ) {
         if (link) {
-          topSiteLink = <TopSitePlaceholder {...slotProps} {...commonProps} />;
+          topSiteLink = (
+            <TopSitePlaceholder
+              key={slotKey}
+              {...restSlotProps}
+              {...commonProps}
+            />
+          );
         }
       } else if (topSites[i]?.isAddButton) {
         topSiteLink = (
           <TopSiteAddButton
-            {...slotProps}
+            key={slotKey}
+            {...restSlotProps}
             {...commonProps}
             setRef={
               i === this.state.focusedIndex
@@ -1030,10 +1038,11 @@ export class _TopSiteList extends React.PureComponent {
       } else {
         topSiteLink = (
           <TopSite
+            key={slotKey}
             link={link}
             activeIndex={this.state.activeIndex}
             onActivate={this.onActivate}
-            {...slotProps}
+            {...restSlotProps}
             {...commonProps}
             colors={props.colors}
             setRef={

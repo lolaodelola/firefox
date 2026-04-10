@@ -3,15 +3,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import { render, fireEvent } from "@testing-library/react";
-import { Provider } from "react-redux";
+import { WrapWithProvider } from "test/jest/test-utils";
 import {
   actionTypes as at,
   CONTENT_MESSAGE_TYPE,
   MAIN_MESSAGE_TYPE,
 } from "common/Actions.mjs";
-import { INITIAL_STATE, reducers } from "common/Reducers.sys.mjs";
+import { INITIAL_STATE } from "common/Reducers.sys.mjs";
 import { CardSections } from "content-src/components/DiscoveryStreamComponents/CardSections/CardSections";
-import { combineReducers, createStore } from "redux";
 
 const PREF_SECTIONS_PERSONALIZATION_ENABLED =
   "discoverystream.sections.personalization.enabled";
@@ -60,11 +59,6 @@ const DEFAULT_PROPS = {
     url: "https://merino.services.mozilla.com/api/v1/curated-recommendations",
   },
 };
-
-function WrapWithProvider({ children, state = INITIAL_STATE }) {
-  const store = createStore(combineReducers(reducers), state);
-  return <Provider store={store}>{children}</Provider>;
-}
 
 describe("<CardSections />", () => {
   let dispatch;

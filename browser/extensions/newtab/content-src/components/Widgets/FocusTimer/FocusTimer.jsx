@@ -933,6 +933,7 @@ function EditableTimerFields({
     <>
       <span
         contentEditable="true"
+        suppressContentEditableWarning={true}
         ref={minutesRef}
         className="timer-set-minutes"
         onKeyDown={props.onKeyDown}
@@ -946,6 +947,7 @@ function EditableTimerFields({
       :
       <span
         contentEditable="true"
+        suppressContentEditableWarning={true}
         ref={secondsRef}
         className="timer-set-seconds"
         onKeyDown={props.onKeyDown}
