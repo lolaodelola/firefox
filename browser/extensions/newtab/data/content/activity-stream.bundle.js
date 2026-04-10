@@ -10743,16 +10743,18 @@ const PersonalizedCard = ({
     iconSrc: "chrome://global/skin/icons/close.svg",
     onClick: onDismiss,
     "data-l10n-id": "newtab-card-dismiss-button"
-  })), /*#__PURE__*/external_React_default().createElement("div", {
-    className: "personalized-card-inner"
-  }, /*#__PURE__*/external_React_default().createElement("img", {
+  })), /*#__PURE__*/external_React_default().createElement("img", {
     src: kitFox,
     alt: ""
-  }), /*#__PURE__*/external_React_default().createElement("h2", null, messageData.content.cardTitle), /*#__PURE__*/external_React_default().createElement("p", null, messageData.content.cardMessage), /*#__PURE__*/external_React_default().createElement("div", {
+  }), /*#__PURE__*/external_React_default().createElement("div", {
+    className: "personalized-card-inner"
+  }, /*#__PURE__*/external_React_default().createElement("div", {
+    className: "personalized-card-message-wrapper"
+  }, /*#__PURE__*/external_React_default().createElement("h2", null, messageData.content.cardTitle), /*#__PURE__*/external_React_default().createElement("p", null, messageData.content.cardMessage)), /*#__PURE__*/external_React_default().createElement("div", {
     className: "personalized-card-cta-wrapper"
   }, /*#__PURE__*/external_React_default().createElement("moz-button", {
     type: "primary",
-    class: "personalized-card-cta",
+    class: "personalized-card-button",
     onClick: () => onToggleClick("open-personalization-panel")
   }, messageData.content.ctaText), /*#__PURE__*/external_React_default().createElement(SafeAnchor, {
     className: "personalized-card-link",
