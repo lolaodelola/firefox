@@ -283,6 +283,12 @@ Function PrepareStubInstallPing
 
   nsJSON::Set /tree ping "Data" "stub_build_id" /value '"${MOZ_BUILDID}"'
 
+  !ifdef FunnelcakeVersion
+    nsJSON::Quote /always "${FunnelcakeVersion}"
+    Pop $0
+    nsJSON::Set /tree ping "Data" "funnelcake" /value $0
+  !endif
+
   nsJSON::Set /tree ping "Data" "download_retries" /value "$DownloadRetryCount"
   nsJSON::Set /tree ping "Data" "bytes_downloaded" /value "$DownloadedBytes"
   nsJSON::Set /tree ping "Data" "download_size" /value "$DownloadSizeBytes"
