@@ -29,13 +29,13 @@
 #include "libwebrtcglue/VideoConduit.h"
 #include "libwebrtcglue/WebrtcCallWrapper.h"
 #include "libwebrtcglue/WebrtcEnvironmentWrapper.h"
+#include "mozilla/IceServerParser.h"
 #include "mozilla/IntegerPrintfMacros.h"
 #include "mozilla/Sprintf.h"
 #include "mozilla/StaticPrefs_media.h"
 #include "mozilla/glean/DomMediaWebrtcMetrics.h"
 #include "mozilla/media/MediaUtils.h"
 #include "nsEffectiveTLDService.h"
-#include "nsFmtString.h"
 #include "nsILoadContext.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
@@ -2554,6 +2554,23 @@ void PeerConnectionImpl::InvalidateLastReturnedParameters() {
   for (const auto& transceiver : mTransceivers) {
     transceiver->Sender()->InvalidateLastReturnedParameters();
   }
+}
+
+void PeerConnectionImpl::ParseIceServers(
+    const nsTArray<dom::RTCIceServer>& aIceServers, ErrorResult& aRv) {
+  auto result = IceServerParser::Parse(aIceServers);
+  if (result.isErr()) {
+    aRv = result.unwrapErr();
+  }
+}
+
+void PeerConnectionImpl::SetConfiguration(
+    const RTCConfiguration& aConfiguration, ErrorResult& aRv) {
+  ParseIceServers(aConfiguration.mIceServers, aRv);
+  if (aRv.Failed()) {
+    return;
+  }
+  aRv = SetConfiguration(aConfiguration);
 }
 
 nsresult PeerConnectionImpl::SetConfiguration(

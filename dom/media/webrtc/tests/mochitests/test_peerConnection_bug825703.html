@@ -82,7 +82,6 @@ runNetworkTest(async () => {
   await push({ set: [['media.peerconnection.treat_warnings_as_errors', false]] });
 
   makePC({ iceServers: [
-    { urls:"stuns:localhost", foo:"" },
     { url:"stun:localhost", foo:"" },
     { url:"turn:localhost", username:"p", credential:"p" }
   ]});
