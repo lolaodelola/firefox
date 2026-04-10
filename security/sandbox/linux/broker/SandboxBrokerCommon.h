@@ -24,7 +24,7 @@ namespace mozilla {
 
 class SandboxBrokerCommon {
  public:
-  enum class Operation : unsigned {
+  enum Operation {
     SANDBOX_FILE_OPEN,
     SANDBOX_FILE_ACCESS,
     SANDBOX_FILE_STAT,
@@ -38,17 +38,9 @@ class SandboxBrokerCommon {
     SANDBOX_FILE_READLINK,
     SANDBOX_SOCKET_CONNECT,
     SANDBOX_SOCKET_CONNECT_ABSTRACT,
-    SANDBOX_OP_MAX_VALUE = SANDBOX_SOCKET_CONNECT_ABSTRACT
   };
-  using enum Operation;
-
-  static bool OperationIsValid(Operation aOp) {
-    return static_cast<unsigned>(aOp) <=
-           static_cast<unsigned>(SANDBOX_OP_MAX_VALUE);
-  }
-
-  static unsigned OperationToInt(Operation);
-  static const char* OperationDescription(Operation);
+  // String versions of the above
+  static const char* OperationDescription[];
 
   struct Request {
     Operation mOp;
