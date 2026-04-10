@@ -576,10 +576,11 @@ tasks:
         tier: default
         max-run-time:
             by-test-platform:
-                .*-asan.*: 1800
+                .*-asan.*: 2400
                 .*-tsan.*: 2400
                 .*-ccov.*: 2400
-                default: 1500
+                .*/debug: 2400
+                default: 1800
         mozharness:
             mochitest-flavor: browser
         instance-size: default
