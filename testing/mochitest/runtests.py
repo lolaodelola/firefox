@@ -188,6 +188,15 @@ class MessageLogger:
         # Message buffering
         self.buffered_messages = []
 
+        # Per-test saved buffers for shutdown leak detection. When enabled,
+        # buffers are saved at test_end so they can be dumped if the test
+        # is later found to have leaked.
+        self._saved_buffers = None
+        self._current_test_name = None
+
+    def enable_saved_buffers(self):
+        self._saved_buffers = {}
+
     def setManifest(self, name):
         self._manifest = name
 
@@ -295,6 +304,7 @@ class MessageLogger:
             self.buffering = False
             if self.buffered_messages:
                 self.dump_buffered()
+            self.dump_saved_buffer(message.get("test"))
 
             # Logging the error message
             self.logger.log_raw(message)
@@ -312,12 +322,16 @@ class MessageLogger:
         # If a test ended, we clean the buffer
         if message["action"] == "test_end":
             self.is_test_running = False
+            if self._saved_buffers is not None and self.buffered_messages:
+                self._saved_buffers[self._current_test_name] = self.buffered_messages
             self.buffered_messages = []
+            self._current_test_name = None
             self.restore_buffering = self.restore_buffering or self.buffering
             self.buffering = False
 
         if message["action"] == "test_start":
             self.is_test_running = True
+            self._current_test_name = message.get("test")
             if self.restore_buffering:
                 self.restore_buffering = False
                 self.buffering = True
@@ -331,9 +345,12 @@ class MessageLogger:
     def flush(self):
         sys.stdout.flush()
 
-    def dump_buffered(self):
+    def dump_buffered(self, messages=None):
+        if messages is None:
+            messages = self.buffered_messages
+            self.buffered_messages = []
         last_timestamp = None
-        for buf in self.buffered_messages:
+        for buf in messages:
             # pylint --py3k W1619
             timestamp = datetime.fromtimestamp(buf["time"] / 1000).strftime("%H:%M:%S")
             if timestamp != last_timestamp:
@@ -342,8 +359,18 @@ class MessageLogger:
 
             self.logger.log_raw(buf)
         self.logger.info("Buffered messages finished")
-        # Cleaning the list of buffered messages
-        self.buffered_messages = []
+
+    def dump_saved_buffer(self, test_name):
+        if self._saved_buffers is None or test_name not in self._saved_buffers:
+            return
+        messages = self._saved_buffers.pop(test_name)
+        if not messages:
+            return
+        self.logger.info(
+            f"Dumping buffered messages from {test_name} "
+            "that leaked a window or docshell"
+        )
+        self.dump_buffered(messages)
 
     def finish(self):
         self.dump_buffered()
@@ -4219,6 +4246,9 @@ toolbar#nav-bar {
             self.restartAfterFailure = restartAfterFailure
             self.browserProcessId = None
             self.stackFixerFunction = self.stackFixer()
+
+            if shutdownLeaks:
+                harness.message_logger.enable_saved_buffers()
 
         def processOutputLine(self, line):
             """per line handler of output for mozprocess"""
