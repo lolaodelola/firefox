@@ -16,4 +16,7 @@ skip-if = [
 ["test_udpsocket.html"]
 skip-if = [
   "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2023967
+  "os == 'android'", # Bug 2023967
+  "os == 'linux' && os_version == '24.04' && arch == 'x86_64' && display == 'x11'", # Bug 2023967
+  "os == 'mac' && os_version == '14.70' && arch == 'x86_64'", # Bug 2023967  
 ]
