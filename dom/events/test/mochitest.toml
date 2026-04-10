@@ -511,6 +511,7 @@ skip-if = [
   "os == 'android' && verify",
   "os == 'win' && os_version == '11.26100' && arch == 'x86_64' && opt && xorigin && verify-standalone",
   "os == 'win' && os_version == '11.26200' && arch == 'x86_64' && opt && xorigin && verify-standalone",
+  "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2023967
 ]
 
 ["test_dragstart_form_associated_custom_element.html"]
@@ -637,6 +638,7 @@ tags = "os_integration"
 ["test_slotted_mouse_event.html"]
 skip-if = [
   "os == 'android'", # timeout
+  "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2023967
 ]
 
 ["test_slotted_text_click.html"]

@@ -65,6 +65,9 @@ skip-if = [
 
 ["browser_screenshots_telemetry_tests.js"]
 
+skip-if = [
+  "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2023967
+]
 ["browser_screenshots_test_downloads.js"]
 
 ["browser_screenshots_test_escape.js"]

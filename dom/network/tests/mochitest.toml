@@ -12,3 +12,8 @@ skip-if = [
 ]
 
 ["test_tcpsocket_not_exposed_to_content.html"]
+
+["test_udpsocket.html"]
+skip-if = [
+  "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2023967
+]

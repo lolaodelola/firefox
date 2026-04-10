@@ -23,6 +23,7 @@ skip-if = [
 ["test_menubar.xhtml"]
 skip-if = [
   "os == 'mac' && os_version == '14.70' && arch == 'x86_64'", # Bug 1933983
+  "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # Bug 2023967
 ]
 
 ["test_moz_badge.html"]
