@@ -41,6 +41,7 @@ input {
   --newtab-background-color-secondary: var(--color-white);
   --newtab-text-primary-color: var(--text-color);
   --newtab-background-card: color-mix(in srgb, var(--color-white) 85%, transparent);
+  --newtab-card-placeholder-background-color: color-mix(in srgb, currentColor 21%, transparent);
   --newtab-text-topic-label-color: var(--color-violet-70);
   --newtab-text-secondary-text: var(--text-color-deemphasized);
   --newtab-contextual-text-primary-color: light-dark(var(--newtab-text-primary-color), var(--text-color));
@@ -9377,7 +9378,7 @@ main section {
   overflow: hidden;
 }
 .ds-card.placeholder .placeholder-fill {
-  background: var(--newtab-button-active-background);
+  background: var(--newtab-card-placeholder-background-color);
   border-radius: var(--border-radius-small);
 }
 .ds-card.placeholder .placeholder-image {

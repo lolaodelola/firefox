@@ -946,7 +946,7 @@ export class BaseContent extends React.PureComponent {
                 <ErrorBoundary className="borderless-error">
                   <DiscoveryStreamBase
                     locale={props.App.locale}
-                    placeholder={this.isSpocsOnDemandExpired}
+                    spocsLoading={this.isSpocsOnDemandExpired}
                   />
                 </ErrorBoundary>
               )}
@@ -1073,7 +1073,7 @@ export class BaseContent extends React.PureComponent {
                 <ErrorBoundary className="borderless-error">
                   <DiscoveryStreamBase
                     locale={props.App.locale}
-                    placeholder={this.isSpocsOnDemandExpired}
+                    spocsLoading={this.isSpocsOnDemandExpired}
                   />
                 </ErrorBoundary>
               ) : (

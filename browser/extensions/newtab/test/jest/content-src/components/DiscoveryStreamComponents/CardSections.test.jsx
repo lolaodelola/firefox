@@ -165,6 +165,70 @@ describe("<CardSections />", () => {
     expect(container.querySelector(".ds-card.placeholder")).toBeInTheDocument();
   });
 
+  it("should render DEFAULT_MAX_TILES placeholder cards when spocsLoading is true", () => {
+    const sectionData = [];
+    for (let i = 0; i < 12; i++) {
+      sectionData.push({ id: `card-${i}`, url: `https://example.com/${i}` });
+    }
+    const sectionProps = {
+      ...DEFAULT_PROPS,
+      data: {
+        ...DEFAULT_PROPS.data,
+        sections: [
+          {
+            ...DEFAULT_PROPS.data.sections[0],
+            sectionKey: "section_key_1",
+            data: sectionData,
+          },
+          {
+            ...DEFAULT_PROPS.data.sections[0],
+            sectionKey: "section_key_2",
+            data: sectionData,
+          },
+        ],
+      },
+    };
+
+    const { container: baselineContainer } = render(
+      <WrapWithProvider>
+        <CardSections {...sectionProps} />
+      </WrapWithProvider>
+    );
+    expect(baselineContainer.querySelectorAll("article.ds-card")).toHaveLength(
+      8
+    );
+
+    const { container } = render(
+      <WrapWithProvider>
+        <CardSections {...sectionProps} spocsLoading={true} />
+      </WrapWithProvider>
+    );
+    expect(container.querySelectorAll(".ds-card.placeholder")).toHaveLength(24);
+  });
+
+  it("should render placeholders when responsiveLayouts is empty", () => {
+    const { container } = render(
+      <WrapWithProvider>
+        <CardSections
+          {...DEFAULT_PROPS}
+          data={{
+            ...DEFAULT_PROPS.data,
+            sections: [
+              {
+                ...DEFAULT_PROPS.data.sections[0],
+                layout: { responsiveLayouts: [] },
+                data: [{ placeholder: true }, { placeholder: true }],
+              },
+            ],
+          }}
+        />
+      </WrapWithProvider>
+    );
+    expect(
+      container.querySelectorAll(".ds-card.placeholder").length
+    ).toBeGreaterThan(0);
+  });
+
   it("should pass correct props to DSCard", () => {
     const { container } = render(
       <WrapWithProvider>

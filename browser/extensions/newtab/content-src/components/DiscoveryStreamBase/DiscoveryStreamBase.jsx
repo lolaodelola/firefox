@@ -154,7 +154,7 @@ export class _DiscoveryStreamBase extends React.PureComponent {
               type={component.type}
               ctaButtonSponsors={component.properties.ctaButtonSponsors}
               ctaButtonVariant={component.properties.ctaButtonVariant}
-              placeholder={this.props.placeholder}
+              spocsLoading={this.props.spocsLoading}
             />
           );
         }
@@ -175,7 +175,7 @@ export class _DiscoveryStreamBase extends React.PureComponent {
             ctaButtonVariant={component.properties.ctaButtonVariant}
             hideDescriptions={this.props.DiscoveryStream.hideDescriptions}
             spocPositions={component.spocs?.positions}
-            placeholder={this.props.placeholder}
+            placeholder={this.props.spocsLoading}
           />
         );
       }

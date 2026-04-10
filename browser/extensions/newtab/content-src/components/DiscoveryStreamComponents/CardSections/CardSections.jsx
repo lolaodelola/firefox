@@ -48,6 +48,9 @@ const PREF_NOVA_ENABLED = "nova.enabled";
 const CURATED_RECOMMENDATIONS_FEED_URL =
   "https://merino.services.mozilla.com/api/v1/curated-recommendations";
 
+// Divides evenly by 2, 3, and 4 to avoid orphan cards in any column layout.
+const DEFAULT_MAX_TILES = 12;
+
 function getLayoutData(responsiveLayouts, index) {
   let layoutData = {
     classNames: [],
@@ -94,17 +97,11 @@ function getLayoutData(responsiveLayouts, index) {
 
 // function to determine amount of tiles shown per section per viewport
 function getMaxTiles(responsiveLayouts) {
-  return responsiveLayouts
-    .flatMap(responsiveLayout => responsiveLayout)
-    .reduce((acc, t) => {
-      acc[t.columnCount] = t.tiles.length;
-
-      // Update maxTile if current tile count is greater
-      if (!acc.maxTile || t.tiles.length > acc.maxTile) {
-        acc.maxTile = t.tiles.length;
-      }
-      return acc;
-    }, {});
+  return (
+    responsiveLayouts
+      .flatMap(responsiveLayout => responsiveLayout)
+      .reduce((max, t) => Math.max(max, t.tiles.length), 0) || DEFAULT_MAX_TILES
+  );
 }
 
 /**
@@ -137,7 +134,7 @@ function CardSection({
   ctaButtonVariant,
   ctaButtonSponsors,
   anySectionsFollowed,
-  placeholder,
+  spocsLoading,
   activeColumnLayout,
   syncLayoutOnFocus,
   gridRef,
@@ -328,11 +325,9 @@ function CardSection({
     );
   }, [dispatch, sectionPersonalization, sectionKey, sectionPosition, title]);
 
-  let { maxTile } = getMaxTiles(responsiveLayouts);
-  if (placeholder) {
-    // We need a number that divides evenly by 2, 3, and 4.
-    // So it can be displayed without orphans in grids with 2, 3, and 4 columns.
-    maxTile = 12;
+  let maxTile = DEFAULT_MAX_TILES;
+  if (!spocsLoading) {
+    maxTile = getMaxTiles(responsiveLayouts);
   }
 
   const shouldShowBriefingCard =
@@ -417,7 +412,7 @@ function CardSection({
       const isPlaceholder =
         !rec ||
         rec.placeholder ||
-        placeholder ||
+        spocsLoading ||
         (rec.flight_id &&
           !spocsStartupCacheEnabled &&
           isForStartupCache.DiscoveryStream);
@@ -639,7 +634,7 @@ function CardSections({
   type,
   ctaButtonVariant,
   ctaButtonSponsors,
-  placeholder,
+  spocsLoading,
 }) {
   const prefs = useSelector(state => state.Prefs.values);
   const { spocs, sectionPersonalization } = useSelector(
@@ -706,7 +701,7 @@ function CardSections({
 
   let sectionsData = data.sections;
 
-  if (placeholder) {
+  if (spocsLoading) {
     // To clean up the placeholder state for sections if the whole section is loading still.
     sectionsData = [
       {
@@ -748,7 +743,7 @@ function CardSections({
       ctaButtonVariant={ctaButtonVariant}
       ctaButtonSponsors={ctaButtonSponsors}
       anySectionsFollowed={anySectionsFollowed}
-      placeholder={placeholder}
+      spocsLoading={spocsLoading}
       activeColumnLayout={activeColumnLayout}
       syncLayoutOnFocus={syncLayoutOnFocus}
       gridRef={sectionPosition === 0 ? gridRef : undefined}
