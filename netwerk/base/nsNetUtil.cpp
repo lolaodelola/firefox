@@ -1951,6 +1951,9 @@ nsresult NS_NewURI(nsIURI** aURI, const nsACString& aSpec,
   }
 
   if (scheme.EqualsLiteral("moz-src")) {
+    if (!NS_IsMainThread()) {
+      return NS_ERROR_NOT_AVAILABLE;
+    }
     RefPtr<MozSrcProtocolHandler> handler =
         MozSrcProtocolHandler::GetSingleton();
     if (!handler) {

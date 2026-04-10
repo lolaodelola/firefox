@@ -21,6 +21,7 @@ NS_IMPL_RELEASE_INHERITED(MozSrcProtocolHandler, SubstitutingProtocolHandler)
 mozilla::StaticRefPtr<MozSrcProtocolHandler> MozSrcProtocolHandler::sSingleton;
 
 already_AddRefed<MozSrcProtocolHandler> MozSrcProtocolHandler::GetSingleton() {
+  MOZ_ASSERT(NS_IsMainThread());
   if (!sSingleton) {
     RefPtr<MozSrcProtocolHandler> handler = new MozSrcProtocolHandler();
     if (NS_WARN_IF(NS_FAILED(handler->Init()))) {
