@@ -84,8 +84,8 @@ std::ostream& operator<<(std::ostream& aStream,
   return aStream;
 }
 
-NS_IMPL_CYCLE_COLLECTION_INHERITED(CompositionTransaction, EditTransactionBase,
-                                   mEditorBase)
+NS_IMPL_CYCLE_COLLECTION_WEAK_PTR_INHERITED(CompositionTransaction,
+                                            EditTransactionBase, mEditorBase)
 // mRangeList can't lead to cycles
 
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(CompositionTransaction)
