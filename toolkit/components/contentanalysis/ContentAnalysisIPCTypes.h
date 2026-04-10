@@ -72,12 +72,25 @@ struct ParamTraits<mozilla::contentanalysis::NoContentAnalysisResult>
           static_cast<mozilla::contentanalysis::NoContentAnalysisResult>(0),
           mozilla::contentanalysis::NoContentAnalysisResult::LAST_VALUE> {};
 
+struct nsIContentAnalysisResponseActionValidator {
+  using IntegralType =
+      std::underlying_type_t<nsIContentAnalysisResponse::Action>;
+
+  static bool IsLegalValue(const IntegralType e) {
+    return e ==
+               IntegralType(nsIContentAnalysisResponse::Action::eUnspecified) ||
+           e == IntegralType(nsIContentAnalysisResponse::Action::eReportOnly) ||
+           e == IntegralType(nsIContentAnalysisResponse::Action::eWarn) ||
+           e == IntegralType(nsIContentAnalysisResponse::Action::eBlock) ||
+           e == IntegralType(nsIContentAnalysisResponse::Action::eAllow) ||
+           e == IntegralType(nsIContentAnalysisResponse::Action::eCanceled);
+  }
+};
+
 template <>
 struct ParamTraits<nsIContentAnalysisResponse::Action>
-    : public ContiguousEnumSerializerInclusive<
-          nsIContentAnalysisResponse::Action,
-          nsIContentAnalysisResponse::Action::eUnspecified,
-          nsIContentAnalysisResponse::Action::eCanceled> {};
+    : EnumSerializer<nsIContentAnalysisResponse::Action,
+                     nsIContentAnalysisResponseActionValidator> {};
 
 }  // namespace IPC
 

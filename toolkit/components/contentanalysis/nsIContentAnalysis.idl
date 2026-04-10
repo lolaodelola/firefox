@@ -53,6 +53,9 @@ interface nsIContentAnalysisResponse : nsIContentAnalysisResult
   // These values must stay synchronized with ContentAnalysisResponse
   // in analysis.proto!
   // Action requested in response to a successful analysis.
+  //
+  // This must also stay in sync with ParamTraits<nsIContentAnalysisResponse::Action> in
+  // ContentAnalysisIPCTypes.h!
   cenum Action : 32 {
     eUnspecified = 0,
     eReportOnly = 1,
