@@ -300,7 +300,7 @@ OpKind wasm::Classify(OpBytes op) {
       return OpKind::ResumeThrowRef;
     case Op::Switch:
       return OpKind::Switch;
-#  endif
+#  endif  // ENABLE_WASM_JSPI
     case Op::GcPrefix: {
       switch (GcOp(op.b1)) {
         case GcOp::Limit:
@@ -814,8 +814,10 @@ OpKind wasm::Classify(OpBytes op) {
           return OpKind::OldCallIndirect;
         case MozOp::CallBuiltinModuleFunc:
           return OpKind::CallBuiltinModuleFunc;
+#  ifdef ENABLE_WASM_JSPI
         case MozOp::StackSwitch:
           return OpKind::StackSwitch;
+#  endif
       }
       break;
     }
@@ -1226,6 +1228,22 @@ const char* OpBytes::toString() const {
       return "ref.eq";
     case Op::BrOnNonNull:
       return "br_on_non_null";
+#ifdef ENABLE_WASM_JSPI
+    case Op::ContNew:
+      return "cont.new";
+    case Op::ContBind:
+      return "cont.bind";
+    case Op::Suspend:
+      return "suspend";
+    case Op::Resume:
+      return "resume";
+    case Op::ResumeThrow:
+      return "resume_throw";
+    case Op::ResumeThrowRef:
+      return "resume_throw_ref";
+    case Op::Switch:
+      return "switch";
+#endif
     case Op::GcPrefix: {
       switch (GcOp(b1)) {
         case GcOp::StructNew:
