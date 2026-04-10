@@ -83,6 +83,27 @@ class ImageAnalzer:
         self.device.shell("settings put global window_animation_scale 1")
         self.device.shell("settings put global transition_animation_scale 1")
         self.device.shell("settings put global animator_duration_scale 1")
+        a11y_enabled = self.device.shell_output(
+            "settings get secure accessibility_enabled"
+        )
+        a11y_services = self.device.shell_output(
+            "settings get secure enabled_accessibility_services"
+        )
+        print(
+            f"A11Y STATE: accessibility_enabled={a11y_enabled}, services={a11y_services}"
+        )
+        print("A11Y: Clearing enabled_accessibility_services and accessibility_enabled")
+        self.device.shell('settings put secure enabled_accessibility_services ""')
+        self.device.shell("settings put secure accessibility_enabled 0")
+        a11y_enabled = self.device.shell_output(
+            "settings get secure accessibility_enabled"
+        )
+        a11y_services = self.device.shell_output(
+            "settings get secure enabled_accessibility_services"
+        )
+        print(
+            f"A11Y STATE AFTER CLEAR: accessibility_enabled={a11y_enabled}, services={a11y_services}"
+        )
         self.device.disable_notifications("com.topjohnwu.magisk")
         self.device_model = self.device.shell_output("getprop ro.product.model")
 
