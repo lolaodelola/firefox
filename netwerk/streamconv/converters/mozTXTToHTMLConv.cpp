@@ -581,6 +581,9 @@ bool mozTXTToHTMLConv::ItMatchesDelimited(const char16_t* aInString,
   }
 
   int32_t afterIndex = aRepLen + ignoreLen;
+  if (afterIndex >= aInLength) {
+    return false;
+  }
   uint32_t textAfterPos = aInString[afterIndex];
   if (aInLength > afterIndex + 1 &&
       NS_IS_SURROGATE_PAIR(textAfterPos, aInString[afterIndex + 1])) {
