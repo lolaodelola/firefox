@@ -43,6 +43,7 @@
 #include "mozilla/dom/Navigation.h"
 #include "mozilla/dom/NavigatorLogin.h"
 #include "mozilla/dom/PBackgroundSessionStorageCache.h"
+#include "mozilla/dom/SerialManagerParent.h"
 #include "mozilla/dom/UseCounterMetrics.h"
 #include "mozilla/dom/WebAuthnTransactionParent.h"
 #include "mozilla/dom/WebIdentityParent.h"
@@ -1866,7 +1867,18 @@ IPCResult WindowGlobalParent::RecvRecordUserInteractionForPermissions() {
   if (permMgr) {
     (void)permMgr->UpdateLastInteractionForPrincipal(principal);
   }
+  return IPC_OK();
+}
 
+already_AddRefed<PSerialManagerParent>
+WindowGlobalParent::AllocPSerialManagerParent() {
+  return MakeAndAddRef<SerialManagerParent>();
+}
+
+mozilla::ipc::IPCResult WindowGlobalParent::RecvPSerialManagerConstructor(
+    PSerialManagerParent* aActor) {
+  auto* manager = static_cast<SerialManagerParent*>(aActor);
+  manager->Init(BrowsingContext()->GetBrowserId());
   return IPC_OK();
 }
 

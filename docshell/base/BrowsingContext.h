@@ -300,6 +300,9 @@ struct EmbedderColorSchemes {
      Document Picture-in-Picture window */                                    \
   FIELD(ControlsDocumentPiP, bool)
 
+#define NS_DOM_BROWSINGCONTEXT_IID \
+  {0x5059a6aa, 0xf09, 0x415c, {0x89, 0xbd, 0x63, 0xfd, 0xe5, 0xab, 0x1a, 0x66}};
+
 // BrowsingContext, in this context, is the cross process replicated
 // environment in which information about documents is stored. In
 // particular the tree structure of nested browsing contexts is
@@ -318,6 +321,7 @@ struct EmbedderColorSchemes {
 // BrowsingContext::Create* methods.
 class BrowsingContext : public nsILoadContext, public nsWrapperCache {
   MOZ_DECL_SYNCED_CONTEXT(BrowsingContext, MOZ_EACH_BC_FIELD)
+  NS_INLINE_DECL_STATIC_IID(NS_DOM_BROWSINGCONTEXT_IID)
 
  public:
   enum class Type { Chrome, Content };
