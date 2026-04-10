@@ -1,4 +1,5 @@
 [DEFAULT]
+support-files = ["head.js"]
 prefs = [
   "browser.ml.chat.enabled=true",
   "browser.ml.chat.openSidebarOnProviderChange=false",

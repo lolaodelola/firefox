@@ -9,7 +9,7 @@ add_setup(async () => {
     set: [[VERTICAL_TABS_PREF, true]],
   });
   DOMFullscreenTestUtils.init(this, window);
-  await waitForTabstripOrientation("vertical");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
 });
 
 add_task(async function test_dom_fullscreen() {

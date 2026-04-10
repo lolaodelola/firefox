@@ -20,6 +20,10 @@ MOZ_SRC_FILES += [
     "SidebarTreeView.sys.mjs",
 ]
 
+TESTING_JS_MODULES += [
+    "tests/SidebarTestUtils.sys.mjs",
+]
+
 XPCSHELL_TESTS_MANIFESTS += ["tests/unit/xpcshell.toml"]
 
 SPHINX_TREES["docs"] = "docs"

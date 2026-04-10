@@ -20,7 +20,7 @@ add_setup(async () => {
       ["sidebar.main.tools", "aichat,passwords,syncedtabs,history"],
     ],
   });
-  await waitForTabstripOrientation("vertical");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
   Assert.equal(
     Services.prefs.getStringPref(SIDEBAR_VISIBILITY_PREF),
     "always-show",
@@ -85,7 +85,7 @@ add_task(async function test_toolbar_sidebar_button() {
 });
 
 add_task(async function test_expanded_state_for_always_show() {
-  await waitForTabstripOrientation("vertical");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
   const { sidebarMain, toolbarButton } = SidebarController;
 
   const checkExpandedState = async (
@@ -186,7 +186,7 @@ add_task(async function test_expanded_state_for_always_show() {
 
   info("Check expanded state on a new window.");
   const newWin = await BrowserTestUtils.openNewBrowserWindow();
-  await waitForTabstripOrientation("vertical", newWin);
+  await SidebarTestUtils.waitForTabstripOrientation(newWin, "vertical");
   await checkExpandedState(
     true,
     newWin.SidebarController.sidebarMain,
@@ -201,7 +201,7 @@ add_task(async function test_states_for_hide_sidebar() {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, false]],
   });
-  await waitForTabstripOrientation("horizontal");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "horizontal");
 
   const { sidebarContainer, sidebarMain, toolbarButton } = SidebarController;
 
@@ -284,7 +284,7 @@ add_task(async function test_states_for_hide_sidebar() {
 
   info("Check states on a new window.");
   const newWin = await BrowserTestUtils.openNewBrowserWindow();
-  await waitForTabstripOrientation("horizontal", newWin);
+  await SidebarTestUtils.waitForTabstripOrientation(newWin, "horizontal");
   await checkStates(
     { hidden: true },
     newWin.SidebarController.sidebarContainer,
@@ -298,7 +298,7 @@ add_task(async function test_states_for_hide_sidebar() {
 
   await BrowserTestUtils.closeWindow(newWin);
   await SpecialPowers.popPrefEnv();
-  await waitForTabstripOrientation("vertical");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
 });
 
 add_task(async function test_toolbar_sidebar_badges() {
@@ -310,7 +310,7 @@ add_task(async function test_toolbar_sidebar_badges() {
   await SpecialPowers.pushPrefEnv({
     set: [[VERTICAL_TABS_PREF, false]],
   });
-  await waitForTabstripOrientation("horizontal");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "horizontal");
 
   let toolbarButton = document.getElementById("sidebar-button");
   let badgeEl = toolbarButton?.querySelector(".toolbarbutton-badge");
@@ -370,7 +370,7 @@ add_task(async function test_toolbar_sidebar_badges() {
 
   await SpecialPowers.popPrefEnv();
   await SpecialPowers.popPrefEnv();
-  await waitForTabstripOrientation("vertical");
+  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
 
   Assert.ok(
     !badgeEl.classList.contains("feature-callout"),
@@ -385,7 +385,7 @@ add_task(async function test_states_for_hide_sidebar_vertical() {
     `starting test with pref values: verticalTabs: ${Services.prefs.getBoolPref(VERTICAL_TABS_PREF)},
     visibility: ${Services.prefs.getStringPref(SIDEBAR_VISIBILITY_PREF)}`
   );
-  await waitForTabstripOrientation("vertical", window);
+  await SidebarTestUtils.waitForTabstripOrientation(window, "vertical");
   await SpecialPowers.pushPrefEnv({
     set: [[SIDEBAR_VISIBILITY_PREF, "hide-sidebar"]],
   });
@@ -397,7 +397,7 @@ add_task(async function test_states_for_hide_sidebar_vertical() {
 
   info("Initial state ok, opening a new browser window");
   const win = await BrowserTestUtils.openNewBrowserWindow();
-  await waitForTabstripOrientation("vertical", win);
+  await SidebarTestUtils.waitForTabstripOrientation(win, "vertical");
   const { SidebarController } = win;
   const { sidebarContainer, sidebarMain, toolbarButton } = SidebarController;
 
