@@ -29,6 +29,7 @@
 #include "wasm/WasmGcObject.h"
 #include "wasm/WasmJS.h"
 #include "wasm/WasmLog.h"
+#include "wasm/WasmStacks.h"
 #include "wasm/WasmTypeDef.h"
 
 #include "vm/JSObject-inl.h"
@@ -175,6 +176,20 @@ bool CheckNullExnRefValue(JSContext* cx, HandleValue v,
   return true;
 }
 
+#ifdef ENABLE_WASM_JSPI
+bool CheckNullContRefValue(JSContext* cx, HandleValue v,
+                           MutableHandleAnyRef vp) {
+  if (!v.isNull()) {
+    JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr,
+                             JSMSG_WASM_BAD_NULL_CONTREF_VALUE);
+    return false;
+  }
+
+  vp.set(AnyRef::null());
+  return true;
+}
+#endif  // ENABLE_WASM_JSPI
+
 bool CheckNullExternRefValue(JSContext* cx, HandleValue v,
                              MutableHandleAnyRef vp) {
   if (!v.isNull()) {
@@ -288,6 +303,13 @@ bool CheckTypeRefValue(JSContext* cx, const TypeDef* typeDef, HandleValue v,
         return true;
       }
     }
+#ifdef ENABLE_WASM_JSPI
+    if (obj.is<wasm::ContObject>() && typeDef->isContType()) {
+      // TODO: skipping type check to get JS-PI working.
+      vp.set(AnyRef::fromJSObject(obj));
+      return true;
+    }
+#endif
   }
 
   JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr,
@@ -311,6 +333,11 @@ bool wasm::CheckRefType(JSContext* cx, RefType targetType, HandleValue v,
     case RefType::Exn:
       // Break to the non-exposable case
       break;
+#ifdef ENABLE_WASM_JSPI
+    case RefType::Cont:
+      // Break to the non-exposable case
+      break;
+#endif
     case RefType::Any:
       return CheckAnyRefValue(cx, v, vp);
     case RefType::NoFunc:
@@ -318,17 +345,8 @@ bool wasm::CheckRefType(JSContext* cx, RefType targetType, HandleValue v,
     case RefType::NoExn:
       return CheckNullExnRefValue(cx, v, vp);
 #ifdef ENABLE_WASM_JSPI
-    case RefType::Cont:
-      // Break to the non-exposable case
-      break;
     case RefType::NoCont:
-      if (!v.isNull()) {
-        JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr,
-                                 JSMSG_WASM_BAD_NULL_CONTREF_VALUE);
-        return false;
-      }
-      vp.set(AnyRef::null());
-      return true;
+      return CheckNullContRefValue(cx, v, vp);
 #endif
     case RefType::NoExtern:
       return CheckNullExternRefValue(cx, v, vp);
@@ -484,6 +502,25 @@ bool ToWebAssemblyValue_nullexnref(JSContext* cx, HandleValue val, void** loc,
   Debug::print(*loc);
   return true;
 }
+
+#ifdef ENABLE_WASM_JSPI
+template <typename Debug = NoDebug>
+bool ToWebAssemblyValue_nullcontref(JSContext* cx, HandleValue val, void** loc,
+                                    bool mustWrite64) {
+  RootedAnyRef result(cx, AnyRef::null());
+  if (!CheckNullContRefValue(cx, val, &result)) {
+    return false;
+  }
+  loc[0] = result.get().forCompiledCode();
+#  ifndef JS_64BIT
+  if (mustWrite64) {
+    loc[1] = nullptr;
+  }
+#  endif
+  Debug::print(*loc);
+  return true;
+}
+#endif
 
 template <typename Debug = NoDebug>
 bool ToWebAssemblyValue_nullexternref(JSContext* cx, HandleValue val,
@@ -709,7 +746,6 @@ bool wasm::ToWebAssemblyValue(JSContext* cx, HandleValue val, ValType type,
           break;
 #ifdef ENABLE_WASM_JSPI
         case RefType::Cont:
-        case RefType::NoCont:
           // Break to the non-exposable case
           break;
 #endif
@@ -722,6 +758,11 @@ bool wasm::ToWebAssemblyValue(JSContext* cx, HandleValue val, ValType type,
         case RefType::NoExn:
           return ToWebAssemblyValue_nullexnref<Debug>(cx, val, (void**)loc,
                                                       mustWrite64);
+#ifdef ENABLE_WASM_JSPI
+        case RefType::NoCont:
+          return ToWebAssemblyValue_nullcontref<Debug>(cx, val, (void**)loc,
+                                                       mustWrite64);
+#endif
         case RefType::NoExtern:
           return ToWebAssemblyValue_nullexternref<Debug>(cx, val, (void**)loc,
                                                          mustWrite64);
@@ -878,7 +919,7 @@ bool wasm::ToJSValue(JSContext* cx, const void* src, StorageType type,
         case RefTypeHierarchy::Cont:
           // Break to the non-exposable case
           break;
-#endif
+#endif  // ENABLE_WASM_JSPI
         case RefTypeHierarchy::Extern:
           return ToJSValue_externref<Debug>(
               cx, *reinterpret_cast<void* const*>(src), dst);

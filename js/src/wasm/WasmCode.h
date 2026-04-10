@@ -1041,6 +1041,12 @@ class Code : public ShareableBase<Code> {
   // CodeBlock.
   uint32_t updateCallRefMetricsStubOffset_;
 
+#ifdef ENABLE_WASM_JSPI
+  // Offset of the continuation base frame stub in the `sharedStubs_`
+  // CodeBlock.
+  uint32_t contBaseFrameOffset_;
+#endif
+
   // Methods for getting complete tiers, private while we're moving to partial
   // tiering.
   Tiers completeTiers() const;
@@ -1134,6 +1140,11 @@ class Code : public ShareableBase<Code> {
   void setUpdateCallRefMetricsStubOffset(uint32_t offs) {
     updateCallRefMetricsStubOffset_ = offs;
   }
+
+#ifdef ENABLE_WASM_JSPI
+  uint32_t contBaseFrameOffset() const { return contBaseFrameOffset_; }
+  void setContBaseFrameOffset(uint32_t offs) { contBaseFrameOffset_ = offs; }
+#endif
 
   const FuncImport& funcImport(uint32_t funcIndex) const {
     return funcImports_[funcIndex];

@@ -141,14 +141,6 @@ class CodeGenerator final : public CodeGeneratorSpecific {
                              Register allocSite, Register output,
                              const wasm::TrapSiteDesc& trapSiteDesc);
 
-#ifdef ENABLE_WASM_JSPI
-  void callWasmUpdateSuspenderState(wasm::UpdateSuspenderStateAction kind,
-                                    Register suspender, Register temp);
-  // Stack switching trampoline requires two arguments (suspender and data) to
-  // be passed. The function prepares stack and registers according Wasm ABI.
-  void prepareWasmStackSwitchTrampolineCall(Register suspender, Register data);
-#endif
-
   void setCompilationTime(mozilla::TimeDuration duration) {
     compileTime_ = duration;
   }

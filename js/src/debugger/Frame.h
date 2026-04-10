@@ -136,6 +136,19 @@ class DebuggerFrame : public NativeObject {
     // there is a corresponding entry in generatorFrames.
     GENERATOR_INFO_SLOT,
 
+    // This is an AbstractFramePtr pointing at a wasm::DebugFrame that is on a
+    // wasm::ContStack (see "Wasm Stack Switching" in WasmStacks.cpp).
+    //
+    // We use this in place of FRAME_ITER_SLOT when a debug frame is on a
+    // wasm::ContStack because the stack may be suspended which will invalidate
+    // any FrameIter pointing at it (cached JitActivation's are no longer
+    // valid).
+    //
+    // Instead we lazily create a FrameIter when the stack owning this frame is
+    // active, or else return !isOnStack() which prevents the debugger from
+    // asking for a FrameIter.
+    WASM_CONT_FRAME_PTR_SLOT,
+
     RESERVED_SLOTS,
   };
 
@@ -174,7 +187,7 @@ class DebuggerFrame : public NativeObject {
       MutableHandle<SavedFrame*> result);
   [[nodiscard]] static bool getThis(JSContext* cx, Handle<DebuggerFrame*> frame,
                                     MutableHandleValue result);
-  static DebuggerFrameType getType(Handle<DebuggerFrame*> frame);
+  static DebuggerFrameType getType(JSContext* cx, Handle<DebuggerFrame*> frame);
   static DebuggerFrameImplementation getImplementation(
       Handle<DebuggerFrame*> frame);
   [[nodiscard]] static bool setOnStepHandler(JSContext* cx,
@@ -188,7 +201,7 @@ class DebuggerFrame : public NativeObject {
 
   [[nodiscard]] static DebuggerFrame* check(JSContext* cx, HandleValue thisv);
 
-  bool isOnStack() const;
+  bool isOnStack(JSContext* cx) const;
   bool isOnStackOrSuspendedWasmStack() const;
 
   bool isSuspended() const;
@@ -252,7 +265,7 @@ class DebuggerFrame : public NativeObject {
   bool resume(const FrameIter& iter);
 
   /*
-   * Called when JS PI sets aside the suspendable stack frames.
+   * Called when JS PI sets aside the cont stack frames.
    */
   void suspendWasmFrame(JS::GCContext* gcx);
 

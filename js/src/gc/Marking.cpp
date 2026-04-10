@@ -979,6 +979,31 @@ void js::gc::PerformIncrementalPreWriteBarrier(TenuredCell* cell) {
   TraceEdgeForBarrier(gcmarker, cell, cell->getTraceKind());
 }
 
+#ifdef ENABLE_WASM_JSPI
+void js::gc::PerformIncrementalPreWriteBarrierAllChildren(JSObject* cell) {
+  if (!cell || cell->isMarkedBlack()) {
+    return;
+  }
+
+  Zone* zone = cell->zoneFromAnyThread();
+  MOZ_ASSERT(!zone->isAtomsZone());
+  MOZ_ASSERT(zone->needsMarkingBarrier());
+  MOZ_ASSERT(CurrentThreadIsMainThread());
+  MOZ_ASSERT(!JS::RuntimeHeapIsMajorCollecting());
+
+  // Skip dispatching on known tracer type.
+  GCMarker* gcmarker = GCMarker::fromTracer(zone->barrierTracer());
+
+  MOZ_ASSERT(ShouldMark(gcmarker, cell));
+  CheckTracedThing(gcmarker->tracer(), cell);
+  AutoClearTracingSource acts(gcmarker->tracer());
+#  ifdef DEBUG
+  AutoSetThreadIsMarking threadIsMarking;
+#  endif  // DEBUG
+  cell->traceChildren(zone->barrierTracer());
+}
+#endif  // ENABLE_WASM_JSPI
+
 void js::gc::PerformIncrementalBarrierDuringFlattening(JSString* str) {
   TenuredCell* cell = &str->asTenured();
 

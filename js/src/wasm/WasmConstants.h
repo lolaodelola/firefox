@@ -211,6 +211,14 @@ enum class Trap {
   // CheckForInterrupt(). This trap is resumable.
   CheckInterrupt,
 
+#ifdef ENABLE_WASM_JSPI
+  // Throw the WebAssembly.SuspendError exception.
+  ThrowSuspendError,
+#endif
+
+  // Executed an instruction that is not fully implemented yet.
+  Unimplemented,
+
   // Signal an error that was reported in C++ code.
   ThrowReported,
 
@@ -1034,19 +1042,6 @@ enum class BuiltinModuleId {
   JSStringConstants,
 };
 
-enum class StackSwitchKind {
-  SwitchToSuspendable,
-  SwitchToMain,
-  ContinueOnSuspendable,
-};
-
-enum class UpdateSuspenderStateAction {
-  Enter,
-  Suspend,
-  Resume,
-  Leave,
-};
-
 enum class MozOp {
   // ------------------------------------------------------------------------
   // These operators are emitted internally when compiling asm.js and are
@@ -1090,11 +1085,17 @@ enum class MozOp {
   OldCallDirect,
   OldCallIndirect,
 
+  // Everything above this must be asm.js.
+  LastAsmJSOp = OldCallIndirect,
+
+#ifdef ENABLE_WASM_JSPI
+  // Check that there is a WebAssembly.promising function ready to suspend to.
+  GuardSuspending,
+#endif
+
   // Call a builtin module funcs. The operator has argument leb u32 to specify
   // particular operation id. See BuiltinModuleFuncId above.
   CallBuiltinModuleFunc,
-
-  StackSwitch,
 
   Limit
 };
@@ -1251,20 +1252,13 @@ static const unsigned MaxHandlers = 16;
 
 static const unsigned MaxFrameSize = 512 * 1024;
 
-// Limit for the amount of stacks present in the runtime.
-static const size_t SuspendableStacksMaxCount = 100;
+// The wasm usable size of a continuation stack.
+static const size_t ContJitStackSize = 0x100000;
 
-// Max size of an allocated stack.
-static const size_t SuspendableStackSize = 0x100000;
-
-// Size of additional space at the top of a suspendable stack.
+// Size of additional space at the top of a continuation stack.
 // The space is allocated to C++ handlers such as error/trap handlers,
 // or stack snapshots utilities.
-static const size_t SuspendableRedZoneSize = 0x6000;
-
-// Total size of a suspendable stack to be reserved.
-static constexpr size_t SuspendableStackPlusRedZoneSize =
-    SuspendableStackSize + SuspendableRedZoneSize;
+static const size_t ContRedZoneSize = 0x8000;
 
 // Asserted by Decoder::readVarU32.
 

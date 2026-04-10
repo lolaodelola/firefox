@@ -7912,7 +7912,7 @@ static void SingleStepCallback(void* arg, jit::Simulator* sim, void* pc) {
     MOZ_ASSERT(i.stackAddress() != nullptr);
 #  ifndef ENABLE_WASM_JSPI
     // The stack addresses are monotonically increasing, except when
-    // suspendable stacks are present (e.g. when JS PI is enabled).
+    // cont stacks are present (e.g. when JS PI is enabled).
     MOZ_ASSERT(lastStackAddress <= i.stackAddress());
 #  endif
     lastStackAddress = i.stackAddress();
