@@ -1764,7 +1764,6 @@ mobile/android/android-components/components/ui/icons/lint-baseline.xml
 mobile/android/android-components/components/ui/richtext/lint-baseline.xml
 mobile/android/android-components/components/ui/tabcounter/lint-baseline.xml
 mobile/android/android-components/components/ui/widgets/lint-baseline.xml
-mobile/android/android-components/samples/acorn-components/lint-baseline.xml
 mobile/android/android-components/samples/browser/lint-baseline.xml
 mobile/android/android-components/samples/compose-browser/lint-baseline.xml
 mobile/android/android-components/samples/crash/lint-baseline.xml

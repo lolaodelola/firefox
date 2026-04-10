@@ -308,7 +308,6 @@ treeherder:
         'lib-publicsuffixlist': 'lib-publicsuffixlist'
         'lib-push-firebase': 'lib-push-firebase'
         'lib-state': 'lib-state'
-        'samples-acorn-components': 'samples-acorn-components'
         'samples-compose-browser': 'samples-compose-browser'
         'samples-crash': 'samples-crash'
         'samples-dataprotect': 'samples-dataprotect'
