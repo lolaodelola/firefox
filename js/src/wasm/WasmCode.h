@@ -1110,6 +1110,16 @@ class Code : public ShareableBase<Code> {
 
   bool requestTierUp(uint32_t funcIndex) const;
 
+  // Atomically claim the right to tier up `funcIndex`.
+  // Returns true if the claim was acquired, false if a tier-up was already
+  // requested.
+  bool tryClaimTierUp(uint32_t funcIndex) const {
+    MOZ_ASSERT(mode_ == CompileMode::LazyTiering);
+    FuncState& state = funcStates_[funcIndex - codeMeta_->numFuncImports];
+    return state.tierUpState.compareExchange(TierUpState::NotRequested,
+                                             TierUpState::Requested);
+  }
+
   CompileMode mode() const { return mode_; }
 
   void** tieringJumpTable() const { return jumpTables_.tiering(); }

@@ -688,15 +688,12 @@ class Module::PartialTier2CompileTaskImpl : public PartialTier2CompileTask {
   }
 };
 
+// The caller must call tryClaimTierUp() before.
 bool Code::requestTierUp(uint32_t funcIndex) const {
   // Note: this runs on the requesting (wasm-running) thread, not on a
   // compilation-helper thread.
-  MOZ_ASSERT(mode_ == CompileMode::LazyTiering);
-  FuncState& state = funcStates_[funcIndex - codeMeta_->numFuncImports];
-  if (!state.tierUpState.compareExchange(TierUpState::NotRequested,
-                                         TierUpState::Requested)) {
-    return true;
-  }
+  MOZ_ASSERT(funcStates_[funcIndex - codeMeta_->numFuncImports].tierUpState ==
+             TierUpState::Requested);
 
   auto task =
       js::MakeUnique<Module::PartialTier2CompileTaskImpl>(*this, funcIndex);
