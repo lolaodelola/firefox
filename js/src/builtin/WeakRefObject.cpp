@@ -109,8 +109,6 @@ bool WeakRefObject::preserveDOMWrapper(JSContext* cx, HandleObject obj) {
     return false;
   }
 
-  cx->runtime()->commitPendingWrapperPreservations(obj->zone());
-
   return true;
 }
 
@@ -270,6 +268,11 @@ void WeakRefObject::readBarrier(JSContext* cx, Handle<WeakRefObject*> self) {
     // been released then the DOM object it wraps has been collected, so clear
     // the target.
     RootedObject obj(cx, &target.toObject());
+
+    // Ensure buffered wrapper preservations are committed because the DOM's
+    // hasReleasedWrapperCallback checks the preserving-wrapper flag.
+    cx->runtime()->commitPendingWrapperPreservations(obj->zone());
+
     MOZ_ASSERT(cx->runtime()->hasReleasedWrapperCallback);
     bool wasReleased = cx->runtime()->hasReleasedWrapperCallback(obj);
     if (wasReleased) {
