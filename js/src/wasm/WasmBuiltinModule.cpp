@@ -16,8 +16,6 @@
 
 #include "wasm/WasmBuiltinModule.h"
 
-#include <array>
-
 #include "util/Text.h"
 #include "vm/GlobalObject.h"
 
@@ -83,20 +81,13 @@ bool BuiltinModuleFuncs::init() {
 
 #define VISIT_BUILTIN_FUNC(op, export, sa_name, abitype, needs_thunk, entry,   \
                            uses_memory, inline_op, ...)                        \
+  const ValType op##Params[] =                                                 \
+      DECLARE_BUILTIN_MODULE_FUNC_PARAM_VALTYPES_##op;                         \
   Maybe<ValType> op##Result = DECLARE_BUILTIN_MODULE_FUNC_RESULT_VALTYPE_##op; \
-  {                                                                            \
-    constexpr size_t numParams = DECLARE_BUILTIN_MODULE_FUNC_NUM_PARAMS_##op;  \
-    mozilla::Span<const ValType> op##ParamsSpan;                               \
-    if constexpr (numParams > 0) {                                             \
-      static const std::array<const ValType, numParams> op##Params(            \
-          DECLARE_BUILTIN_MODULE_FUNC_PARAM_VALTYPES_##op);                    \
-      op##ParamsSpan = mozilla::Span<const ValType>(op##Params);               \
-    }                                                                          \
-    if (!singleton_->funcs_[BuiltinModuleFuncId::op].init(                     \
-            types, op##ParamsSpan, op##Result, uses_memory, &SASig##sa_name,   \
-            inline_op, export)) {                                              \
-      return false;                                                            \
-    }                                                                          \
+  if (!singleton_->funcs_[BuiltinModuleFuncId::op].init(                       \
+          types, mozilla::Span<const ValType>(op##Params), op##Result,         \
+          uses_memory, &SASig##sa_name, inline_op, export)) {                  \
+    return false;                                                              \
   }
   FOR_EACH_BUILTIN_MODULE_FUNC(VISIT_BUILTIN_FUNC)
 #undef VISIT_BUILTIN_FUNC

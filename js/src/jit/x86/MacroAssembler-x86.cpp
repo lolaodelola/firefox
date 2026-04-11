@@ -726,7 +726,7 @@ void MacroAssemblerX86::handleFailureWithHandlerTail(
 
   // Found a wasm catch handler, restore state and jump to it.
   bind(&wasmCatch);
-  wasm::GenerateJumpToCatchHandler(asMasm(), esp, eax, ebx, ecx);
+  wasm::GenerateJumpToCatchHandler(asMasm(), esp, eax, ebx);
 }
 
 void MacroAssemblerX86::profilerEnterFrame(Register framePtr,

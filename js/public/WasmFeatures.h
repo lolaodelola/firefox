@@ -101,15 +101,6 @@
     /* flag fuzz enable   */ true,                                      \
     /* preference name    */ js_promise_integration)                    \
   FEATURE(                                                              \
-    /* capitalized name   */ StackSwitching,                            \
-    /* lower case name    */ stackSwitching,                            \
-    /* compile predicate  */ WASM_JSPI_ENABLED,                         \
-    /* compiler predicate */ IonPlatformSupport(),                      \
-    /* flag predicate     */ true,                                      \
-    /* flag force enable  */ WasmJSPromiseIntegrationFlag(cx),          \
-    /* flag fuzz enable   */ true,                                      \
-    /* preference name    */ stack_switching)                           \
-  FEATURE(                                                              \
     /* capitalized name   */ MozIntGemm,                                \
     /* lower case name    */ mozIntGemm,                                \
     /* compile predicate  */ WASM_MOZ_INTGEMM_ENABLED,                  \

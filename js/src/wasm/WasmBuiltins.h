@@ -135,9 +135,6 @@ enum class SymbolicAddress {
   PostBarrierEdge,
   PostBarrierEdgePrecise,
   PostBarrierWholeCell,
-#ifdef ENABLE_WASM_JSPI
-  ResumeBarrier,
-#endif
   ExceptionNew,
   ThrowException,
   StructNewIL_true,
@@ -152,21 +149,18 @@ enum class SymbolicAddress {
   ArrayInitElem,
   ArrayCopy,
   SlotsToAllocKindBytesTable,
-#ifdef ENABLE_WASM_JSPI
-  ContNew,
-  ContNewEmpty,
-  ContUnwind,
-#endif
 #define VISIT_BUILTIN_FUNC(op, export, sa_name, ...) sa_name,
   FOR_EACH_BUILTIN_MODULE_FUNC(VISIT_BUILTIN_FUNC)
 #undef VISIT_BUILTIN_FUNC
+#ifdef ENABLE_WASM_JSPI
+      UpdateSuspenderState,
+#endif
 #ifdef WASM_CODEGEN_DEBUG
-      PrintI32,
+  PrintI32,
   PrintPtr,
   PrintF32,
   PrintF64,
   PrintText,
-  Printf,
 #endif
   Limit
 };
@@ -301,11 +295,7 @@ extern const SymbolicAddressSignature SASigArrayNewElem;
 extern const SymbolicAddressSignature SASigArrayInitData;
 extern const SymbolicAddressSignature SASigArrayInitElem;
 extern const SymbolicAddressSignature SASigArrayCopy;
-#ifdef ENABLE_WASM_JSPI
-extern const SymbolicAddressSignature SASigContNew;
-extern const SymbolicAddressSignature SASigContNewEmpty;
-extern const SymbolicAddressSignature SASigContUnwind;
-#endif
+extern const SymbolicAddressSignature SASigUpdateSuspenderState;
 #define VISIT_BUILTIN_FUNC(op, export, sa_name, ...) \
   extern const SymbolicAddressSignature SASig##sa_name;
 FOR_EACH_BUILTIN_MODULE_FUNC(VISIT_BUILTIN_FUNC)
@@ -368,7 +358,6 @@ void PrintF32(float val);
 void PrintF64(double val);
 void PrintPtr(uint8_t* val);
 void PrintText(const char* out);
-void Printf(const char* out, uintptr_t value);
 #endif
 
 }  // namespace wasm

@@ -350,22 +350,14 @@ fn convert_directive(
             span: _,
             exec,
             message,
-        } => {
-            let exec_node = execute_to_js(current_instance, exec, wast)?;
-            let expected_node = Box::new(JSNode::Raw(format!(
-                "`{}`",
-                escape_template_name_string(message)
-            )));
-            writejs!(
-                "{};",
-                JSNode::Assert {
-                    name: "assert_suspension".to_string(),
-                    exec: exec_node,
-                    expected: expected_node,
-                }
-                .output(0),
-            )?;
-        }
+        } => unimplemented!(
+            "unsupported assert_suspension directive at {}:{}:{}: exec {:#?}, message {:#?}",
+            filename.display(),
+            line,
+            col,
+            exec,
+            message
+        ),
         Thread(thread) => {
             writejs!(
                 "let ${0} = new Thread(${1}, \"${1}\", `",
@@ -461,27 +453,36 @@ fn closed_module(module: &str) -> Result<&str> {
         bail!("expected module source");
     }
 
-    let mut lexer = wast::lexer::Lexer::new(module);
-    lexer.allow_confusing_unicode(true);
+    enum State {
+        Module,
+        QStr,
+        EscapeQStr,
+    }
 
     let mut i = 0;
     let mut level = 1;
+    let mut state = State::Module;
 
+    let mut chars = module.chars();
     while level != 0 {
-        match lexer.parse(&mut i) {
-            Ok(Some(tok)) => match tok.kind {
-                wast::lexer::TokenKind::LParen => {
-                    level += 1;
-                }
-                wast::lexer::TokenKind::RParen => {
-                    level -= 1;
-                }
+        let next = chars.next().ok_or(anyhow!("unable to close module"))?;
+        match state {
+            State::Module => match next {
+                '(' => level += 1,
+                ')' => level -= 1,
+                '"' => state = State::QStr,
                 _ => {}
             },
-            Ok(None) | Err(_) => {
-                return Err(anyhow!("unable to close module"));
-            }
+            State::QStr => match next {
+                '"' => state = State::Module,
+                '\\' => state = State::EscapeQStr,
+                _ => {}
+            },
+            State::EscapeQStr => match next {
+                _ => state = State::QStr,
+            },
         }
+        i += next.len_utf8();
     }
     return Ok(&module[0..i]);
 }

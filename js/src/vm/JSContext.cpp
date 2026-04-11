@@ -1488,6 +1488,9 @@ void JSContext::trace(JSTracer* trc) {
   if (isolate) {
     irregexp::TraceIsolate(trc, isolate.ref());
   }
+#ifdef ENABLE_WASM_JSPI
+  wasm().trace(trc);
+#endif
 }
 
 JS::NativeStackLimit JSContext::stackLimitForJitCode(JS::StackKind kind) {
@@ -1496,10 +1499,6 @@ JS::NativeStackLimit JSContext::stackLimitForJitCode(JS::StackKind kind) {
 #else
   return stackLimit(kind);
 #endif
-}
-
-bool JSContext::stackContainsAddress(uintptr_t address, JS::StackKind kind) {
-  return address <= nativeStackBase() && address > stackLimit(kind);
 }
 
 void JSContext::resetJitStackLimit() {

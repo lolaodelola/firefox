@@ -3781,7 +3781,7 @@ void WasmExceptionObject::trace(JSTracer* trc, JSObject* obj) {
 
   wasm::SharedTagType tag = exnObj.tagType();
   const wasm::ValTypeVector& params = tag->argTypes();
-  const wasm::TagOffsetVector& offsets = tag->exceptionArgOffsets();
+  const wasm::TagOffsetVector& offsets = tag->argOffsets();
   uint8_t* typedMem = exnObj.typedMem();
   for (size_t i = 0; i < params.length(); i++) {
     ValType paramType = params[i];
@@ -3886,7 +3886,7 @@ bool WasmExceptionObject::construct(JSContext* cx, unsigned argc, Value* vp) {
 
   wasm::SharedTagType tagType = exnObj->tagType();
   const wasm::ValTypeVector& params = tagType->argTypes();
-  const wasm::TagOffsetVector& offsets = tagType->exceptionArgOffsets();
+  const wasm::TagOffsetVector& offsets = tagType->argOffsets();
 
   RootedValue nextArg(cx);
   for (size_t i = 0; i < params.length(); i++) {
@@ -4057,7 +4057,7 @@ bool WasmExceptionObject::getArgImpl(JSContext* cx, const CallArgs& args) {
     return false;
   }
 
-  uint32_t offset = exnTag->tagType()->exceptionArgOffsets()[index];
+  uint32_t offset = exnTag->tagType()->argOffsets()[index];
   RootedValue result(cx);
   if (!exnObj->loadArg(cx, offset, params[index], &result)) {
     return false;
@@ -4349,7 +4349,7 @@ bool WasmFunctionConstruct(JSContext* cx, unsigned argc, Value* vp) {
 
   if (!IsCallableNonCCW(args[1])) {
     JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr,
-                             JSMSG_WASM_BAD_FUNCTION_VALUE, "second");
+                             JSMSG_WASM_BAD_FUNCTION_VALUE);
     return false;
   }
   RootedObject func(cx, &args[1].toObject());
@@ -5533,7 +5533,7 @@ bool WasmSuspendingObject::construct(JSContext* cx, unsigned argc, Value* vp) {
 
   if (!IsCallableNonCCW(args[0])) {
     JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr,
-                             JSMSG_WASM_BAD_FUNCTION_VALUE, "first");
+                             JSMSG_WASM_BAD_FUNCTION_VALUE);
     return false;
   }
 
@@ -5562,7 +5562,7 @@ static bool WebAssembly_promising(JSContext* cx, unsigned argc, Value* vp) {
 
   if (!IsWasmFunction(args[0])) {
     JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr,
-                             JSMSG_WASM_BAD_FUNCTION_VALUE, "first");
+                             JSMSG_WASM_BAD_FUNCTION_VALUE);
     return false;
   }
 
@@ -5738,15 +5738,6 @@ static bool WebAssemblyClassFinish(JSContext* cx, HandleObject object,
         return false;
       }
     }
-
-    SharedTagType jsPromiseTagType(sJSPromiseTagType);
-    WasmTagObject* jsPromiseTagObject =
-        WasmTagObject::create(cx, jsPromiseTagType, tagProto);
-    if (!jsPromiseTagObject) {
-      return false;
-    }
-
-    wasm->setJSPromiseTag(jsPromiseTagObject);
   }
 #endif
 

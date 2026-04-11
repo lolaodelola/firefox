@@ -86,12 +86,6 @@ const char* wasm::ToString(Trap trap) {
       return "StackOverflow";
     case Trap::CheckInterrupt:
       return "CheckInterrupt";
-#  ifdef ENABLE_WASM_JSPI
-    case Trap::ThrowSuspendError:
-      return "ThrowSuspendError";
-#  endif
-    case Trap::Unimplemented:
-      return "Unimplemented";
     case Trap::ThrowReported:
       return "ThrowReported";
     case Trap::Limit:
@@ -195,9 +189,6 @@ CodeRange::CodeRange(Kind kind, Offsets offsets)
     case FarJumpIsland:
     case TrapExit:
     case Throw:
-#  ifdef ENABLE_WASM_JSPI
-    case ContBaseFrame:
-#  endif
       break;
     default:
       MOZ_CRASH("should use more specific constructor");

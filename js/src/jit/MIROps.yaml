@@ -4744,47 +4744,6 @@
 - name: WasmReturnCall
   gen_boilerplate: false
 
-#ifdef ENABLE_WASM_JSPI
-- name: WasmFindHandler
-  operands:
-    instance: Pointer
-    tag: WasmAnyRef
-  arguments:
-    trap: wasm::Trap
-    trapSiteDesc: wasm::TrapSiteDesc
-  result_type: Pointer
-  movable: false
-  guard: true
-  type_policy: none
-  generate_lir: true
-  lir_temps: 4
-
-- name: WasmSuspend
-  operands:
-    instance: Pointer
-    suspendedCont: WasmAnyRef
-    handler: Pointer
-  arguments:
-    callSiteDesc: wasm::CallSiteDesc
-  type_policy: none
-  possibly_calls: true
-  generate_lir: true
-  lir_temps: 3
-
-- name: WasmResumeBarrier
-  operands:
-    instance: Pointer
-    cont: WasmAnyRef
-  movable: false
-  guard: true
-  type_policy: none
-  generate_lir: true
-  lir_temps: 1
-
-- name: WasmResume
-  gen_boilerplate: false
-#endif
-
 - name: WasmSelect
   gen_boilerplate: false
 
@@ -4793,6 +4752,37 @@
 
 - name: Rotate
   gen_boilerplate: false
+
+- name: WasmStackSwitchToMain
+  operands:
+    instance: Pointer
+    suspender: WasmAnyRef
+    fn: WasmAnyRef
+    data: WasmAnyRef
+  result_type: WasmAnyRef
+  type_policy: none
+  possibly_calls: true
+  generate_lir: true
+
+- name: WasmStackSwitchToSuspendable
+  operands:
+    instance: Pointer
+    suspender: WasmAnyRef
+    fn: WasmAnyRef
+    data: WasmAnyRef
+  type_policy: none
+  possibly_calls: true
+  generate_lir: true
+
+- name: WasmStackContinueOnSuspendable
+  operands:
+    instance: Pointer
+    suspender: WasmAnyRef
+    result: WasmAnyRef
+  type_policy: none
+  possibly_calls: true
+  generate_lir: true
+  lir_temps: 2
 
 - name: WasmBinarySimd128
   gen_boilerplate: false

@@ -503,7 +503,7 @@ void MacroAssemblerCompat::handleFailureWithHandlerTail(
 
   // Found a wasm catch handler, restore state and jump to it.
   bind(&wasmCatch);
-  wasm::GenerateJumpToCatchHandler(asMasm(), PseudoStackPointer, r0, r1, r2);
+  wasm::GenerateJumpToCatchHandler(asMasm(), PseudoStackPointer, r0, r1);
 
   MOZ_ASSERT(GetStackPointer64().Is(PseudoStackPointer64));
 }

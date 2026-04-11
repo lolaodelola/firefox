@@ -85,9 +85,6 @@ ModuleGenerator::ModuleGenerator(const CodeMetadata& codeMeta,
       debugStubCodeOffset_(0),
       requestTierUpStubCodeOffset_(0),
       updateCallRefMetricsStubCodeOffset_(0),
-#ifdef ENABLE_WASM_JSPI
-      contBaseFrameOffset_(0),
-#endif
       lastPatchedCallSite_(0),
       startOfUnpatchedCallsites_(0),
       numCallRefMetrics_(0),
@@ -327,12 +324,6 @@ void ModuleGenerator::noteCodeRange(uint32_t codeRangeIndex,
       MOZ_ASSERT(!updateCallRefMetricsStubCodeOffset_);
       updateCallRefMetricsStubCodeOffset_ = codeRange.begin();
       break;
-#ifdef ENABLE_WASM_JSPI
-    case CodeRange::ContBaseFrame:
-      MOZ_ASSERT(!contBaseFrameOffset_);
-      contBaseFrameOffset_ = codeRange.begin();
-      break;
-#endif
     case CodeRange::TrapExit:
       MOZ_ASSERT(!linkData_->trapOffset);
       linkData_->trapOffset = codeRange.begin();
@@ -1405,9 +1396,6 @@ SharedModule ModuleGenerator::finishModule(
   code->setDebugStubOffset(debugStubCodeOffset_);
   code->setRequestTierUpStubOffset(requestTierUpStubCodeOffset_);
   code->setUpdateCallRefMetricsStubOffset(updateCallRefMetricsStubCodeOffset_);
-#ifdef ENABLE_WASM_JSPI
-  code->setContBaseFrameOffset(contBaseFrameOffset_);
-#endif
 
   // All the components are finished, so create the complete Module and start
   // tier-2 compilation if requested.

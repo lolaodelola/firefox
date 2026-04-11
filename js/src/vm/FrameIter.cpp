@@ -174,10 +174,10 @@ void JitFrameIter::settle() {
       // The JS-JIT exit frame doesn't support stack switching and will only be
       // used if original wasm func was on the main stack.
 #ifdef ENABLE_WASM_JSPI
-      MOZ_ASSERT(!act_->cx()->wasm().findStackForAddress(
-          act_->cx(), reinterpret_cast<uintptr_t>(prevFP->wasmCaller())));
+      MOZ_ASSERT(!act_->cx()->wasm().findSuspenderForStackAddress(
+          prevFP->wasmCaller()));
 #endif
-      act_->setWasmExitFP(prevFP);
+      act_->setWasmExitFP(prevFP, nullptr);
     }
 
     iter_.destroy();

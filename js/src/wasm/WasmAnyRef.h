@@ -375,7 +375,6 @@ class WrappedPtrOperations<wasm::AnyRef, Wrapper> {
   bool isI31() const { return value().isI31(); }
   bool isJSObject() const { return value().isJSObject(); }
   bool isJSString() const { return value().isJSString(); }
-  JS::Value toJSValue() const { return value().toJSValue(); }
   JSObject& toJSObject() const { return value().toJSObject(); }
   JSString* toJSString() const { return value().toJSString(); }
 };

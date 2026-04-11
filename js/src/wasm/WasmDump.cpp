@@ -461,14 +461,6 @@ void wasm::DumpRefType(RefType type, GenericPrinter& out,
       case RefType::Exn:
         literal = "exnref";
         break;
-#ifdef ENABLE_WASM_JSPI
-      case RefType::Cont:
-        literal = "contref";
-        break;
-      case RefType::NoCont:
-        literal = "nullcontref";
-        break;
-#endif  // ENABLE_WASM_JSPI
       case RefType::TypeRef: {
         MOZ_CRASH("type ref should not be possible here");
       }
@@ -528,14 +520,6 @@ void wasm::DumpHeapType(RefType type, GenericPrinter& out,
     case RefType::Exn:
       out.put("exn");
       return;
-#ifdef ENABLE_WASM_JSPI
-    case RefType::Cont:
-      out.put("cont");
-      return;
-    case RefType::NoCont:
-      out.put("nocont");
-      return;
-#endif
     case RefType::TypeRef: {
       DumpTypeDefIndex(type.typeDef(), out, types);
       return;
@@ -620,20 +604,6 @@ void wasm::DumpArrayType(const ArrayType& arrayType, StructuredPrinter& out,
   out.printf(")");
 }
 
-#ifdef ENABLE_WASM_JSPI
-void wasm::DumpContType(const ContType& contType, const TypeContext* types) {
-  Fprinter fileOut(stdout);
-  StructuredPrinter out(fileOut);
-  wasm::DumpContType(contType, out, types);
-  out.printf("\n");
-}
-
-void wasm::DumpContType(const ContType& contType, StructuredPrinter& out,
-                        const TypeContext* types) {
-  out.printf("(cont %u)", types->indexOf(contType.funcTypeDef()));
-}
-#endif  // ENABLE_WASM_JSPI
-
 void wasm::DumpTypeDef(const TypeDef& typeDef, int32_t index,
                        const TypeContext* types) {
   Fprinter fileOut(stdout);
@@ -681,11 +651,6 @@ void wasm::DumpTypeDef(const TypeDef& typeDef, StructuredPrinter& out,
     case TypeDefKind::Array:
       DumpArrayType(typeDef.arrayType(), out, types);
       break;
-#ifdef ENABLE_WASM_JSPI
-    case TypeDefKind::Cont:
-      DumpContType(typeDef.contType(), out, types);
-      break;
-#endif
     case TypeDefKind::None:
       out.printf("(; TypeDefKind::None ;)\n");
       break;

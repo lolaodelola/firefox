@@ -456,15 +456,6 @@ class WasmExceptionObject : public NativeObject {
   bool isWrappedJSValue() const;
   Value wrappedJSValue() const;
 
-  // Returns the exception value that JS would see if this was thrown. This
-  // will unwrap if `isWrappedJSValue`.
-  Value toJSValue() {
-    if (isWrappedJSValue()) {
-      return wrappedJSValue();
-    }
-    return JS::ObjectValue(*this);
-  }
-
   static size_t offsetOfData() {
     return NativeObject::getFixedSlotOffset(DATA_SLOT);
   }
@@ -476,10 +467,7 @@ class WasmNamespaceObject : public NativeObject {
  public:
   static const JSClass class_;
   static const unsigned JS_VALUE_TAG_SLOT = 0;
-#ifdef ENABLE_WASM_JSPI
-  static const unsigned JS_PROMISE_TAG_SLOT = 1;
-#endif
-  static const unsigned RESERVED_SLOTS = 2;
+  static const unsigned RESERVED_SLOTS = 1;
 
   WasmTagObject* wrappedJSValueTag() const {
     return &getReservedSlot(JS_VALUE_TAG_SLOT)
@@ -489,16 +477,6 @@ class WasmNamespaceObject : public NativeObject {
   void setWrappedJSValueTag(WasmTagObject* tag) {
     return setReservedSlot(JS_VALUE_TAG_SLOT, ObjectValue(*tag));
   }
-#ifdef ENABLE_WASM_JSPI
-  WasmTagObject* jsPromiseTag() const {
-    return &getReservedSlot(JS_PROMISE_TAG_SLOT)
-                .toObjectOrNull()
-                ->as<WasmTagObject>();
-  }
-  void setJSPromiseTag(WasmTagObject* tag) {
-    return setReservedSlot(JS_PROMISE_TAG_SLOT, ObjectValue(*tag));
-  }
-#endif
 
   static WasmNamespaceObject* getOrCreate(JSContext* cx);
 

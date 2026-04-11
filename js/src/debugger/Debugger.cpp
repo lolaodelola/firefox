@@ -1217,7 +1217,7 @@ bool DebugAPI::slowPathOnLeaveFrame(JSContext* cx, AbstractFramePtr frame,
         // Debugger's D.Fs in that global. This means that one D.F's onPop can
         // kill the next D.F. So we have to check whether frameobj is still "on
         // the stack".
-        if (frameobj->isOnStack(cx) && frameobj->onPopHandler()) {
+        if (frameobj->isOnStack() && frameobj->onPopHandler()) {
           OnPopHandler* handler = frameobj->onPopHandler();
 
           bool result = dbg->enterDebuggerHook(cx, [&]() -> bool {
@@ -2760,7 +2760,7 @@ bool DebugAPI::onSingleStep(JSContext* cx) {
         MOZ_ASSERT(&frameObj.unwrappedGenerator() == &genObj);
 
         // Live Debugger.Frames were already counted in dbg->frames loop.
-        if (frameObj.isOnStack(cx)) {
+        if (frameObj.isOnStack()) {
           continue;
         }
 
@@ -6745,7 +6745,7 @@ bool Debugger::CallData::adoptFrame() {
   }
 
   Rooted<DebuggerFrame*> adoptedFrame(cx);
-  if (frameObj->isOnStack(cx)) {
+  if (frameObj->isOnStack()) {
     FrameIter iter = frameObj->getFrameIter(cx);
     if (!dbg->observesFrame(iter)) {
       JS_ReportErrorASCII(cx, "Debugger.Frame's global is not a debuggee");

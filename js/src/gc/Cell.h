@@ -53,9 +53,6 @@ class TenuredCell;
 
 extern void PerformIncrementalReadBarrier(TenuredCell* cell);
 extern void PerformIncrementalPreWriteBarrier(TenuredCell* cell);
-#ifdef ENABLE_WASM_JSPI
-extern void PerformIncrementalPreWriteBarrierAllChildren(JSObject* cell);
-#endif
 extern void PerformIncrementalBarrierDuringFlattening(JSString* str);
 extern void UnmarkGrayGCThingRecursively(TenuredCell* cell);
 
