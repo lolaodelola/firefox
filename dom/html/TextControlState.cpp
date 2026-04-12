@@ -283,8 +283,6 @@ class TextInputSelectionController final : public nsSupportsWeakReference,
   MOZ_CAN_RUN_SCRIPT NS_IMETHOD LineMove(bool aForward, bool aExtend) override;
   MOZ_CAN_RUN_SCRIPT NS_IMETHOD IntraLineMove(bool aForward,
                                               bool aExtend) override;
-  MOZ_CAN_RUN_SCRIPT NS_IMETHOD ParagraphMove(bool aForward,
-                                              bool aExtend) override;
   MOZ_CAN_RUN_SCRIPT NS_IMETHOD PageMove(bool aForward, bool aExtend) override;
   NS_IMETHOD CompleteScroll(bool aForward) override;
   MOZ_CAN_RUN_SCRIPT NS_IMETHOD CompleteMove(bool aForward,
@@ -579,15 +577,6 @@ TextInputSelectionController::IntraLineMove(bool aForward, bool aExtend) {
   }
   RefPtr<nsFrameSelection> frameSelection = mFrameSelection;
   return frameSelection->IntraLineMove(aForward, aExtend);
-}
-
-NS_IMETHODIMP
-TextInputSelectionController::ParagraphMove(bool aForward, bool aExtend) {
-  if (!mFrameSelection) {
-    return NS_ERROR_NULL_POINTER;
-  }
-  RefPtr<nsFrameSelection> frameSelection = mFrameSelection;
-  return frameSelection->ParagraphMove(aForward, aExtend);
 }
 
 NS_IMETHODIMP

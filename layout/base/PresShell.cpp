@@ -2336,12 +2336,6 @@ PresShell::IntraLineMove(bool aForward, bool aExtend) {
 }
 
 NS_IMETHODIMP
-PresShell::ParagraphMove(bool aForward, bool aExtend) {
-  RefPtr<nsFrameSelection> frameSelection = mSelection;
-  return frameSelection->ParagraphMove(aForward, aExtend);
-}
-
-NS_IMETHODIMP
 PresShell::PageMove(bool aForward, bool aExtend) {
   nsIFrame* frame = nullptr;
   if (!aExtend) {

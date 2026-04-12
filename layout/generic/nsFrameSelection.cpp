@@ -2087,11 +2087,6 @@ nsresult nsFrameSelection::IntraLineMove(bool aForward, bool aExtend) {
                    eLogical);
 }
 
-nsresult nsFrameSelection::ParagraphMove(bool aForward, bool aExtend) {
-  return MoveCaret(aForward ? eDirNext : eDirPrevious, ExtendSelection(aExtend),
-                   eSelectParagraph, eLogical);
-}
-
 // static
 template <typename RangeType>
 Result<RefPtr<RangeType>, nsresult>

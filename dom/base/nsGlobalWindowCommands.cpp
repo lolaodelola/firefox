@@ -40,23 +40,21 @@ using namespace mozilla;
 using namespace mozilla::layers;
 
 constexpr nsLiteralCString kSelectMoveScrollCommands[] = {
-    "cmd_beginLine"_ns,    "cmd_beginParagraph"_ns, "cmd_charNext"_ns,
-    "cmd_charPrevious"_ns, "cmd_endLine"_ns,        "cmd_endParagraph"_ns,
-    "cmd_lineNext"_ns,     "cmd_linePrevious"_ns,   "cmd_moveBottom"_ns,
-    "cmd_movePageDown"_ns, "cmd_movePageUp"_ns,     "cmd_moveTop"_ns,
-    "cmd_scrollBottom"_ns, "cmd_scrollLeft"_ns,     "cmd_scrollLineDown"_ns,
-    "cmd_scrollLineUp"_ns, "cmd_scrollPageDown"_ns, "cmd_scrollPageUp"_ns,
-    "cmd_scrollRight"_ns,  "cmd_scrollTop"_ns,      "cmd_wordNext"_ns,
-    "cmd_wordPrevious"_ns,
+    "cmd_beginLine"_ns,      "cmd_charNext"_ns,     "cmd_charPrevious"_ns,
+    "cmd_endLine"_ns,        "cmd_lineNext"_ns,     "cmd_linePrevious"_ns,
+    "cmd_moveBottom"_ns,     "cmd_movePageDown"_ns, "cmd_movePageUp"_ns,
+    "cmd_moveTop"_ns,        "cmd_scrollBottom"_ns, "cmd_scrollLeft"_ns,
+    "cmd_scrollLineDown"_ns, "cmd_scrollLineUp"_ns, "cmd_scrollPageDown"_ns,
+    "cmd_scrollPageUp"_ns,   "cmd_scrollRight"_ns,  "cmd_scrollTop"_ns,
+    "cmd_wordNext"_ns,       "cmd_wordPrevious"_ns,
 };
 
 // These are so the browser can use editor navigation key bindings
 // helps with accessibility (boolean pref accessibility.browsewithcaret)
 constexpr nsLiteralCString kSelectCommands[] = {
-    "cmd_selectBeginLine"_ns,    "cmd_selectBeginParagraph"_ns,
-    "cmd_selectBottom"_ns,       "cmd_selectCharNext"_ns,
-    "cmd_selectCharPrevious"_ns, "cmd_selectEndLine"_ns,
-    "cmd_selectEndParagraph"_ns, "cmd_selectLineNext"_ns,
+    "cmd_selectBeginLine"_ns,    "cmd_selectBottom"_ns,
+    "cmd_selectCharNext"_ns,     "cmd_selectCharPrevious"_ns,
+    "cmd_selectEndLine"_ns,      "cmd_selectLineNext"_ns,
     "cmd_selectLinePrevious"_ns, "cmd_selectPageDown"_ns,
     "cmd_selectPageUp"_ns,       "cmd_selectTop"_ns,
     "cmd_selectWordNext"_ns,     "cmd_selectWordPrevious"_ns,
@@ -221,11 +219,7 @@ static constexpr struct BrowseCommand {
     {Command::BeginLine, Command::EndLine,
      KeyboardScrollAction::eScrollComplete,
      &nsISelectionController::CompleteScroll,
-     &nsISelectionController::IntraLineMove},
-    {Command::BeginParagraph, Command::EndParagraph,
-     KeyboardScrollAction::eScrollComplete,
-     &nsISelectionController::CompleteScroll,
-     &nsISelectionController::ParagraphMove}};
+     &nsISelectionController::IntraLineMove}};
 
 nsresult nsSelectMoveScrollCommand::DoCommand(const nsACString& aCommandName,
                                               nsICommandParams*,
@@ -340,21 +334,18 @@ nsresult nsPhysicalSelectMoveScrollCommand::DoCommand(
 static const struct SelectCommand {
   Command reverse, forward;
   nsresult (NS_STDCALL nsISelectionController::*select)(bool, bool);
-} selectCommands[] = {
-    {Command::SelectCharPrevious, Command::SelectCharNext,
-     &nsISelectionController::CharacterMove},
-    {Command::SelectWordPrevious, Command::SelectWordNext,
-     &nsISelectionController::WordMove},
-    {Command::SelectBeginLine, Command::SelectEndLine,
-     &nsISelectionController::IntraLineMove},
-    {Command::SelectBeginParagraph, Command::SelectEndParagraph,
-     &nsISelectionController::ParagraphMove},
-    {Command::SelectLinePrevious, Command::SelectLineNext,
-     &nsISelectionController::LineMove},
-    {Command::SelectPageUp, Command::SelectPageDown,
-     &nsISelectionController::PageMove},
-    {Command::SelectTop, Command::SelectBottom,
-     &nsISelectionController::CompleteMove}};
+} selectCommands[] = {{Command::SelectCharPrevious, Command::SelectCharNext,
+                       &nsISelectionController::CharacterMove},
+                      {Command::SelectWordPrevious, Command::SelectWordNext,
+                       &nsISelectionController::WordMove},
+                      {Command::SelectBeginLine, Command::SelectEndLine,
+                       &nsISelectionController::IntraLineMove},
+                      {Command::SelectLinePrevious, Command::SelectLineNext,
+                       &nsISelectionController::LineMove},
+                      {Command::SelectPageUp, Command::SelectPageDown,
+                       &nsISelectionController::PageMove},
+                      {Command::SelectTop, Command::SelectBottom,
+                       &nsISelectionController::CompleteMove}};
 
 nsresult nsSelectCommand::DoCommand(const nsACString& aCommandName,
                                     nsICommandParams*,
