@@ -4,6 +4,7 @@
 
 #include "Cookie.h"
 #include "CookieCommons.h"
+#include "mozilla/HashFunctions.h"
 #include "CookieStorage.h"
 #include "mozilla/Encoding.h"
 #include "mozilla/dom/ToJSValue.h"
@@ -29,6 +30,22 @@ namespace net {
 // otherwise overlap, since it's possible two cookies may be created at the
 // same time, or that the system clock isn't monotonic.
 static int64_t gLastCreationTimeInUSec;
+
+// static
+uint32_t Cookie::ComputeKeyHash(const nsACString& aName,
+                                const nsACString& aHost,
+                                const nsACString& aPath) {
+  return mozilla::AddToHash(mozilla::AddToHash(mozilla::HashString(aName),
+                                               mozilla::HashString(aHost)),
+                            mozilla::HashString(aPath));
+}
+
+Cookie::Cookie(const CookieStruct& aCookieData,
+               const OriginAttributes& aOriginAttributes)
+    : mData(aCookieData),
+      mOriginAttributes(aOriginAttributes),
+      mKeyHash(ComputeKeyHash(aCookieData.name(), aCookieData.host(),
+                              aCookieData.path())) {}
 
 int64_t Cookie::GenerateUniqueCreationTimeInUSec(int64_t aCreationTimeInUSec) {
   // Check if the creation time given to us is greater than the running maximum
