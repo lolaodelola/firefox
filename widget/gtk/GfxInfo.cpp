@@ -849,6 +849,11 @@ void GfxInfo::V4L2ProbeDevice(nsCString& dev) {
     media::MCSInfo::AddSupport(media::MediaCodecsSupport::HEVCHardwareDecode);
     mV4L2SupportedCodecs |= CODEC_HW_DEC_HEVC;
   }
+  if (outFormats.Contains("AV01")) {
+    mIsV4L2Supported = Some(true);
+    media::MCSInfo::AddSupport(media::MediaCodecsSupport::AV1HardwareDecode);
+    mV4L2SupportedCodecs |= CODEC_HW_DEC_AV1;
+  }
 }
 
 const nsTArray<RefPtr<GfxDriverInfo>>& GfxInfo::GetGfxDriverInfo() {

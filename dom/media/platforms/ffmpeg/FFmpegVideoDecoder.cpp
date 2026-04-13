@@ -2742,6 +2742,8 @@ void FFmpegVideoDecoder<LIBAV_VER>::ReleaseFramesMediaCodec() {
         return aLib->avcodec_find_decoder_by_name("vp9_v4l2m2m");
       case AV_CODEC_ID_HEVC:
         return aLib->avcodec_find_decoder_by_name("hevc_v4l2m2m");
+      case AV_CODEC_ID_AV1:
+        return aLib->avcodec_find_decoder_by_name("av1_v4l2m2m");
       default:
         return nullptr;
     }
