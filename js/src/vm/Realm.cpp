@@ -872,7 +872,7 @@ JS_PUBLIC_API Realm* JS::GetFunctionRealm(JSContext* cx, HandleObject objArg) {
 
 JS_PUBLIC_API void JS::ResetRealmMathRandomSeed(JSContext* cx) {
   MOZ_ASSERT(cx->realm());
-  auto rng = cx->realm()->getOrCreateRandomNumberGenerator();
+  auto& rng = cx->realm()->getOrCreateRandomNumberGenerator();
   mozilla::Array<uint64_t, 2> seed;
   GenerateXorShift128PlusSeed(seed);
   rng.setState(seed[0], seed[1]);
