@@ -1600,7 +1600,7 @@ BigInt* BigInt::parseLiteralDigits(JSContext* cx, Range<const CharT> chars,
   // Fast path for the single digit case.
   if (length == 1) {
     BigInt::Digit digit = 0;
-    if (!ParseLiteralDigit(chars, radix, &digit)) {
+    if (!ParseLiteralDigit(Range{start, end}, radix, &digit)) {
       *haveParseError = true;
       return nullptr;
     }
@@ -2882,15 +2882,16 @@ BigInt* BigInt::asUintN(JSContext* cx, HandleBigInt x, uint64_t bits) {
 
   const bool isNegative = false;
   BigInt* res = createUninitialized(cx, length, isNegative);
-  if (res == nullptr) {
+  if (!res) {
     return nullptr;
   }
+
+  MOZ_ASSERT_IF(length == 0, res->isZero());
 
   while (length-- > 0) {
     res->setDigit(length, x->digit(length) & mask);
     mask = Digit(-1);
   }
-  MOZ_ASSERT_IF(length == 0, res->isZero());
 
   return res;
 }
