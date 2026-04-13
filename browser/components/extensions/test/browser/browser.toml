@@ -571,6 +571,8 @@ https_first_disabled = true
 
 ["browser_ext_tabs_groupId.js"]
 
+["browser_ext_tabs_group_splitview.js"]
+
 ["browser_ext_tabs_group_ungroup.js"]
 
 ["browser_ext_tabs_group_windowId.js"]
