@@ -45,15 +45,20 @@ inline uint32_t HashString(const nsACString& aStr) {
  *
  * Lightweight keytypes provided here:
  * nsStringHashKey
+ * nsTStringCaseInsensitiveHashKey
  * nsCStringHashKey
+ * nsIntegralHashKey
  * nsUint32HashKey
  * nsUint64HashKey
  * nsFloatHashKey
  * IntPtrHashKey
- * nsPtrHashKey
- * nsVoidPtrHashKey
+ * nsPtrHashKey (by nsPointerHashKeys.h)
+ * nsVoidPtrHashKey (by nsPointerHashKeys.h)
  * nsISupportsHashKey
+ * nsRefPtrHashKey
+ * nsFuncPtrHashKey
  * nsIDHashKey
+ * nsIDPointerHashKey
  * nsDepCharHashKey
  * nsCharPtrHashKey
  * nsUnicharPtrHashKey
