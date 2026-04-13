@@ -235,8 +235,6 @@
 
 *|*::-moz-scrolled-content,
 *|*::-moz-scrolled-canvas {
-  /* e.g., text inputs, select boxes */
-  padding: inherit;
   /* The display doesn't affect the kind of frame constructed here.  This just
      affects auto-width sizing of the block we create. */
   display: block;
