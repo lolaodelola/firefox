@@ -1,6 +1,10 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+const { PlacesTestUtils } = ChromeUtils.importESModule(
+  "resource://testing-common/PlacesTestUtils.sys.mjs"
+);
+
 ChromeUtils.defineESModuleGetters(globalThis, {
   SessionStore: "resource:///modules/sessionstore/SessionStore.sys.mjs",
 });
@@ -609,6 +613,91 @@ add_task(async function test_persist_collapse_card_after_view_change() {
     );
 
     await PlacesUtils.history.clear();
+    gBrowser.removeTab(gBrowser.selectedTab);
+  });
+});
+
+add_task(async function test_forget_about_this_site_option() {
+  await PlacesUtils.history.clear();
+  const TEST_URL = "https://example.com/";
+  await PlacesUtils.history.insert({
+    url: TEST_URL,
+    title: "Example Domain",
+    visits: [{ date: new Date() }],
+  });
+  await withFirefoxView({}, async browser => {
+    const { document } = browser.contentWindow;
+    await navigateToViewAndWait(document, "history");
+    const historyComponent = document.querySelector("view-history");
+
+    await TestUtils.waitForCondition(() => historyComponent.fullyUpdated);
+
+    await BrowserTestUtils.waitForMutationCondition(
+      historyComponent.shadowRoot,
+      { childList: true, subtree: true },
+      () => historyComponent.lists[0]
+    );
+    await BrowserTestUtils.waitForMutationCondition(
+      historyComponent.lists[0].shadowRoot,
+      { subtree: true, childList: true },
+      () => historyComponent.lists[0].rowEls.length === 1
+    );
+
+    const firstTabList = historyComponent.lists[0];
+    const firstItem = firstTabList.rowEls[0];
+    const panelList = historyComponent.panelList;
+    EventUtils.synthesizeMouseAtCenter(
+      firstItem.secondaryButtonEl,
+      {},
+      content
+    );
+    await BrowserTestUtils.waitForEvent(panelList, "shown");
+    const panelItems = Array.from(panelList.children).filter(
+      panelItem => panelItem.nodeName === "PANEL-ITEM"
+    );
+
+    const forgetOption = panelItems.find(
+      item => item.dataset.l10nId === "firefoxview-history-context-forget-site"
+    );
+
+    ok(
+      forgetOption.textContent.includes("Forget"),
+      "Forget About This Site option is present in the context menu."
+    );
+    let dialogOpened = BrowserTestUtils.promiseAlertDialogOpen(
+      null,
+      "chrome://browser/content/places/clearDataForSite.xhtml",
+      { isSubDialog: true }
+    );
+    const promiseForgotten =
+      PlacesTestUtils.waitForNotification("page-removed");
+    EventUtils.synthesizeMouseAtCenter(forgetOption, {}, content);
+    info("Forget About This Site option clicked.");
+
+    let dialog = await dialogOpened;
+    info("Dialog opened.");
+
+    let removeButton = dialog.document
+      .querySelector("dialog")
+      .getButton("accept");
+
+    removeButton.click();
+    info("Clear Data button clicked.");
+    await Promise.all([
+      BrowserTestUtils.waitForEvent(dialog, "unload"),
+      promiseForgotten,
+    ]);
+    info("Site forgotten successfully.");
+
+    await BrowserTestUtils.waitForMutationCondition(
+      historyComponent.shadowRoot,
+      { childList: true, subtree: true },
+      () => !historyComponent.lists[0]?.rowEls.length
+    );
+    ok(
+      !historyComponent.lists[0]?.rowEls.length,
+      "The site has been removed from the history list."
+    );
     gBrowser.removeTab(gBrowser.selectedTab);
   });
 });
