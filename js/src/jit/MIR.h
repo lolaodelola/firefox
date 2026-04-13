@@ -9097,7 +9097,9 @@ class MGuardToFunction : public MUnaryInstruction,
   NAMED_OPERANDS((0, object))
 
   MDefinition* foldsTo(TempAllocator& alloc) override;
-  AliasSet getAliasSet() const override { return AliasSet::None(); }
+  AliasSet getAliasSet() const override {
+    return AliasSet::Load(AliasSet::ObjectFields);
+  }
   bool congruentTo(const MDefinition* ins) const override {
     if (!ins->isGuardToFunction()) {
       return false;
