@@ -571,9 +571,55 @@ add_task(async function test_ineligibleTabsDisableMenus() {
   );
   await closeContextMenu(tabContextMenu);
 
+  await TabNotes.delete(eligibleTab);
   BrowserTestUtils.removeTab(eligibleTab);
   BrowserTestUtils.removeTab(ineligibleTab);
   BrowserTestUtils.removeTab(eligibleSameCanonicalUrl);
   BrowserTestUtils.removeTab(eligibleDifferentCanonicalUrl);
+  await SpecialPowers.popPrefEnv();
+});
+
+add_task(async function test_keyboardNavigationSaveCancel() {
+  await SpecialPowers.pushPrefEnv({
+    set: [["browser.tabs.notes.enabled", true]],
+  });
+
+  let tab = BrowserTestUtils.addTab(gBrowser, "https://www.example.com");
+  await BrowserTestUtils.browserLoaded(tab.linkedBrowser);
+
+  info(
+    "Test that pressing Enter while focused on Cancel button does not save the note"
+  );
+  let tabNoteMenu = await openTabNoteMenuByAddNote(tab);
+  let tabNoteInput = tabNoteMenu.querySelector("textarea");
+  tabNoteInput.focus();
+  EventUtils.sendString("Test note", window);
+  let cancelButton = document.getElementById("tab-note-editor-button-cancel");
+  cancelButton.focus();
+  let menuHidden = BrowserTestUtils.waitForPopupEvent(tabNoteMenu, "hidden");
+  EventUtils.synthesizeKey("KEY_Enter");
+  await menuHidden;
+  let tabNote = await TabNotes.get(tab);
+  Assert.ok(
+    !tabNote,
+    "Note is not saved when Enter is pressed on Cancel button"
+  );
+
+  info(
+    "Test that pressing Enter while focused inside the textarea saves the note"
+  );
+  tabNoteMenu = await openTabNoteMenuByAddNote(tab);
+  tabNoteInput = tabNoteMenu.querySelector("textarea");
+  tabNoteInput.focus();
+  EventUtils.sendString("Test note", window);
+  menuHidden = BrowserTestUtils.waitForPopupEvent(tabNoteMenu, "hidden");
+  let tabNoteCreated = BrowserTestUtils.waitForEvent(tab, "TabNote:Created");
+  EventUtils.synthesizeKey("KEY_Enter");
+  await Promise.all([menuHidden, tabNoteCreated]);
+  tabNote = await TabNotes.get(tab);
+  Assert.ok(tabNote, "Note is saved when Enter is pressed inside textarea");
+
+  await TabNotes.delete(tab);
+  BrowserTestUtils.removeTab(tab);
   await SpecialPowers.popPrefEnv();
 });

@@ -145,7 +145,7 @@
           this.#panel.hidePopup();
           break;
         case KeyEvent.DOM_VK_RETURN:
-          if (!event.shiftKey) {
+          if (!event.shiftKey && event.target === this.#noteField) {
             this.saveNote();
           }
           break;
