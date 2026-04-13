@@ -2082,6 +2082,20 @@ pref("browser.newtabpage.sponsor-protection.enabled", true);
 pref("browser.aboutwelcome.enabled", true);
 // Used to set multistage welcome UX
 pref("browser.aboutwelcome.screens", "");
+// Whether to gate loading about:welcome on Nimbus experiments having loaded.
+// Currently limited to Mac where a blocking preonboarding modal is shown with a
+// splash screen that advances after experiments load. On non-MSIX Windows,
+// experiments are loaded early enough that this isn't required.
+#if defined(XP_MACOSX)
+  pref("browser.aboutwelcome.experimentsGate.enabled", true);
+#endif
+// Whether to skip showing the experiment loading splash screen if Nimbus is
+// already initialized when the preonboarding modal's screen targeting is
+// evaluated.
+pref("browser.aboutwelcome.experimentsGate.skipSplashIfLoaded", true);
+// Minimum and maximum time (ms) to display the experiment-loading splash screen.
+pref("browser.aboutwelcome.experimentsGate.minDisplayMs", 3000);
+pref("browser.aboutwelcome.experimentsGate.maxDisplayMs", 8000);
 
 // Override design tokens for a given theme
 pref("browser.design-tokens.nova", false);

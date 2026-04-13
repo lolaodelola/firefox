@@ -60,6 +60,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   ClientEnvironment: "resource://normandy/lib/ClientEnvironment.sys.mjs",
   CustomizableUI:
     "moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs",
+  ExperimentAPI: "resource://nimbus/ExperimentAPI.sys.mjs",
   ExtensionUtils: "resource://gre/modules/ExtensionUtils.sys.mjs",
   FeatureCalloutBroker:
     "resource:///modules/asrouter/FeatureCalloutBroker.sys.mjs",
@@ -1464,6 +1465,29 @@ const TargetingGetters = {
     return QueryCache.queries.UserMonthlyActivity.get().then(activity => {
       return activity.filter(entry => entry[0] >= 100).length;
     });
+  },
+
+  /**
+   * Whether Nimbus has loaded remote experiments at least once.
+   *
+   * @return {boolean}
+   */
+  get experimentsLoaded() {
+    try {
+      // If Nimbus experiments are disabled, we can consider them loaded
+      if (!lazy.ExperimentAPI.enabled) {
+        return true;
+      }
+      // Check if the loader has updated recipes at least once
+      const hasUpdated = lazy.ExperimentAPI._rsLoader?._hasUpdatedOnce ?? false;
+      return hasUpdated;
+    } catch (e) {
+      lazy.ASRouterPreferences.console.error(
+        "nimbusExperimentsLoaded check failed",
+        e
+      );
+      return false;
+    }
   },
 };
 

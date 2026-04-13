@@ -105,6 +105,17 @@ function ComputeTelemetryInfo(welcomeContent, experimentId, branchId) {
 }
 
 async function retrieveRenderContent() {
+  // If supported, wait for Nimbus to be ready (or a maximum timeout to be
+  // reached) before loading about:welcome.
+  if (document.location.href === "about:welcome" && window.AWWaitForNimbus) {
+    try {
+      await window.AWWaitForNimbus();
+    } catch (e) {
+      // If Nimbus gating throws, proceed with whatever feature state we
+      // currently have.
+      console.error("AWWaitForNimbus failed", e);
+    }
+  }
   // Feature config includes RTAMO attribution data if exists
   // else below data in order specified
   // user prefs

@@ -365,6 +365,7 @@ export const MultiStageAboutWelcome = props => {
               setScreenMultiSelects={setScreenMultiSelects}
               activeMultiSelect={activeMultiSelects[currentScreen.id]}
               setActiveMultiSelect={setActiveMultiSelect}
+              advanceOnExperimentLoad={currentScreen.advance_on_experiment_load}
               activeSingleSelectSelections={
                 activeSingleSelectSelections[currentScreen.id]
               }
@@ -1017,6 +1018,7 @@ export class WelcomeScreen extends React.PureComponent {
         isSingleScreen={this.props.isSingleScreen}
         startsWithCorner={this.props.startsWithCorner}
         autoAdvance={this.props.autoAdvance}
+        advanceOnExperimentLoad={this.props.advanceOnExperimentLoad}
         forceHideStepsIndicator={this.props.forceHideStepsIndicator}
         ariaRole={this.props.ariaRole}
         requireAction={this.props.requireAction}
@@ -1027,6 +1029,7 @@ export class WelcomeScreen extends React.PureComponent {
         addonURL={this.props.addonURL}
         addonIconURL={this.props.addonIconURL}
         themeScreenshots={this.props.themeScreenshots}
+        navigate={this.props.navigate}
         isRtamo={this.props.content.isRtamo}
       />
     );

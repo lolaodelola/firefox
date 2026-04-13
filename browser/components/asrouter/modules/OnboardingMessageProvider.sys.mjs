@@ -3098,7 +3098,42 @@ const PREONBOARDING_MESSAGES = () => [
     firstRunURL: "https://www.mozilla.org/privacy/firefox/",
     screens: [
       {
+        id: "TOU_ONBOARDING_LOADING",
+        targeting:
+          "browser.aboutwelcome.experimentsGate.enabled|preferenceValue && (!browser.aboutwelcome.experimentsGate.skipSplashIfLoaded|preferenceValue || !nimbusExperimentsLoaded)",
+        advance_on_experiment_load: {
+          minDisplayMs: 3000,
+          maxDisplayMs: 10000,
+        },
+        force_hide_steps_indicator: true,
+        content: {
+          screen_style: {
+            overflow: "auto",
+            display: "block",
+            padding: "0",
+            width: "100vw",
+            height: "100vh",
+          },
+          main_content_style: {
+            display: "none",
+          },
+          logo: {
+            imageURL:
+              "chrome://activity-stream/content/data/content/assets/splash-logo.svg",
+            height: "500px",
+            width: "500px",
+            style: {
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexGrow: "1",
+            },
+          },
+        },
+      },
+      {
         id: "TOU_ONBOARDING",
+        force_hide_steps_indicator: true,
         content: {
           action_buttons_above_content: true,
           screen_style: {

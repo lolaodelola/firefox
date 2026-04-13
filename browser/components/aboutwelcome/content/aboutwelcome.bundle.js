@@ -474,6 +474,7 @@ const MultiStageAboutWelcome = props => {
       setScreenMultiSelects: setScreenMultiSelects,
       activeMultiSelect: activeMultiSelects[currentScreen.id],
       setActiveMultiSelect: setActiveMultiSelect,
+      advanceOnExperimentLoad: currentScreen.advance_on_experiment_load,
       activeSingleSelectSelections: activeSingleSelectSelections[currentScreen.id],
       setActiveSingleSelectSelection: setActiveSingleSelectSelection,
       textInputs: textInputs[currentScreen.id],
@@ -1034,6 +1035,7 @@ class WelcomeScreen extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureCo
       isSingleScreen: this.props.isSingleScreen,
       startsWithCorner: this.props.startsWithCorner,
       autoAdvance: this.props.autoAdvance,
+      advanceOnExperimentLoad: this.props.advanceOnExperimentLoad,
       forceHideStepsIndicator: this.props.forceHideStepsIndicator,
       ariaRole: this.props.ariaRole,
       requireAction: this.props.requireAction,
@@ -1044,6 +1046,7 @@ class WelcomeScreen extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureCo
       addonURL: this.props.addonURL,
       addonIconURL: this.props.addonIconURL,
       themeScreenshots: this.props.themeScreenshots,
+      navigate: this.props.navigate,
       isRtamo: this.props.content.isRtamo
     });
   }
@@ -1206,10 +1209,16 @@ const DEFAULT_AUTO_ADVANCE_MS = 20000;
 const MultiStageProtonScreen = props => {
   const {
     autoAdvance,
+    advanceOnExperimentLoad,
     handleAction,
+    messageId,
+    navigate,
     order
   } = props;
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!autoAdvance && !advanceOnExperimentLoad) {
+      return () => {};
+    }
     if (autoAdvance) {
       const value = autoAdvance?.actionEl ?? autoAdvance;
       const timeout = autoAdvance?.actionTimeMS ?? DEFAULT_AUTO_ADVANCE_MS;
@@ -1223,8 +1232,80 @@ const MultiStageProtonScreen = props => {
       }, timeout);
       return () => clearTimeout(timer);
     }
-    return () => {};
-  }, [autoAdvance, handleAction, order]);
+
+    // If not doing a standard auto advance, handle auto advancing when experiments load.
+
+    // Defaults for when advance_on_experiment_load is true.
+    const minMsDefault = 3000;
+    const maxMsDefault = 8000;
+    let minMs = advanceOnExperimentLoad?.minDisplayMs ?? minMsDefault;
+    let maxMs = advanceOnExperimentLoad?.maxDisplayMs ?? maxMsDefault;
+
+    // Ensure max ≥ min.
+    if (maxMs < minMs) {
+      maxMs = minMs;
+    }
+    const startTime = performance.now();
+    let cancelled = false;
+    let advanced = false;
+    let minDone = false;
+    let experimentsDone = false;
+    let nimbusResult = null;
+    let maxTimeoutFired = false;
+    const doAdvance = () => {
+      if (cancelled || advanced) {
+        return;
+      }
+      advanced = true;
+      const screen_duration = Math.round(performance.now() - startTime);
+      let reason;
+      if (maxTimeoutFired) {
+        reason = "max_display_timeout";
+      } else if (nimbusResult === "error") {
+        reason = "nimbus_error";
+      } else if (nimbusResult === "timeout") {
+        reason = "nimbus_timeout";
+      } else {
+        reason = "nimbus_ready";
+      }
+      _lib_aboutwelcome_utils_mjs__WEBPACK_IMPORTED_MODULE_2__.AboutWelcomeUtils.sendActionTelemetry(messageId, "advance_on_experiment_load", "SPLASH_DISMISSED", {
+        reason,
+        screen_duration
+      });
+      navigate(false);
+    };
+    const maybeAdvance = () => {
+      if (minDone && experimentsDone) {
+        doAdvance();
+      }
+    };
+    const minTimerId = window.setTimeout(() => {
+      minDone = true;
+      maybeAdvance();
+    }, minMs);
+    const maxTimerId = window.setTimeout(() => {
+      maxTimeoutFired = true;
+      doAdvance();
+    }, maxMs);
+
+    // Use an IIFE to keep the effect itself synchronous
+    (async () => {
+      try {
+        if (typeof window.AWWaitForNimbus === "function") {
+          nimbusResult = await window.AWWaitForNimbus(maxMs);
+        }
+        // If AWWaitForNimbus is missing, treat as "done" immediately.
+      } catch (e) {} finally {
+        experimentsDone = true;
+        maybeAdvance();
+      }
+    })();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(minTimerId);
+      window.clearTimeout(maxTimerId);
+    };
+  }, [autoAdvance, advanceOnExperimentLoad, handleAction, messageId, order, navigate]);
 
   // Set narrow on an outer element to allow for use of SCSS outer selector and
   // consolidation of styles for small screen widths with those for messages
@@ -1465,6 +1546,7 @@ class ProtonScreen extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureCom
     height,
     marginBlock,
     marginInline,
+    style,
     className = "logo-container"
   }) {
     function getLoadingStrategy() {
@@ -1475,12 +1557,14 @@ class ProtonScreen extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureCom
       }
       return "eager";
     }
+    const pictureStyle = {
+      marginInline,
+      marginBlock,
+      ...style
+    };
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("picture", {
       className: className,
-      style: {
-        marginInline,
-        marginBlock
-      }
+      style: pictureStyle
     }, darkModeReducedMotionImageURL ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("source", {
       srcset: darkModeReducedMotionImageURL,
       media: "(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)"
@@ -4466,6 +4550,17 @@ function ComputeTelemetryInfo(welcomeContent, experimentId, branchId) {
   };
 }
 async function retrieveRenderContent() {
+  // If supported, wait for Nimbus to be ready (or a maximum timeout to be
+  // reached) before loading about:welcome.
+  if (document.location.href === "about:welcome" && window.AWWaitForNimbus) {
+    try {
+      await window.AWWaitForNimbus();
+    } catch (e) {
+      // If Nimbus gating throws, proceed with whatever feature state we
+      // currently have.
+      console.error("AWWaitForNimbus failed", e);
+    }
+  }
   // Feature config includes RTAMO attribution data if exists
   // else below data in order specified
   // user prefs
