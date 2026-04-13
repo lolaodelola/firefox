@@ -1311,7 +1311,7 @@ class Element : public FragmentOrElement {
   void GetAttribute(const nsAString& aName, nsAString& aReturn) {
     DOMString str;
     GetAttribute(aName, str);
-    str.ToString(aReturn);
+    aReturn.Assign(std::move(str));
   }
 
   void GetAttribute(const nsAString& aName, DOMString& aReturn);

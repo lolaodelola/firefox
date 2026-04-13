@@ -43,7 +43,7 @@ class XMLHttpRequestStringBuffer final {
 
   [[nodiscard]] bool GetAsString(nsAString& aString) {
     MutexAutoLock lock(mMutex);
-    return aString.Assign(mData, mozilla::fallible);
+    return aString.Assign(mData, fallible);
   }
 
   size_t SizeOfThis(MallocSizeOf aMallocSizeOf) {
@@ -55,21 +55,23 @@ class XMLHttpRequestStringBuffer final {
     MutexAutoLock lock(mMutex);
     MOZ_ASSERT(aLength <= mData.Length());
 
-    // XXX: Bug 1408793 suggests encapsulating the following sequence within
-    //      DOMString.
     if (StringBuffer* buf = mData.GetStringBuffer()) {
-      // We have to use SetStringBuffer, because once we release our mutex mData
-      // can get mutated from some other thread while the DOMString is still
-      // alive.
-      aString.SetStringBuffer(buf, aLength);
+      // FIXME(emilio): Is this buffer guaranteed to be terminated? The previous
+      // code effectively made that assumption, and it seems to hold, since
+      // Assign() asserts against it... But that raises the question of "when is
+      // aLength ever different to mData.Length()?".
+      //
+      // If the answer is "never", that means that we can simplify this code to
+      // `return aString.Assign(mData, fallible);`, and just not take aLength...
+      // Bug 1408793 has further discussion.
+      aString.Assign(buf, aLength);
       return true;
     }
 
     // We can get here if mData is empty.  In that case it won't have an
     // nsStringBuffer....
     MOZ_ASSERT(mData.IsEmpty());
-    return aString.AsAString().Assign(mData.BeginReading(), aLength,
-                                      mozilla::fallible);
+    return aString.Assign(mData, fallible);
   }
 
   void CreateSnapshot(XMLHttpRequestStringSnapshot& aSnapshot) {

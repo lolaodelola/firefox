@@ -186,7 +186,7 @@ class HTMLSelectElement final : public nsGenericHTMLFormControlElementWithState,
 
   int32_t SelectedIndex() const { return mSelectedIndex; }
   void SetSelectedIndex(int32_t aIdx) { SetSelectedIndexInternal(aIdx, true); }
-  void GetValue(DOMString& aValue) const;
+  void GetValue(nsAString& aValue) const;
   void SetValue(const nsAString& aValue);
 
   // Override SetCustomValidity so we update our state properly when it's called

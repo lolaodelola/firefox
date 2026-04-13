@@ -2992,8 +2992,8 @@ void nsRange::ExcludeNonSelectableNodes(nsTArray<RefPtr<nsRange>>* aOutRanges) {
 }
 
 struct InnerTextAccumulator {
-  explicit InnerTextAccumulator(mozilla::dom::DOMString& aValue)
-      : mString(aValue.AsAString()), mRequiredLineBreakCount(0) {}
+  explicit InnerTextAccumulator(nsAString& aValue)
+      : mString(aValue), mRequiredLineBreakCount(0) {}
   void FlushLineBreaks() {
     while (mRequiredLineBreakCount > 0) {
       // Required line breaks at the start of the text are suppressed.
@@ -3117,7 +3117,7 @@ static bool IsLastNonemptyRowGroupOfTable(nsIFrame* aFrame) {
   return true;
 }
 
-void nsRange::GetInnerTextNoFlush(DOMString& aValue, ErrorResult& aError,
+void nsRange::GetInnerTextNoFlush(nsAString& aValue, ErrorResult& aError,
                                   nsIContent* aContainer) {
   InnerTextAccumulator result(aValue);
 

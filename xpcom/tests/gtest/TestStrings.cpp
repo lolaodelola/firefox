@@ -531,8 +531,8 @@ TEST_F(Strings, DependentStrings) {
     auto data = tmp.Data();
     nsDependentCString foo(tmp);
     // Neither string should be using a shared buffer.
-    EXPECT_FALSE(tmp.GetDataFlags() & DataFlags::REFCOUNTED);
-    EXPECT_FALSE(foo.GetDataFlags() & DataFlags::REFCOUNTED);
+    EXPECT_FALSE(tmp.GetDataFlags() & DataFlags::STRINGBUFFER);
+    EXPECT_FALSE(foo.GetDataFlags() & DataFlags::STRINGBUFFER);
     // Both strings should be pointing to the original buffer.
     EXPECT_EQ(data, tmp.Data());
     EXPECT_EQ(data, foo.Data());
@@ -543,8 +543,8 @@ TEST_F(Strings, DependentStrings) {
     auto data = tmp.Data();
     nsDependentCString foo(std::move(tmp));
     // Neither string should be using a shared buffer.
-    EXPECT_FALSE(tmp.GetDataFlags() & DataFlags::REFCOUNTED);
-    EXPECT_FALSE(foo.GetDataFlags() & DataFlags::REFCOUNTED);
+    EXPECT_FALSE(tmp.GetDataFlags() & DataFlags::STRINGBUFFER);
+    EXPECT_FALSE(foo.GetDataFlags() & DataFlags::STRINGBUFFER);
     // First string should be reset, the second should be pointing to the
     // original buffer.
     EXPECT_NE(data, tmp.Data());
@@ -557,8 +557,8 @@ TEST_F(Strings, DependentStrings) {
     auto data = tmp.Data();
     nsCString foo(tmp);
     // Original string should not be shared, copy should be shared.
-    EXPECT_FALSE(tmp.GetDataFlags() & DataFlags::REFCOUNTED);
-    EXPECT_TRUE(foo.GetDataFlags() & DataFlags::REFCOUNTED);
+    EXPECT_FALSE(tmp.GetDataFlags() & DataFlags::STRINGBUFFER);
+    EXPECT_TRUE(foo.GetDataFlags() & DataFlags::STRINGBUFFER);
     // First string should remain the same, the second should be pointing to
     // a new buffer.
     EXPECT_EQ(data, tmp.Data());

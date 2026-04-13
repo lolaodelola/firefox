@@ -1036,7 +1036,7 @@ bool HTMLSelectElement::IsOptionDisabled(HTMLOptionElement* aOption) const {
   return false;
 }
 
-void HTMLSelectElement::GetValue(DOMString& aValue) const {
+void HTMLSelectElement::GetValue(nsAString& aValue) const {
   int32_t selectedIndex = SelectedIndex();
   if (selectedIndex < 0) {
     return;

@@ -1529,7 +1529,7 @@ nsDocumentEncoder::EncodeToStringWithMaxLength(uint32_t aMaxLength,
   bool setOutput = false;
   MOZ_ASSERT(!mCachedBuffer);
   // Try to cache the buffer.
-  if (StringBuffer* outputBuffer = output.GetStringBuffer()) {
+  if (StringBuffer* outputBuffer = output.GetOwnedStringBuffer()) {
     if (outputBuffer->StorageSize() == kStringBufferSizeInBytes &&
         !outputBuffer->IsReadonly()) {
       mCachedBuffer = outputBuffer;

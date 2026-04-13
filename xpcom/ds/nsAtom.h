@@ -53,7 +53,7 @@ class nsAtom {
   inline const nsDynamicAtom* AsDynamic() const;
   inline nsDynamicAtom* AsDynamic();
 
-  char16ptr_t GetUTF16String() const;
+  inline char16ptr_t GetUTF16String() const;
 
   uint32_t GetLength() const { return mLength; }
 
@@ -223,6 +223,10 @@ MozExternalRefCountType nsAtom::AddRef() {
 
 MozExternalRefCountType nsAtom::Release() {
   return IsStatic() ? 1 : AsDynamic()->Release();
+}
+
+char16ptr_t nsAtom::GetUTF16String() const {
+  return IsStatic() ? AsStatic()->String() : AsDynamic()->String();
 }
 
 // The four forms of NS_Atomize (for use with |RefPtr<nsAtom>|) return the

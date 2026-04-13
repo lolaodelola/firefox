@@ -154,14 +154,11 @@ void ExtensionAPIBase::CallWebExtMethodReturnsString(
     return;
   }
 
-  nsAutoJSString str;
-  if (!str.init(aCx, retval.toString())) {
+  if (!AssignJSString(aCx, aRetVal, retval.toString())) {
     JS_ClearPendingException(aCx);
     ThrowUnexpectedError(aCx, aRv);
     return;
   }
-
-  aRetVal = str;
 }
 
 already_AddRefed<ExtensionPort> ExtensionAPIBase::CallWebExtMethodReturnsPort(
@@ -276,12 +273,10 @@ void ExtensionAPIBase::GetWebExtPropertyAsString(const nsString& aPropertyName,
     NS_WARNING("GetWebExtPropertyAsString failure");
     return;
   }
-  nsAutoJSString strRetval;
-  if (!retval.isString() || !strRetval.init(cx, retval)) {
+  if (!retval.isString() || !AssignJSString(cx, aRetval, retval.toString())) {
     NS_WARNING("GetWebExtPropertyAsString got a non string result");
     return;
   }
-  aRetval.AsAString() = strRetval;
 }
 
 void ExtensionAPIBase::GetWebExtPropertyAsJSValue(
