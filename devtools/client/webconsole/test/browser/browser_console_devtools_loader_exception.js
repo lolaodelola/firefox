@@ -25,10 +25,10 @@ add_task(async function () {
   const toolbox = wcHud.toolbox;
   const oldPanels = toolbox._toolPanels;
   // non-iterable
-  toolbox.frameMap = {};
+  toolbox._toolPanels = {};
 
   function fixToolbox() {
-    toolbox.frameMap = oldPanels;
+    toolbox._toolPanels = oldPanels;
   }
 
   info("generate exception and wait for message");
@@ -36,16 +36,16 @@ add_task(async function () {
   executeSoon(() => {
     expectUncaughtException();
     executeSoon(fixToolbox);
-    toolbox.updateFrameButton();
+    toolbox.getToolPanels();
   });
 
   const msg = await waitFor(() =>
-    findErrorMessage(bcHud, "TypeError: this.frameMap.get is not a function")
+    findErrorMessage(bcHud, "TypeError: this._toolPanels is not iterable")
   );
 
   fixToolbox();
 
-  ok(msg, `Message found: "TypeError: this.frameMap.get is not a function"`);
+  ok(msg, `Message found: "TypeError: this._toolPanels is not iterable"`);
 
   const locationNode = msg.querySelector(
     ".message-location .frame-link-source"
