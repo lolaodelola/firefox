@@ -133,30 +133,35 @@ IPCResult RemoteMediaDataEncoderParent::RecvEncode(
     LOGV("[{}] recv {} video frames", fmt::ptr(this),
          remoteVideoArray->Array().Length());
     for (size_t i = 0; i < remoteVideoArray->Array().Length(); i++) {
-      RefPtr<MediaData> frame;
       auto data = std::move(remoteVideoArray->Array().ElementAt(i));
-      if (!data.image().IsEmpty()) {
-        AUTO_MARKER(marker, ".RecvEncode.TransferToImage");
-        RefPtr<layers::Image> image =
-            data.image().TransferToImage(mBufferRecycleBin);
-        marker.End();
-        LOGE_IF(!image, "[{}] failed to get image from video frame at index {}",
-                fmt::ptr(this), i);
-        if (image) {
-          frame = VideoData::CreateFromImage(
-                      data.display(), data.base().offset(), data.base().time(),
-                      data.base().duration(), image, data.base().keyframe(),
-                      data.base().timecode())
-                      .downcast<MediaData>();
-        }
-      } else {
-        LOGW("[{}] empty image in video frame at index {}", fmt::ptr(this), i);
-        frame = MakeRefPtr<NullData>(data.base().offset(), data.base().time(),
-                                     data.base().duration());
+      if (data.image().IsEmpty()) {
+        LOGE("[{}] empty image in video frame at index {}", fmt::ptr(this), i);
+        aResolver(MediaResult(NS_ERROR_INVALID_ARG, __func__));
+        return IPC_OK();
       }
 
+      AUTO_MARKER(marker, ".RecvEncode.TransferToImage");
+      RefPtr<layers::Image> image =
+          data.image().TransferToImage(mBufferRecycleBin);
+      marker.End();
+
+      if (!image) {
+        LOGE("[{}] failed to get image from video frame at index {}",
+             fmt::ptr(this), i);
+        aResolver(MediaResult(NS_ERROR_OUT_OF_MEMORY, __func__));
+        return IPC_OK();
+      }
+
+      RefPtr<MediaData> frame =
+          VideoData::CreateFromImage(data.display(), data.base().offset(),
+                                     data.base().time(), data.base().duration(),
+                                     image, data.base().keyframe(),
+                                     data.base().timecode())
+              .downcast<MediaData>();
+
       if (NS_WARN_IF(!frame)) {
-        LOGE("[{}] failed to create video frame", fmt::ptr(this));
+        LOGE("[{}] failed to create video frame at index {}", fmt::ptr(this),
+             i);
         aResolver(MediaResult(NS_ERROR_OUT_OF_MEMORY, __func__));
         return IPC_OK();
       }
