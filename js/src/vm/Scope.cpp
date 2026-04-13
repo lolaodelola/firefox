@@ -655,22 +655,6 @@ void EvalScope::prepareForScopeCreation(ScopeKind scopeKind,
   }
 }
 
-/* static */
-Scope* EvalScope::nearestVarScopeForDirectEval(Scope* scope) {
-  for (ScopeIter si(scope); si; si++) {
-    switch (si.kind()) {
-      case ScopeKind::Function:
-      case ScopeKind::FunctionBodyVar:
-      case ScopeKind::Global:
-      case ScopeKind::NonSyntactic:
-        return scope;
-      default:
-        break;
-    }
-  }
-  return nullptr;
-}
-
 ModuleScope::RuntimeData::RuntimeData(size_t length) {
   PoisonNames(this, length);
 }

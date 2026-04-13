@@ -241,7 +241,7 @@ class FrameIter {
   explicit FrameIter(JSContext* cx,
                      DebuggerEvalOption = FOLLOW_DEBUGGER_EVAL_PREV_LINK);
   FrameIter(JSContext* cx, DebuggerEvalOption, JSPrincipals*);
-  FrameIter(const FrameIter& iter);
+  FrameIter(const FrameIter& iter) = delete;
   MOZ_IMPLICIT FrameIter(const Data& data);
 
   bool done() const { return data_.state_ == DONE; }

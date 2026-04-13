@@ -373,11 +373,6 @@ FrameIter::FrameIter(JSContext* cx, DebuggerEvalOption debuggerEvalOption,
   }
 }
 
-FrameIter::FrameIter(const FrameIter& other)
-    : data_(other.data_),
-      ionInlineFrames_(other.data_.cx_,
-                       isIonScripted() ? &other.ionInlineFrames_ : nullptr) {}
-
 FrameIter::FrameIter(const Data& data)
     : data_(data),
       ionInlineFrames_(data.cx_, isIonScripted() ? &jsJitFrame() : nullptr) {

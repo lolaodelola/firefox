@@ -947,22 +947,11 @@ class EvalScope : public Scope {
   }
 
  public:
-  // Starting a scope, the nearest var scope that a direct eval can
-  // introduce vars on.
-  static Scope* nearestVarScopeForDirectEval(Scope* scope);
-
   uint32_t nextFrameSlot() const { return data().slotInfo.nextFrameSlot; }
 
   bool strict() const { return kind() == ScopeKind::StrictEval; }
 
   bool hasBindings() const { return data().length > 0; }
-
-  bool isNonGlobal() const {
-    if (strict()) {
-      return true;
-    }
-    return !nearestVarScopeForDirectEval(enclosing())->is<GlobalScope>();
-  }
 };
 
 template <>
