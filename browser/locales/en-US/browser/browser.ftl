@@ -595,8 +595,8 @@ urlbar-switch-to-tab =
 urlbar-extension =
   .value = Extension:
 
-urlbar-go-button =
-  .tooltiptext = Go to the address in the Location Bar
+urlbar-go-button2 =
+  .title = Go to the address in the Location Bar
 urlbar-page-action-button =
   .tooltiptext = Page actions
 urlbar-revert-button =
@@ -799,43 +799,39 @@ urlbar-result-dates-ends-today = { $name } · Ends today
 # Searchmode Switcher button
 # Variables:
 #   $engine (String): the current default search engine.
-urlbar-searchmode-button2 =
-    .label = { $engine }, pick a search engine
-    .tooltiptext = { $engine }, pick a search engine
-urlbar-searchmode-button-no-engine =
-    .label = No shortcut selected, pick a shortcut
-    .tooltiptext = No shortcut selected, pick a shortcut
+urlbar-searchmode-button3 =
+    .title = { $engine }, pick a search engine
+urlbar-searchmode-button-no-engine2 =
+    .title = No shortcut selected, pick a shortcut
 
 # Refers to the ability to search using keywords in the address bar
-urlbar-searchmode-no-keyword =
-    .label = Keyword search is disabled
-    .tooltiptext = Keyword search is disabled
+urlbar-searchmode-no-keyword2 =
+    .title = Keyword search is disabled
 
-urlbar-searchmode-dropmarker =
-    .tooltiptext = Pick a Search Engine
-urlbar-searchmode-bookmarks =
-    .label = Bookmarks
-urlbar-searchmode-tabs =
-    .label = Tabs
-urlbar-searchmode-history =
-    .label = History
-urlbar-searchmode-actions =
-    .label = Actions
-urlbar-searchmode-exit-button =
-    .tooltiptext = Close
-urlbar-searchmode-default =
-    .tooltiptext = Default search engine
+urlbar-searchmode-dropmarker2 =
+    .title = Pick a Search Engine
+urlbar-searchmode-bookmarks2 = Bookmarks
+urlbar-searchmode-tabs2 = Tabs
+urlbar-searchmode-history2 = History
+urlbar-searchmode-actions2 = Actions
+urlbar-searchmode-exit-button2 =
+    .title = Close
+urlbar-searchmode-default2 =
+    .title = Default search engine
+
+# Shown when adding new search engines from the search mode switcher.
+# Variables:
+#  $engineName (String): The name of the search engine.
+urlbar-searchmode-popup-add-engine = Add “{ $engineName }”
+    .title = Add search engine “{ $engineName }”
 
 # Label shown on the top of Searchmode Switcher popup. After this label, the
 # available search engines will be listed.
-urlbar-searchmode-popup-one-off-description-menucaption =
-    .label = This time search with:
+urlbar-searchmode-popup-one-off-header = This time search with:
 # Label shown on the top of Searchmode Switcher popup when the search engine won't automatically
 # reset after submitting.
-urlbar-searchmode-popup-header-menucaption =
-    .label = Search with:
-urlbar-searchmode-popup-search-settings-menuitem =
-    .label = Search Settings
+urlbar-searchmode-popup-header = Search with:
+urlbar-searchmode-popup-search-settings-panelitem = Search Settings
 
 # Label shown next to a new search engine in the Searchmode Switcher popup to promote it.
 urlbar-searchmode-new = New

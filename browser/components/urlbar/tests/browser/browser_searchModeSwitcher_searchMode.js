@@ -50,7 +50,7 @@ add_task(async function test_engine_searchmode_after_result_nav() {
 
   info("Press on the bing menu button and enter search mode");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  popup.querySelector("menuitem[label=Example]").click();
+  popup.querySelector(`panel-item[data-engine-name=Example]`).button.click();
   await popupHidden;
 
   await UrlbarTestUtils.assertSearchMode(window, {
@@ -86,7 +86,7 @@ add_task(async function test_local_searchmode_after_result_nav() {
 
   info("Press on the bing menu button and enter search mode");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  popup.querySelector("#search-button-bookmarks").click();
+  popup.querySelector(".search-button-bookmarks").button.click();
   await popupHidden;
 
   await UrlbarTestUtils.assertSearchMode(window, {

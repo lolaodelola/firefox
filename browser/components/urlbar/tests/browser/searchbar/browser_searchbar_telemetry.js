@@ -90,7 +90,7 @@ add_task(async function test_searchMode() {
   let popup = await SearchbarTestUtils.openSearchModeSwitcher(window);
   info("Entering search mode for engine2");
   let popupHidden = SearchbarTestUtils.searchModeSwitcherPopupClosed(window);
-  popup.querySelector("menuitem[label=engine2]").click();
+  popup.querySelector("panel-item[data-engine-id=engine2]").button.click();
   await popupHidden;
 
   await SearchbarTestUtils.promiseAutocompleteResultPopup({

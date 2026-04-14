@@ -30,7 +30,7 @@ add_setup(async function () {
 add_task(async function no_keyboard_trap() {
   let { tab } = await searchWithTab(SEARCH_STRING);
 
-  let leftElement = gURLBar.querySelector(".searchmode-switcher");
+  let leftElement = gURLBar.querySelector(".searchmode-switcher").buttonEl;
   let inputField = gURLBar.inputField;
   let revertButton = gURLBar.querySelector(".urlbar-revert-button");
 

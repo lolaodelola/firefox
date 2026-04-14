@@ -133,37 +133,38 @@ export class SmartbarInput extends HTMLElement {
       <html:div class="urlbar-input-container"
             pageproxystate="invalid">
         <html:moz-urlbar-slot name="remote-control-box" />
-        <toolbarbutton id="urlbar-searchmode-switcher"
-                       class="searchmode-switcher chromeclass-toolbar-additional"
-                       align="center"
-                       aria-expanded="false"
-                       aria-haspopup="menu"
-                       tooltip="dynamic-shortcut-tooltip"
-                       data-l10n-id="urlbar-searchmode-default"
-                       type="menu">
-          <image class="searchmode-switcher-icon toolbarbutton-icon"/>
-          <image class="searchmode-switcher-dropmarker toolbarbutton-icon toolbarbutton-combined-buttons-dropmarker"
-                 data-l10n-id="urlbar-searchmode-dropmarker" />
-          <menupopup class="searchmode-switcher-popup toolbar-menupopup"
-                     consumeoutsideclicks="false">
-            <menucaption class="searchmode-switcher-popup-description"
-                         data-l10n-id="urlbar-searchmode-popup-one-off-description-menucaption"
-                         role="heading" />
-            <menuseparator/>
-            <menuseparator class="searchmode-switcher-popup-footer-separator"/>
-            <menuitem class="searchmode-switcher-popup-search-settings-button menuitem-iconic"
-                      data-action="openpreferences"
-                      image="chrome://global/skin/icons/settings.svg"
-                      data-l10n-id="urlbar-searchmode-popup-search-settings-menuitem"/>
-          </menupopup>
-        </toolbarbutton>
-        <box class="searchmode-switcher-chicklet">
-          <label class="searchmode-switcher-title" />
-          <toolbarbutton class="searchmode-switcher-close toolbarbutton-icon close-button"
-                         data-action="exitsearchmode"
-                         role="button"
-                         data-l10n-id="urlbar-searchmode-exit-button" />
-        </box>
+
+        <html:moz-button class="searchmode-switcher chromeclass-toolbar-additional"
+                         iconsrc="chrome://global/skin/icons/search-glass.svg"
+                         title="More options"
+                         aria-label="More options"
+                         data-l10n-id="urlbar-searchmode-default2"
+                         tabindex="-1"
+                         role="combobox">
+          <!-- This span has no purpose other than making the moz-button think
+               it contains text even when searchmode-switcher-title is hidden. -->
+          <html:span class="urlbar-visually-hidden" aria-hidden="true">a</html:span>
+          <html:span class="searchmode-switcher-content">
+            <html:img class="searchmode-switcher-dropmarker"
+                      data-l10n-id="urlbar-searchmode-dropmarker2"
+                      draggable="false" />
+            <html:span class="searchmode-switcher-title" />
+            <html:button class="searchmode-switcher-close toolbarbutton-icon close-button"
+                         data-l10n-id="urlbar-searchmode-exit-button2"
+                         tabindex="-1"
+                         keyNav="false" />
+          </html:span>
+        </html:moz-button>
+        <!-- In XUL windows, this will be wrapped in a panel with class="searchmode-switcher-panel". -->
+        <html:panel-list class="searchmode-switcher-popup">
+          <html:span class="searchmode-switcher-popup-description" role="heading" />
+${
+  lazy.UrlbarPrefs.get("nova.featureGate")
+    ? '<html:hr class="searchmode-switcher-popup-installed-engine-separator"/><html:hr class="searchmode-switcher-popup-footer-separator"/>'
+    : '<html:hr/><html:hr class="searchmode-switcher-popup-installed-engine-separator searchmode-switcher-popup-footer-separator"/>'
+}
+        </html:panel-list>
+
         <html:moz-urlbar-slot name="site-info" />
         <moz-input-box tooltip="aHTMLTooltip"
                        class="urlbar-input-box"
@@ -183,7 +184,7 @@ export class SmartbarInput extends HTMLElement {
         <html:img class="urlbar-icon urlbar-go-button"
                role="button"
                keyNav="false"
-               data-l10n-id="urlbar-go-button"/>
+               data-l10n-id="urlbar-go-button2"/>
         <html:moz-urlbar-slot name="page-actions" hidden="" />
       </html:div>
       <html:div class="urlbarView"

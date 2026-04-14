@@ -11,22 +11,17 @@ add_setup(async function setup() {
 });
 
 add_task(async () => {
-  await testInstallEngine(popup => {
-    if (
-      AppConstants.platform == "macosx" &&
-      Services.prefs.getBoolPref("widget.macos.native-anchored-menus", false)
-    ) {
-      // Native menus do not support synthesizing key events
-      popup.activateItem(popup.querySelector("menuitem[label*=engine1]"));
-    } else {
-      EventUtils.synthesizeKey("KEY_ArrowUp");
-      EventUtils.synthesizeKey("KEY_ArrowUp");
-      EventUtils.synthesizeKey("KEY_Enter");
-    }
+  info("Test installing via keyboard.");
+  await testInstallEngine(() => {
+    EventUtils.synthesizeKey("KEY_ArrowUp");
+    EventUtils.synthesizeKey("KEY_ArrowUp");
+    EventUtils.synthesizeKey("KEY_Enter");
   });
 
+  info("Test installing via mouse.");
   await testInstallEngine(popup => {
-    popup.querySelector("menuitem[label*=engine1]").click();
+    let item = popup.querySelector("panel-item[data-engine-name=engine1]");
+    EventUtils.synthesizeMouseAtCenter(item, {});
   });
 });
 
@@ -40,7 +35,9 @@ async function testInstallEngine(installFun) {
   let promiseEngineAdded = SearchTestUtils.promiseEngine("Foo");
 
   let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
+  info("Waiting for installFun.");
   await installFun(popup);
+  info("Waiting for engine to be added.");
   let engine = await promiseEngineAdded;
   Assert.ok(true, "The engine was installed.");
 

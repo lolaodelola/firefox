@@ -131,7 +131,7 @@ add_task(async function basic() {
 
   info("Press on the bing menu button and enter search mode");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  popup.querySelector("menuitem[label=Bing]").click();
+  popup.querySelector("panel-item[data-engine-id=bing]").button.click();
   await popupHidden;
 
   await UrlbarTestUtils.assertSearchMode(window, {
@@ -168,20 +168,12 @@ add_task(async function select_with_single_click() {
     value: "",
   });
 
-  let popup = UrlbarTestUtils.searchModeSwitcherPopup(window);
   let button = gURLBar.querySelector(".searchmode-switcher");
+  let popup = await UrlbarTestUtils.openSearchModeSwitcher(window, () => {
+    EventUtils.synthesizeMouseAtCenter(button, { type: "mousedown" });
+  });
 
-  let popupShown = BrowserTestUtils.waitForPopupEvent(popup, "shown");
-  let rebuildPromise = BrowserTestUtils.waitForEvent(popup, "rebuild");
-  EventUtils.synthesizeMouseAtCenter(button, { type: "mousedown" });
-  await Promise.all([popupShown, rebuildPromise]);
-
-  // There seems to be a delay of ~150ms before menu items
-  // can be selected by mouseup.
-  // eslint-disable-next-line mozilla/no-arbitrary-setTimeout
-  await new Promise(r => setTimeout(r, 500));
-
-  let target = popup.querySelector("menuitem[label=Bing]");
+  let target = popup.querySelector("panel-item[data-engine-id=bing]");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
   EventUtils.synthesizeMouseAtCenter(target, { type: "mousemove" });
   EventUtils.synthesizeMouseAtCenter(target, { type: "mouseup" });
@@ -225,10 +217,10 @@ add_task(async function new_window() {
   info("Open popup and check list of engines is redrawn");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(newWin);
   Assert.ok(
-    !popup.querySelector(`menuitem[label=${oldEngine.name}]`),
+    !popup.querySelector(`panel-item[data-engine-id=${oldEngine.id}]`),
     "List has been redrawn"
   );
-  popup.querySelector("menuitem[label=Google]").click();
+  popup.querySelector("panel-item[data-engine-id=google]").button.click();
   await popupHidden;
   newWin.gURLBar.querySelector(".searchmode-switcher-close").click();
 
@@ -246,7 +238,7 @@ add_task(async function detect_searchmode_changes() {
 
   info("Press on the bing menu button and enter search mode");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  popup.querySelector("menuitem[label=Bing]").click();
+  popup.querySelector("panel-item[data-engine-id=bing]").button.click();
   await popupHidden;
 
   await UrlbarTestUtils.assertSearchMode(window, {
@@ -300,7 +292,7 @@ add_task(async function test_search_icon_change() {
   );
 
   let popup = UrlbarTestUtils.searchModeSwitcherPopup(newWin);
-  let engineName = "Bing";
+  let bing = SearchService.getEngineByName("Bing");
   info("Open the urlbar and searchmode switcher popup");
   await UrlbarTestUtils.promiseAutocompleteResultPopup({
     window: newWin,
@@ -309,11 +301,10 @@ add_task(async function test_search_icon_change() {
   await UrlbarTestUtils.openSearchModeSwitcher(newWin);
   info("Press on the bing menu button and enter search mode");
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(newWin);
-  popup.querySelector(`menuitem[label=${engineName}]`).click();
+  popup.querySelector(`panel-item[data-engine-id=${bing.id}]`).button.click();
   await popupHidden;
 
-  const bingSearchEngineIconUrl =
-    await SearchService.getEngineByName(engineName).getIconURL();
+  const bingSearchEngineIconUrl = await bing.getIconURL();
 
   Assert.equal(
     UrlbarTestUtils.getSearchModeSwitcherIcon(newWin),
@@ -322,7 +313,7 @@ add_task(async function test_search_icon_change() {
      search mode"
   );
   await UrlbarTestUtils.assertSearchMode(newWin, {
-    engineName: "Bing",
+    engineName: bing.name,
     entry: "searchbutton",
     source: 3,
   });
@@ -403,11 +394,21 @@ add_task(async function open_engine_page_directly() {
     );
 
     if (action == "click") {
-      popup.activateItem(popup.querySelector("menuitem[label=MozSearch]"), {
-        shiftKey: true,
-      });
+      EventUtils.synthesizeMouseAtCenter(
+        popup.querySelector(`panel-item[data-engine-name=MozSearch]`),
+        {
+          shiftKey: true,
+        },
+        newWin
+      );
     } else {
-      await UrlbarTestUtils.selectMenuItem(popup, "menuitem[label=MozSearch]");
+      let panelItems = Array.from(popup.querySelectorAll(`panel-item`));
+      let index = panelItems.findIndex(
+        item => item.dataset.engineName == "MozSearch"
+      );
+      for (let i = 0; i < index; i++) {
+        EventUtils.synthesizeKey("KEY_ArrowDown", {}, newWin);
+      }
       EventUtils.synthesizeKey("KEY_Enter", { shiftKey: true }, newWin);
     }
 
@@ -481,14 +482,20 @@ add_task(async function open_engine_page_in_tab() {
 
     if (action == "click") {
       EventUtils.synthesizeMouseAtCenter(
-        popup.querySelector("menuitem[label=MozSearch]"),
+        popup.querySelector(`panel-item[data-engine-name=MozSearch]`),
         {
           accelKey: true,
         },
         newWin
       );
     } else {
-      await UrlbarTestUtils.selectMenuItem(popup, "menuitem[label=MozSearch]");
+      let panelItems = Array.from(popup.querySelectorAll(`panel-item`));
+      let index = panelItems.findIndex(
+        item => item.dataset.engineName == "MozSearch"
+      );
+      for (let i = 0; i < index; i++) {
+        EventUtils.synthesizeKey("KEY_ArrowDown", {}, newWin);
+      }
       EventUtils.synthesizeKey("KEY_Enter", { accelKey: true }, newWin);
     }
 
@@ -566,7 +573,7 @@ add_task(async function test_enter_searchmode_by_key_if_single_result() {
     info("Choose any search engine from the switcher");
     let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
     let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-    popup.querySelector("menuitem[label=Bing]").click();
+    popup.querySelector("panel-item[data-engine-id=bing]").button.click();
     await popupHidden;
     Assert.equal(gURLBar.value, "", "The value of urlbar should be empty");
 
@@ -629,25 +636,21 @@ add_task(async function test_open_state() {
 
   for (let className of [
     "searchmode-switcher",
-    "searchmode-switcher-icon",
     "searchmode-switcher-dropmarker",
   ]) {
     info(`Open search mode switcher popup by clicking on [${className}]`);
-    let popupOpen = BrowserTestUtils.waitForEvent(popup, "popupshown");
     let button = gURLBar.querySelector("." + className);
-    EventUtils.synthesizeMouseAtCenter(button, {}, window);
-    await popupOpen;
-    Assert.equal(
-      switcher.getAttribute("open"),
-      "true",
-      "The 'open' attribute should be true"
+    await UrlbarTestUtils.openSearchModeSwitcher(window, () => {
+      EventUtils.synthesizeMouseAtCenter(button, {}, window);
+    });
+    Assert.ok(
+      switcher.hasAttribute("open"),
+      "The 'open' attribute should be set"
     );
 
     info("Close the popup");
-    popup.hidePopup();
-    await TestUtils.waitForCondition(() => {
-      return !switcher.hasAttribute("open");
-    });
+    popup.hide();
+    await TestUtils.waitForCondition(() => !switcher.hasAttribute("open"));
     Assert.ok(true, "The 'open' attribute should not be set");
   }
 });
@@ -689,11 +692,12 @@ add_task(async function test_button_stuck() {
   let win = await BrowserTestUtils.openNewBrowserWindow();
 
   info("Show the SearchModeSwitcher");
-  let popup = await UrlbarTestUtils.openSearchModeSwitcher(win);
+  await UrlbarTestUtils.openSearchModeSwitcher(win);
 
   info("Hide the SearchModeSwitcher");
   let button = win.gURLBar.querySelector(".searchmode-switcher");
-  let promiseMenuClosed = BrowserTestUtils.waitForEvent(popup, "popuphidden");
+  let promiseMenuClosed = UrlbarTestUtils.searchModeSwitcherPopupClosed(win);
+
   // Need native mouse event as the popup will be closed on blur.
   EventUtils.synthesizeNativeMouseEvent({
     type: "click",
@@ -761,16 +765,12 @@ add_task(async function test_search_service_fail() {
   info("Ensure local search modes are present in popup");
   let localSearchModes = ["bookmarks", "history", "tabs"];
   for (let searchMode of localSearchModes) {
-    popup.querySelector(`#search-button-${searchMode}`);
+    popup.querySelector(`.search-button-${searchMode}`);
     Assert.ok("Local search modes should be present");
   }
 
-  let localSearchButton = popup.querySelector(
-    `#search-button-${localSearchModes[0]}`
-  );
-
-  let popupHidden = BrowserTestUtils.waitForEvent(popup, "popuphidden");
-  localSearchButton.click();
+  let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(newWin);
+  popup.querySelector(`.search-button-${localSearchModes[0]}`).button.click();
   await popupHidden;
 
   stub.restore();
@@ -797,7 +797,9 @@ add_task(async function test_search_mode_switcher_engine_no_icon() {
   let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
 
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  popup.querySelector(`menuitem[label=${testEngineName}]`).click();
+  popup
+    .querySelector(`panel-item[data-engine-name=${testEngineName}]`)
+    .button.click();
   await popupHidden;
 
   Assert.equal(
@@ -906,16 +908,12 @@ add_task(async function open_with_alt_option_with_open_view() {
     value: "",
   });
 
-  let promiseMenuOpen = BrowserTestUtils.waitForPopupEvent(
-    UrlbarTestUtils.searchModeSwitcherPopup(window),
-    "shown"
-  );
-  EventUtils.synthesizeKey("KEY_ArrowDown", { altKey: true });
-  await promiseMenuOpen;
+  await UrlbarTestUtils.openSearchModeSwitcher(window, () => {
+    EventUtils.synthesizeKey("KEY_ArrowDown", { altKey: true });
+  });
 
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  const popup = UrlbarTestUtils.searchModeSwitcherPopup(window);
-  popup.hidePopup();
+  UrlbarTestUtils.searchModeSwitcherPopup(window).hide();
   await popupHidden;
 });
 
@@ -923,15 +921,11 @@ add_task(async function open_with_alt_option_with_closed_view() {
   info(
     "Open the urlbar and searchmode switcher popup with Arrow Up + Alt/Option keys while the results view is closed"
   );
-  let promiseMenuOpen = BrowserTestUtils.waitForPopupEvent(
-    UrlbarTestUtils.searchModeSwitcherPopup(window),
-    "shown"
-  );
-  EventUtils.synthesizeKey("KEY_ArrowUp", { altKey: true });
-  await promiseMenuOpen;
+  await UrlbarTestUtils.openSearchModeSwitcher(window, () => {
+    EventUtils.synthesizeKey("KEY_ArrowUp", { altKey: true });
+  });
 
   let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
-  const popup = UrlbarTestUtils.searchModeSwitcherPopup(window);
-  popup.hidePopup();
+  UrlbarTestUtils.searchModeSwitcherPopup(window).hide();
   await popupHidden;
 });

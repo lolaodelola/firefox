@@ -1,6 +1,10 @@
 /* Any copyright is dedicated to the Public Domain.
    http://creativecommons.org/publicdomain/zero/1.0/ */
 
+/**
+ * @import { PanelList } from "chrome://global/content/elements/panel-list.mjs"
+ */
+
 import { AppConstants } from "resource://gre/modules/AppConstants.sys.mjs";
 
 import {
@@ -1548,7 +1552,9 @@ class UrlbarInputTestUtils {
 
   /**
    * @param {ChromeWindow} win
-   * @returns {XULPopupElement}
+   *   The search mode switcher's window.
+   * @returns {PanelList}
+   *   The search mode switcher popup.
    */
   searchModeSwitcherPopup(win) {
     return this.#urlbar(win).querySelector(".searchmode-switcher-popup");
@@ -1562,36 +1568,35 @@ class UrlbarInputTestUtils {
    * @param {?Function} [openFn]
    * Function to be used to open the popup. If not supplied,
    * it will default to a opening the popup directly.
-   * @returns {Promise<XULPopupElement>}
+   * @returns {Promise<PanelList>}
    *   The search mode switcher popup.
    */
   async openSearchModeSwitcher(win, openFn = null) {
-    //Flush the popup previous state since it might be still remaining.
-    await new Promise(resolve => win.requestAnimationFrame(resolve));
-
     let popup = this.searchModeSwitcherPopup(win);
     let button = this.#urlbar(win).querySelector(".searchmode-switcher");
     this.Assert.ok(lazy.BrowserTestUtils.isVisible(button));
     await this.EventUtils.promiseElementReadyForUserInput(button, win);
 
-    let promiseMenuOpen = lazy.BrowserTestUtils.waitForPopupEvent(
-      popup,
-      "shown"
-    );
+    let promisePanelOpen = lazy.BrowserTestUtils.waitForEvent(popup, "shown");
     let rebuildPromise = lazy.BrowserTestUtils.waitForEvent(popup, "rebuild");
     if (openFn) {
       await openFn();
     } else {
-      // Ensure the pop-up opens.
-      button.open = true;
+      button.click();
     }
-    await Promise.all([promiseMenuOpen, rebuildPromise]);
+    await Promise.all([promisePanelOpen, rebuildPromise]);
 
     return popup;
   }
 
+  /**
+   * @param {ChromeWindow} win
+   *   The search mode switcher's window.
+   * @returns {Promise<void>}
+   *   Resolved when the search mode switcher popup is hidden.
+   */
   searchModeSwitcherPopupClosed(win) {
-    return lazy.BrowserTestUtils.waitForPopupEvent(
+    return lazy.BrowserTestUtils.waitForEvent(
       this.searchModeSwitcherPopup(win),
       "hidden"
     );
@@ -1605,13 +1610,9 @@ class UrlbarInputTestUtils {
    */
   getSearchModeSwitcherIcon(win) {
     let searchModeSwitcherButton = this.#urlbar(win).querySelector(
-      ".searchmode-switcher-icon"
+      ".searchmode-switcher"
     );
-
-    // match and capture the URL inside `url("...")`
-    let re = /url\("([^"]+)"\)/;
-    let { listStyleImage } = win.getComputedStyle(searchModeSwitcherButton);
-    return listStyleImage.match(re)?.[1] ?? null;
+    return searchModeSwitcherButton.getAttribute("iconsrc");
   }
 
   async openTrustPanel(win) {

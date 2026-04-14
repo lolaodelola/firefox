@@ -16,23 +16,9 @@ add_setup(async function setup() {
 // Tests that search mode chiclet remains when input is empty and
 // urlbar is unfocused.
 add_task(async function test_search_mode_chiclet_unfocus_home_page() {
-  let searchModeSwitcherButton = window.document.getElementById(
-    "urlbar-searchmode-switcher"
-  );
-
-  await BrowserTestUtils.waitForCondition(
-    () => BrowserTestUtils.isVisible(searchModeSwitcherButton),
-    "Wait until unified search button is visible"
-  );
-
-  info("Open search mode switcher");
   let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
-  let bookmarksSearchModeButton = popup.querySelector(
-    "#search-button-bookmarks"
-  );
-
-  let popupHidden = BrowserTestUtils.waitForEvent(popup, "popuphidden");
-  bookmarksSearchModeButton.click();
+  let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
+  popup.querySelector(".search-button-bookmarks").button.click();
   await popupHidden;
 
   await UrlbarTestUtils.assertSearchMode(window, {
@@ -63,23 +49,9 @@ add_task(async function test_search_mode_chiclet_unfocus_loaded_sites() {
     value: "",
   });
 
-  let searchModeSwitcherButton = window.document.getElementById(
-    "urlbar-searchmode-switcher"
-  );
-
-  await BrowserTestUtils.waitForCondition(
-    () => BrowserTestUtils.isVisible(searchModeSwitcherButton),
-    "Wait until unified search button is visible"
-  );
-
-  info("Open search mode switcher");
   let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
-  let bookmarksSearchModeButton = popup.querySelector(
-    "#search-button-bookmarks"
-  );
-
-  let popupHidden = BrowserTestUtils.waitForEvent(popup, "popuphidden");
-  bookmarksSearchModeButton.click();
+  let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
+  popup.querySelector(".search-button-bookmarks").button.click();
   await popupHidden;
 
   await UrlbarTestUtils.assertSearchMode(window, {
