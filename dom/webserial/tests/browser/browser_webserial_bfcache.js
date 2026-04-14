@@ -20,11 +20,6 @@ add_setup(async function () {
 });
 
 add_task(async function test_serial_disallows_bfcache() {
-  if (!SpecialPowers.Services.appinfo.sessionHistoryInParent) {
-    ok(true, "This test requires session history in the parent process.");
-    return;
-  }
-
   let tab = await BrowserTestUtils.openNewForegroundTab(
     gBrowser,
     TEST_URL,
