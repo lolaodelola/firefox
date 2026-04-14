@@ -859,7 +859,7 @@ class NavigationToolbarTest {
         }.clickSettingsButton {
         }.openCustomizeSubMenu {
             clickShowTabBarToggle()
-            scrollToTheScrollToHideToolbarOption()
+            scrollToExpandedToolbarOption()
             selectExpandedToolbarLayout()
         }.goBack {
         }.goBack(composeTestRule) {
@@ -887,7 +887,7 @@ class NavigationToolbarTest {
         }.clickSettingsButton {
         }.openCustomizeSubMenu {
             clickShowTabBarToggle()
-            scrollToTheScrollToHideToolbarOption()
+            scrollToExpandedToolbarOption()
             selectExpandedToolbarLayout()
         }.goBack {
         }.goBack(composeTestRule) {
@@ -927,7 +927,7 @@ class NavigationToolbarTest {
         }.clickSettingsButton {
         }.openCustomizeSubMenu {
             clickShowTabBarToggle()
-            scrollToTheScrollToHideToolbarOption()
+            scrollToExpandedToolbarOption()
             selectExpandedToolbarLayout()
         }.goBack {
         }.goBack(composeTestRule) {
@@ -955,7 +955,7 @@ class NavigationToolbarTest {
         }.clickSettingsButton {
         }.openCustomizeSubMenu {
             clickShowTabBarToggle()
-            scrollToTheScrollToHideToolbarOption()
+            scrollToExpandedToolbarOption()
             selectExpandedToolbarLayout()
         }.goBack {
         }.goBack(composeTestRule) {
@@ -975,7 +975,7 @@ class NavigationToolbarTest {
         }.clickSettingsButton {
         }.openCustomizeSubMenu {
             clickShowTabBarToggle()
-            scrollToTheScrollToHideToolbarOption()
+            scrollToExpandedToolbarOption()
             selectExpandedToolbarLayout()
         }.goBack {
         }.goBack(composeTestRule) {
@@ -1006,7 +1006,7 @@ class NavigationToolbarTest {
         }.clickSettingsButton {
         }.openCustomizeSubMenu {
             clickShowTabBarToggle()
-            scrollToTheScrollToHideToolbarOption()
+            scrollToExpandedToolbarOption()
             selectExpandedToolbarLayout()
         }.goBack {
         }.goBack(composeTestRule) {
