@@ -136,7 +136,10 @@ export class DOMFullscreenParent extends JSWindowActorParent {
         this.waitingForChildExitFullscreen = false;
         this.requestOrigin = this;
         this.addListeners(window);
-        window.windowUtils.remoteFrameFullscreenChanged(browser);
+        window.windowUtils.remoteFrameFullscreenChanged(
+          browser,
+          aMessage.data.fullscreenKeyboardLock == "browser"
+        );
         break;
       }
       case "DOMFullscreen:NewOrigin": {

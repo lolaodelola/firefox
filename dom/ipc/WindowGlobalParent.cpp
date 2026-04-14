@@ -33,6 +33,7 @@
 #include "mozilla/dom/DOMExceptionBinding.h"
 #include "mozilla/dom/DigitalCredential.h"
 #include "mozilla/dom/DigitalCredentialParent.h"
+#include "mozilla/dom/ElementBinding.h"
 #include "mozilla/dom/IdentityCredential.h"
 #include "mozilla/dom/InProcessParent.h"
 #include "mozilla/dom/JSActorService.h"
@@ -1415,6 +1416,20 @@ WindowGlobalParent::RecvUpdateActivePeerConnectionStatus(bool aIsAdded) {
     (void)top->SetHasActivePeerConnections(newValue.value() > 0);
   }
 
+  return IPC_OK();
+}
+
+mozilla::ipc::IPCResult
+WindowGlobalParent::RecvUpdateFullscreenKeyboardLockStatus(bool aIsEnabled) {
+  auto* bc = GetBrowsingContext();
+  if (auto* topChromeBc = bc ? bc->TopCrossChromeBoundary() : nullptr;
+      topChromeBc != bc) {
+    if (auto* doc = topChromeBc->GetExtantDocument()) {
+      doc->SetFullscreenKeyboardLockStatus(aIsEnabled
+                                               ? FullscreenKeyboardLock::Browser
+                                               : FullscreenKeyboardLock::None);
+    }
+  }
   return IPC_OK();
 }
 

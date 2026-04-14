@@ -47,6 +47,7 @@
 #include "mozilla/dom/AnimationTimelinesController.h"
 #include "mozilla/dom/DocumentOrShadowRoot.h"
 #include "mozilla/dom/Element.h"
+#include "mozilla/dom/ElementBinding.h"
 #include "mozilla/dom/EventTarget.h"
 #include "mozilla/dom/LargestContentfulPaint.h"
 #include "mozilla/dom/Nullable.h"
@@ -2053,7 +2054,8 @@ class Document : public nsINode,
    * aFrameElement is the frame element which contains the child-process
    * fullscreen document.
    */
-  void RemoteFrameFullscreenChanged(Element* aFrameElement);
+  void RemoteFrameFullscreenChanged(Element* aFrameElement,
+                                    bool aFullscreenKeyboardLockEnabled);
 
   /**
    * Called when a frame in a remote child document has rolled back fullscreen
@@ -2130,6 +2132,9 @@ class Document : public nsINode,
    * Clear pending fullscreen in aDocument.
    */
   static void ClearPendingFullscreenRequests(Document* aDocument);
+
+  void SetFullscreenKeyboardLockStatus(FullscreenKeyboardLock aStatus);
+  bool HasFullscreenKeyboardLockEnabled();
 
   // ScreenOrientation related APIs
 
@@ -5607,6 +5612,10 @@ class Document : public nsINode,
   // The root of the doc tree in which this document is in. This is only
   // non-null when this document is in fullscreen mode.
   WeakPtr<Document> mFullscreenRoot;
+
+  // Whether this document entered fullscreen with the keyboard lock enabled.
+  FullscreenKeyboardLock mFullscreenKeyboardLockStatus =
+      FullscreenKeyboardLock::None;
 
   RefPtr<DOMImplementation> mDOMImplementation;
 

@@ -93,7 +93,9 @@ export class DOMFullscreenChild extends JSWindowActorChild {
 
     switch (aEvent.type) {
       case "MozDOMFullscreen:Request": {
-        this.sendAsyncMessage("DOMFullscreen:Request", {});
+        this.sendAsyncMessage("DOMFullscreen:Request", {
+          fullscreenKeyboardLock: aEvent.detail,
+        });
         break;
       }
       case "MozDOMFullscreen:NewOrigin": {
