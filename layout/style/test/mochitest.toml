@@ -15,6 +15,7 @@ prefs = [
   "layout.css.anchor-positioning.position-try-order.enabled=true",
   "layout.css.scroll-state.enabled=true",
   "layout.css.text-box.enabled=true",
+  "layout.css.link-parameters.enabled=true",
 ]
 support-files = [
   "animation_utils.js",

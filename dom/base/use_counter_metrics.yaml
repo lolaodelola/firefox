@@ -22888,6 +22888,21 @@ use.counter.css.page:
     send_in_pings:
       - use-counters
 
+  css_link_parameters:
+    type: counter
+    description: >
+      Whether a page used the CSS property link-parameters.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1812163
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1812163
+    notification_emails:
+      - dom-core@mozilla.com
+      - emilio@mozilla.com
+    expires: never
+    send_in_pings:
+      - use-counters
+
   css_list_style_type:
     type: counter
     description: >
@@ -34976,6 +34991,22 @@ use.counter.css.doc:
     expires: never
     send_in_pings:
       - use-counters
+
+  css_link_parameters:
+    type: counter
+    description: >
+      Whether a page used the CSS property link-parameters.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1812163
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1812163
+    notification_emails:
+      - dom-core@mozilla.com
+      - emilio@mozilla.com
+    expires: never
+    send_in_pings:
+      - use-counters
+
 
   css_list_style_type:
     type: counter

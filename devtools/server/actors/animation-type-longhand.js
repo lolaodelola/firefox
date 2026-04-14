@@ -104,6 +104,7 @@ exports.ANIMATION_TYPE_FOR_LONGHANDS = [
       "justify-items",
       "justify-self",
       "line-break",
+      "link-parameters",
       "list-style-image",
       "list-style-position",
       "list-style-type",

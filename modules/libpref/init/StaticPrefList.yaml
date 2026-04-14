@@ -10887,6 +10887,12 @@
   mirror: always
   rust: true
 
+- name: layout.css.link-parameters.enabled
+  type: bool
+  value: false
+  mirror: always
+  rust: true
+
 # Support for the css Zoom property.
 - name: layout.css.zoom.enabled
   type: RelaxedAtomicBool
