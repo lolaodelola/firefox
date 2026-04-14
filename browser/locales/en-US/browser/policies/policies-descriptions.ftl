@@ -62,6 +62,8 @@ policy-DisabledCiphers = Disable ciphers.
 
 policy-DefaultDownloadDirectory = Set the default download directory.
 
+policy-DefaultSerialGuardSetting = Control use of the Serial API.
+
 policy-DisableAppUpdate = Prevent the browser from updating.
 
 policy-DisableBuiltinPDFViewer = Disable PDF.js, the built-in PDF viewer in { -brand-short-name }.

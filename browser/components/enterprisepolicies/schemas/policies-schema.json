@@ -511,6 +511,11 @@
       "type": "string"
     },
 
+    "DefaultSerialGuardSetting": {
+      "type": "number",
+      "enum": [2, 3]
+    },
+
     "DisableAccounts": {
       "type": "boolean"
     },
