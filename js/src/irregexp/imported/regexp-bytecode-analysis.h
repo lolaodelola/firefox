@@ -5,6 +5,7 @@
 #ifndef V8_REGEXP_REGEXP_BYTECODE_ANALYSIS_H_
 #define V8_REGEXP_REGEXP_BYTECODE_ANALYSIS_H_
 
+#include "irregexp/RegExpShim.h"
 
 namespace v8 {
 namespace internal {

@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 
+#include "irregexp/RegExpShim.h"
 
 namespace v8 {
 namespace internal {
