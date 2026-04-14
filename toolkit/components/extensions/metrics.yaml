@@ -475,8 +475,12 @@ extensions.data:
       scratch.
     bugs:
       - https://bugzilla.mozilla.org/1979997
+      - https://bugzilla.mozilla.org/2018017
+      - https://bugzilla.mozilla.org/2026440
     data_reviews:
       - https://bugzilla.mozilla.org/1979997
+      - https://bugzilla.mozilla.org/2018017
+      - https://bugzilla.mozilla.org/2026440
     data_sensitivity:
       - technical
     notification_emails:
@@ -513,7 +517,7 @@ extensions.data:
           Whether the WebExtensionPolicy associated to the add-on was active
           at the time we are collecting this event.
         type: boolean
-    expires: 152
+    expires: 159
 
   sync_usage_quotas:
     type: event
