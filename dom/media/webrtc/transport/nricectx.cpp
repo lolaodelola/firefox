@@ -681,7 +681,8 @@ void NrIceCtx::SetStunAddrs(const nsTArray<NrIceStunAddr>& addrs) {
   local_addrs = new nr_local_addr[addrs.Length()];
 
   for (size_t i = 0; i < addrs.Length(); ++i) {
-    addrs[i].toNrLocalAddr(local_addrs[i]);
+    nr_local_addr_copy(&local_addrs[i],
+                       const_cast<nr_local_addr*>(&addrs[i].localAddr()));
   }
   nr_ice_set_local_addresses(ctx_, local_addrs, addrs.Length());
 
