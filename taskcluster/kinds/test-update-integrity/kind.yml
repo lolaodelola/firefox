@@ -67,6 +67,11 @@ tasks:
                 # no cert overriding is necessary for other releases
                 default: null
 
+        archive-prefix:
+            by-project:
+                try: ftp.stage.mozaws.net/pub
+                default: archive.mozilla.org/pub
+
         treeherder:
             symbol: UpInt({locale})
             kind: other

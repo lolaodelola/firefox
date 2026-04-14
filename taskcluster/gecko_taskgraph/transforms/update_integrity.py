@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import shlex
+import urllib.parse
 
+from mozrelease.paths import getReleaseInstallerPath, getReleasesDir
+from mozrelease.platforms import updatePlatform2ftp
 from taskgraph.transforms.base import TransformSequence
 from taskgraph.util.schema import resolve_keyed_by
 
@@ -62,7 +65,7 @@ def skip_for_new_locales_and_platforms(config, jobs):
 @transforms.add
 def resolve_keys(config, jobs):
     for job in jobs:
-        for key in ("cert-overrides", "fetches.toolchain"):
+        for key in ("cert-overrides", "fetches.toolchain", "archive-prefix"):
             resolve_keyed_by(
                 job,
                 key,
@@ -192,6 +195,8 @@ def add_additional_fetches_and_command(config, jobs):
             for override in cert_overrides:
                 cmd.extend(["--cert-override", shlex.quote(override)])
 
+        archive_prefix = job.pop("archive-prefix")
+
         fetches = []
         for mar, info in config.params["release_history"][build_target][locale].items():
             if locale == "en-US":
@@ -201,28 +206,51 @@ def add_additional_fetches_and_command(config, jobs):
 
             fetches.append({"artifact": f"{mar_prefix}{mar}"})
 
-            # parameters give us the complete MAR url. installers are found right
-            # beside them
-            base_url = info["mar_url"].split(".complete.mar")[0]
-            buildid = info["buildid"]
-
             # the locale identifier is different for japanese depending on the
             # platform...make sure we translate it for the updater download
             linux_locale = "ja" if locale == "ja-JP-mac" else locale
-            # regardless of what platform is under test, we perform the tests
-            # with the 64-bit linux updater
-            linux64_info = config.params["release_history"]["Linux_x86_64-gcc3"][
-                linux_locale
-            ][mar]
-            linux64_installer = linux64_info["mar_url"].replace(
-                ".complete.mar", ".tar.xz"
-            )
+
+            # URLs for nightlies and releases are significantly different; they
+            # can't be constructed in the same manner
+            if "nightly" in info["mar_url"]:
+                # parameters give us the complete MAR url. installers are found right
+                # beside them
+                base_url = info["mar_url"].split(".complete.mar")[0]
+                identifier = info["buildid"]
+
+                # regardless of what platform is under test, we perform the tests
+                # with the 64-bit linux updater
+                linux64_info = config.params["release_history"]["Linux_x86_64-gcc3"][
+                    linux_locale
+                ][mar]
+
+                from_installer_url = f"{base_url}.{installer_suffix}"
+                linux64_installer_url = linux64_info["mar_url"].replace(
+                    ".complete.mar", ".tar.xz"
+                )
+            else:
+                identifier = info["previousVersion"]
+                from_installer_url = _get_release_installer_url(
+                    info["product"],
+                    build_target,
+                    locale,
+                    info["previousVersion"],
+                    archive_prefix,
+                )
+                linux64_installer_url = _get_release_installer_url(
+                    info["product"],
+                    "Linux_x86_64-gcc3",
+                    linux_locale,
+                    info["previousVersion"],
+                    archive_prefix,
+                )
+
             # installers and updaters are fetched from URLs (not upstream tasks); we simply
             # inject these into the task for the payload to deal with
             cmd.append("--from")
             cmd.append(
                 shlex.quote(
-                    f"{buildid}|{base_url}.{installer_suffix}|{linux64_installer}|{mar}"
+                    f"{identifier}|{from_installer_url}|{linux64_installer_url}|{mar}"
                 )
             )
 
@@ -230,3 +258,17 @@ def add_additional_fetches_and_command(config, jobs):
         job["run"]["command"] = " ".join(cmd)
 
         yield job
+
+
+def _get_release_installer_url(
+    brand, build_target, locale, from_version, archive_prefix
+):
+    product = brand.lower()
+    ftp_platform = updatePlatform2ftp(build_target)
+    releases_dir = getReleasesDir(
+        product, from_version, protocol="https", server=archive_prefix
+    )
+    path = urllib.parse.quote(
+        getReleaseInstallerPath(product, brand, from_version, ftp_platform, locale)
+    )
+    return f"{releases_dir}/{path}"
