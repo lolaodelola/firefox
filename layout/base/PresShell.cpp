@@ -9414,50 +9414,59 @@ void PresShell::EventHandler::MaybeHandleKeyboardEventBeforeDispatch(
             MOZ_LOG_FMT(gLog, LogLevel::Debug,
                         "Exiting fullscreen from Escape key long-press");
             Document::AsyncExitFullscreen(root);
+
+            if (XRE_IsParentProcess() &&
+                (PointerLockManager::GetLockedRemoteTarget() ||
+                 PointerLockManager::IsLocked())) {
+              PointerLockManager::Unlock("EscapeKey");
+            }
           }
         }
       }
-    } else {
-      // Prevent default action on ESC key press when exiting
-      // DOM fullscreen mode. This prevents the browser ESC key
-      // handler from stopping all loads in the document, which
-      // would cause <video> loads to stop.
-      // XXX We need to claim the Escape key event which will be
-      //     dispatched only into chrome is already consumed by
-      //     content because we need to prevent its default here
-      //     for some reasons (not sure) but we need to detect
-      //     if a chrome event handler will call PreventDefault()
-      //     again and check it later.
-      aKeyboardEvent->PreventDefaultBeforeDispatch(
-          CrossProcessForwarding::eStop);
-      aKeyboardEvent->mFlags.mOnlyChromeDispatch = true;
 
-      // The event listeners in chrome can prevent this ESC behavior by
-      // calling prevent default on the preceding keydown/press events.
-      if (aKeyboardEvent->mMessage == eKeyUp) {
-        bool shouldExitFullscreen =
-            !mPresShell->mIsLastChromeOnlyEscapeKeyConsumed;
-        if (!shouldExitFullscreen) {
-          if (mPresShell->mLastConsumedEscapeKeyUpForFullscreen &&
-              (aKeyboardEvent->mTimeStamp -
-               mPresShell->mLastConsumedEscapeKeyUpForFullscreen) <=
-                  TimeDuration::FromMilliseconds(
-                      StaticPrefs::
-                          dom_fullscreen_force_exit_on_multiple_escape_interval())) {
-            shouldExitFullscreen = true;
-            mPresShell->mLastConsumedEscapeKeyUpForFullscreen = TimeStamp();
-          } else {
-            mPresShell->mLastConsumedEscapeKeyUpForFullscreen =
-                aKeyboardEvent->mTimeStamp;
-          }
-        }
+      // If fullscreen keyboard-lock is enabled, return here, as we don't allow
+      // escaping from pointerlock when escape is pressed.
+      return;
+    }
 
-        if (shouldExitFullscreen) {
-          // ESC key released while in DOM fullscreen mode.
-          // Fully exit fullscreen mode for the browser window and documents
-          // that received the event.
-          Document::AsyncExitFullscreen(root);
+    // Prevent default action on ESC key press when exiting
+    // DOM fullscreen mode. This prevents the browser ESC key
+    // handler from stopping all loads in the document, which
+    // would cause <video> loads to stop.
+    // XXX We need to claim the Escape key event which will be
+    //     dispatched only into chrome is already consumed by
+    //     content because we need to prevent its default here
+    //     for some reasons (not sure) but we need to detect
+    //     if a chrome event handler will call PreventDefault()
+    //     again and check it later.
+    aKeyboardEvent->PreventDefaultBeforeDispatch(CrossProcessForwarding::eStop);
+    aKeyboardEvent->mFlags.mOnlyChromeDispatch = true;
+
+    // The event listeners in chrome can prevent this ESC behavior by
+    // calling prevent default on the preceding keydown/press events.
+    if (aKeyboardEvent->mMessage == eKeyUp) {
+      bool shouldExitFullscreen =
+          !mPresShell->mIsLastChromeOnlyEscapeKeyConsumed;
+      if (!shouldExitFullscreen) {
+        if (mPresShell->mLastConsumedEscapeKeyUpForFullscreen &&
+            (aKeyboardEvent->mTimeStamp -
+             mPresShell->mLastConsumedEscapeKeyUpForFullscreen) <=
+                TimeDuration::FromMilliseconds(
+                    StaticPrefs::
+                        dom_fullscreen_force_exit_on_multiple_escape_interval())) {
+          shouldExitFullscreen = true;
+          mPresShell->mLastConsumedEscapeKeyUpForFullscreen = TimeStamp();
+        } else {
+          mPresShell->mLastConsumedEscapeKeyUpForFullscreen =
+              aKeyboardEvent->mTimeStamp;
         }
+      }
+
+      if (shouldExitFullscreen) {
+        // ESC key released while in DOM fullscreen mode.
+        // Fully exit fullscreen mode for the browser window and documents
+        // that received the event.
+        Document::AsyncExitFullscreen(root);
       }
     }
   }
