@@ -225,4 +225,6 @@ enum ShouldCommit {
 void* pages_mmap_aligned(size_t size, size_t alignment,
                          ShouldCommit should_commit);
 
+void pages_unmap(void* aAddr, size_t aSize);
+
 #endif /* ! CHUNK_H */

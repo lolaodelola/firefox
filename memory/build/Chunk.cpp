@@ -220,14 +220,14 @@ static void* pages_map(void* aAddr, size_t aSize, ShouldCommit should_commit) {
   }
 }
 
-static void pages_unmap(void* aAddr, size_t aSize) {
+void pages_unmap(void* aAddr, size_t aSize) {
   if (VirtualFree(aAddr, 0, MEM_RELEASE) == 0) {
     _malloc_message(_getprogname(), ": (malloc) Error in VirtualFree()\n");
   }
 }
 #else
 
-static void pages_unmap(void* aAddr, size_t aSize) {
+void pages_unmap(void* aAddr, size_t aSize) {
   if (munmap(aAddr, aSize) == -1) {
     char buf[64];
 

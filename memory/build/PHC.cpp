@@ -265,42 +265,54 @@ class PHCArray {
   const T* begin() const { return mArray; }
   const T* end() const { return &mArray[mCapacity]; }
 
-  void Init(size_t aCapacity) {
+  bool Init(size_t aCapacity) {
     MOZ_ASSERT(mCapacity == 0);
     MOZ_ASSERT(mArray == nullptr);
 
     auto size_bytes = CheckedInt<size_t>(sizeof(T)) * aCapacity;
     MOZ_ASSERT(size_bytes.isValid());
     if (!size_bytes.isValid()) {
-      return;
+      return false;
     }
 
     mArray = reinterpret_cast<T*>(sBaseAlloc.alloc(size_bytes.value()));
+    if (!mArray) {
+      return false;
+    }
+
     for (size_t i = 0; i < aCapacity; i++) {
       new (&mArray[i]) T();
     }
     mCapacity = aCapacity;
+
+    return true;
   }
 
   size_t Capacity() const { return mCapacity; }
 
-  void GrowTo(size_t aNewCapacity) {
+  bool GrowTo(size_t aNewCapacity) {
     MOZ_ASSERT(aNewCapacity > mCapacity);
     if (mCapacity == 0) {
-      Init(aNewCapacity);
-      return;
+      return Init(aNewCapacity);
     }
     auto size_bytes = CheckedInt<size_t>(sizeof(T)) * aNewCapacity;
     MOZ_ASSERT(size_bytes.isValid());
     if (!size_bytes.isValid()) {
-      return;
+      return false;
     }
-    mArray =
+
+    T* new_array =
         reinterpret_cast<T*>(sBaseAlloc.realloc(mArray, size_bytes.value()));
+    if (!new_array) {
+      return false;
+    }
+    mArray = new_array;
+
     for (size_t i = mCapacity; i < aNewCapacity; i++) {
       new (&mArray[i]) T();
     }
     mCapacity = aNewCapacity;
+    return true;
   }
 
   size_t SizeOfExcludingThis() { return sBaseAlloc.usable_size(mArray); }
@@ -611,6 +623,15 @@ class PHCRegion {
     return true;
   }
 
+  void ReleaseVirtualAddresses() {
+    MOZ_ASSERT(!!mPagesStart && !!mPagesLimit);
+
+    pages_unmap(mPagesStart, reinterpret_cast<uintptr_t>(mPagesLimit) -
+                                 reinterpret_cast<uintptr_t>(mPagesStart));
+    mPagesStart = nullptr;
+    mPagesLimit = nullptr;
+  }
+
   constexpr PHCRegion() {}
 
   bool IsInFirstGuardPage(const void* aPtr) {
@@ -692,9 +713,10 @@ class PHC : public BaseAllocClass {
     size_t old_size_pages = NumAllocPages();
     if (size_pages > old_size_pages) {
       Log("Growing PHC storage from %zu to %zu\n", old_size_pages, size_pages);
-      mAllocPages.GrowTo(size_pages);
-      for (size_t i = old_size_pages; i < size_pages; i++) {
-        AppendPageToFreeList(i);
+      if (mAllocPages.GrowTo(size_pages)) {
+        for (size_t i = old_size_pages; i < size_pages; i++) {
+          AppendPageToFreeList(i);
+        }
       }
     } else if (size_pages < old_size_pages) {
       Log("Shrink requested and ignored.");
@@ -1471,7 +1493,11 @@ void phc_init() {
   }
 
   // sPHC is never freed. It lives for the life of the process.
-  PHC::sPHC = new PHC();
+  PHC::sPHC = new (fallible) PHC();
+  if (!PHC::sPHC) {
+    PHC::sRegion.ReleaseVirtualAddresses();
+    return;
+  }
 
 #ifndef XP_WIN
   // Avoid deadlocks when forking by acquiring our state lock prior to forking
