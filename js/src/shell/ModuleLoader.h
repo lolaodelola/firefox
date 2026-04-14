@@ -30,7 +30,7 @@ class ModuleLoader {
                                  uint32_t lineNumber,
                                  JS::ColumnNumberOneOrigin columnNumber);
 
-  static bool GetImportMetaProperties(JSContext* cx, HandleValue privateValue,
+  static bool GetImportMetaProperties(JSContext* cx, HandleObject moduleRecord,
                                       HandleObject metaObject);
   static bool ImportMetaResolve(JSContext* cx, unsigned argc, Value* vp);
 
@@ -48,7 +48,7 @@ class ModuleLoader {
                            HandleValue error);
   bool loadImportedModule(JSContext* cx, HandleScript referrer,
                           HandleObject moduleRequest, HandleValue payload);
-  bool populateImportMeta(JSContext* cx, HandleValue privateValue,
+  bool populateImportMeta(JSContext* cx, JS::HandleObject moduleRecord,
                           HandleObject metaObject);
   bool importMetaResolve(JSContext* cx,
                          JS::Handle<JS::Value> referencingPrivate,

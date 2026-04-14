@@ -2625,8 +2625,7 @@ JSObject* js::GetOrCreateModuleMetaObject(JSContext* cx,
     return nullptr;
   }
 
-  RootedValue modulePrivate(cx, JS::GetModulePrivate(module));
-  if (!func(cx, modulePrivate, metaObject)) {
+  if (!func(cx, module, metaObject)) {
     return nullptr;
   }
 

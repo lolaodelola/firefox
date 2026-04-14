@@ -512,7 +512,7 @@ class ModuleLoaderBase : public nsISupports {
                                           ModuleLoadRequest* aRequest);
 
   static bool HostPopulateImportMeta(JSContext* aCx,
-                                     Handle<Value> aReferencingPrivate,
+                                     Handle<JSObject*> aModuleRecord,
                                      Handle<JSObject*> aMetaObject);
   static bool ImportMetaResolve(JSContext* cx, unsigned argc, Value* vp);
   static JSString* ImportMetaResolveImpl(JSContext* aCx,

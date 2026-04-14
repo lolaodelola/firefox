@@ -135,7 +135,8 @@ extern JS_PUBLIC_API bool LoadRequestedModules(
  * This is based on the spec's HostGetImportMetaProperties hook but defines
  * properties on the meta object directly rather than returning a list.
  */
-using ModuleMetadataHook = bool (*)(JSContext* cx, Handle<Value> privateValue,
+using ModuleMetadataHook = bool (*)(JSContext* cx,
+                                    Handle<JSObject*> moduleRecord,
                                     Handle<JSObject*> metaObject);
 
 /**
