@@ -658,20 +658,6 @@ smart_window:
           Whether the user saw firstrun onboarding when opening Smart Window. True if onboarding has not yet been completed.
     expires: never
 
-  classic_switch:
-    type: event
-    description: |
-      The user switches from Smart Window to classic mode
-    bugs:
-      - https://bugzilla.mozilla.org/show_bug.cgi?id=2024069
-    data_reviews:
-      - https://phabricator.services.mozilla.com/D290316
-    data_sensitivity:
-      - interaction
-    notification_emails:
-      - yjamora@mozilla.com
-    expires: never
-
   uri_load:
     type: event
     description: |

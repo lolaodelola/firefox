@@ -677,7 +677,6 @@ export const AIWindow = {
         // SessionStore entry before closeSidebar fires.
         this._uninitTabStateManager(win);
         lazy.AIWindowUI.closeSidebar(win);
-        Glean.smartWindow.classicSwitch.record();
       }
     }
   },

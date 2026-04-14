@@ -200,9 +200,8 @@ export const AIWindowUI = {
    * Close the AI Window sidebar.
    *
    * @param {Window} win
-   * @param {string} source
    */
-  closeSidebar(win, source = undefined) {
+  closeSidebar(win) {
     if (!this.isSidebarOpen(win)) {
       return;
     }
@@ -218,7 +217,6 @@ export const AIWindowUI = {
         detail: {
           tab: win.gBrowser?.selectedTab,
           isOpen: false,
-          ...(source && { source }),
         },
       })
     );
@@ -237,16 +235,36 @@ export const AIWindowUI = {
    * @returns {boolean} true if now open, false if now closed
    */
   toggleSidebar(win) {
-    if (this.isSidebarOpen(win)) {
-      this.closeSidebar(win, "toggle");
-      return false;
-    }
-
     const nodes = this._getSidebarElements(win);
     if (!nodes) {
       return false;
     }
     const { chromeDoc, box, splitter } = nodes;
+
+    if (!box.collapsed) {
+      box.collapsed = true;
+      splitter.collapsed = true;
+      this._updateAskButtonChecked(win, false);
+
+      // Dispatch event to notify tab state manager that sidebar was toggled
+      win.dispatchEvent(
+        new win.CustomEvent("ai-window:sidebar-toggle", {
+          detail: {
+            tab: win.gBrowser?.selectedTab,
+            isOpen: false,
+            source: "toggle",
+          },
+        })
+      );
+
+      const { chatId, messageSeq } = this._getConversationFromSidebar(win);
+      Glean.smartWindow.sidebarClose.record({
+        chat_id: chatId,
+        message_seq: messageSeq,
+      });
+
+      return false;
+    }
 
     this.ensureBrowserIsAppended(chromeDoc, box);
     this._showSidebarElements(box, splitter);
@@ -262,6 +280,12 @@ export const AIWindowUI = {
         },
       })
     );
+
+    const { chatId, messageSeq } = this._getConversationFromSidebar(win);
+    Glean.smartWindow.sidebarOpen.record({
+      chat_id: chatId,
+      message_seq: messageSeq,
+    });
 
     return true;
   },
