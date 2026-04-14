@@ -316,12 +316,26 @@ Element includes GeometryUtils;
 Element includes ARIAMixin;
 Element includes ARIANotifyMixin;
 
+// Fullscreen Keyboard Lock API
+// See https://github.com/whatwg/fullscreen/issues/231
+// and https://github.com/whatwg/fullscreen/pull/232
+// for details of the as-of-yet unspecified API.
+enum FullscreenKeyboardLock {
+  "none",
+  "browser",
+};
+
+dictionary RequestFullscreenOptions {
+  [Pref="dom.fullscreen.keyboard_lock.enabled"]
+  FullscreenKeyboardLock keyboardLock = "none";
+};
+
 // https://fullscreen.spec.whatwg.org/#api
 partial interface Element {
   [NewObject, NeedsCallerType]
-  Promise<undefined> requestFullscreen();
+  Promise<undefined> requestFullscreen(optional RequestFullscreenOptions options = {});
   [NewObject, BinaryName="requestFullscreen", NeedsCallerType, Deprecated="MozRequestFullScreenDeprecatedPrefix"]
-  Promise<undefined> mozRequestFullScreen();
+  Promise<undefined> mozRequestFullScreen(optional RequestFullscreenOptions options = {});
 
   // Events handlers
   attribute EventHandler onfullscreenchange;

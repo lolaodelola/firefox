@@ -4753,8 +4753,9 @@ void Element::ReleaseCapture() {
   }
 }
 
-already_AddRefed<Promise> Element::RequestFullscreen(CallerType aCallerType,
-                                                     ErrorResult& aRv) {
+already_AddRefed<Promise> Element::RequestFullscreen(
+    const RequestFullscreenOptions& aOptions, CallerType aCallerType,
+    ErrorResult& aRv) {
   auto request = FullscreenRequest::Create(this, aCallerType, aRv);
   RefPtr<Promise> promise = request->GetPromise();
 

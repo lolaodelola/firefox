@@ -3187,6 +3187,12 @@
   value: 500
   mirror: always
 
+# This pref enables the keyboardLock option for requestFullscreen.
+- name: dom.fullscreen.keyboard_lock.enabled
+  type: bool
+  value: false
+  mirror: always
+
 # Whether the Gamepad API is enabled
 - name: dom.gamepad.enabled
   type: bool
