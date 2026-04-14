@@ -8178,11 +8178,71 @@ function ShortcutFeatureHighlight({
     outsideClickCallback: handleDismiss
   }));
 }
+;// CONCATENATED MODULE: ./content-src/lib/asrouter-message-utils.mjs
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+const ASROUTER_NEWTAB_MESSAGE_POSITIONS = Object.freeze({
+  ABOVE_TOPSITES: "ABOVE_TOPSITES",
+  ABOVE_WIDGETS: "ABOVE_WIDGETS",
+  ABOVE_CONTENT_FEED: "ABOVE_CONTENT_FEED",
+});
+
+/**
+ * Returns true if the Messages state has a visible message whose messageType
+ * matches componentId.
+ *
+ * @param {object} messagesProp - The Messages slice of Redux state ({ messageData, isVisible }).
+ * @param {string} componentId - The messageType value to match against.
+ * @returns {boolean}
+ */
+function shouldShowOMCHighlight(messagesProp, componentId) {
+  const messageData = messagesProp?.messageData;
+  const isVisible = messagesProp?.isVisible;
+  if (!messageData || Object.keys(messageData).length === 0 || !isVisible) {
+    return false;
+  }
+  return messageData?.content?.messageType === componentId;
+}
+
+/**
+ * Returns true if the Messages state has a visible ASRouterNewTabMessage whose
+ * configured position matches currentPosition.  When no position is set on the
+ * message, it defaults to ABOVE_TOPSITES.
+ *
+ * @param {object} messagesProps - The Messages slice of Redux state ({ messageData, isVisible }).
+ * @param {string} componentId - The messageType value to match against (e.g. "ASRouterNewTabMessage").
+ * @param {string} currentPosition - One of the ASROUTER_NEWTAB_MESSAGE_POSITIONS values.
+ * @returns {boolean}
+ */
+function shouldShowASRouterNewTabMessage(
+  messagesProps,
+  componentId,
+  currentPosition
+) {
+  const messageData = messagesProps?.messageData;
+  if (!messageData) {
+    return false;
+  }
+
+  const configuredPosition =
+    messageData.content?.position ??
+    ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_TOPSITES;
+
+  if (configuredPosition === currentPosition) {
+    return shouldShowOMCHighlight(messagesProps, componentId);
+  }
+
+  return false;
+}
+
 ;// CONCATENATED MODULE: ./content-src/components/TopSites/TopSite.jsx
 function TopSite_extends() { return TopSite_extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, TopSite_extends.apply(null, arguments); }
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 
 
 
@@ -8215,7 +8275,6 @@ class TopSiteLink extends (external_React_default()).PureComponent {
     };
     this.onDragEvent = this.onDragEvent.bind(this);
     this.onKeyPress = this.onKeyPress.bind(this);
-    this.shouldShowOMCHighlight = this.shouldShowOMCHighlight.bind(this);
   }
 
   /*
@@ -8376,13 +8435,6 @@ class TopSiteLink extends (external_React_default()).PureComponent {
       selectedColor
     };
   }
-  shouldShowOMCHighlight(componentId) {
-    const messageData = this.props.Messages?.messageData;
-    if (!messageData || Object.keys(messageData).length === 0) {
-      return false;
-    }
-    return messageData?.content?.messageType === componentId;
-  }
   render() {
     const {
       children,
@@ -8537,7 +8589,7 @@ class TopSiteLink extends (external_React_default()).PureComponent {
     }), title), /*#__PURE__*/external_React_default().createElement("span", {
       className: "sponsored-label",
       "data-l10n-id": "newtab-topsite-sponsored"
-    }))), isAddButton && this.shouldShowOMCHighlight("ShortcutHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+    }))), isAddButton && shouldShowOMCHighlight(this.props.Messages, "ShortcutHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
       dispatch: this.props.dispatch,
       onClick: e => e.stopPropagation()
     }, /*#__PURE__*/external_React_default().createElement(ShortcutFeatureHighlight, {
@@ -11019,6 +11071,7 @@ const BriefingCard = ({
 
 
 
+
 // Prefs
 const CardSections_PREF_SECTIONS_CARDS_ENABLED = "discoverystream.sections.cards.enabled";
 const PREF_SECTIONS_PERSONALIZATION_ENABLED = "discoverystream.sections.personalization.enabled";
@@ -11094,12 +11147,6 @@ function getMaxTiles(responsiveLayouts) {
 const prefToArray = (pref = "") => {
   return pref.split(",").map(item => item.trim()).filter(item => item);
 };
-function shouldShowOMCHighlight(messageData, componentId) {
-  if (!messageData || Object.keys(messageData).length === 0) {
-    return false;
-  }
-  return messageData?.content?.messageType === componentId;
-}
 function CardSection({
   sectionPosition,
   section,
@@ -11114,9 +11161,10 @@ function CardSection({
   gridRef
 }) {
   const prefs = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Prefs.values);
+  const Messages = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Messages);
   const {
     messageData
-  } = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Messages);
+  } = Messages;
   const {
     sectionPersonalization,
     feeds
@@ -11427,7 +11475,7 @@ function CardSection({
     className: "section-context-wrapper"
   }, /*#__PURE__*/external_React_default().createElement("div", {
     className: following ? "section-follow following" : "section-follow"
-  }, followable !== false && !anySectionsFollowed && sectionPosition === 0 && shouldShowOMCHighlight(messageData, "FollowSectionButtonHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+  }, followable !== false && !anySectionsFollowed && sectionPosition === 0 && shouldShowOMCHighlight(Messages, "FollowSectionButtonHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
     dispatch: dispatch
   }, /*#__PURE__*/external_React_default().createElement(FollowSectionButtonHighlight, {
     verticalPosition: "inset-block-center",
@@ -11435,7 +11483,7 @@ function CardSection({
     dispatch: dispatch,
     feature: "FEATURE_FOLLOW_SECTION_BUTTON",
     messageData: messageData
-  })), followable !== false && !anySectionsFollowed && sectionPosition === 0 && shouldShowOMCHighlight(messageData, "FollowSectionButtonAltHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+  })), followable !== false && !anySectionsFollowed && sectionPosition === 0 && shouldShowOMCHighlight(Messages, "FollowSectionButtonAltHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
     dispatch: dispatch
   }, /*#__PURE__*/external_React_default().createElement(FollowSectionButtonHighlight, {
     verticalPosition: "inset-block-center",
@@ -11514,9 +11562,10 @@ function CardSections({
     spocs,
     sectionPersonalization
   } = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.DiscoveryStream);
+  const Messages = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Messages);
   const {
     messageData
-  } = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Messages);
+  } = Messages;
   const personalizationEnabled = prefs[PREF_SECTIONS_PERSONALIZATION_ENABLED];
   const interestPickerEnabled = prefs[PREF_INTEREST_PICKER_ENABLED];
   // @nova-cleanup(remove-conditional): Remove novaEnabled check once classic path is gone
@@ -11632,7 +11681,7 @@ function CardSections({
   }
   function displayP13nCard() {
     if (messageData && Object.keys(messageData).length >= 1) {
-      if (shouldShowOMCHighlight(messageData, "PersonalizedCard") && prefs[PREF_INFERRED_PERSONALIZATION_USER]) {
+      if (shouldShowOMCHighlight(Messages, "PersonalizedCard") && prefs[PREF_INFERRED_PERSONALIZATION_USER]) {
         const row = messageData.content.position;
         sectionsToRender.splice(row, 0, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
           dispatch: dispatch,
@@ -14764,10 +14813,138 @@ function Widgets() {
   })));
 }
 
+;// CONCATENATED MODULE: ./content-src/components/ExternalComponentWrapper/ExternalComponentWrapper.jsx
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+
+
+/**
+ * A React component that dynamically loads and embeds external custom elements
+ * into the newtab page.
+ *
+ * This component serves as a bridge between React's declarative rendering and
+ * browser-native custom elements that are registered and managed outside of
+ * React's control. It:
+ *
+ * 1. Looks up the component configuration by type from the ExternalComponents
+ *    registry
+ * 2. Dynamically imports the component's script module (which registers the
+ *    custom element)
+ * 3. Creates an instance of the custom element using imperative DOM APIs
+ * 4. Appends it to a React-managed container div
+ * 5. Cleans up the custom element on unmount
+ *
+ * This approach is necessary because:
+ * - Custom elements have their own lifecycle separate from React
+ * - They need to be created imperatively (document.createElement) rather than
+ *   declaratively (JSX)
+ * - React shouldn't try to diff/reconcile their internal DOM, as they manage
+ *   their own shadow DOM
+ * - We need manual cleanup to prevent memory leaks when the component unmounts
+ *
+ * @param {object} props
+ * @param {string} props.type - The component type to load (e.g., "SEARCH")
+ * @param {string} props.className - CSS class name(s) to apply to the wrapper div
+ * @param {Function} props.importModule - Function to import modules (for testing)
+ * @param {object} props.props - Properties to assign to the component, where
+ *   each key is the property name, and the value is the property value.
+ */
+function ExternalComponentWrapper({
+  type,
+  className,
+  // importFunction is declared as an arrow function here purely so that we can
+  // override it for testing.
+  // eslint-disable-next-line no-unsanitized/method
+  importModule = url => import(/* webpackIgnore: true */url),
+  ...props
+}) {
+  const containerRef = external_React_default().useRef(null);
+  const customElementRef = external_React_default().useRef(null);
+  const l10nLinksRef = external_React_default().useRef([]);
+  const [error, setError] = external_React_default().useState(null);
+  const {
+    components
+  } = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.ExternalComponents);
+  external_React_default().useEffect(() => {
+    const container = containerRef.current;
+    const loadComponent = async () => {
+      try {
+        const config = components.find(c => c.type === type);
+        if (!config) {
+          console.warn(`No external component configuration found for type: ${type}`);
+          return;
+        }
+        await importModule(config.componentURL);
+        l10nLinksRef.current = [];
+        for (let l10nURL of config.l10nURLs) {
+          const l10nEl = document.createElement("link");
+          l10nEl.rel = "localization";
+          l10nEl.href = l10nURL;
+          document.head.appendChild(l10nEl);
+          l10nLinksRef.current.push(l10nEl);
+        }
+        if (containerRef.current && !customElementRef.current) {
+          const element = document.createElement(config.tagName);
+          if (config.attributes) {
+            for (const [key, value] of Object.entries(config.attributes)) {
+              element.setAttribute(key, value);
+            }
+          }
+          if (config.cssVariables) {
+            for (const [variable, style] of Object.entries(config.cssVariables)) {
+              element.style.setProperty(variable, style);
+            }
+          }
+          if (props) {
+            for (let [propName, propValue] of Object.entries(props)) {
+              element[propName] = propValue;
+            }
+          }
+          customElementRef.current = element;
+          containerRef.current.appendChild(element);
+        }
+      } catch (err) {
+        console.error(`Failed to load external component for type ${type}:`, err);
+        setError(err);
+      }
+    };
+    loadComponent();
+    return () => {
+      if (customElementRef.current && container) {
+        container.removeChild(customElementRef.current);
+        customElementRef.current = null;
+      }
+      for (const link of l10nLinksRef.current) {
+        link.remove();
+      }
+      l10nLinksRef.current = [];
+    };
+    // props is intentionally excluded from the dependency array because it creates
+    // a new object reference on every render, which would cause the effect to
+    // re-run unnecessarily. The props are only used during initial element creation,
+    // which is guarded by the !customElementRef.current check.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, components, importModule]);
+  if (error) {
+    return null;
+  }
+  return /*#__PURE__*/external_React_default().createElement("div", {
+    ref: containerRef,
+    className: className
+  });
+}
+
 ;// CONCATENATED MODULE: ./content-src/components/DiscoveryStreamBase/DiscoveryStreamBase.jsx
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+
+
 
 
 
@@ -14960,6 +15137,8 @@ class _DiscoveryStreamBase extends (external_React_default()).PureComponent {
       prefs: this.props.Prefs.values,
       locale
     });
+    // @nova-cleanup(remove-pref): Delete this line; remove all !novaEnabled guards on ASRouterNewTabMessage blocks below.
+    const novaEnabled = this.props.Prefs.values[DiscoveryStreamBase_PREF_NOVA_ENABLED];
     const sectionsEnabled = this.props.Prefs.values["discoverystream.sections.enabled"];
     const topicSelectionEnabled = this.props.Prefs.values["discoverystream.topicSelection.enabled"];
     const reportAdsEnabled = this.props.Prefs.values["discoverystream.reportAds.enabled"];
@@ -15023,13 +15202,25 @@ class _DiscoveryStreamBase extends (external_React_default()).PureComponent {
       width: 12,
       components: [topSites],
       sectionType: "topsites"
-    }]), widgets && this.renderLayout([{
+    }]), !novaEnabled && shouldShowASRouterNewTabMessage(this.props.Messages, "ASRouterNewTabMessage", ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_WIDGETS) && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+      dispatch: this.props.dispatch
+    }, /*#__PURE__*/external_React_default().createElement(ExternalComponentWrapper, {
+      type: "ASROUTER_NEWTAB_MESSAGE",
+      messageData: this.props.Messages.messageData,
+      className: "asrouter-newtab-message-wrapper"
+    }))), widgets && this.renderLayout([{
       width: 12,
       components: [{
         type: "Widgets"
       }],
       sectionType: "widgets"
-    }]), !!layoutRender.length && /*#__PURE__*/external_React_default().createElement(CollapsibleSection, {
+    }]), !novaEnabled && shouldShowASRouterNewTabMessage(this.props.Messages, "ASRouterNewTabMessage", ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_CONTENT_FEED) && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+      dispatch: this.props.dispatch
+    }, /*#__PURE__*/external_React_default().createElement(ExternalComponentWrapper, {
+      type: "ASROUTER_NEWTAB_MESSAGE",
+      messageData: this.props.Messages.messageData,
+      className: "asrouter-newtab-message-wrapper"
+    }))), !!layoutRender.length && /*#__PURE__*/external_React_default().createElement(CollapsibleSection, {
       className: "ds-layout",
       collapsed: topStories.pref.collapsed,
       dispatch: this.props.dispatch,
@@ -15078,6 +15269,7 @@ class _DiscoveryStreamBase extends (external_React_default()).PureComponent {
 }
 const DiscoveryStreamBase = (0,external_ReactRedux_namespaceObject.connect)(state => ({
   DiscoveryStream: state.DiscoveryStream,
+  Messages: state.Messages,
   Prefs: state.Prefs,
   Sections: state.Sections,
   document: globalThis.document,
@@ -16722,130 +16914,6 @@ function Logo() {
   })));
 }
 
-;// CONCATENATED MODULE: ./content-src/components/ExternalComponentWrapper/ExternalComponentWrapper.jsx
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-
-
-
-/**
- * A React component that dynamically loads and embeds external custom elements
- * into the newtab page.
- *
- * This component serves as a bridge between React's declarative rendering and
- * browser-native custom elements that are registered and managed outside of
- * React's control. It:
- *
- * 1. Looks up the component configuration by type from the ExternalComponents
- *    registry
- * 2. Dynamically imports the component's script module (which registers the
- *    custom element)
- * 3. Creates an instance of the custom element using imperative DOM APIs
- * 4. Appends it to a React-managed container div
- * 5. Cleans up the custom element on unmount
- *
- * This approach is necessary because:
- * - Custom elements have their own lifecycle separate from React
- * - They need to be created imperatively (document.createElement) rather than
- *   declaratively (JSX)
- * - React shouldn't try to diff/reconcile their internal DOM, as they manage
- *   their own shadow DOM
- * - We need manual cleanup to prevent memory leaks when the component unmounts
- *
- * @param {object} props
- * @param {string} props.type - The component type to load (e.g., "SEARCH")
- * @param {string} props.className - CSS class name(s) to apply to the wrapper div
- * @param {Function} props.importModule - Function to import modules (for testing)
- * @param {object} props.props - Properties to assign to the component, where
- *   each key is the property name, and the value is the property value.
- */
-function ExternalComponentWrapper({
-  type,
-  className,
-  // importFunction is declared as an arrow function here purely so that we can
-  // override it for testing.
-  // eslint-disable-next-line no-unsanitized/method
-  importModule = url => import(/* webpackIgnore: true */url),
-  ...props
-}) {
-  const containerRef = external_React_default().useRef(null);
-  const customElementRef = external_React_default().useRef(null);
-  const l10nLinksRef = external_React_default().useRef([]);
-  const [error, setError] = external_React_default().useState(null);
-  const {
-    components
-  } = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.ExternalComponents);
-  external_React_default().useEffect(() => {
-    const container = containerRef.current;
-    const loadComponent = async () => {
-      try {
-        const config = components.find(c => c.type === type);
-        if (!config) {
-          console.warn(`No external component configuration found for type: ${type}`);
-          return;
-        }
-        await importModule(config.componentURL);
-        l10nLinksRef.current = [];
-        for (let l10nURL of config.l10nURLs) {
-          const l10nEl = document.createElement("link");
-          l10nEl.rel = "localization";
-          l10nEl.href = l10nURL;
-          document.head.appendChild(l10nEl);
-          l10nLinksRef.current.push(l10nEl);
-        }
-        if (containerRef.current && !customElementRef.current) {
-          const element = document.createElement(config.tagName);
-          if (config.attributes) {
-            for (const [key, value] of Object.entries(config.attributes)) {
-              element.setAttribute(key, value);
-            }
-          }
-          if (config.cssVariables) {
-            for (const [variable, style] of Object.entries(config.cssVariables)) {
-              element.style.setProperty(variable, style);
-            }
-          }
-          if (props) {
-            for (let [propName, propValue] of Object.entries(props)) {
-              element[propName] = propValue;
-            }
-          }
-          customElementRef.current = element;
-          containerRef.current.appendChild(element);
-        }
-      } catch (err) {
-        console.error(`Failed to load external component for type ${type}:`, err);
-        setError(err);
-      }
-    };
-    loadComponent();
-    return () => {
-      if (customElementRef.current && container) {
-        container.removeChild(customElementRef.current);
-        customElementRef.current = null;
-      }
-      for (const link of l10nLinksRef.current) {
-        link.remove();
-      }
-      l10nLinksRef.current = [];
-    };
-    // props is intentionally excluded from the dependency array because it creates
-    // a new object reference on every render, which would cause the effect to
-    // re-run unnecessarily. The props are only used during initial element creation,
-    // which is guarded by the !customElementRef.current check.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, components, importModule]);
-  if (error) {
-    return null;
-  }
-  return /*#__PURE__*/external_React_default().createElement("div", {
-    ref: containerRef,
-    className: className
-  });
-}
-
 ;// CONCATENATED MODULE: ./content-src/components/Search/Search.jsx
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
@@ -18282,12 +18350,14 @@ function Base_extends() { return Base_extends = Object.assign ? Object.assign.bi
 
 
 
+
 const Base_VISIBLE = "visible";
 const Base_VISIBILITY_CHANGE_EVENT = "visibilitychange";
 const PREF_INFERRED_PERSONALIZATION_SYSTEM = "discoverystream.sections.personalization.inferred.enabled";
 const Base_PREF_INFERRED_PERSONALIZATION_USER = "discoverystream.sections.personalization.inferred.user.enabled";
 // @nova-cleanup(remove-pref): Remove PREF_NOVA_ENABLED
 const Base_PREF_NOVA_ENABLED = "nova.enabled";
+
 // Returns a function will not be continuously triggered when called. The
 // function will be triggered if called again after `wait` milliseconds.
 function Base_debounce(func, wait) {
@@ -18343,7 +18413,6 @@ class BaseContent extends (external_React_default()).PureComponent {
     this.closeCustomizationMenu = this.closeCustomizationMenu.bind(this);
     this.onWindowScroll = Base_debounce(this.onWindowScroll.bind(this), 5);
     this.setPref = this.setPref.bind(this);
-    this.shouldShowOMCHighlight = this.shouldShowOMCHighlight.bind(this);
     this.updateWallpaper = this.updateWallpaper.bind(this);
     this.prefersDarkQuery = null;
     this.handleColorModeChange = this.handleColorModeChange.bind(this);
@@ -18768,17 +18837,9 @@ class BaseContent extends (external_React_default()).PureComponent {
     __webpack_require__.g.document?.body.classList.remove("lightWallpaper", "darkWallpaper");
     __webpack_require__.g.document?.body.classList.add(newTheme === "dark" ? "darkWallpaper" : "lightWallpaper");
   }
-  shouldShowOMCHighlight(componentId) {
-    const messageData = this.props.Messages?.messageData;
-    const isVisible = this.props.Messages?.isVisible;
-    if (!messageData || Object.keys(messageData).length === 0 || !isVisible) {
-      return false;
-    }
-    return messageData?.content?.messageType === componentId;
-  }
   toggleDownloadHighlight() {
     this.setState(prevState => {
-      const override = !(prevState.showDownloadHighlightOverride ?? this.shouldShowOMCHighlight("DownloadMobilePromoHighlight"));
+      const override = !(prevState.showDownloadHighlightOverride ?? shouldShowOMCHighlight(this.props.Messages, "DownloadMobilePromoHighlight"));
       if (override) {
         // Emit an open event manually since OMC isn't handling it
         this.props.dispatch(actionCreators.DiscoveryStreamUserEvent({
@@ -18935,7 +18996,7 @@ class BaseContent extends (external_React_default()).PureComponent {
 
     // If state.showDownloadHighlightOverride has value, let it override the logic
     // Otherwise, defer to OMC message display logic
-    const shouldShowDownloadHighlight = this.state.showDownloadHighlightOverride ?? this.shouldShowOMCHighlight("DownloadMobilePromoHighlight");
+    const shouldShowDownloadHighlight = this.state.showDownloadHighlightOverride ?? shouldShowOMCHighlight(this.props.Messages, "DownloadMobilePromoHighlight");
 
     // @nova-cleanup(remove-conditional): Remove this conditional and
     // always render the Nova layout below. The classic render() return
@@ -18958,18 +19019,30 @@ class BaseContent extends (external_React_default()).PureComponent {
         className: "content"
       }, logoShouldBeCentered && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(Logo, null)), prefs.showSearch && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(Search_Search, Base_extends({
         showLogo: false
-      }, props.Search))), this.shouldShowOMCHighlight("ASRouterNewTabMessage") && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+      }, props.Search))), shouldShowASRouterNewTabMessage(this.props.Messages, "ASRouterNewTabMessage", ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_TOPSITES) && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
         dispatch: this.props.dispatch
       }, /*#__PURE__*/external_React_default().createElement(ExternalComponentWrapper, {
         type: "ASROUTER_NEWTAB_MESSAGE",
         messageData: this.props.Messages.messageData,
         className: "asrouter-newtab-message-wrapper"
-      }))), this.shouldShowOMCHighlight("ActivationWindowMessage") && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+      }))), shouldShowOMCHighlight(this.props.Messages, "ActivationWindowMessage") && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
         dispatch: this.props.dispatch
       }, /*#__PURE__*/external_React_default().createElement(ActivationWindowMessage, {
         dispatch: this.props.dispatch,
         messageData: this.props.Messages.messageData
-      }))), topSitesEnabled && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(TopSites_TopSites, null)), isDiscoveryStream && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, {
+      }))), topSitesEnabled && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(TopSites_TopSites, null)), shouldShowASRouterNewTabMessage(this.props.Messages, "ASRouterNewTabMessage", ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_WIDGETS) && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+        dispatch: this.props.dispatch
+      }, /*#__PURE__*/external_React_default().createElement(ExternalComponentWrapper, {
+        type: "ASROUTER_NEWTAB_MESSAGE",
+        messageData: this.props.Messages.messageData,
+        className: "asrouter-newtab-message-wrapper"
+      }))), shouldShowASRouterNewTabMessage(this.props.Messages, "ASRouterNewTabMessage", ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_CONTENT_FEED) && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+        dispatch: this.props.dispatch
+      }, /*#__PURE__*/external_React_default().createElement(ExternalComponentWrapper, {
+        type: "ASROUTER_NEWTAB_MESSAGE",
+        messageData: this.props.Messages.messageData,
+        className: "asrouter-newtab-message-wrapper"
+      }))), isDiscoveryStream && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, {
         className: "borderless-error"
       }, /*#__PURE__*/external_React_default().createElement(DiscoveryStreamBase, {
         locale: props.App.locale,
@@ -19039,18 +19112,18 @@ class BaseContent extends (external_React_default()).PureComponent {
       showLogo: noSectionsEnabled || prefs["logowordmark.alwaysVisible"]
     }, props.Search)))), !prefs.showSearch && !noSectionsEnabled && /*#__PURE__*/external_React_default().createElement(Logo, null), /*#__PURE__*/external_React_default().createElement("div", {
       className: `body-wrapper${initialized ? " on" : ""}`
-    }, this.shouldShowOMCHighlight("ASRouterNewTabMessage") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+    }, shouldShowOMCHighlight(this.props.Messages, "ActivationWindowMessage") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+      dispatch: this.props.dispatch
+    }, /*#__PURE__*/external_React_default().createElement(ActivationWindowMessage, {
+      dispatch: this.props.dispatch,
+      messageData: this.props.Messages.messageData
+    })), shouldShowASRouterNewTabMessage(this.props.Messages, "ASRouterNewTabMessage", ASROUTER_NEWTAB_MESSAGE_POSITIONS.ABOVE_TOPSITES) && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
       dispatch: this.props.dispatch
     }, /*#__PURE__*/external_React_default().createElement(ExternalComponentWrapper, {
       type: "ASROUTER_NEWTAB_MESSAGE",
       messageData: this.props.Messages.messageData,
       className: "asrouter-newtab-message-wrapper"
-    })), this.shouldShowOMCHighlight("ActivationWindowMessage") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
-      dispatch: this.props.dispatch
-    }, /*#__PURE__*/external_React_default().createElement(ActivationWindowMessage, {
-      dispatch: this.props.dispatch,
-      messageData: this.props.Messages.messageData
-    })), isDiscoveryStream ? /*#__PURE__*/external_React_default().createElement(ErrorBoundary, {
+    }))), isDiscoveryStream ? /*#__PURE__*/external_React_default().createElement(ErrorBoundary, {
       className: "borderless-error"
     }, /*#__PURE__*/external_React_default().createElement(DiscoveryStreamBase, {
       locale: props.App.locale,
@@ -19082,7 +19155,7 @@ class BaseContent extends (external_React_default()).PureComponent {
       showing: customizeMenuVisible,
       toggleSectionsMgmtPanel: this.toggleSectionsMgmtPanel,
       showSectionsMgmtPanel: this.state.showSectionsMgmtPanel
-    }), this.shouldShowOMCHighlight("CustomWallpaperHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
+    }), shouldShowOMCHighlight(this.props.Messages, "CustomWallpaperHighlight") && /*#__PURE__*/external_React_default().createElement(MessageWrapper, {
       dispatch: this.props.dispatch
     }, /*#__PURE__*/external_React_default().createElement(WallpaperFeatureHighlight, {
       position: "inset-block-start inset-inline-start",

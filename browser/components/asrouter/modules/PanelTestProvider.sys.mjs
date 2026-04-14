@@ -2805,6 +2805,7 @@ const MESSAGES = () => [
           dismiss: true,
         },
       },
+      position: "ABOVE_TOPSITES",
     },
     frequency: {
       lifetime: 3,
