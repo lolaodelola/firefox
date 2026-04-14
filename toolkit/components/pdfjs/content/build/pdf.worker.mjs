@@ -21,8 +21,8 @@
  */
 
 /**
- * pdfjsVersion = 5.7.145
- * pdfjsBuild = 652700dac
+ * pdfjsVersion = 5.7.162
+ * pdfjsBuild = 419c2652c
  */
 /******/ // The require scope
 /******/ var __webpack_require__ = {};
@@ -3573,8 +3573,8 @@ class ImageResizer {
     for (const step of steps) {
       const prevWidth = newWidth;
       const prevHeight = newHeight;
-      newWidth = Math.floor(newWidth / step) - 1;
-      newHeight = Math.floor(newHeight / step) - 1;
+      newWidth = Math.floor(newWidth / step);
+      newHeight = Math.floor(newHeight / step);
       const canvas = new OffscreenCanvas(newWidth, newHeight);
       const ctx = canvas.getContext("2d");
       ctx.drawImage(bitmap, 0, 0, prevWidth, prevHeight, 0, 0, newWidth, newHeight);
@@ -9980,6 +9980,58 @@ function meshPackData(self) {
     figure.colors = new Uint32Array(figure.colors);
   }
 }
+function buildMeshVertexData(coords, colors, figures) {
+  let vertexCount = 0;
+  for (const figure of figures) {
+    if (figure.type === MeshFigureType.TRIANGLES) {
+      vertexCount += figure.coords.length;
+    } else if (figure.type === MeshFigureType.LATTICE) {
+      const vpr = figure.verticesPerRow;
+      vertexCount += (Math.floor(figure.coords.length / vpr) - 1) * (vpr - 1) * 6;
+    }
+  }
+  const posData = new Float32Array(vertexCount * 2);
+  const colData = new Uint8Array(vertexCount * 4);
+  let pOff = 0,
+    cOff = 0;
+  const addVertex = (pi, ci) => {
+    posData[pOff++] = coords[pi * 2];
+    posData[pOff++] = coords[pi * 2 + 1];
+    colData[cOff++] = colors[ci * 4];
+    colData[cOff++] = colors[ci * 4 + 1];
+    colData[cOff++] = colors[ci * 4 + 2];
+    cOff++;
+  };
+  for (const figure of figures) {
+    const ps = figure.coords;
+    const cs = figure.colors;
+    if (figure.type === MeshFigureType.TRIANGLES) {
+      for (let i = 0, ii = ps.length; i < ii; i++) {
+        addVertex(ps[i], cs[i]);
+      }
+    } else if (figure.type === MeshFigureType.LATTICE) {
+      const vpr = figure.verticesPerRow;
+      const rows = Math.floor(ps.length / vpr) - 1;
+      const cols = vpr - 1;
+      for (let i = 0; i < rows; i++) {
+        let q = i * vpr;
+        for (let j = 0; j < cols; j++, q++) {
+          addVertex(ps[q], cs[q]);
+          addVertex(ps[q + 1], cs[q + 1]);
+          addVertex(ps[q + vpr], cs[q + vpr]);
+          addVertex(ps[q + vpr + 1], cs[q + vpr + 1]);
+          addVertex(ps[q + 1], cs[q + 1]);
+          addVertex(ps[q + vpr], cs[q + vpr]);
+        }
+      }
+    }
+  }
+  return {
+    posData,
+    colData,
+    vertexCount
+  };
+}
 class FunctionBasedShading extends BaseShading {
   static MAX_STEP_COUNT = 512;
   constructor(dict, xref, resources, pdfFunctionFactory, globalColorSpaceCache, localColorSpaceCache) {
@@ -10046,7 +10098,12 @@ class FunctionBasedShading extends BaseShading {
     }];
   }
   getIR() {
-    return ["Mesh", ShadingType.FUNCTION_BASED, this.coords, this.colors, this.figures, this.bounds, this.bbox, this.background];
+    const {
+      posData,
+      colData,
+      vertexCount
+    } = buildMeshVertexData(this.coords, this.colors, this.figures);
+    return ["Mesh", ShadingType.FUNCTION_BASED, posData, colData, vertexCount, this.bounds, this.bbox, this.background];
   }
 }
 class MeshStreamReader {
@@ -10606,7 +10663,12 @@ class MeshShading extends BaseShading {
     meshPackData(this);
   }
   getIR() {
-    return ["Mesh", this.shadingType, this.coords, this.colors, this.figures, this.bounds, this.bbox, this.background];
+    const {
+      posData,
+      colData,
+      vertexCount
+    } = buildMeshVertexData(this.coords, this.colors, this.figures);
+    return ["Mesh", this.shadingType, posData, colData, vertexCount, this.bounds, this.bbox, this.background];
   }
 }
 class DummyShading extends BaseShading {
@@ -15533,7 +15595,6 @@ function compilePatternInfo(ir) {
     coords = [],
     colors = [],
     colorStops = [],
-    figures = [],
     shadingType = null,
     background = null;
   switch (ir[0]) {
@@ -15552,7 +15613,6 @@ function compilePatternInfo(ir) {
       shadingType = ir[1];
       coords = ir[2];
       colors = ir[3];
-      figures = ir[4] || [];
       bbox = ir[6];
       background = ir[7];
       break;
@@ -15562,18 +15622,7 @@ function compilePatternInfo(ir) {
   const nCoord = Math.floor(coords.length / 2);
   const nColor = Math.floor(colors.length / 4);
   const nStop = colorStops.length;
-  const nFigures = figures.length;
-  let figuresSize = 0;
-  for (const figure of figures) {
-    figuresSize += 1;
-    figuresSize = Math.ceil(figuresSize / 4) * 4;
-    figuresSize += 4 + figure.coords.length * 4;
-    figuresSize += 4 + figure.colors.length * 4;
-    if (figure.verticesPerRow !== undefined) {
-      figuresSize += 4;
-    }
-  }
-  const byteLen = 20 + nCoord * 8 + nColor * 4 + nStop * 8 + (bbox ? 16 : 0) + (background ? 3 : 0) + figuresSize;
+  const byteLen = 20 + nCoord * 8 + nColor * 4 + nStop * 8 + (bbox ? 16 : 0) + (background ? 3 : 0);
   const buffer = new ArrayBuffer(byteLen);
   const dataView = new DataView(buffer);
   const u8data = new Uint8Array(buffer);
@@ -15584,7 +15633,7 @@ function compilePatternInfo(ir) {
   dataView.setUint32(PATTERN_INFO.N_COORD, nCoord, true);
   dataView.setUint32(PATTERN_INFO.N_COLOR, nColor, true);
   dataView.setUint32(PATTERN_INFO.N_STOP, nStop, true);
-  dataView.setUint32(PATTERN_INFO.N_FIGURES, nFigures, true);
+  dataView.setUint32(PATTERN_INFO.N_FIGURES, 0, true);
   let offset = 20;
   const coordsView = new Float32Array(buffer, offset, nCoord * 2);
   coordsView.set(coords);
@@ -15605,27 +15654,6 @@ function compilePatternInfo(ir) {
   }
   if (background) {
     u8data.set(background, offset);
-    offset += 3;
-  }
-  for (let i = 0; i < figures.length; i++) {
-    const figure = figures[i];
-    dataView.setUint8(offset, figure.type);
-    offset += 1;
-    offset = Math.ceil(offset / 4) * 4;
-    dataView.setUint32(offset, figure.coords.length, true);
-    offset += 4;
-    const figureCoordsView = new Int32Array(buffer, offset, figure.coords.length);
-    figureCoordsView.set(figure.coords);
-    offset += figure.coords.length * 4;
-    dataView.setUint32(offset, figure.colors.length, true);
-    offset += 4;
-    const colorsView = new Int32Array(buffer, offset, figure.colors.length);
-    colorsView.set(figure.colors);
-    offset += figure.colors.length * 4;
-    if (figure.verticesPerRow !== undefined) {
-      dataView.setUint32(offset, figure.verticesPerRow, true);
-      offset += 4;
-    }
   }
   return buffer;
 }
@@ -28441,6 +28469,7 @@ class Type1Font {
 
 
 
+
 const PRIVATE_USE_AREAS = [[0xe000, 0xf8ff], [0x100000, 0x10fffd]];
 const PDF_GLYPH_SPACE_UNITS = 1000;
 const EXPORT_DATA_PROPERTIES = ["ascent", "bbox", "black", "bold", "cssFontInfo", "data", "defaultVMetrics", "defaultWidth", "descent", "disableFontFace", "fallbackName", "fontExtraProperties", "fontMatrix", "isInvalidPDFjsFont", "isType3Font", "italic", "loadedName", "mimetype", "missingFile", "name", "remeasure", "systemFontInfo", "vertical"];
@@ -28589,15 +28618,18 @@ function writeUint32(bytes, index, value) {
 function string16(value) {
   return String.fromCharCode(value >> 8 & 0xff, value & 0xff);
 }
-function safeString16(value) {
-  if (value > 0x7fff) {
-    value = 0x7fff;
-  } else if (value < -0x8000) {
-    value = -0x8000;
-  }
-  return String.fromCharCode(value >> 8 & 0xff, value & 0xff);
+function setArray(data, pos, arr) {
+  data.set(arr, pos);
+  return pos + arr.length;
 }
-function ensureInt16(v) {}
+function setInt16(view, pos, val) {
+  view.setInt16(pos, val);
+  return pos + 2;
+}
+function setSafeInt16(view, pos, val) {
+  view.setInt16(pos, MathClamp(val, -0x8000, 0x7fff));
+  return pos + 2;
+}
 function isTrueTypeFile(file) {
   const header = file.peekBytes(4),
     str = bytesToString(header);
@@ -30685,12 +30717,55 @@ class Font {
     builder.addTable("CFF ", font.data);
     builder.addTable("OS/2", createOS2Table(properties, newCharCodeToGlyphId));
     builder.addTable("cmap", createCmapTable(newCharCodeToGlyphId, toUnicodeExtraMap, numGlyphs));
-    builder.addTable("head", "\x00\x01\x00\x00" + "\x00\x00\x10\x00" + "\x00\x00\x00\x00" + "\x5F\x0F\x3C\xF5" + "\x00\x00" + safeString16(unitsPerEm) + "\x00\x00\x00\x00\x9e\x0b\x7e\x27" + "\x00\x00\x00\x00\x9e\x0b\x7e\x27" + "\x00\x00" + safeString16(properties.descent) + "\x0F\xFF" + safeString16(properties.ascent) + string16(properties.italicAngle ? 2 : 0) + "\x00\x11" + "\x00\x00" + "\x00\x00" + "\x00\x00");
-    builder.addTable("hhea", "\x00\x01\x00\x00" + safeString16(properties.ascent) + safeString16(properties.descent) + "\x00\x00" + "\xFF\xFF" + "\x00\x00" + "\x00\x00" + "\x00\x00" + safeString16(properties.capHeight) + safeString16(Math.tan(properties.italicAngle) * properties.xHeight) + "\x00\x00" + "\x00\x00" + "\x00\x00" + "\x00\x00" + "\x00\x00" + "\x00\x00" + string16(numGlyphs));
-    builder.addTable("hmtx", function fontFieldsHmtx() {
+    builder.addTable("head", function fontTableHead() {
+      const dateArr = [0x00, 0x00, 0x00, 0x00, 0x9e, 0x0b, 0x7e, 0x27];
+      const data = new Uint8Array(54),
+        view = new DataView(data.buffer);
+      let pos = 0;
+      pos = setArray(data, pos, [0x00, 0x01, 0x00, 0x00]);
+      pos = setArray(data, pos, [0x00, 0x00, 0x10, 0x00]);
+      pos += 4;
+      pos = setArray(data, pos, [0x5f, 0x0f, 0x3c, 0xf5]);
+      pos += 2;
+      pos = setSafeInt16(view, pos, unitsPerEm);
+      pos = setArray(data, pos, dateArr);
+      pos = setArray(data, pos, dateArr);
+      pos += 2;
+      pos = setSafeInt16(view, pos, properties.descent);
+      pos = setArray(data, pos, [0x0f, 0xff]);
+      pos = setSafeInt16(view, pos, properties.ascent);
+      pos = setInt16(view, pos, properties.italicAngle ? 2 : 0);
+      setArray(data, pos, [0x00, 0x11]);
+      return data;
+    }());
+    builder.addTable("hhea", function fontTableHhea() {
+      const data = new Uint8Array(36),
+        view = new DataView(data.buffer);
+      let pos = 0;
+      pos = setArray(data, pos, [0x00, 0x01, 0x00, 0x00]);
+      pos = setSafeInt16(view, pos, properties.ascent);
+      pos = setSafeInt16(view, pos, properties.descent);
+      pos += 2;
+      pos = setArray(data, pos, [0xff, 0xff]);
+      pos += 2;
+      pos += 2;
+      pos += 2;
+      pos = setSafeInt16(view, pos, properties.capHeight);
+      pos = setSafeInt16(view, pos, Math.tan(properties.italicAngle) * properties.xHeight);
+      pos += 2;
+      pos += 2;
+      pos += 2;
+      pos += 2;
+      pos += 2;
+      pos += 2;
+      setInt16(view, pos, numGlyphs);
+      return data;
+    }());
+    builder.addTable("hmtx", function fontTableHmtx() {
       const charstrings = font.charstrings;
       const cffWidths = font.cff?.widths ?? null;
-      const data = new Uint8Array(numGlyphs * 4);
+      const data = new Uint8Array(numGlyphs * 4),
+        view = new DataView(data.buffer);
       let pos = 4;
       for (let i = 1, ii = numGlyphs; i < ii; i++) {
         let width = 0;
@@ -30699,14 +30774,18 @@ class Font {
         } else if (cffWidths) {
           width = Math.ceil(cffWidths[i] || 0);
         }
-        ensureInt16(width);
-        data[pos++] = width >> 8 & 0xff;
-        data[pos++] = width & 0xff;
+        pos = setInt16(view, pos, width);
         pos += 2;
       }
       return data;
     }());
-    builder.addTable("maxp", "\x00\x00\x50\x00" + string16(numGlyphs));
+    builder.addTable("maxp", function fontTableMaxp() {
+      const data = new Uint8Array(6),
+        view = new DataView(data.buffer);
+      setArray(data, 0, [0x00, 0x00, 0x50, 0x00]);
+      setInt16(view, 4, numGlyphs);
+      return data;
+    }());
     builder.addTable("name", createNameTable(fontName));
     builder.addTable("post", createPostTable(properties));
     return builder.toArray();
@@ -38922,6 +39001,14 @@ class PartialEvaluator {
           hash.update(cidToGidMap.toString());
         } else if (cidToGidMap instanceof BaseStream) {
           hash.update(cidToGidMap.peekBytes());
+        }
+      }
+      if (type.name === "Type3") {
+        const charProcs = baseDict.get("CharProcs");
+        if (charProcs instanceof Dict) {
+          for (const [key, entry] of charProcs.getRawEntries()) {
+            hash.update(entry instanceof Ref ? `${key}\0${entry}` : key);
+          }
         }
       }
     }
@@ -62825,7 +62912,120 @@ class PDFEditor {
     }
     return newNodeRef;
   }
+  #getFilteredPageIndices({
+    document,
+    includePages,
+    excludePages
+  }) {
+    if (!document) {
+      return [];
+    }
+    let keptIndices, keptRanges, deletedIndices, deletedRanges;
+    for (const page of includePages || []) {
+      if (Array.isArray(page)) {
+        (keptRanges ||= []).push(page);
+      } else {
+        (keptIndices ||= new Set()).add(page);
+      }
+    }
+    for (const page of excludePages || []) {
+      if (Array.isArray(page)) {
+        (deletedRanges ||= []).push(page);
+      } else {
+        (deletedIndices ||= new Set()).add(page);
+      }
+    }
+    const indices = [];
+    for (let i = 0, ii = document.numPages; i < ii; i++) {
+      if (deletedIndices?.has(i)) {
+        continue;
+      }
+      if (deletedRanges) {
+        let isDeleted = false;
+        for (const [start, end] of deletedRanges) {
+          if (i >= start && i <= end) {
+            isDeleted = true;
+            break;
+          }
+        }
+        if (isDeleted) {
+          continue;
+        }
+      }
+      let takePage = false;
+      if (keptIndices) {
+        takePage = keptIndices.has(i);
+      }
+      if (!takePage && keptRanges) {
+        for (const [start, end] of keptRanges) {
+          if (i >= start && i <= end) {
+            takePage = true;
+            break;
+          }
+        }
+      }
+      if (!takePage && !keptIndices && !keptRanges) {
+        takePage = true;
+      }
+      if (takePage) {
+        indices.push(i);
+      }
+    }
+    return indices;
+  }
+  #resolveInsertAfterIndices(pageInfos) {
+    const sequence = [];
+    const insertAfterList = [];
+    for (let i = 0; i < pageInfos.length; i++) {
+      const info = pageInfos[i];
+      if (!info.document || info.pageIndices) {
+        continue;
+      }
+      const count = this.#getFilteredPageIndices(info).length;
+      if (info.insertAfter === undefined) {
+        for (let j = 0; j < count; j++) {
+          sequence.push(i);
+        }
+      } else {
+        insertAfterList.push({
+          i,
+          insertAfter: info.insertAfter,
+          count
+        });
+      }
+    }
+    insertAfterList.sort((a, b) => a.insertAfter - b.insertAfter);
+    let offset = 0;
+    for (const {
+      i,
+      insertAfter,
+      count
+    } of insertAfterList) {
+      const insertPos = insertAfter + 1 + offset;
+      sequence.splice(insertPos, 0, ...new Array(count).fill(i));
+      offset += count;
+    }
+    const pageIndicesArr = new Array(pageInfos.length);
+    for (let pos = 0; pos < sequence.length; pos++) {
+      const infoIdx = sequence[pos];
+      (pageIndicesArr[infoIdx] ||= []).push(pos);
+    }
+    return pageInfos.map((info, i) => {
+      if (!info.document || info.pageIndices) {
+        return info;
+      }
+      const newInfo = {
+        ...info,
+        pageIndices: pageIndicesArr[i] || []
+      };
+      delete newInfo.insertAfter;
+      return newInfo;
+    });
+  }
   async extractPages(pageInfos, annotationStorage, handler, task) {
+    if (pageInfos.some(info => info.insertAfter !== undefined)) {
+      pageInfos = this.#resolveInsertAfterIndices(pageInfos);
+    }
     const promises = [];
     let newIndex = 0;
     this.isSingleFile = pageInfos.length === 1 || pageInfos.every(info => info.document === pageInfos[0].document);
@@ -62854,56 +63054,12 @@ class PDFEditor {
       const documentData = new DocumentData(document);
       allDocumentData.push(documentData);
       promises.push(this.#collectDocumentData(documentData));
-      let keptIndices, keptRanges, deletedIndices, deletedRanges;
-      for (const page of includePages || []) {
-        if (Array.isArray(page)) {
-          (keptRanges ||= []).push(page);
-        } else {
-          (keptIndices ||= new Set()).add(page);
-        }
-      }
-      for (const page of excludePages || []) {
-        if (Array.isArray(page)) {
-          (deletedRanges ||= []).push(page);
-        } else {
-          (deletedIndices ||= new Set()).add(page);
-        }
-      }
       let pageIndex = 0;
-      for (let i = 0, ii = document.numPages; i < ii; i++) {
-        if (deletedIndices?.has(i)) {
-          continue;
-        }
-        if (deletedRanges) {
-          let isDeleted = false;
-          for (const [start, end] of deletedRanges) {
-            if (i >= start && i <= end) {
-              isDeleted = true;
-              break;
-            }
-          }
-          if (isDeleted) {
-            continue;
-          }
-        }
-        let takePage = false;
-        if (keptIndices) {
-          takePage = keptIndices.has(i);
-        }
-        if (!takePage && keptRanges) {
-          for (const [start, end] of keptRanges) {
-            if (i >= start && i <= end) {
-              takePage = true;
-              break;
-            }
-          }
-        }
-        if (!takePage && !keptIndices && !keptRanges) {
-          takePage = true;
-        }
-        if (!takePage) {
-          continue;
-        }
+      for (const i of this.#getFilteredPageIndices({
+        document,
+        includePages,
+        excludePages
+      })) {
         let newPageIndex;
         if (pageIndices) {
           newPageIndex = pageIndices[pageIndex++];
@@ -64627,7 +64783,7 @@ class WorkerMessageHandler {
       docId,
       apiVersion
     } = docParams;
-    const workerVersion = "5.7.145";
+    const workerVersion = "5.7.162";
     if (apiVersion !== workerVersion) {
       throw new Error(`The API version "${apiVersion}" does not match ` + `the Worker version "${workerVersion}".`);
     }
