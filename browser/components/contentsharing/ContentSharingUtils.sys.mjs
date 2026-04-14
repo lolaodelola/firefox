@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+import { PlacesUtils } from "resource://gre/modules/PlacesUtils.sys.mjs";
 import { XPCOMUtils } from "resource://gre/modules/XPCOMUtils.sys.mjs";
 
 const lazy = {};
@@ -61,6 +62,125 @@ class ContentSharingUtilsClass {
     const schema = await loadContentSharingSchema();
     this.#validator = new lazy.JsonSchema.Validator(schema);
     return this.#validator;
+  }
+
+  /**
+   * Handles sharing bookmarks by building a share object and sending it to the
+   * content sharing server to get a shareable link, which is then opened in a
+   * new tab. bookmarkFolderGuids can be 1 or more bookmark folder guids. If
+   * more than 1, the first guid will be treated as the parent folder and the
+   * rest will be nested inside it.
+   *
+   * @param {Array<string>} bookmarkFolderGuids An array of bookmark folder guids
+   * @param {Window} window The window to open the share URL in
+   */
+  async createShareableLinkFromBookmarkFolders(bookmarkFolderGuids, window) {
+    const share = await this.buildShareFromBookmarkFolders(bookmarkFolderGuids);
+    await this.openShareUrlInNewTab(share, window);
+  }
+
+  /**
+   * Builds a share object from bookmark folder guids. It first builds out the
+   * bookmark tree and then builds a share object from that tree, returning an
+   * object to be validated against contentsharing.schema.json and sent to the
+   * content sharing server. bookmarkFolderGuids must be 1 or more folder guids.
+   * If more than 1, the first guid will be treated as the parent folder and
+   * the rest will be nested inside it.
+   *
+   * @param {Array<string>} bookmarkFolderGuids An array of bookmark folder guids
+   * @returns {Promise<object>} The built share object that will be validated against
+   * the contentsharing.schema.json
+   */
+  async buildShareFromBookmarkFolders(bookmarkFolderGuids) {
+    if (!bookmarkFolderGuids.length) {
+      return null;
+    }
+
+    let bookmark;
+    if (bookmarkFolderGuids.length === 1) {
+      bookmark = await PlacesUtils.promiseBookmarksTree(bookmarkFolderGuids[0]);
+    } else {
+      // More than one folder selected: first folder is the parent, rest are children.
+      bookmark = await PlacesUtils.promiseBookmarksTree(bookmarkFolderGuids[0]);
+      bookmark.children = bookmark.children ?? [];
+
+      for (let guid of bookmarkFolderGuids.slice(1)) {
+        bookmark.children.push(await PlacesUtils.promiseBookmarksTree(guid));
+      }
+    }
+
+    bookmark.type = "bookmarks";
+
+    return this.buildShare(bookmark);
+  }
+
+  /**
+   * Builds a share object from a given bookmark tree/tab group/selected tabs.
+   * The share object is a simplified version of the bookmark tree that only
+   * includes the necessary information for sharing (e.g. title and url).
+   * For bookmarks, the share object will have a type of "bookmarks" and will
+   * include the title of the bookmark folder and an array of links, where each
+   * link can either be a bookmark (with a url and optional title) or a nested
+   * folder (with its own title and array of links). Nested folders will
+   * recursively call this function to build their share objects.
+   * For tab groups, the share object will have the type "tab_group" and will
+   * take the title of the tab group.
+   * For selected tabs, the share object will have the type "tabs" and the
+   * title will be the number of tabs selected.
+   * Both tab groups and selected tabs will include an array of links, where
+   * each link will have a url and title.
+   *
+   * @param {object} shareObject The bookmark tree to share.
+   * @returns {object} The built share object that will be validated against
+   * the contentsharing.schema.json
+   */
+  buildShare(shareObject) {
+    const share = {
+      type: shareObject.type ?? "bookmarks",
+      title: shareObject.title,
+    };
+    let links = [];
+    for (let linkOrNestShare of shareObject.children ?? []) {
+      if (linkOrNestShare.uri) {
+        const link = {
+          url: linkOrNestShare.uri,
+          title: linkOrNestShare.title ?? "",
+        };
+        links.push(link);
+      } else if (linkOrNestShare.children) {
+        linkOrNestShare.type = "bookmarks";
+        links.push(this.buildShare(linkOrNestShare));
+      }
+    }
+
+    share.links = links;
+
+    return share;
+  }
+
+  async openShareUrlInNewTab(share, window) {
+    const shareUrl = await this.createShareableLink(share);
+    window.openWebLinkIn(shareUrl, "tab");
+  }
+
+  async createShareableLink(share) {
+    await this.validateSchema(share);
+
+    if (!this.serverURL) {
+      throw new Error("Content Sharing Server URL is not set");
+    }
+
+    let response = await fetch(this.serverURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(share),
+    });
+
+    let { url } = await response.json();
+
+    return url;
   }
 
   countItems(share) {
