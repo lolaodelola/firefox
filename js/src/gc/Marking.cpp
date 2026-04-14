@@ -986,10 +986,14 @@ void js::gc::PerformIncrementalPreWriteBarrier(TenuredCell* cell) {
 
 #ifdef ENABLE_WASM_JSPI
 void js::gc::PerformIncrementalPreWriteBarrierAllChildren(JSObject* cell) {
-  if (!cell || cell->isMarkedBlack()) {
+  if (!cell) {
     return;
   }
 
+  // If the object is already marked black, its children may already be in the
+  // GC's marking work queue. However, with incremental and concurrent marking,
+  // objects can be marked black before their trace hooks have run. So we
+  // conservatively mark it even if it's black.
   Zone* zone = cell->zoneFromAnyThread();
   MOZ_ASSERT(!zone->isAtomsZone());
   MOZ_ASSERT(zone->needsMarkingBarrier());
