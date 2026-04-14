@@ -497,7 +497,7 @@ already_AddRefed<nsIWidget> BrowserParent::GetDocWidget() const {
       nsContentUtils::WidgetForDocument(mFrameElement->OwnerDoc()));
 }
 
-nsIXULBrowserWindow* BrowserParent::GetXULBrowserWindow() {
+already_AddRefed<nsIXULBrowserWindow> BrowserParent::GetXULBrowserWindow() {
   if (!mFrameElement) {
     return nullptr;
   }
@@ -520,7 +520,7 @@ nsIXULBrowserWindow* BrowserParent::GetXULBrowserWindow() {
 
   nsCOMPtr<nsIXULBrowserWindow> xulBrowserWindow;
   window->GetXULBrowserWindow(getter_AddRefs(xulBrowserWindow));
-  return xulBrowserWindow;
+  return xulBrowserWindow.forget();
 }
 
 uint32_t BrowserParent::GetMaxTouchPoints(Element* aElement) {

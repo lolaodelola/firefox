@@ -413,11 +413,11 @@ class ContentParent final : public PContentParent,
   void MaybeBeginShutDown(bool aImmediate = false,
                           bool aIgnoreKeepAlivePref = false);
 
-  TestShellParent* CreateTestShell();
+  already_AddRefed<TestShellParent> CreateTestShell();
 
   bool DestroyTestShell(TestShellParent* aTestShell);
 
-  TestShellParent* GetTestShellSingleton();
+  already_AddRefed<TestShellParent> GetTestShellSingleton();
 
   void ReportChildAlreadyBlocked();
 
