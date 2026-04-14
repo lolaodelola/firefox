@@ -78,6 +78,12 @@
                      data-l10n-id="appmenuitem-history"
                      closemenu="none"
                      />
+      <toolbarbutton id="appMenu-tab-groups-button"
+                     class="subviewbutton subviewbutton-nav"
+                     data-l10n-id="appmenuitem-tab-groups"
+                     closemenu="none"
+                     hidden="true"
+                     />
       <toolbarbutton id="appMenu-chats-history-button"
                      class="subviewbutton"
                      data-l10n-id="menu-history-chats"
@@ -884,6 +890,13 @@
         <html:moz-badge id="ai-window-switch-ai-badge"
                         type="beta"/>
       </toolbarbutton>
+    </vbox>
+  </panelview>
+
+  <panelview id="appMenu-tabGroupsListView"
+             class="PanelUI-subView">
+    <vbox class="panel-subview-body">
+      <html:tab-groups-list/>
     </vbox>
   </panelview>
 

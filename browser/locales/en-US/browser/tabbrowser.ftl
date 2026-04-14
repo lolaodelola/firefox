@@ -221,6 +221,9 @@ tabbrowser-manager-current-window-tab-group =
   .tooltiptext = { $tabGroupName } — Current window
 
 ## Tab Groups
+## Variables:
+##  $tabGroupName (String): The name of the tab group. See also tab-group-name-default, which will be
+##                          used when the group's name is empty.
 
 tab-group-name-default = Unnamed Group
 tab-group-editor-title-create = Create tab group
@@ -252,6 +255,10 @@ tab-group-editor-color-selector2-gray = Gray
   .title = Gray
 tab-group-editor-color-selector2-red = Red
   .title = Red
+
+tab-group-menu-closed-tab-group =
+  .label = { $tabGroupName }
+  .title = { $tabGroupName } — Closed
 
 ## Variables:
 ##  $tabGroupName (String): The name of the tab group. Defaults to the value
