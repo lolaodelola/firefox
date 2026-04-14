@@ -37,7 +37,7 @@
 }
 
 /* stylelint-disable-next-line media-query-no-invalid */
-@media -moz-pref("browser.design-tokens.nova") {
+@media -moz-pref("browser.nova.enabled") {
   @layer tokens-foundation-nova {
     :root,
     :host {

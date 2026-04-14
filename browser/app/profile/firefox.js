@@ -2097,8 +2097,8 @@ pref("browser.aboutwelcome.experimentsGate.skipSplashIfLoaded", true);
 pref("browser.aboutwelcome.experimentsGate.minDisplayMs", 3000);
 pref("browser.aboutwelcome.experimentsGate.maxDisplayMs", 8000);
 
-// Override design tokens for a given theme
-pref("browser.design-tokens.nova", false);
+// Global Nova enabled pref
+pref("browser.nova.enabled", false);
 
 // Disable singleProfile messaging mitigation (Bug 1963213) for multiProfile feature users
 pref("messaging-system.profile.singleProfileMessaging.disable", true);
