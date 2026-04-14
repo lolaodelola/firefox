@@ -10638,6 +10638,27 @@ var TabContextMenu = {
     );
     bookmarkMultiSelectedTabs.hidden = !this.multiselected;
 
+    let contentSharingShareTabs = document.getElementById(
+      "context_shareSelectedTabs"
+    );
+
+    const hideContentSharing =
+      !this.multiselected || !ContentSharingUtils.isEnabled;
+    contentSharingShareTabs.hidden = hideContentSharing;
+    document.getElementById("context_shareSelectedTabsSeparator").hidden =
+      hideContentSharing;
+    if (!contentSharingShareTabs.hidden) {
+      this.removeNewBadge(contentSharingShareTabs);
+      if (
+        Services.prefs.getBoolPref(
+          "browser.contentsharing.newBadge.enabled",
+          true
+        )
+      ) {
+        this.addNewBadge(contentSharingShareTabs);
+      }
+    }
+
     let toggleMute = document.getElementById("context_toggleMuteTab");
     let toggleMultiSelectMute = document.getElementById(
       "context_toggleMuteSelectedTabs"

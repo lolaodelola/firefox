@@ -8,6 +8,8 @@ document.addEventListener(
   () => {
     const lazy = {};
     ChromeUtils.defineESModuleGetters(lazy, {
+      ContentSharingUtils:
+        "resource:///modules/contentsharing/ContentSharingUtils.sys.mjs",
       TabMetrics: "moz-src:///browser/components/tabbrowser/TabMetrics.sys.mjs",
       TabNotes: "moz-src:///browser/components/tabnotes/TabNotes.sys.mjs",
     });
@@ -82,6 +84,13 @@ document.addEventListener(
           break;
         case "context_bookmarkSelectedTabs":
           PlacesCommandHook.bookmarkTabs(gBrowser.selectedTabs);
+          break;
+        case "context_shareSelectedTabs":
+          lazy.ContentSharingUtils.handleShareTabs(TabContextMenu.contextTabs);
+          Services.prefs.setBoolPref(
+            "browser.contentsharing.newBadge.enabled",
+            false
+          );
           break;
         case "context_bookmarkTab":
           PlacesCommandHook.bookmarkTabs([TabContextMenu.contextTab]);

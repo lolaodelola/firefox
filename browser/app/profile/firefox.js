@@ -3602,3 +3602,6 @@ pref("widget.support-xdg-config", true, locked);
 
 // A preference that enables Content Sharing
 pref("browser.contentsharing.enabled", false);
+
+// Controls whether the "New" badge is shown on the content sharing menu items
+pref("browser.contentsharing.newBadge.enabled", true);

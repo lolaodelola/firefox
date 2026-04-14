@@ -80,6 +80,29 @@ class ContentSharingUtilsClass {
   }
 
   /**
+   * Shares the multi-selected tabs
+   *
+   * @param {MozTabbrowserTab[]} tabs
+   */
+  async handleShareTabs(tabs) {
+    try {
+      const shareObject = {
+        type: "tabs",
+        title: `${tabs.length} tabs`,
+        children: tabs.map(t => ({
+          uri: t.linkedBrowser.currentURI.spec,
+          title: t.label.slice(0, 100),
+        })),
+      };
+
+      const share = this.buildShare(shareObject);
+      await this.openShareUrlInNewTab(share);
+    } catch (e) {
+      console.error("ContentSharingUtils: failed to share tabs", e);
+    }
+  }
+
+  /**
    * Handles sharing a tab group by building a share object and sending it to the
    * content sharing server to get a shareable link, which is then opened in a
    * new tab.
