@@ -7337,52 +7337,6 @@ void LIRGenerator::visitWasmStackResult(MWasmStackResult* ins) {
   addUnchecked(lir, ins);
 }
 
-void LIRGenerator::visitWasmStackSwitchToSuspendable(
-    MWasmStackSwitchToSuspendable* ins) {
-#ifdef ENABLE_WASM_JSPI
-  auto* lir = new (alloc()) LWasmStackSwitchToSuspendable(
-      useFixedAtStart(ins->instance(), InstanceReg),
-      useFixedAtStart(ins->suspender(), ABINonArgReg0),
-      useFixedAtStart(ins->fn(), ABINonArgReg1),
-      useFixedAtStart(ins->data(), ABINonArgReg2));
-
-  add(lir, ins);
-  assignWasmSafepoint(lir);
-#else
-  MOZ_CRASH("NYI");
-#endif
-}
-
-void LIRGenerator::visitWasmStackSwitchToMain(MWasmStackSwitchToMain* ins) {
-#ifdef ENABLE_WASM_JSPI
-  auto* lir = new (alloc())
-      LWasmStackSwitchToMain(useFixedAtStart(ins->instance(), InstanceReg),
-                             useFixedAtStart(ins->suspender(), ABINonArgReg0),
-                             useFixedAtStart(ins->fn(), ABINonArgReg1),
-                             useFixedAtStart(ins->data(), ABINonArgReg2));
-
-  defineReturn(lir, ins);
-  assignWasmSafepoint(lir);
-#else
-  MOZ_CRASH("NYI");
-#endif
-}
-
-void LIRGenerator::visitWasmStackContinueOnSuspendable(
-    MWasmStackContinueOnSuspendable* ins) {
-#ifdef ENABLE_WASM_JSPI
-  auto* lir = new (alloc()) LWasmStackContinueOnSuspendable(
-      useFixedAtStart(ins->instance(), InstanceReg),
-      useRegisterAtStart(ins->suspender()), useRegisterAtStart(ins->result()),
-      tempFixed(ABINonArgReturnReg0), tempFixed(ReturnReg));
-
-  add(lir, ins);
-  assignWasmSafepoint(lir);
-#else
-  MOZ_CRASH("NYI");
-#endif
-}
-
 template <class MWasmCallT>
 void LIRGenerator::visitWasmCall(MWasmCallT ins) {
   auto* lir = allocateVariadic<LWasmCall>(ins->numOperands());
@@ -7438,6 +7392,54 @@ void LIRGenerator::visitWasmReturnCall(MWasmReturnCall* ins) {
 void LIRGenerator::visitWasmCallLandingPrePad(MWasmCallLandingPrePad* ins) {
   add(new (alloc()) LWasmCallLandingPrePad, ins);
 }
+
+#ifdef ENABLE_WASM_JSPI
+void LIRGenerator::visitWasmFindHandler(MWasmFindHandler* ins) {
+  auto* lir = new (alloc()) LWasmFindHandler(
+      useFixedAtStart(ins->instance(), InstanceReg),
+      useRegisterAtStart(ins->tag()), temp(), temp(), temp(), temp());
+  define(lir, ins);
+}
+
+void LIRGenerator::visitWasmSuspend(MWasmSuspend* ins) {
+  // This is a call instruction, all other registers should be spilled
+  // We're not passing params either, so we can just let registers be free
+  auto* lir = new (alloc())
+      LWasmSuspend(useFixedAtStart(ins->instance(), InstanceReg),
+                   useRegisterAtStart(ins->suspendedCont()),
+                   useRegisterAtStart(ins->handler()), tempFixed(ABINonArgReg0),
+                   tempFixed(ABINonArgReg1), tempFixed(ABINonArgReg2));
+
+  add(lir, ins);
+  assignWasmSafepoint(lir);
+}
+
+void LIRGenerator::visitWasmResumeBarrier(MWasmResumeBarrier* ins) {
+  auto* lir = new (alloc()) LWasmResumeBarrier(
+      useFixedAtStart(ins->instance(), InstanceReg),
+      useRegisterAtStart(ins->cont()), tempFixed(ABINonArgReg0));
+
+  add(lir, ins);
+  assignWasmSafepoint(lir);
+}
+
+void LIRGenerator::visitWasmResume(MWasmResume* ins) {
+  // This is a call instruction, all other registers should be spilled
+  // We're not passing params either, so we can just let registers be free
+  LAllocation handlersParamsArea = LAllocation();
+  if (ins->hasHandlersParamsArea()) {
+    handlersParamsArea = useRegisterAtStart(ins->handlersParamsArea());
+  }
+  auto* lir = new (alloc())
+      LWasmResume(useFixedAtStart(ins->instance(), InstanceReg),
+                  useRegisterAtStart(ins->cont()), handlersParamsArea,
+                  tempFixed(ABINonArgReg0), tempFixed(ABINonArgReg1),
+                  tempFixed(ABINonArgReg2));
+
+  add(lir, ins);
+  assignWasmSafepoint(lir);
+}
+#endif  // ENABLE_WASM_JSPI
 
 void LIRGenerator::visitSetDOMProperty(MSetDOMProperty* ins) {
   MDefinition* val = ins->value();

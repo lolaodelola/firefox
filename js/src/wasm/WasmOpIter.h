@@ -234,7 +234,6 @@ enum class OpKind {
   Try,
   TryTable,
   CallBuiltinModuleFunc,
-  StackSwitch,
 #  ifdef ENABLE_WASM_JSPI
   ContNew,
   ContBind,
@@ -887,8 +886,6 @@ class MOZ_STACK_CLASS OpIter : private Policy {
   [[nodiscard]] bool readSwitch(uint32_t* contTypeIndex, uint32_t* tagIndex,
                                 ValueVector* args, Value* cont);
   [[nodiscard]] bool readGuardSuspending(uint32_t* tagIndex);
-  [[nodiscard]] bool readStackSwitch(StackSwitchKind* kind, Value* suspender,
-                                     Value* fn, Value* data);
 #endif  // ENABLE_WASM_JSPI
 
   // At a location where readOp is allowed, peek at the next opcode
@@ -4714,48 +4711,6 @@ inline bool OpIter<Policy>::readGuardSuspending(uint32_t* tagIndex) {
   MOZ_ASSERT(Classify(op_) == OpKind::GuardSuspending);
   MOZ_ASSERT(codeMeta_.isBuiltinModule());
   return readTagIndex(tagIndex);
-}
-
-template <typename Policy>
-inline bool OpIter<Policy>::readStackSwitch(StackSwitchKind* kind,
-                                            Value* suspender, Value* fn,
-                                            Value* data) {
-  MOZ_ASSERT(Classify(op_) == OpKind::StackSwitch);
-  MOZ_ASSERT(codeMeta_.jsPromiseIntegrationEnabled());
-  uint32_t kind_;
-  if (!d_.readVarU32(&kind_)) {
-    return false;
-  }
-  *kind = StackSwitchKind(kind_);
-  if (!popWithType(ValType(RefType::any()), data)) {
-    return false;
-  }
-  StackType stackType;
-  if (!popWithType(ValType(RefType::func()), fn, &stackType)) {
-    return false;
-  }
-#  if DEBUG
-  MOZ_ASSERT((*kind == StackSwitchKind::ContinueOnSuspendable) ==
-             stackType.isNullableAsOperand());
-  if (!stackType.isNullableAsOperand()) {
-    ValType valType = stackType.valType();
-    MOZ_ASSERT(valType.isRefType() && valType.typeDef()->isFuncType());
-    const FuncType& func = valType.typeDef()->funcType();
-    MOZ_ASSERT(func.args().length() == 2 && func.arg(0).isExternRef() &&
-               ValType::isSubTypeOf(func.arg(1), RefType::any()));
-    MOZ_ASSERT_IF(*kind != StackSwitchKind::SwitchToMain,
-                  func.results().empty());
-    MOZ_ASSERT_IF(*kind == StackSwitchKind::SwitchToMain,
-                  func.results().length() == 1 && func.result(0).isAnyRef());
-  }
-#  endif
-  if (!popWithType(ValType(RefType::extern_()), suspender)) {
-    return false;
-  }
-  if (*kind == StackSwitchKind::SwitchToMain) {
-    return push(RefType::extern_());
-  }
-  return true;
 }
 
 #endif  // ENABLE_WASM_JSPI

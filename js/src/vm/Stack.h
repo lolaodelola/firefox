@@ -102,6 +102,8 @@ class AbstractFramePtr {
     TagMask = 0x3
   };
 
+  explicit AbstractFramePtr(uintptr_t ptr) : ptr_(ptr) {}
+
  public:
   AbstractFramePtr() : ptr_(0) {}
 
@@ -163,6 +165,9 @@ class AbstractFramePtr {
   }
 
   void* raw() const { return reinterpret_cast<void*>(ptr_); }
+  static AbstractFramePtr fromRaw(void* raw) {
+    return AbstractFramePtr(reinterpret_cast<uintptr_t>(raw));
+  }
 
   bool operator==(const AbstractFramePtr& other) const {
     return ptr_ == other.ptr_;

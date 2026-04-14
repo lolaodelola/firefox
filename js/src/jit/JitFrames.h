@@ -21,7 +21,9 @@ namespace js {
 
 namespace wasm {
 class Instance;
-}
+struct StackTarget;
+struct Handlers;
+}  // namespace wasm
 
 namespace jit {
 
@@ -179,6 +181,10 @@ struct ResumeFromException {
   uint8_t* target;
   ExceptionResumeKind kind;
   wasm::Instance* instance;
+#ifdef ENABLE_WASM_JSPI
+  const wasm::StackTarget* stackTarget;
+  const wasm::Handlers* baseHandlers;
+#endif
 
   // Value to push when resuming into a |finally| block.
   // Also used by Wasm to send the exception object to the throw stub.
@@ -202,6 +208,14 @@ struct ResumeFromException {
   static size_t offsetOfInstance() {
     return offsetof(ResumeFromException, instance);
   }
+#ifdef ENABLE_WASM_JSPI
+  static size_t offsetOfStackTarget() {
+    return offsetof(ResumeFromException, stackTarget);
+  }
+  static size_t offsetOfBaseHandlers() {
+    return offsetof(ResumeFromException, baseHandlers);
+  }
+#endif
   static size_t offsetOfException() {
     return offsetof(ResumeFromException, exception);
   }

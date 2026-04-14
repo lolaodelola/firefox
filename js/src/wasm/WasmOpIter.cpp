@@ -815,8 +815,8 @@ OpKind wasm::Classify(OpBytes op) {
         case MozOp::CallBuiltinModuleFunc:
           return OpKind::CallBuiltinModuleFunc;
 #  ifdef ENABLE_WASM_JSPI
-        case MozOp::StackSwitch:
-          return OpKind::StackSwitch;
+        case MozOp::GuardSuspending:
+          return OpKind::GuardSuspending;
 #  endif
       }
       break;

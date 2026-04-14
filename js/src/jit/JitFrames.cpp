@@ -1478,6 +1478,11 @@ static void TraceJitActivation(JSTracer* trc, JitActivation* activation) {
 #ifdef ENABLE_WASM_JSPI
       if (wasmFrameIter.currentFrameStackSwitched()) {
         highestByteVisitedInPrevWasmFrame = 0;
+        if (wasmFrameIter.contStack()) {
+          // Trace the fields on the continuation stack itself. The frames on
+          // the stack will be traced below.
+          wasmFrameIter.contStack()->traceFields(trc);
+        }
       }
 #endif
       wasm::Instance* instance = wasmFrameIter.instance();
@@ -1488,13 +1493,36 @@ static void TraceJitActivation(JSTracer* trc, JitActivation* activation) {
   }
 }
 
+#ifdef ENABLE_WASM_JSPI
+static void TraceWasmSuspendedContStacks(JSContext* cx, JSTracer* trc) {
+  gc::AssertRootMarkingPhase(trc);
+
+  // If we're tenuring, then unconditionally trace all suspended stacks. This
+  // is needed as they may point at nursery entries, but also don't have any
+  // store buffer entries.
+  //
+  // If we're not tenuring, then the suspended ones will be traced through
+  // references to their continuation object.
+  if (!trc->isTenuringTracer()) {
+    return;
+  }
+
+  for (wasm::ContStack* stack : cx->wasm().stacks()) {
+    if (stack->canResume()) {
+      stack->traceSuspended(trc);
+    }
+  }
+}
+#endif
+
 void TraceJitActivations(JSContext* cx, JSTracer* trc) {
   for (JitActivationIterator activations(cx); !activations.done();
        ++activations) {
     TraceJitActivation(trc, activations->asJit());
   }
+
 #ifdef ENABLE_WASM_JSPI
-  cx->wasm().traceRoots(trc);
+  TraceWasmSuspendedContStacks(cx, trc);
 #endif
 }
 
@@ -1532,6 +1560,13 @@ void UpdateJitActivationsForMinorGC(JSRuntime* rt) {
       }
     }
   }
+#ifdef ENABLE_WASM_JSPI
+  for (wasm::ContStack* stack : cx->wasm().stacks()) {
+    if (stack->canResume()) {
+      stack->updateSuspendedForMovingGC(nursery);
+    }
+  }
+#endif
 }
 
 void UpdateJitActivationsForCompactingGC(JSRuntime* rt) {
@@ -1548,6 +1583,13 @@ void UpdateJitActivationsForCompactingGC(JSRuntime* rt) {
       }
     }
   }
+#ifdef ENABLE_WASM_JSPI
+  for (wasm::ContStack* stack : cx->wasm().stacks()) {
+    if (stack->canResume()) {
+      stack->updateSuspendedForMovingGC(nursery);
+    }
+  }
+#endif
 }
 
 JSScript* GetTopJitJSScript(JSContext* cx) {

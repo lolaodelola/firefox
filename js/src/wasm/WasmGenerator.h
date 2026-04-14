@@ -268,6 +268,9 @@ class MOZ_STACK_CLASS ModuleGenerator {
   uint32_t debugStubCodeOffset_;
   uint32_t requestTierUpStubCodeOffset_;
   uint32_t updateCallRefMetricsStubCodeOffset_;
+#ifdef ENABLE_WASM_JSPI
+  uint32_t contBaseFrameOffset_;
+#endif
   CallFarJumpVector callFarJumps_;
   CallSiteTargetVector callSiteTargets_;
   FuncIonPerfSpewerVector funcIonSpewers_;

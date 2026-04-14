@@ -160,17 +160,27 @@ void ConfigureHugeMemory() {
 #endif
 }
 
+#ifdef ENABLE_WASM_JSPI
+const TagType* wasm::sJSPromiseTagType = nullptr;
+#endif
 const TagType* wasm::sWrappedJSValueTagType = nullptr;
 
-static bool InitTagForJSValue() {
+static bool InitStaticTagTypes() {
   MutableTagType type = js_new<TagType>();
   if (!type || !type->initialize(StaticTypeDefs::jsExceptionTag)) {
     return false;
   }
   MOZ_ASSERT(WrappedJSValueTagType_ValueOffset ==
              type->exceptionArgOffsets()[0]);
-
   type.forget(&sWrappedJSValueTagType);
+
+#ifdef ENABLE_WASM_JSPI
+  type = js_new<TagType>();
+  if (!type || !type->initialize(StaticTypeDefs::jsPromiseTag)) {
+    return false;
+  }
+  type.forget(&sJSPromiseTagType);
+#endif
 
   return true;
 }
@@ -203,7 +213,7 @@ bool wasm::Init() {
 
   sThreadSafeCodeBlockMap = map;
 
-  if (!InitTagForJSValue()) {
+  if (!InitStaticTagTypes()) {
     oomUnsafe.crash("js::wasm::Init");
   }
 
@@ -221,6 +231,13 @@ void wasm::ShutDown() {
   BuiltinModuleFuncs::destroy();
   StaticTypeDefs::destroy();
   PurgeCanonicalTypes();
+
+#ifdef ENABLE_WASM_JSPI
+  if (sJSPromiseTagType) {
+    sJSPromiseTagType->Release();
+    sJSPromiseTagType = nullptr;
+  }
+#endif
 
   if (sWrappedJSValueTagType) {
     sWrappedJSValueTagType->Release();

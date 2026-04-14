@@ -566,6 +566,25 @@ void EmitWasmPreBarrierCallIndex(jit::MacroAssembler& masm,
                                  jit::Register instance, jit::Register scratch1,
                                  jit::Register scratch2, jit::BaseIndex addr);
 
+#ifdef ENABLE_WASM_JSPI
+
+// Before resuming a continuation, jump to a 'resume barrier' if an incremental
+// GC is happening.
+void EmitWasmResumeBarrierGuard(jit::MacroAssembler& masm,
+                                jit::Register instance, jit::Register scratch,
+                                jit::Label* enterBarrier);
+
+// Call the 'resume barrier' for a continuation. This will clobber all
+// registers except for `instance`. `instance` must be InstanceReg.
+//
+// See [SMDOC] Wasm Stack Switching in WasmStacks.cpp for more information.
+//
+// This will immediately trace the continuation stack if it hasn't been already.
+void EmitWasmResumeBarrier(jit::MacroAssembler& masm, jit::Register instance,
+                           jit::Register cont);
+
+#endif  // ENABLE_WASM_JSPI
+
 // After storing a GC pointer value in memory, skip to `skipBarrier` if a
 // postbarrier is not needed.  If the location being set is in an
 // heap-allocated object then `object` must reference that object; otherwise
