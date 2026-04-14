@@ -223,15 +223,8 @@ export class AIWindow extends MozLitElement {
       return;
     }
 
-    const lastUserMessage =
-      this.#conversation?.messages?.findLast?.(
-        m => m.role === lazy.MESSAGE_ROLE.USER
-      ) ?? null;
-    if (
-      lastUserMessage?.memoriesFlagSource ===
-      lazy.MEMORIES_FLAG_SOURCE.CONVERSATION
-    ) {
-      this.#memoriesToggled = lastUserMessage.memoriesEnabled;
+    if (this.#conversation?.memoriesToggled != null) {
+      this.#memoriesToggled = this.#conversation.memoriesToggled;
     }
     await this.#syncMemoriesButtonUI();
   }
@@ -1120,8 +1113,19 @@ export class AIWindow extends MozLitElement {
     );
 
     this.#memoriesToggled = event.detail.pressed;
+    this.#saveMemoriesToggleToConversation(event.detail.pressed);
     this.#syncMemoriesButtonUI();
   };
+
+  #saveMemoriesToggleToConversation(pressed) {
+    // Only save to database if conversation has messages to avoid constraint violation
+    if (!this.#conversation || this.#conversation.messageCount === 0) {
+      return;
+    }
+
+    this.#conversation.memoriesToggled = pressed;
+    this.#updateConversation();
+  }
 
   /**
    * Handles the prompt selection event from smartwindow-prompts.
@@ -1647,6 +1651,7 @@ export class AIWindow extends MozLitElement {
     this.#removeConversationListeners();
     this.#conversation = conversation;
     this.#attachConversationListeners();
+    this.syncSmartbarMemoriesStateFromConversation();
   }
 
   /**
@@ -1673,8 +1678,6 @@ export class AIWindow extends MozLitElement {
       if (this.#smartbar && this.mode === MODE.SIDEBAR) {
         this.#smartbar.updateContextChips();
       }
-
-      this.syncSmartbarMemoriesStateFromConversation();
 
       // This assumes "openConversation" opens an active conversation, possible todo to see
       // if convo has messages before hiding the footer element.
