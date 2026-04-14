@@ -175,11 +175,9 @@ void StunAddrsRequestParent::SendStunAddrs_m(const NrIceStunAddrArray& addrs) {
     std::ostringstream o;
     char buffer[16];
     for (auto& addr : addrs) {
-      nr_local_addr localAddr;
-      addr.toNrLocalAddr(localAddr);
-      if (localAddr.addr.ip_version == NR_IPV4 &&
-          !nr_transport_addr_is_loopback(&localAddr.addr)) {
-        nr_transport_addr_get_addrstring(&localAddr.addr, buffer, 16);
+      if (addr.localAddr().addr.ip_version == NR_IPV4 &&
+          !nr_transport_addr_is_loopback(&addr.localAddr().addr)) {
+        nr_transport_addr_get_addrstring(&addr.localAddr().addr, buffer, 16);
         o << buffer << ";";
       }
     }
