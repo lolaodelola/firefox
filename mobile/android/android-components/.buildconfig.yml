@@ -67,27 +67,6 @@ projects:
     - components:support-utils
     - components:tooling-lint
     - components:ui-icons
-  components:browser-favicons:
-    description: A component for storing and restoring per-tab website favicons.
-    path: components/browser/favicons
-    publish: true
-    upstream_dependencies:
-    - components:browser-errorpages
-    - components:browser-state
-    - components:concept-awesomebar
-    - components:concept-base
-    - components:concept-engine
-    - components:concept-fetch
-    - components:concept-storage
-    - components:lib-publicsuffixlist
-    - components:lib-state
-    - components:support-base
-    - components:support-ktx
-    - components:support-test
-    - components:support-test-libstate
-    - components:support-utils
-    - components:tooling-lint
-    - components:ui-icons
   components:browser-icons:
     description: A component for loading and storing website icons.
     path: components/browser/icons

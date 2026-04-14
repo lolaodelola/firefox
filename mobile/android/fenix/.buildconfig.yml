@@ -5,7 +5,6 @@ projects:
     - components:browser-domains
     - components:browser-engine-gecko
     - components:browser-errorpages
-    - components:browser-favicons
     - components:browser-icons
     - components:browser-menu
     - components:browser-menu2

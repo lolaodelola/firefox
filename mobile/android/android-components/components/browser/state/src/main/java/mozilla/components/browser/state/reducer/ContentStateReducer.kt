@@ -89,8 +89,15 @@ internal object ContentStateReducer {
             is ContentAction.UpdateSecurityInfoAction -> updateContentState(state, action.sessionId) {
                 it.copy(securityInfo = action.securityInfo)
             }
-            is ContentAction.UpdateIconAction -> updateIcon(state, action.sessionId, action.pageUrl, action.icon)
-            is ContentAction.RestoreIconAction -> updateIcon(state, action.sessionId, action.pageUrl, action.icon)
+            is ContentAction.UpdateIconAction -> updateContentState(state, action.sessionId) {
+                if (action.pageUrl == it.url) {
+                    // Only update the icon of the state if we are still on this page. The user may
+                    // have navigated away by the time the icon is loaded.
+                    it.copy(icon = action.icon)
+                } else {
+                    it
+                }
+            }
             is ContentAction.UpdateThumbnailAction -> {
                 throw IllegalStateException("You need to add ThumbnailsMiddleware to your BrowserStore. ($action)")
             }
@@ -335,23 +342,6 @@ internal object ContentStateReducer {
         return updateContentState(state, sessionId) {
             if (it.download != null && it.download.id == downloadId) {
                 it.copy(download = null)
-            } else {
-                it
-            }
-        }
-    }
-
-    private fun updateIcon(
-        state: BrowserState,
-        sessionId: String,
-        pageUrl: String,
-        icon: android.graphics.Bitmap,
-    ): BrowserState {
-        return updateContentState(state, sessionId) {
-            if (pageUrl == it.url) {
-                // Only update the icon of the state if we are still on this page. The user may
-                // have navigated away by the time the icon is loaded.
-                it.copy(icon = icon)
             } else {
                 it
             }

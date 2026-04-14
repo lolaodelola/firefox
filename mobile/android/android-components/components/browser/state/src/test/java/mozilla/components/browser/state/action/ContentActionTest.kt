@@ -351,37 +351,6 @@ class ContentActionTest {
     }
 
     @Test
-    fun `RestoreIconAction updates icon`() {
-        val icon = spy(Bitmap::class.java)
-
-        assertNotEquals(icon, tab.content.icon)
-        assertNotEquals(icon, otherTab.content.icon)
-
-        state = BrowserStateReducer.reduce(
-            state,
-            ContentAction.RestoreIconAction(tab.id, tab.content.url, icon),
-        )
-
-        assertEquals(icon, tab.content.icon)
-        assertNotEquals(icon, otherTab.content.icon)
-    }
-
-    @Test
-    fun `RestoreIconAction does not update icon if page URL is different`() {
-        val icon = spy(Bitmap::class.java)
-
-        assertNotEquals(icon, tab.content.icon)
-        assertNotEquals(icon, otherTab.content.icon)
-
-        state = BrowserStateReducer.reduce(
-            state,
-            ContentAction.RestoreIconAction(tab.id, "https://different.example.org", icon),
-        )
-
-        assertNull(tab.content.icon)
-    }
-
-    @Test
     fun `RemoveIconAction removes icon`() {
         val icon = spy(Bitmap::class.java)
 

@@ -551,7 +551,6 @@ dependencies {
     implementation project(':components:concept-tabstray')
     implementation project(':components:concept-toolbar')
     implementation project(':components:browser-domains')
-    implementation project(':components:browser-favicons')
     implementation project(':components:browser-icons')
     implementation project(':components:browser-menu')
     implementation project(':components:browser-menu2')
