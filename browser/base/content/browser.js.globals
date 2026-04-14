@@ -235,6 +235,5 @@
   "ActionsProviderContextualSearch",
   "ToolbarDropHandler",
   "ProfilesDatastoreService",
-  "gTrustPanelHandler",
-  "ContentSharingUtils"
+  "gTrustPanelHandler"
 ]

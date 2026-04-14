@@ -13,8 +13,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
   CLIENT_NOT_CONFIGURED: "resource://services-sync/constants.sys.mjs",
   BrowserUtils: "resource://gre/modules/BrowserUtils.sys.mjs",
   BrowserWindowTracker: "resource:///modules/BrowserWindowTracker.sys.mjs",
-  ContentSharingUtils:
-    "resource:///modules/contentsharing/ContentSharingUtils.sys.mjs",
   CustomizableUI:
     "moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs",
   MigrationUtils: "resource:///modules/MigrationUtils.sys.mjs",
@@ -26,6 +24,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
   Weave: "resource://services-sync/main.sys.mjs",
   WebNavigationManager: "resource://gre/modules/WebNavigation.sys.mjs",
 });
+
 const ITEM_CHANGED_BATCH_NOTIFICATION_THRESHOLD = 10;
 
 // copied from utilityOverlay.js
@@ -1339,13 +1338,6 @@ export var PlacesUIUtils = {
     if (
       item.hasAttribute("hide-if-usercontext-disabled") &&
       !Services.prefs.getBoolPref("privacy.userContext.enabled", false)
-    ) {
-      return true;
-    }
-
-    if (
-      item.hasAttribute("hide-if-content-sharing-disabled") &&
-      !lazy.ContentSharingUtils.isEnabled
     ) {
       return true;
     }

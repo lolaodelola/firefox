@@ -1,6 +1,0 @@
-[DEFAULT]
-prefs = [
-  "browser.contentsharing.enabled=true",
-]
-
-["browser_testShareBookmarks.js"]
