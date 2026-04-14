@@ -96,7 +96,7 @@ class ContentSharingUtilsClass {
       };
 
       const share = this.buildShare(shareObject);
-      await this.openShareUrlInNewTab(share);
+      await this.openShareUrlInNewTab(share, tabs[0].ownerGlobal);
     } catch (e) {
       console.error("ContentSharingUtils: failed to share tabs", e);
     }
@@ -120,12 +120,12 @@ class ContentSharingUtilsClass {
       title,
       type: "tab_group",
       children: tabGroup.tabs.map(t => {
-        return { uri: t.linkedBrowser.currentURI.spec, title: t.label };
+        return { uri: t.linkedBrowser.currentURI.displaySpec, title: t.label };
       }),
     };
 
     const share = this.buildShare(shareObject);
-    await this.openShareUrlInNewTab(share);
+    await this.openShareUrlInNewTab(share, tabGroup.ownerGlobal);
   }
 
   /**

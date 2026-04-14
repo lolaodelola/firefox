@@ -11,5 +11,9 @@ EXTRA_JS_MODULES.contentsharing += [
     "ContentSharingUtils.sys.mjs",
 ]
 
+TESTING_JS_MODULES += [
+    "tests/browser/ContentSharingMockServer.sys.mjs",
+]
+
 with Files("**"):
     BUG_COMPONENT = ("Firefox", "Sharing")

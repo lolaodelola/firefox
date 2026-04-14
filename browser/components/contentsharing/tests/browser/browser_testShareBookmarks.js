@@ -64,3 +64,32 @@ add_task(async function test_shareBookmarks() {
     "The result from buildShareFromBookmarkFolders should be valid against the schema"
   );
 });
+
+add_task(async function test_createShareableLink() {
+  await withContentSharingMockServer(async server => {
+    const folder = await createFolderWithBookmarks("test folder");
+    const shareObject = await ContentSharingUtils.buildShareFromBookmarkFolders(
+      [folder.guid]
+    );
+
+    const url = await ContentSharingUtils.createShareableLink(shareObject);
+
+    Assert.equal(
+      url,
+      server.mockResponse.url,
+      "createShareableLink should return the URL from the server response"
+    );
+    Assert.equal(
+      server.requests.length,
+      1,
+      "Server should have received exactly one request"
+    );
+    Assert.deepEqual(
+      server.requests[0].body,
+      shareObject,
+      "Request body should match the share object"
+    );
+
+    await PlacesUtils.bookmarks.eraseEverything();
+  });
+});
