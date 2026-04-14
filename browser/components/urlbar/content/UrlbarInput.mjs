@@ -1870,7 +1870,10 @@ ${
     // Record input history but only in non-private windows.
     if (!this.isPrivate) {
       let input;
-      if (!result.heuristic) {
+      if (
+        !result.heuristic &&
+        result.type != lazy.UrlbarUtils.RESULT_TYPE.SEARCH
+      ) {
         input = this._lastSearchString;
       } else if (
         result.autofill?.type == "adaptive_url" ||
