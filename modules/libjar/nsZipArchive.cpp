@@ -214,6 +214,16 @@ nsresult nsZipHandle::Init(nsIFile* file, nsZipHandle** ret, PRFileDesc** aFd) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
+#if defined(XP_UNIX)
+  // Prefetch the archive into the page cache ahead of the ZIP directory scan
+  // and entry reads at startup.
+  madvise(buf, (size_t)size, MADV_WILLNEED);
+#  if defined(XP_LINUX)
+  // Exclude large archive mappings from core dumps; the file is on disk.
+  madvise(buf, (size_t)size, MADV_DONTDUMP);
+#  endif
+#endif
+
 #if defined(XP_WIN)
   if (aFd) {
     *aFd = fd.release();
