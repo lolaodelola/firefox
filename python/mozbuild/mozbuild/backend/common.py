@@ -455,13 +455,9 @@ class CommonBackend(BuildBackend):
                 "#undef INITGUID\n"
                 "#endif"
             )
-            for s in source_filenames:
-                # Prefer a relative path to make the output not depend on the sourcedir.
-                # This makes caching across worktrees possible.
-                if os.path.isabs(s):
-                    s = mozpath.relpath(s, output_directory)
-                f.write(includeTemplate % {"cppfile": s})
-                f.write("\n")
+            f.write(
+                "\n".join(includeTemplate % {"cppfile": s} for s in source_filenames)
+            )
 
     def _write_unified_files(
         self, unified_source_mapping, output_directory, poison_windows_h=False
