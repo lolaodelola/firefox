@@ -106,10 +106,6 @@ async function popupTest(uri, expectClose) {
 }
 
 add_task(async function() {
-  await SpecialPowers.pushPrefEnv({
-    set: [["security.data_uri.block_toplevel_data_uri_navigations", true]],
-  });
-
   // simple data: URI click navigation should be prevented
   await popupTest("file_block_toplevel_data_navigation.html", false);
 

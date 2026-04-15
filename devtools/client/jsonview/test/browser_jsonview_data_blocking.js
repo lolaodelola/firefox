@@ -20,9 +20,6 @@ const nullP = Services.scriptSecurityManager.createNullPrincipal({});
  * we block the load.
  */
 add_task(async function test_blocked_data_exposure() {
-  await SpecialPowers.pushPrefEnv({
-    set: [["security.data_uri.block_toplevel_data_uri_navigations", true]],
-  });
   await BrowserTestUtils.withNewTab(TEST_PATH + "empty.html", async browser => {
     const tabCount = gBrowser.tabs.length;
     await SpecialPowers.spawn(browser, [], function () {

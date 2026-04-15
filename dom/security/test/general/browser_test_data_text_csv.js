@@ -36,10 +36,7 @@ function promisePanelOpened() {
 
 add_task(async function test_with_pref_enabled() {
   await SpecialPowers.pushPrefEnv({
-    set: [
-      ["security.data_uri.block_toplevel_data_uri_navigations", true],
-      ["browser.download.always_ask_before_handling_new_types", true],
-    ],
+    set: [["browser.download.always_ask_before_handling_new_types", true]],
   });
 
   let windowPromise = addWindowListener(
@@ -61,10 +58,7 @@ add_task(async function test_with_pref_enabled() {
 
 add_task(async function test_with_pref_disabled() {
   await SpecialPowers.pushPrefEnv({
-    set: [
-      ["security.data_uri.block_toplevel_data_uri_navigations", true],
-      ["browser.download.always_ask_before_handling_new_types", false],
-    ],
+    set: [["browser.download.always_ask_before_handling_new_types", false]],
   });
   let downloadsPanelPromise = promisePanelOpened();
   let downloadsPromise = Downloads.getList(Downloads.PUBLIC);

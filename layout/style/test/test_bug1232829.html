@@ -15,7 +15,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1232829
 // This should be a crashtest but it relies on using a pop-up window which
 // isn't supported in crashtests.
 function boom() {
-  var popup = window.open("data:text/html,2");
+  var popup = window.open("about:blank");
   setTimeout(function() {
     var frameDoc = document.querySelector("iframe").contentDocument;
     frameDoc.write("3");

@@ -8,10 +8,6 @@
 </head>
 <body>
 <script class="testbody" type="text/javascript">
-SpecialPowers.setBoolPref("security.data_uri.block_toplevel_data_uri_navigations", true);
-SimpleTest.registerCleanupFunction(() => {
-  SpecialPowers.clearUserPref("security.data_uri.block_toplevel_data_uri_navigations");
-});
 
 SimpleTest.waitForExplicitFinish();
 SimpleTest.requestFlakyTimeout("have to test that top level data:image loading is blocked/allowed");

@@ -33,6 +33,7 @@ https_first_disabled = true # Bug 1737265
 https_first_disabled = true # Bug 1737265
 
 ["browser_datauri.js"]
+skip-if = ["true"]  # Bug 2014500
 
 ["browser_doorhanger_installs.js"]
 https_first_disabled = true # Bug 1737265

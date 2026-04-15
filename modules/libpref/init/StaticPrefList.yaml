@@ -17479,14 +17479,6 @@
   mirror: always
 #endif
 
-# If true, all toplevel data: URI navigations will be blocked.
-# Please note that manually entering a data: URI in the
-# URL-Bar will not be blocked when flipping this pref.
-- name: security.data_uri.block_toplevel_data_uri_navigations
-  type: bool
-  value: true
-  mirror: always
-
 # Whether to apply the <meta http="Content-Security-Policy"> to browser.xhtml
 - name: security.browser_xhtml_csp.enabled
   type: bool

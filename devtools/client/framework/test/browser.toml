@@ -225,6 +225,10 @@ skip-if = [
 ["browser_toolbox_options_panel_toggle.js"]
 
 ["browser_toolbox_popups_debugging.js"]
+support-files = [
+  "doc_popups_debugging.html",
+  "doc_popups_debugging_popup.html",
+]
 
 ["browser_toolbox_races.js"]
 

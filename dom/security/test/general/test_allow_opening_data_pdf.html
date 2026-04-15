@@ -32,9 +32,7 @@ function test_toplevel_data_pdf() {
   }, 200);
 }
 
-SpecialPowers.pushPrefEnv({
-  set: [["security.data_uri.block_toplevel_data_uri_navigations", true]]
-}, test_toplevel_data_pdf);
+test_toplevel_data_pdf();
 
 </script>
 </body>

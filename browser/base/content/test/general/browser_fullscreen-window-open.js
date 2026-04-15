@@ -2,8 +2,6 @@
 
 const PREF_DISABLE_OPEN_NEW_WINDOW =
   "browser.link.open_newwindow.disabled_in_fullscreen";
-const PREF_BLOCK_TOPLEVEL_DATA =
-  "security.data_uri.block_toplevel_data_uri_navigations";
 const isOSX = Services.appinfo.OS === "Darwin";
 
 const TEST_FILE = "file_fullscreen-window-open.html";
@@ -19,7 +17,6 @@ async function test() {
   waitForExplicitFinish();
 
   Services.prefs.setBoolPref(PREF_DISABLE_OPEN_NEW_WINDOW, true);
-  Services.prefs.setBoolPref(PREF_BLOCK_TOPLEVEL_DATA, false);
 
   newWin = await BrowserTestUtils.openNewBrowserWindow();
   newBrowser = newWin.gBrowser;
@@ -41,7 +38,6 @@ registerCleanupFunction(async function () {
   await BrowserTestUtils.closeWindow(newWin);
 
   Services.prefs.clearUserPref(PREF_DISABLE_OPEN_NEW_WINDOW);
-  Services.prefs.clearUserPref(PREF_BLOCK_TOPLEVEL_DATA);
 });
 
 var gTests = [
@@ -224,9 +220,9 @@ function waitForTabOpen(aOptions) {
   };
 
   const URI =
-    "data:text/html;charset=utf-8,<!DOCTYPE html><html><head><title>" +
-    message.title +
-    "<%2Ftitle><%2Fhead><body><%2Fbody><%2Fhtml>";
+    gHttpTestRoot +
+    "file_fullscreen-window-open-target.html?title=" +
+    encodeURIComponent(message.title);
 
   executeWindowOpenInContent({
     uri: URI,

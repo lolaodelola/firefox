@@ -185,10 +185,6 @@ add_task(async function test_view_image_revoked_cached_blob() {
  * Inline SVG data URIs as a background image should also open.
  */
 add_task(async function test_view_image_inline_svg_bgimage() {
-  await SpecialPowers.pushPrefEnv({
-    // This is the default but we turn it off for unit tests.
-    set: [["security.data_uri.block_toplevel_data_uri_navigations", true]],
-  });
   await test_view_image_works({
     page: "test_view_image_inline_svg.html",
     selector: "body",

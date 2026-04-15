@@ -205,11 +205,5 @@ user_pref("ui.scrollbarFadeDuration", 0);
 // Disable intermittent telemetry collection
 user_pref("toolkit.telemetry.initDelay", 99999999);
 
-// We use data: to tell the Quitter extension to quit.
-user_pref("security.data_uri.block_toplevel_data_uri_navigations", false);
-
-// We use data: to tell the Quitter extension to quit.
-user_pref("security.data_uri.block_toplevel_data_uri_navigations", false);
-
 // Turn off update
 user_pref("app.update.disabledForTesting", true);

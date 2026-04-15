@@ -44,10 +44,7 @@ function promisePanelOpened() {
 add_task(async function test_with_downloads_pref_disabled() {
   waitForExplicitFinish();
   await SpecialPowers.pushPrefEnv({
-    set: [
-      ["security.data_uri.block_toplevel_data_uri_navigations", true],
-      ["browser.download.always_ask_before_handling_new_types", true],
-    ],
+    set: [["browser.download.always_ask_before_handling_new_types", true]],
   });
   let windowPromise = addWindowListener(
     "chrome://mozapps/content/downloads/unknownContentType.xhtml"
@@ -69,10 +66,7 @@ add_task(async function test_with_downloads_pref_disabled() {
 add_task(async function test_with_always_ask_pref_disabled() {
   waitForExplicitFinish();
   await SpecialPowers.pushPrefEnv({
-    set: [
-      ["security.data_uri.block_toplevel_data_uri_navigations", true],
-      ["browser.download.always_ask_before_handling_new_types", false],
-    ],
+    set: [["browser.download.always_ask_before_handling_new_types", false]],
   });
   let downloadsPanelPromise = promisePanelOpened();
   let downloadsPromise = Downloads.getList(Downloads.PUBLIC);

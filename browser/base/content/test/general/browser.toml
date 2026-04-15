@@ -23,6 +23,7 @@ support-files = [
   "dummy_page.html",
   "file_documentnavigation_frameset.html",
   "file_fullscreen-window-open.html",
+  "file_fullscreen-window-open-target.html",
   "file_with_link_to_http.html",
   "head.js",
   "moz.png",
