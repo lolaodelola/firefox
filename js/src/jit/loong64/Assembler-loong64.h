@@ -807,14 +807,14 @@ class Operand {
 };
 
 // int check.
-inline bool is_intN(int64_t x, unsigned n) {
+inline constexpr bool is_intN(int64_t x, unsigned n) {
   MOZ_ASSERT((0 < n) && (n < 64));
   int64_t limit = static_cast<int64_t>(1) << (n - 1);
   return (-limit <= x) && (x < limit);
 }
 
-inline bool is_uintN(int32_t x, unsigned n) {
-  MOZ_ASSERT((0 < n) && (n < (sizeof(x) * 8)));
+inline constexpr bool is_uintN(int64_t x, unsigned n) {
+  MOZ_ASSERT((0 < n) && (n < 64));
   return !(x >> n);
 }
 
