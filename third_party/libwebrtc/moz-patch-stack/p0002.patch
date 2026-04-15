@@ -141,10 +141,10 @@ index 5e9bbfe463..5103c6e3cb 100644
      std::optional<AudioDeviceModule::Stats> audio_device_stats;
    };
 diff --git a/pc/rtc_stats_collector_unittest.cc b/pc/rtc_stats_collector_unittest.cc
-index 4c69afd636..4e4ee50a79 100644
+index 55f19763d2..e3ffa34aac 100644
 --- a/pc/rtc_stats_collector_unittest.cc
 +++ b/pc/rtc_stats_collector_unittest.cc
-@@ -2795,9 +2795,17 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
+@@ -2690,9 +2690,17 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
    auto video_media_channels =
        pc_->AddVideoChannel("VideoMid", "TransportName", video_media_info);
    RTC_ALLOW_PLAN_B_DEPRECATION_END();
@@ -165,7 +165,7 @@ index 4c69afd636..4e4ee50a79 100644
  
    scoped_refptr<const RTCStatsReport> report =
        stats_->GetStatsReport(main_thread_);
-@@ -2862,6 +2870,21 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
+@@ -2757,6 +2765,21 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
        report->Get(expected_video.id())->cast_to<RTCOutboundRtpStreamStats>(),
        expected_video);
  

@@ -33,7 +33,7 @@ Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#470
  4 files changed, 28 insertions(+)
 
 diff --git a/pc/BUILD.gn b/pc/BUILD.gn
-index 20e7f5d8e2..c033e9e1ea 100644
+index 9863aa6da6..87ec62ce86 100644
 --- a/pc/BUILD.gn
 +++ b/pc/BUILD.gn
 @@ -1438,6 +1438,7 @@ rtc_library("legacy_stats_collector") {
@@ -87,7 +87,7 @@ index 25e61edfdd..f36e509664 100644
    // Struct that's populated on the network thread and carries the values to
    // the signaling thread where the stats are added to the stats reports.
 diff --git a/pc/legacy_stats_collector_unittest.cc b/pc/legacy_stats_collector_unittest.cc
-index 676b2eec49..7aedd35651 100644
+index 63c33ec177..f03911589b 100644
 --- a/pc/legacy_stats_collector_unittest.cc
 +++ b/pc/legacy_stats_collector_unittest.cc
 @@ -57,6 +57,7 @@
@@ -98,7 +98,7 @@ index 676b2eec49..7aedd35651 100644
  #include "rtc_base/ssl_identity.h"
  #include "rtc_base/ssl_stream_adapter.h"
  #include "rtc_base/system/plan_b_only.h"
-@@ -1508,6 +1509,21 @@ TEST_F(LegacyStatsCollectorTest, ChainedCertificateReportsCreated) {
+@@ -1446,6 +1447,21 @@ TEST_F(LegacyStatsCollectorTest, ChainedCertificateReportsCreated) {
                           remote_ders);
  }
  
