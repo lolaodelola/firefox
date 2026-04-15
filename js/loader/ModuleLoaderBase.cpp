@@ -636,7 +636,7 @@ bool ModuleLoaderBase::IsModuleFetched(const ModuleMapKey& key) const {
 
 nsresult ModuleLoaderBase::GetFetchedModuleURLs(nsTArray<nsCString>& aURLs) {
   for (const auto& entry : mFetchedModules) {
-    nsIURI* uri = entry.GetData()->BaseURL();
+    nsIURI* uri = entry.GetData()->GetURI();
 
     nsAutoCString spec;
     nsresult rv = uri->GetSpec(spec);
