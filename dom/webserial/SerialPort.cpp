@@ -11,10 +11,12 @@
 #include "SerialPortStreamAlgorithms.h"
 #include "mozilla/EventDispatcher.h"
 #include "mozilla/EventListenerManager.h"
+#include "mozilla/ScopeExit.h"
 #include "mozilla/dom/DOMException.h"
 #include "mozilla/dom/DOMExceptionBinding.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/Event.h"
+#include "mozilla/dom/Promise-inl.h"
 #include "mozilla/dom/Promise.h"
 #include "mozilla/dom/ReadableStream.h"
 #include "mozilla/dom/Serial.h"
@@ -131,7 +133,8 @@ void SerialPort::Shutdown() {
 
   if (mIsOpen) {
     mIsOpen = false;
-    CloseStreams();
+    // Don't have to wait for this
+    RefPtr<Promise> ignoredPromise = CloseStreams();
   }
 
   if (mOpenPromise) {
@@ -456,6 +459,7 @@ already_AddRefed<Promise> SerialPort::GetSignals(ErrorResult& aRv) {
   return promise.forget();
 }
 
+// https://wicg.github.io/serial/#dom-serialport-close
 already_AddRefed<Promise> SerialPort::Close(ErrorResult& aRv) {
   nsIGlobalObject* global = GetOwnerGlobal();
   if (!global) {
@@ -463,6 +467,7 @@ already_AddRefed<Promise> SerialPort::Close(ErrorResult& aRv) {
     return nullptr;
   }
 
+  // Step 1: Let promise be a new promise.
   RefPtr<Promise> promise = Promise::Create(global, aRv);
   if (NS_WARN_IF(aRv.Failed())) {
     return nullptr;
@@ -472,6 +477,8 @@ already_AddRefed<Promise> SerialPort::Close(ErrorResult& aRv) {
           ("SerialPort[%p]::Close called for port '%s'", this,
            NS_ConvertUTF16toUTF8(mInfo.id()).get()));
 
+  // Step 2: If this.[[state]] is not "opened", reject promise with an
+  // InvalidStateError DOMException and return promise.
   if (mForgottenState != ForgottenState::NotForgotten) {
     promise->MaybeRejectWithInvalidStateError("Port has been forgotten");
     return promise.forget();
@@ -487,61 +494,45 @@ already_AddRefed<Promise> SerialPort::Close(ErrorResult& aRv) {
     return promise.forget();
   }
 
-  mClosePromise = promise;
-
-  CloseStreams();
-
-  if (mChild) {
-    RefPtr<SerialPortChild> child = mChild;
-    nsISerialEventTarget* actorTarget = child->GetActorEventTarget();
-
-    if (!actorTarget) {
-      mIsOpen = false;
-      UpdateWorkerRef();
-      NotifySharingStateChanged(false);
-      promise->MaybeRejectWithNetworkError("Actor not available");
-      mClosePromise = nullptr;
-      return promise.forget();
+  // Steps 3-8: Cancel the readable stream (step 3), abort the writable
+  // stream (step 4), and let combinedPromise be the result of getting a
+  // promise to wait for all (steps 5-8). Our pendingClosePromise is
+  // effectively resolved once both streams are nulled (step 6), so the
+  // combined promise just waits for the cancel and abort to finish.
+  RefPtr<Promise> combinedPromise = CloseStreams();
+  if (!combinedPromise) {
+    combinedPromise = Promise::CreateResolvedWithUndefined(global, aRv);
+    if (NS_WARN_IF(aRv.Failed())) {
+      return nullptr;
     }
-
-    RefPtr<SerialPort> self = this;
-    InvokeAsync(actorTarget, "SerialPort::SendClose",
-                [child]() { return child->SendClose(); })
-        ->Then(
-            GetCurrentSerialEventTarget(), __func__,
-            [self](nsresult aResult) {
-              if (self->mHasShutdown) {
-                return;
-              }
-              self->mIsOpen = false;
-              self->UpdateWorkerRef();
-              self->NotifySharingStateChanged(false);
-              if (self->mClosePromise) {
-                self->mClosePromise->MaybeResolveWithUndefined();
-                self->mClosePromise = nullptr;
-              }
-            },
-            [self](mozilla::ipc::ResponseRejectReason aReason) {
-              if (self->mHasShutdown) {
-                return;
-              }
-              self->mIsOpen = false;
-              self->UpdateWorkerRef();
-              self->NotifySharingStateChanged(false);
-              if (self->mClosePromise) {
-                self->mClosePromise->MaybeRejectWithNetworkError(
-                    "Failed to close port: IPC communication error");
-                self->mClosePromise = nullptr;
-              }
-            });
-  } else {
-    mIsOpen = false;
-    UpdateWorkerRef();
-    NotifySharingStateChanged(false);
-    promise->MaybeResolveWithUndefined();
-    mClosePromise = nullptr;
   }
 
+  // Step 9: Set this.[[state]] to "closing".
+  mClosePromise = promise;
+
+  // Step 10: Upon fulfillment of combinedPromise, run the following steps
+  // in parallel: request the operating system close the serial port.
+  // Step 10 (rejection): Upon rejection of combinedPromise with reason r,
+  // reject promise with r.
+  combinedPromise->AddCallbacksWithCycleCollectedArgs(
+      [](JSContext*, JS::Handle<JS::Value>, ErrorResult&, SerialPort* aSelf) {
+        aSelf->CloseAfterStreamsClosed();
+      },
+      [](JSContext*, JS::Handle<JS::Value> aReason, ErrorResult&,
+         SerialPort* aSelf) {
+        if (aSelf->mHasShutdown) {
+          return;
+        }
+        aSelf->mIsOpen = false;
+        aSelf->UpdateWorkerRef();
+        aSelf->NotifySharingStateChanged(false);
+        if (RefPtr<Promise> closePromise = aSelf->mClosePromise.forget()) {
+          closePromise->MaybeReject(aReason);
+        }
+      },
+      RefPtr(this));
+
+  // Step 11: Return promise.
   return promise.forget();
 }
 
@@ -570,7 +561,8 @@ already_AddRefed<Promise> SerialPort::Forget(ErrorResult& aRv) {
 
   if (mIsOpen) {
     mIsOpen = false;
-    CloseStreams();
+    // Don't have to wait for this
+    RefPtr<Promise> ignoredPromise = CloseStreams();
   }
 
   UpdateWorkerRef();
@@ -620,7 +612,8 @@ void SerialPort::MarkForgotten() {
 
   if (mIsOpen) {
     mIsOpen = false;
-    CloseStreams();
+    // Don't have to wait for this
+    RefPtr<Promise> ignoredPromise = CloseStreams();
   }
 
   UpdateWorkerRef();
@@ -732,7 +725,8 @@ void SerialPort::NotifyDisconnected() {
            NS_ConvertUTF16toUTF8(mInfo.id()).get()));
   mIsOpen = false;
   mPhysicallyPresent = false;
-  CloseStreams();
+  // Don't have to wait for this
+  RefPtr<Promise> ignoredPromise = CloseStreams();
   UpdateWorkerRef();
   NotifySharingStateChanged(false);
 
@@ -858,14 +852,68 @@ WritableStream* SerialPort::CreateWritableStream() {
   return mWritable;
 }
 
-void SerialPort::CloseStreams() {
-  nsIGlobalObject* global = GetOwnerGlobal();
-  if (!global) {
+void SerialPort::CloseAfterStreamsClosed() {
+  if (mHasShutdown) {
     return;
   }
 
-  if (!mReadable && !mWritable) {
+  nsresult rv = NS_OK;
+  // Every synchronous exit path marks the port as closed.
+  auto markClosed = MakeScopeExit([&]() { SettleClosePromise(rv); });
+
+  RefPtr<SerialPortChild> child = mChild;
+  if (!child) {
     return;
+  }
+
+  nsISerialEventTarget* actorTarget = child->GetActorEventTarget();
+  if (!actorTarget) {
+    // Make SettleClosePromise reject the promise with an error.
+    rv = NS_ERROR_FAILURE;
+    return;
+  }
+
+  // Async path: SettleClosePromise handles cleanup in the callbacks.
+  markClosed.release();
+
+  RefPtr<SerialPort> self = this;
+  nsCOMPtr<nsISerialEventTarget> owningThread = GetCurrentSerialEventTarget();
+  InvokeAsync(actorTarget, "SerialPort::SendClose",
+              [child]() { return child->SendClose(); })
+      ->Then(
+          owningThread, "SerialPort::Close::SendClose",
+          [self](nsresult aResult) { self->SettleClosePromise(aResult); },
+          [self](mozilla::ipc::ResponseRejectReason aReason) {
+            self->SettleClosePromise(NS_ERROR_DOM_NETWORK_ERR);
+          });
+}
+
+void SerialPort::SettleClosePromise(nsresult aResult) {
+  if (mHasShutdown) {
+    return;
+  }
+  // Set this.[[state]] to "closed".
+  mIsOpen = false;
+  UpdateWorkerRef();
+  NotifySharingStateChanged(false);
+  if (RefPtr<Promise> closePromise = mClosePromise.forget()) {
+    if (NS_SUCCEEDED(aResult)) {
+      closePromise->MaybeResolveWithUndefined();
+    } else {
+      closePromise->MaybeRejectWithNetworkError(
+          "Failed to close port: IPC communication error");
+    }
+  }
+}
+
+already_AddRefed<Promise> SerialPort::CloseStreams() {
+  nsIGlobalObject* global = GetOwnerGlobal();
+  if (!global) {
+    return nullptr;
+  }
+
+  if (!mReadable && !mWritable) {
+    return nullptr;
   }
 
   MOZ_LOG(gWebSerialLog, LogLevel::Info,
@@ -875,33 +923,66 @@ void SerialPort::CloseStreams() {
 
   AutoJSAPI jsapi;
   if (!jsapi.Init(global)) {
-    return;
+    return nullptr;
   }
 
   JSContext* cx = jsapi.cx();
 
-  RefPtr<ReadableStream> readable = mReadable;
-  RefPtr<WritableStream> writable = mWritable;
+  // Cancel the readable and abort the writable, collecting their promises.
+  nsTArray<RefPtr<Promise>> streamPromises;
 
-  if (readable) {
-    readable->CloseNative(cx, IgnoreErrors());
-    mReadable = nullptr;
-  }
+  RefPtr<DOMException> exception =
+      DOMException::Create(NS_ERROR_DOM_NETWORK_ERR, "Port has been closed"_ns);
+  JS::Rooted<JS::Value> errorVal(cx);
+  bool hasError = ToJSValue(cx, exception, &errorVal);
 
-  if (writable) {
-    // Abort the writable stream with an error. The spec doesn't specify what
-    // error to use, but a NetworkError seems consistent with where it is used
-    // other places.
-    RefPtr<DOMException> exception = DOMException::Create(
-        NS_ERROR_DOM_NETWORK_ERR, "Port has been closed"_ns);
-    JS::Rooted<JS::Value> errorVal(cx);
-    if (ToJSValue(cx, exception, &errorVal)) {
-      // Capture the returned promise but we don't need to wait for it to
-      // resolve.
-      RefPtr<Promise> p = writable->AbortNative(cx, errorVal, IgnoreErrors());
+  if (mReadable && hasError) {
+    IgnoredErrorResult rv;
+    RefPtr readable = mReadable;
+    if (RefPtr<Promise> cancelPromise =
+            readable->CancelNative(cx, errorVal, rv)) {
+      streamPromises.AppendElement(std::move(cancelPromise));
     }
-    mWritable = nullptr;
   }
+
+  if (mWritable && hasError) {
+    IgnoredErrorResult rv;
+    RefPtr writable = mWritable;
+    if (RefPtr<Promise> abortPromise =
+            writable->AbortNative(cx, errorVal, rv)) {
+      streamPromises.AppendElement(std::move(abortPromise));
+    }
+  }
+
+  if (streamPromises.IsEmpty()) {
+    mReadable = nullptr;
+    mWritable = nullptr;
+    return nullptr;
+  }
+
+  IgnoredErrorResult rv;
+  RefPtr<Promise> combined = Promise::All(cx, streamPromises, rv);
+  if (!combined) {
+    mReadable = nullptr;
+    mWritable = nullptr;
+    return nullptr;
+  }
+
+  // Hold mReadable and mWritable until the cancel/abort promises settle.
+  // Otherwise the streams may be cycle collected before finishing and those
+  // promises may never resolve.
+  combined->AddCallbacksWithCycleCollectedArgs(
+      [](JSContext*, JS::Handle<JS::Value>, ErrorResult&, SerialPort* aSelf) {
+        aSelf->mReadable = nullptr;
+        aSelf->mWritable = nullptr;
+      },
+      [](JSContext*, JS::Handle<JS::Value>, ErrorResult&, SerialPort* aSelf) {
+        aSelf->mReadable = nullptr;
+        aSelf->mWritable = nullptr;
+      },
+      RefPtr(this));
+
+  return combined.forget();
 }
 
 }  // namespace mozilla::dom

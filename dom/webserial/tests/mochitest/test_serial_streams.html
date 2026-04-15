@@ -743,8 +743,7 @@ add_task(async function testReadableRecreatedAfterCancel() {
   await port.close();
 });
 
-// bug 2030850
-/*add_task(async function testAbortDiscardsTransmitBuffers() {
+add_task(async function testAbortDiscardsTransmitBuffers() {
   SpecialPowers.wrap(document).notifyUserGestureActivation();
   const port = await navigator.serial.requestPort({ filters: [] });
   await port.open({ baudRate: 9600 });
@@ -810,7 +809,7 @@ add_task(async function testCancelThenAbort() {
   isnot(port.writable, writable1, "Fresh writable after abort");
 
   await port.close();
-});*/
+});
 
 </script>
 </body>
