@@ -395,13 +395,10 @@ void pages_decommit(void* aAddr, size_t aSize) {
 
 // Purge and release the pages in the chunk of length `length` at `addr` to
 // the OS.
-// Returns whether the pages are guaranteed to be full of zeroes when the
+// Pages are guaranteed to be full of zeroes when the
 // function returns.
-// The force_zero argument explicitly requests that the memory is guaranteed
-// to be full of zeroes when the function returns.
-static bool pages_purge(void* addr, size_t length, bool force_zero) {
+static void pages_purge(void* addr, size_t length) {
   pages_decommit(addr, length);
-  return true;
 }
 
 // pages_trim, pages_mmap_aligned_slow and pages_mmap_aligned were
@@ -542,9 +539,8 @@ void chunk_assert_zero(void* aPtr, size_t aSize) {
 
 static void chunk_record(void* aChunk, size_t aSize, ChunkType aType) {
   if (aType != ZEROED_CHUNK) {
-    if (pages_purge(aChunk, aSize, aType == HUGE_CHUNK)) {
-      aType = ZEROED_CHUNK;
-    }
+    pages_purge(aChunk, aSize);
+    aType = ZEROED_CHUNK;
   }
 
   // Allocate a node before acquiring chunks_mtx even though it might not
