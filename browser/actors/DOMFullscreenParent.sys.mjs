@@ -18,6 +18,8 @@ export class DOMFullscreenParent extends JSWindowActorParent {
   //       browser-fullScreenAndPointerLock.js into the actor
   nextMsgRecipient = null;
 
+  fullscreenKeyboardLock = undefined;
+
   updateFullscreenWindowReference(aWindow) {
     if (aWindow.document.documentElement.hasAttribute("inDOMFullscreen")) {
       this._fullscreenWindow = aWindow;
@@ -132,6 +134,7 @@ export class DOMFullscreenParent extends JSWindowActorParent {
     let window = browser.ownerGlobal;
     switch (aMessage.name) {
       case "DOMFullscreen:Request": {
+        this.fullscreenKeyboardLock = aMessage.data.fullscreenKeyboardLock;
         this.manager.fullscreen = true;
         this.waitingForChildExitFullscreen = false;
         this.requestOrigin = this;
@@ -145,7 +148,10 @@ export class DOMFullscreenParent extends JSWindowActorParent {
       case "DOMFullscreen:NewOrigin": {
         // Don't show the warning if we've already exited fullscreen.
         if (window.document.fullscreen) {
-          window.PointerlockFsWarning.showFullScreen(topBrowsingContext);
+          window.PointerlockFsWarning.showFullScreen(
+            topBrowsingContext,
+            this.fullscreenKeyboardLock == "browser"
+          );
         }
         this.updateFullscreenWindowReference(window);
         break;
@@ -161,12 +167,14 @@ export class DOMFullscreenParent extends JSWindowActorParent {
       case "DOMFullscreen:Exit": {
         this.manager.fullscreen = false;
         this.waitingForChildEnterFullscreen = false;
+        this.fullscreenKeyboardLock = undefined;
         window.windowUtils.remoteFrameFullscreenReverted();
         break;
       }
       case "DOMFullscreen:Exited": {
         this.manager.fullscreen = false;
         this.waitingForChildExitFullscreen = false;
+        this.fullscreenKeyboardLock = undefined;
         this.cleanupDomFullscreen(window);
         this.updateFullscreenWindowReference(window);
         break;
@@ -223,7 +231,8 @@ export class DOMFullscreenParent extends JSWindowActorParent {
 
         if (!this.hasBeenDestroyed() && this.requestOrigin) {
           window.PointerlockFsWarning.showFullScreen(
-            this.requestOrigin.browsingContext
+            this.requestOrigin.browsingContext,
+            this.fullscreenKeyboardLock == "browser"
           );
         }
         break;

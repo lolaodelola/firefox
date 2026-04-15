@@ -42,24 +42,30 @@ var PointerlockFsWarning = {
       let timeout = Services.prefs.getIntPref(
         "pointer-lock-api.warning.timeout"
       );
-      this.show(aOrigin, "pointerlock-warning", timeout, 0);
+      this.show(aOrigin, "pointerlock-warning", timeout, 0, false);
     }
   },
 
   // Show info that top level has entered fullscreen. Ultimately, it is always
   // ancestors who are in control of what is displayed on screen.
   // By always displaying the top level, we try to make that clear to the user.
-  showFullScreen(browsingContext) {
+  showFullScreen(browsingContext, keyboardLockEnabled) {
     const origin =
       browsingContext.top.currentWindowGlobal.documentPrincipal.originNoSuffix;
     let timeout = Services.prefs.getIntPref("full-screen-api.warning.timeout");
     let delay = Services.prefs.getIntPref("full-screen-api.warning.delay");
-    this.show(origin, "fullscreen-warning", timeout, delay);
+    this.show(
+      origin,
+      "fullscreen-warning",
+      timeout,
+      delay,
+      keyboardLockEnabled
+    );
   },
 
   // Shows a warning that the site has entered fullscreen or
   // pointer lock for a short duration.
-  show(aOrigin, elementId, timeout, delay) {
+  show(aOrigin, elementId, timeout, delay, keyboardLockEnabled) {
     if (!this._element) {
       this._element = document.getElementById(elementId);
       // Setup event listeners
@@ -117,6 +123,25 @@ var PointerlockFsWarning = {
       });
     }
 
+    let buttonElement = this._element.querySelector("#fullscreen-exit-button");
+    if (buttonElement) {
+      if (AppConstants.platform == "macosx") {
+        document.l10n.setAttributes(
+          buttonElement,
+          keyboardLockEnabled
+            ? "fullscreen-keyboardlock-exit-mac-button"
+            : "fullscreen-exit-mac-button"
+        );
+      } else {
+        document.l10n.setAttributes(
+          buttonElement,
+          keyboardLockEnabled
+            ? "fullscreen-keyboardlock-exit-button"
+            : "fullscreen-exit-button"
+        );
+      }
+    }
+
     this._element.dataset.identity =
       gIdentityHandler.pointerlockFsWarningClassName;
 
@@ -156,6 +181,10 @@ var PointerlockFsWarning = {
     this._element
       .querySelector(".pointerlockfswarning-domain-text")
       .removeAttribute("data-l10n-id");
+    let buttonElement = this._element.querySelector("#fullscreen-exit-button");
+    if (buttonElement) {
+      buttonElement.removeAttribute("data-l10n-id");
+    }
     // Remove all event listeners
     this._element.removeEventListener("transitionend", this);
     this._element.removeEventListener("transitioncancel", this);

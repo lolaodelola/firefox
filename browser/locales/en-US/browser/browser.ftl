@@ -945,6 +945,10 @@ fullscreen-exit-button = Exit Full Screen (Esc)
 # "esc" is lowercase on mac keyboards, but uppercase elsewhere.
 fullscreen-exit-mac-button = Exit Full Screen (esc)
 
+fullscreen-keyboardlock-exit-button = Exit Full Screen (Press and hold Esc)
+# "esc" is lowercase on mac keyboards, but uppercase elsewhere.
+fullscreen-keyboardlock-exit-mac-button = Exit Full Screen (Press and hold esc)
+
 # Please ensure that the domain stays in the `<span data-l10n-name="domain">` markup.
 # Variables
 #  $domain (String): the domain that is using pointer-lock, e.g. "mozilla.org"
