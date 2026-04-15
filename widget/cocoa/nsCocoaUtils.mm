@@ -472,8 +472,7 @@ nsresult nsCocoaUtils::CreateCGImageFromSurface(SourceSurface* aSurface,
   CGDataProviderRef dataProvider = ::CGDataProviderCreateWithData(
       dataSurface.forget().take(), map.mData, map.mStride * height,
       data_ss_release_callback);
-  CGColorSpaceRef colorSpace =
-      ::CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+  CGColorSpaceRef colorSpace = ::CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
   *aResult = ::CGImageCreate(
       width, height, 8, 32, map.mStride, colorSpace,
       kCGBitmapByteOrder32Host | kCGImageAlphaPremultipliedFirst, dataProvider,

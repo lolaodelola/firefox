@@ -1186,6 +1186,12 @@ export var ScreenshotsUtils = {
     );
     let context = canvas.getContext("2d");
 
+    // Fill with the same background color used by drawSnapshot so that any
+    // device pixel rows the renderer doesn't cover (due to rounding) get
+    // the expected background instead of remaining transparent.
+    context.fillStyle = "rgb(255,255,255)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     const snapshotSize = Math.floor(MAX_SNAPSHOT_DIMENSION * devicePixelRatio);
 
     for (
