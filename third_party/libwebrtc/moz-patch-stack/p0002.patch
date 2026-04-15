@@ -33,10 +33,10 @@ Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#470
  4 files changed, 28 insertions(+)
 
 diff --git a/pc/BUILD.gn b/pc/BUILD.gn
-index 88287d5ea9..1a08f71135 100644
+index 8a576969ae..05e42893dd 100644
 --- a/pc/BUILD.gn
 +++ b/pc/BUILD.gn
-@@ -1456,6 +1456,7 @@ rtc_library("legacy_stats_collector") {
+@@ -1460,6 +1460,7 @@ rtc_library("legacy_stats_collector") {
      "../rtc_base/system:plan_b_only",
      "../system_wrappers",
      "//third_party/abseil-cpp/absl/base:nullability",

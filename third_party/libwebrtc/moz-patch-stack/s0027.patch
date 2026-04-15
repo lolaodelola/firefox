@@ -202,7 +202,7 @@ index 4d154f8e19..821060e2e3 100644
      }
  
 diff --git a/api/BUILD.gn b/api/BUILD.gn
-index d7587e6fef..ed1337d43c 100644
+index d7f763f96c..123cf51b50 100644
 --- a/api/BUILD.gn
 +++ b/api/BUILD.gn
 @@ -34,6 +34,9 @@ rtc_library("enable_media") {
@@ -243,7 +243,7 @@ index d7587e6fef..ed1337d43c 100644
  
  rtc_library("dtmf_sender_interface") {
    visibility = [ "*" ]
-@@ -262,6 +270,10 @@ rtc_library("dtmf_sender_interface") {
+@@ -287,6 +295,10 @@ rtc_library("sframe_decrypter_interface") {
  }
  
  rtc_library("rtp_sender_interface") {
@@ -254,15 +254,15 @@ index d7587e6fef..ed1337d43c 100644
    visibility = [ "*" ]
  
    sources = [
-@@ -276,6 +288,7 @@ rtc_library("rtp_sender_interface") {
+@@ -301,6 +313,7 @@ rtc_library("rtp_sender_interface") {
      ":ref_count",
      ":rtc_error",
      ":rtp_parameters",
 +    ":rtp_sender_setparameters_callback",
      ":scoped_refptr",
+     ":sframe_encrypter_interface",
      "../rtc_base:checks",
-     "../rtc_base/system:rtc_export",
-@@ -284,6 +297,20 @@ rtc_library("rtp_sender_interface") {
+@@ -310,6 +323,20 @@ rtc_library("rtp_sender_interface") {
      "//third_party/abseil-cpp/absl/functional:any_invocable",
    ]
  }
@@ -283,7 +283,7 @@ index d7587e6fef..ed1337d43c 100644
  
  rtc_library("sctp_transport_interface") {
    visibility = [ "*" ]
-@@ -542,6 +569,7 @@ rtc_library("video_track_source_proxy_factory") {
+@@ -572,6 +599,7 @@ rtc_library("video_track_source_proxy_factory") {
  }
  
  rtc_library("libjingle_peerconnection_api") {
@@ -291,7 +291,7 @@ index d7587e6fef..ed1337d43c 100644
    # This target is visible externally for backwards compatibility,
    # but should not be depended on by webrtc source.
    visibility = [ "*" ]
-@@ -666,6 +694,7 @@ rtc_library("libjingle_peerconnection_api") {
+@@ -699,6 +727,7 @@ rtc_library("libjingle_peerconnection_api") {
      "../rtc_base/system:rtc_export",  # keep
    ]
  }
@@ -299,7 +299,7 @@ index d7587e6fef..ed1337d43c 100644
  
  rtc_library("frame_transformer_interface") {
    visibility = [ "*" ]
-@@ -893,6 +922,7 @@ rtc_source_set("peer_network_dependencies") {
+@@ -926,6 +955,7 @@ rtc_source_set("peer_network_dependencies") {
  }
  
  rtc_source_set("peer_connection_quality_test_fixture_api") {
@@ -307,7 +307,7 @@ index d7587e6fef..ed1337d43c 100644
    visibility = [ "*" ]
    testonly = true
    sources = [ "test/peerconnection_quality_test_fixture.h" ]
-@@ -908,6 +938,7 @@ rtc_source_set("peer_connection_quality_test_fixture_api") {
+@@ -941,6 +971,7 @@ rtc_source_set("peer_connection_quality_test_fixture_api") {
      "//third_party/abseil-cpp/absl/strings:string_view",
    ]
  }
@@ -315,7 +315,7 @@ index d7587e6fef..ed1337d43c 100644
  
  rtc_library("frame_generator_api") {
    visibility = [ "*" ]
-@@ -1009,6 +1040,7 @@ rtc_library("create_frame_generator") {
+@@ -1042,6 +1073,7 @@ rtc_library("create_frame_generator") {
    ]
  }
  
@@ -323,7 +323,7 @@ index d7587e6fef..ed1337d43c 100644
  rtc_library("create_peer_connection_quality_test_frame_generator") {
    visibility = [ "*" ]
    testonly = true
-@@ -1026,6 +1058,7 @@ rtc_library("create_peer_connection_quality_test_frame_generator") {
+@@ -1059,6 +1091,7 @@ rtc_library("create_peer_connection_quality_test_frame_generator") {
      "units:time_delta",
    ]
  }
@@ -331,7 +331,7 @@ index d7587e6fef..ed1337d43c 100644
  
  rtc_source_set("data_channel_event_observer_interface") {
    visibility = [ "*" ]
-@@ -1204,6 +1237,7 @@ rtc_source_set("refcountedbase") {
+@@ -1237,6 +1270,7 @@ rtc_source_set("refcountedbase") {
  }
  
  rtc_library("ice_transport_factory") {
@@ -339,7 +339,7 @@ index d7587e6fef..ed1337d43c 100644
    visibility = [ "*" ]
    sources = [
      "ice_transport_factory.cc",
-@@ -1221,6 +1255,7 @@ rtc_library("ice_transport_factory") {
+@@ -1254,6 +1288,7 @@ rtc_library("ice_transport_factory") {
      "../rtc_base/system:rtc_export",
    ]
  }
@@ -348,11 +348,11 @@ index d7587e6fef..ed1337d43c 100644
  rtc_library("neteq_simulator_api") {
    visibility = [ "*" ]
 diff --git a/api/rtp_sender_interface.h b/api/rtp_sender_interface.h
-index be839285bf..30de427571 100644
+index 5ea6efee18..7897f01fd9 100644
 --- a/api/rtp_sender_interface.h
 +++ b/api/rtp_sender_interface.h
-@@ -34,6 +34,8 @@
- #include "api/video_codecs/video_encoder_factory.h"
+@@ -36,6 +36,8 @@
+ #include "rtc_base/checks.h"
  #include "rtc_base/system/rtc_export.h"
  
 +#include "api/rtp_sender_setparameters_callback.h"
@@ -360,7 +360,7 @@ index be839285bf..30de427571 100644
  namespace webrtc {
  
  class RtpSenderObserverInterface {
-@@ -46,8 +48,6 @@ class RtpSenderObserverInterface {
+@@ -48,8 +50,6 @@ class RtpSenderObserverInterface {
    virtual ~RtpSenderObserverInterface() {}
  };
  
