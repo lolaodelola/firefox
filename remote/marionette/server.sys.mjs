@@ -311,49 +311,52 @@ export class TCPConnection {
     }
 
     const handler = this.driver.getCommandHandler(cmd.name);
-    const rv = await handler.bind(this.driver)(cmd);
 
-    // Bug 1819029: Some older commands cannot return a response wrapped within
-    // a value field because it would break compatibility with geckodriver and
-    // Marionette client. It's unlikely that we are going to fix that.
-    //
-    // Warning: No more commands should be added to this list!
-    const commandsNoValueResponse = [
-      "Marionette:Quit",
-      "WebDriver:FindElements",
-      "WebDriver:FindElementsFromShadowRoot",
-      "WebDriver:CloseChromeWindow",
-      "WebDriver:CloseWindow",
-      "WebDriver:FullscreenWindow",
-      "WebDriver:GetCookies",
-      "WebDriver:GetElementRect",
-      "WebDriver:GetTimeouts",
-      "WebDriver:GetWindowHandles",
-      "WebDriver:GetWindowRect",
-      "WebDriver:MaximizeWindow",
-      "WebDriver:MinimizeWindow",
-      "WebDriver:NewSession",
-      "WebDriver:NewWindow",
-      "WebDriver:SetWindowRect",
-    ];
+    try {
+      const rv = await handler.bind(this.driver)(cmd);
 
-    if (rv != null) {
-      // By default the Response' constructor sets the body to `{ value: null }`.
-      // As such we only want to override the value if it's neither `null` nor
-      // `undefined`.
-      if (commandsNoValueResponse.includes(cmd.name)) {
-        resp.body = rv;
-      } else {
-        resp.body.value = rv;
+      // Bug 1819029: Some older commands cannot return a response wrapped within
+      // a value field because it would break compatibility with geckodriver and
+      // Marionette client. It's unlikely that we are going to fix that.
+      //
+      // Warning: No more commands should be added to this list!
+      const commandsNoValueResponse = [
+        "Marionette:Quit",
+        "WebDriver:FindElements",
+        "WebDriver:FindElementsFromShadowRoot",
+        "WebDriver:CloseChromeWindow",
+        "WebDriver:CloseWindow",
+        "WebDriver:FullscreenWindow",
+        "WebDriver:GetCookies",
+        "WebDriver:GetElementRect",
+        "WebDriver:GetTimeouts",
+        "WebDriver:GetWindowHandles",
+        "WebDriver:GetWindowRect",
+        "WebDriver:MaximizeWindow",
+        "WebDriver:MinimizeWindow",
+        "WebDriver:NewSession",
+        "WebDriver:NewWindow",
+        "WebDriver:SetWindowRect",
+      ];
+
+      if (rv != null) {
+        // By default the Response' constructor sets the body to `{ value: null }`.
+        // As such we only want to override the value if it's neither `null` nor
+        // `undefined`.
+        if (commandsNoValueResponse.includes(cmd.name)) {
+          resp.body = rv;
+        } else {
+          resp.body.value = rv;
+        }
       }
-    }
-
-    if (Services.profiler.IsActive()) {
-      ChromeUtils.addProfilerMarker(
-        "Marionette: Command",
-        { startTime, category: "Remote-Protocol" },
-        `${cmd.name} (${cmd.id})`
-      );
+    } finally {
+      if (Services.profiler.IsActive()) {
+        ChromeUtils.addProfilerMarker(
+          "Marionette: Command",
+          { startTime, category: "Remote-Protocol" },
+          `${cmd.name} (${cmd.id})`
+        );
+      }
     }
   }
 
