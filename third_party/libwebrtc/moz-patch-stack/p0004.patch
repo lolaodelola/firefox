@@ -1,39 +1,150 @@
-From: Jan Grulich <grulja@gmail.com>
-Date: Thu, 12 Mar 2026 15:11:27 +0100
-Subject: (cherry-pick-branch-heads/7727) [M147] PipeWire capture: add CFI
- suppression for StopCapture()
+From: Michael Froman <mfroman@mozilla.com>
+Date: Wed, 15 Apr 2026 14:06:39 -0500
+Subject: (tmp-cherry-pick) Revert "Roll chromium_revision
+ b937d39273..8fdfcb5d76 (1597657:1597876)" (f784e442c7)
 
-We added recently spa_hook_remove() call that gets inlined and there is
-an indirect call through a C function pointer, which CFI cannot verify.
+This reverts commit 17a2fb58ea7db7b17bdbcf82b400bd311558a027.
 
-(cherry picked from commit aafe141c9ac3e016b6e6dda4b1d60a97a99b55d9)
+Reason for revert: Rolling back Chromium rolls that broke CI but not CQ android device tests.
 
-Bug: chromium:491979284
-Fixed: chromium:492417430
-Change-Id: Ide5ba4d2cb2c3c3ad63e107cb6df1cd42c6578fb
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456240
-Reviewed-by: Per Kjellander <perkj@webrtc.org>
-Commit-Queue: Per Kjellander <perkj@webrtc.org>
-Reviewed-by: Ilya Nikolaevskiy <ilnik@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#47140}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456202
-Reviewed-by: Jan Grulich <grulja@gmail.com>
-Commit-Queue: Ilya Nikolaevskiy <ilnik@webrtc.org>
-Cr-Commit-Position: refs/branch-heads/7727@{#3}
-Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#47086}
+Original change's description:
+> Roll chromium_revision b937d39273..8fdfcb5d76 (1597657:1597876)
+>
+> Change log: https://chromium.googlesource.com/chromium/src/+log/b937d39273..8fdfcb5d76
+> Full diff: https://chromium.googlesource.com/chromium/src/+/b937d39273..8fdfcb5d76
+>
+> Changed dependencies
+> * src/build: https://chromium.googlesource.com/chromium/src/build/+log/7d29c62736..c9202dd8ca
+> * src/ios: https://chromium.googlesource.com/chromium/src/ios/+log/94f693fcb6..00efde9573
+> * src/testing: https://chromium.googlesource.com/chromium/src/testing/+log/e7a1e88ecc..bacbfe72d8
+> * src/third_party: https://chromium.googlesource.com/chromium/src/third_party/+log/a133c94b51..22a76fe23b
+> * src/third_party/androidx/cipd: Hi79Lu6qQ-Fbcjwgf_f-NEYJweP4QdZqjJ0lXwc0PpcC..A6oLcxGdFmfrPoaAcVYoVYHlkB3InvLKiIKnIgmGJVcC
+> * src/third_party/catapult: https://chromium.googlesource.com/catapult.git/+log/e0ebf38a01..a2f6285fa5
+> * src/third_party/depot_tools: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+log/4ce8ba39a3..a4e677522d
+> * src/third_party/eigen3/src: https://chromium.googlesource.com/external/gitlab.com/libeigen/eigen.git/+log/4387e32481..c4eb3c4f4c
+> * src/third_party/grpc/src: https://chromium.googlesource.com/external/github.com/grpc/grpc.git/+log/260c6fd37c..3ca09e4818
+> * src/third_party/perfetto: https://chromium.googlesource.com/external/github.com/google/perfetto.git/+log/4cead1b0fc..c0a3840504
+> * src/tools: https://chromium.googlesource.com/chromium/src/tools/+log/9765576870..82543c0c7f
+> DEPS diff: https://chromium.googlesource.com/chromium/src/+/b937d39273..8fdfcb5d76/DEPS
+>
+> BUG=None
+>
+> Change-Id: Ica2e37fd2735bac28e9c7b69c9539b487e5666d2
+> Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/455900
+> Bot-Commit: Autoroller <chromium-webrtc-autoroll@webrtc-ci.iam.gserviceaccount.com>
+> Commit-Queue: Autoroller <chromium-webrtc-autoroll@webrtc-ci.iam.gserviceaccount.com>
+> Cr-Commit-Position: refs/heads/main@{#47118}
+
+Bug: b/492115880
+No-Presubmit: true
+No-Tree-Checks: true
+No-Try: true
+Change-Id: I57d717d9faaefe85efb54beb1f5387d8a4581a2f
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456280
+Reviewed-by: Jeremy Leconte <jleconte@google.com>
+Commit-Queue: Mirko Bonadei <mbonadei@webrtc.org>
+Cr-Commit-Position: refs/heads/main@{#47138}
 ---
- modules/video_capture/linux/video_capture_pipewire.cc | 1 +
- 1 file changed, 1 insertion(+)
+ DEPS | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/modules/video_capture/linux/video_capture_pipewire.cc b/modules/video_capture/linux/video_capture_pipewire.cc
-index 58021f9f69..ca35498016 100644
---- a/modules/video_capture/linux/video_capture_pipewire.cc
-+++ b/modules/video_capture/linux/video_capture_pipewire.cc
-@@ -250,6 +250,7 @@ int32_t VideoCaptureModulePipeWire::StartCapture(
-   return 0;
- }
+diff --git a/DEPS b/DEPS
+index 211c40da09..dffcecaef3 100644
+--- a/DEPS
++++ b/DEPS
+@@ -10,7 +10,7 @@ vars = {
+   # chromium waterfalls. More info at: crbug.com/570091.
+   'checkout_configuration': 'default',
+   'checkout_instrumented_libraries': 'checkout_linux and checkout_configuration == "default"',
+-  'chromium_revision': '8fdfcb5d762df924ac3e77514c178343e2aeead3',
++  'chromium_revision': 'b937d39273b52034e8542dea4b040587be0a127f',
  
-+RTC_NO_SANITIZE("cfi-icall")
- int32_t VideoCaptureModulePipeWire::StopCapture() {
-   RTC_DCHECK_RUN_ON(&api_checker_);
+   # Fetch the prebuilt binaries for llvm-cov and llvm-profdata. Needed to
+   # process the raw profiles produced by instrumented targets (built with
+@@ -69,7 +69,7 @@ vars = {
  
+ deps = {
+   'src/build':
+-    'https://chromium.googlesource.com/chromium/src/build@c9202dd8ca1d4255bd9e505988b945746ddb378a',
++    'https://chromium.googlesource.com/chromium/src/build@7d29c62736304aeaac07df0b75546ffd2b75917a',
+   'src/buildtools':
+     'https://chromium.googlesource.com/chromium/src/buildtools@fef8d6947fa54202e8a00c58d5ac8fd15780bc33',
+   # Gradle 6.6.1. Used for testing Android Studio project generation for WebRTC.
+@@ -78,13 +78,13 @@ deps = {
+     'condition': 'checkout_android',
+   },
+   'src/ios': {
+-    'url': 'https://chromium.googlesource.com/chromium/src/ios@00efde9573f5ecad0307619539c633c4eb805905',
++    'url': 'https://chromium.googlesource.com/chromium/src/ios@94f693fcb6dde967f11668a9e21eec1a4ec8b49c',
+     'condition': 'checkout_ios',
+   },
+   'src/testing':
+-    'https://chromium.googlesource.com/chromium/src/testing@bacbfe72d8a48eac176f063aefc517cd84786b91',
++    'https://chromium.googlesource.com/chromium/src/testing@e7a1e88ecc35a70f3d198674042753ec9e8e3650',
+   'src/third_party':
+-    'https://chromium.googlesource.com/chromium/src/third_party@22a76fe23bae393322386681d4bfa508b0da44ea',
++    'https://chromium.googlesource.com/chromium/src/third_party@a133c94b51ac034d5f375cc1746e66dcdee57282',
+ 
+   'src/buildtools/linux64': {
+     'packages': [
+@@ -492,7 +492,7 @@ deps = {
+   'src/third_party/breakpad/breakpad':
+     'https://chromium.googlesource.com/breakpad/breakpad.git@8be0e3114685fcc1589561067282edf75ea1259a',
+   'src/third_party/catapult':
+-    'https://chromium.googlesource.com/catapult.git@a2f6285fa55a02491af892e15ac308fd8315d754',
++    'https://chromium.googlesource.com/catapult.git@e0ebf38a01214aba11f31daa1c743782def031d5',
+   'src/third_party/ced/src': {
+     'url': 'https://chromium.googlesource.com/external/github.com/google/compact_enc_det.git@ba412eaaacd3186085babcd901679a48863c7dd5',
+   },
+@@ -505,13 +505,13 @@ deps = {
+   'src/third_party/crc32c/src':
+     'https://chromium.googlesource.com/external/github.com/google/crc32c.git@d3d60ac6e0f16780bcfcc825385e1d338801a558',
+   'src/third_party/depot_tools':
+-    'https://chromium.googlesource.com/chromium/tools/depot_tools.git@a4e677522da5c326b656dc9584b3a4f6cde9fd05',
++    'https://chromium.googlesource.com/chromium/tools/depot_tools.git@4ce8ba39a3488397a2d1494f167020f21de502f3',
+   'src/third_party/ffmpeg':
+     'https://chromium.googlesource.com/chromium/third_party/ffmpeg.git@946d97db8d906277085e361892b7efda5152e2f1',
+   'src/third_party/flatbuffers/src':
+     'https://chromium.googlesource.com/external/github.com/google/flatbuffers.git@a86afae9399bbe631d1ea0783f8816e780e236cc',
+   'src/third_party/grpc/src': {
+-    'url': 'https://chromium.googlesource.com/external/github.com/grpc/grpc.git@3ca09e4818f4362e75c9c224f1d4c2065db75a0a',
++    'url': 'https://chromium.googlesource.com/external/github.com/grpc/grpc.git@260c6fd37c502e984836a446c5d90e4a1298036d',
+   },
+   # Used for embedded builds. CrOS & Linux use the system version.
+   'src/third_party/fontconfig/src': {
+@@ -609,7 +609,7 @@ deps = {
+       'condition': 'checkout_android',
+   },
+   'src/third_party/perfetto':
+-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'c0a3840504ad618393057eb1fc121810c210dfd2',
++    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '4cead1b0fc9987f994de97c7914e1f0c94047579',
+   'src/third_party/protobuf-javascript/src':
+     Var('chromium_git') + '/external/github.com/protocolbuffers/protobuf-javascript' + '@' + 'e6d763860001ba1a76a63adcff5efb12b1c96024',
+   'src/third_party/libvpx/source/libvpx':
+@@ -668,7 +668,7 @@ deps = {
+     'condition': 'checkout_android',
+   },
+   'src/tools':
+-    'https://chromium.googlesource.com/chromium/src/tools@82543c0c7fa9a6436b46102e26e57e09aefa192d',
++    'https://chromium.googlesource.com/chromium/src/tools@9765576870401b230a826e0e4f7a12851575306e',
+ 
+   'src/third_party/espresso': {
+       'packages': [
+@@ -707,7 +707,7 @@ deps = {
+     'packages': [
+       {
+           'package': 'chromium/third_party/androidx',
+-          'version': 'A6oLcxGdFmfrPoaAcVYoVYHlkB3InvLKiIKnIgmGJVcC',
++          'version': 'Hi79Lu6qQ-Fbcjwgf_f-NEYJweP4QdZqjJ0lXwc0PpcC',
+       },
+     ],
+     'condition': 'checkout_android and non_git_source',
+@@ -864,7 +864,7 @@ deps = {
+     Var('chromium_git') + '/external/github.com/pytorch/cpuinfo.git' + '@' + '7364b490b5f78d58efe23ea76e74210fd6c3c76f',
+ 
+   'src/third_party/eigen3/src':
+-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'c4eb3c4f4c91511eb5c76d608e07dde2a1cc8b23',
++    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4387e3248109bef2c07a8b69a2b8249d7af5dcf0',
+ 
+   'src/third_party/fp16/src':
+     Var('chromium_git') + '/external/github.com/Maratyszcza/FP16.git' + '@' + '3d2de1816307bac63c16a297e8c4dc501b4076df',
