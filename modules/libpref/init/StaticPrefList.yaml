@@ -15404,13 +15404,6 @@
   value: true
   mirror: always
 
-# When true, the TRR (DoH) connection is preserved across application-background
-# events on Android instead of being torn down with all other idle connections.
-- name: network.trr.preserve_on_background
-  type: RelaxedAtomicBool
-  value: @IS_NIGHTLY_BUILD@
-  mirror: always
-
 # When true, the TRR transaction gets marked and runnables
 # dispatched for it get increased priority.
 - name: network.trr.high_priority_events

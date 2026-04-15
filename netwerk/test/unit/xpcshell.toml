@@ -1607,11 +1607,6 @@ head = "head_channels.js head_cache.js head_cookies.js head_trr.js head_http3.js
 
 ["test_trr_af_fallback.js"]
 
-["test_trr_background_cleanup.js"]
-run-if = [
-  "!socketprocess_networking",
-]
-
 ["test_trr_bench.js"]
 skip-if = [
   "verify",

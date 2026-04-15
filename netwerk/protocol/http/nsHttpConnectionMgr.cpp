@@ -2581,11 +2581,7 @@ void nsHttpConnectionMgr::OnMsgDoShiftReloadConnectionCleanup(int32_t,
 
   nsHttpConnectionInfo* ci = static_cast<nsHttpConnectionInfo*>(param);
 
-  bool preserveTRR = StaticPrefs::network_trr_preserve_on_background();
   for (const auto& entry : mCT.Values()) {
-    if (preserveTRR && entry->mConnInfo->GetIsTrrServiceChannel()) {
-      continue;
-    }
     entry->ClosePersistentConnections();
   }
 
