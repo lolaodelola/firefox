@@ -1299,6 +1299,11 @@ toolbar[inactive="true"] .urlbar,
   --panel-list-border-radius: var(--panel-border-color);
   padding: 8px;
 
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media -moz-pref("browser.urlbar.nova.featureGate") {
+    min-width: 17em;
+  }
+
   > panel-item::part(button) {
     -moz-context-properties: fill;
     fill: currentColor;
@@ -1324,6 +1329,15 @@ toolbar[inactive="true"] .urlbar,
     width: 11px;
     top: 4px;
     inset-inline-start: 17px;
+  }
+}
+
+.searchmode-switcher-popup-description {
+  padding: var(--menuitem-padding);
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media -moz-pref("browser.urlbar.nova.featureGate") {
+    color: var(--text-color-deemphasized);
   }
 }
 

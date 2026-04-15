@@ -138,7 +138,7 @@ export class UrlbarInput extends HTMLElement {
         </html:moz-button>
         <!-- In XUL windows, this will be wrapped in a panel with class="searchmode-switcher-panel". -->
         <html:panel-list class="searchmode-switcher-popup">
-          <html:span class="searchmode-switcher-popup-description" role="heading" />
+          <html:div class="searchmode-switcher-popup-description" role="heading" />
 ${
   lazy.UrlbarPrefs.get("nova.featureGate")
     ? '<html:hr class="searchmode-switcher-popup-installed-engine-separator"/><html:hr class="searchmode-switcher-popup-footer-separator"/>'

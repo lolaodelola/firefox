@@ -832,6 +832,7 @@ urlbar-searchmode-popup-one-off-header = This time search with:
 # reset after submitting.
 urlbar-searchmode-popup-header = Search with:
 urlbar-searchmode-popup-search-settings-panelitem = Search Settings
+urlbar-searchmode-popup-settings-panelitem = Settings
 
 # Label shown next to a new search engine in the Searchmode Switcher popup to promote it.
 urlbar-searchmode-new = New

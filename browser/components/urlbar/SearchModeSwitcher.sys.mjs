@@ -618,7 +618,9 @@ export class SearchModeSwitcher {
     menuitem.dataset.action = "openpreferences";
     this.#input.document.l10n.setAttributes(
       menuitem,
-      `urlbar-searchmode-popup-search-settings-panelitem`
+      lazy.UrlbarPrefs.get("nova.featureGate")
+        ? "urlbar-searchmode-popup-settings-panelitem"
+        : "urlbar-searchmode-popup-search-settings-panelitem"
     );
     menuitem.addEventListener("click", this);
     menuitem.addEventListener("keydown", this);
