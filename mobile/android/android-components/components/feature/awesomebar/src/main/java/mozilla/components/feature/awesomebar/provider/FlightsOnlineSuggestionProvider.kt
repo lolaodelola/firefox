@@ -9,6 +9,9 @@ import kotlinx.coroutines.delay
 import mozilla.components.concept.awesomebar.AwesomeBar
 import mozilla.components.concept.awesomebar.optimizedsuggestions.FlightData
 import mozilla.components.concept.awesomebar.optimizedsuggestions.FlightSuggestionStatus
+import mozilla.components.feature.awesomebar.facts.SuggestionCardType
+import mozilla.components.feature.awesomebar.facts.emitOptimizedSuggestionCardClickedFact
+import mozilla.components.feature.awesomebar.facts.emitOptimizedSuggestionCardDisplayedFact
 import mozilla.components.feature.search.SearchUseCases
 import java.time.DateTimeException
 import java.time.ZoneId
@@ -53,6 +56,11 @@ class FlightsOnlineSuggestionProvider(
             .mapNotNull { it.toSuggestionOrNull() }
             .take(maxNumberOfSuggestions)
             .toList()
+            .also {
+                if (it.isNotEmpty()) {
+                    emitOptimizedSuggestionCardDisplayedFact(SuggestionCardType.FLIGHTS)
+                }
+            }
     }
 
     private fun AwesomeBar.FlightItem.toSuggestionOrNull(): AwesomeBar.FlightSuggestion? {
@@ -68,7 +76,10 @@ class FlightsOnlineSuggestionProvider(
 
         return if (hasAllFields) {
             AwesomeBar.FlightSuggestion(
-                onSuggestionClicked = { searchUseCase.invoke(query) },
+                onSuggestionClicked = {
+                    emitOptimizedSuggestionCardClickedFact(SuggestionCardType.FLIGHTS)
+                    searchUseCase.invoke(query)
+                },
                 provider = this@FlightsOnlineSuggestionProvider,
                 score = Int.MAX_VALUE,
                 query = query,

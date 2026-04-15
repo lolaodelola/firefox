@@ -146,6 +146,15 @@ class AwesomeBarFactsTest {
                 assertEquals(AwesomeBarFacts.Items.OPTIMIZED_SUGGESTION_CARD_CLICKED, item)
                 assertEquals("sports", value)
             }
+
+            emitOptimizedSuggestionCardDisplayedFact(SuggestionCardType.FLIGHTS)
+            assertEquals(16, facts.size)
+            facts[15].apply {
+                assertEquals(Component.FEATURE_AWESOMEBAR, component)
+                assertEquals(Action.DISPLAY, action)
+                assertEquals(AwesomeBarFacts.Items.OPTIMIZED_SUGGESTION_CARD_DISPLAYED, item)
+                assertEquals("flights", value)
+            }
         }
     }
 }
