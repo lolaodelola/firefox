@@ -2406,6 +2406,7 @@ if (rtc_include_tests) {
         "../test:run_loop",
         "../test:test_support",
         "../test:wait_until",
+        "../test/time_controller",
         "memory:fifo_buffer",
         "network:received_packet",
         "synchronization:mutex",
