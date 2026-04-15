@@ -566,7 +566,9 @@ open class FenixApplication : Application(), Provider, ThemeProvider {
 
     @OptIn(DelicateCoroutinesApi::class) // GlobalScope usage
     private fun queueIntegrityClientWarmUp(queue: RunWhenReadyQueue) {
-        if (Config.channel != ReleaseChannel.Nightly) {
+        // We want to avoid shipping this warmup into UI test builds to reduce quota impact, especially given
+        // that the Integrity verdicts will always fail anyway.
+        if (!BuildConfig.MOZILLA_OFFICIAL) {
             return
         }
         runOnVisualCompleteness(queue) {
