@@ -1,122 +1,588 @@
-From: Tommi <tommi@webrtc.org>
-Date: Mon, 23 Mar 2026 17:29:21 +0100
-Subject: (cherry-pick-branch-heads/7727) [M147] Refactor AddCertificateReports
- to prevent crash
+From: Michael Froman <mfroman@mozilla.com>
+Date: Wed, 15 Apr 2026 16:30:15 -0500
+Subject: (tmp-cherry-pick) Revert "Allow unspecified max allocatable bitrate
+ in VideoSendStreamImpl" (bc9cf92f3d)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-When processing certificate stats with duplicate fingerprints,
-ReplaceOrAddNew would delete the existing stats report that was
-previously added and pointed to by first_report or prev_report.
+This reverts commit e844bd819c4663de5422be9c2cdb25204b03b41b.
 
-By adding tracking for duplicate fingerprints we can find the existing
-report and avoid replacing it.
+Reason for revert: Maybe breaks downstream projects
 
-(cherry picked from commit 731795bab2d89be63e20485407a850173d5d3665)
+Original change's description:
+> Allow unspecified max allocatable bitrate in VideoSendStreamImpl
+>
+> If we have no video the can be enabled, based on the VideoEncoderConfig
+> (e.g. the max bitrate is <= 0 or all simulcast streams are
+> `active=false`) - let the max bitrate be reported as 0 for the sake of
+> bandwidth allocation (MediaStreamAllocationConfig).
+>
+> Previous to this CL, the above conditions would result in an arbitrary
+> value of 10Mbps to use as the max allocation limit. When creating a peer
+> connection with audio and video configured but the video disabled/muted,
+> that would result in the bandwidth estimator trying to send packet
+> trains to probe up to 10Mbps, potentially impacting the network and
+> disturbing audio even though we have no need for such as high BWE.
+>
+> Bug: webrtc:494350649
+> Change-Id: Id6353fd93c6170610a790c084d75f3b3c5c3ee97
+> Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/449100
+> Reviewed-by: Per Kjellander <perkj@webrtc.org>
+> Commit-Queue: Erik Språng <sprang@webrtc.org>
+> Cr-Commit-Position: refs/heads/main@{#47220}
 
-Bug: chromium:486495143
-Change-Id: Iabc41ae064476c1e5853cdff1dbbcab449f8df27
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/459320
-Reviewed-by: Evan Shrubsole <eshr@webrtc.org>
-Reviewed-by: Henrik Boström <hbos@webrtc.org>
-Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#47242}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/461160
-Cr-Commit-Position: refs/branch-heads/7727@{#10}
-Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#47086}
+Bug: webrtc:494350649
+Change-Id: Id3accec77f8bde51c43c3eeb31db68d4f03f7754
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458722
+Bot-Commit: Rubber Stamper <rubber-stamper@appspot.gserviceaccount.com>
+Reviewed-by: Erik Språng <sprang@webrtc.org>
+Commit-Queue: Per Kjellander <perkj@webrtc.org>
+Cr-Commit-Position: refs/heads/main@{#47228}
 ---
- pc/BUILD.gn                           |  1 +
- pc/legacy_stats_collector.cc          |  6 ++++++
- pc/legacy_stats_collector.h           |  5 +++++
- pc/legacy_stats_collector_unittest.cc | 16 ++++++++++++++++
- 4 files changed, 28 insertions(+)
+ call/call_perf_tests.cc                       |   8 +-
+ media/engine/webrtc_video_engine_unittest.cc  |  50 ++++---
+ .../bwe_integration_tests/bwe_ramp_up_test.cc |  28 +---
+ test/scenario/video_stream_unittest.cc        |   2 +-
+ video/video_send_stream_impl.cc               | 136 ++++++++----------
+ video/video_send_stream_impl.h                |   6 +-
+ video/video_send_stream_impl_unittest.cc      |  16 +--
+ 7 files changed, 101 insertions(+), 145 deletions(-)
 
-diff --git a/pc/BUILD.gn b/pc/BUILD.gn
-index 88287d5ea9..1a08f71135 100644
---- a/pc/BUILD.gn
-+++ b/pc/BUILD.gn
-@@ -1456,6 +1456,7 @@ rtc_library("legacy_stats_collector") {
-     "../rtc_base/system:plan_b_only",
-     "../system_wrappers",
-     "//third_party/abseil-cpp/absl/base:nullability",
-+    "//third_party/abseil-cpp/absl/container:flat_hash_set",
-     "//third_party/abseil-cpp/absl/functional:any_invocable",
-     "//third_party/abseil-cpp/absl/strings",
-     "//third_party/abseil-cpp/absl/strings:string_view",
-diff --git a/pc/legacy_stats_collector.cc b/pc/legacy_stats_collector.cc
-index f41de1cded..6978f1b06b 100644
---- a/pc/legacy_stats_collector.cc
-+++ b/pc/legacy_stats_collector.cc
-@@ -21,6 +21,7 @@
- #include <vector>
+diff --git a/call/call_perf_tests.cc b/call/call_perf_tests.cc
+index 14b9de618f..9cd29d8d1c 100644
+--- a/call/call_perf_tests.cc
++++ b/call/call_perf_tests.cc
+@@ -654,6 +654,7 @@ TEST_F(CallPerfTest, Bitrate_Kbps_NoPadWithoutMinTransmitBitrate) {
+ #endif
+ TEST_F(CallPerfTest, MAYBE_KeepsHighBitrateWhenReconfiguringSender) {
+   static const uint32_t kInitialBitrateKbps = 400;
++  static const uint32_t kInitialBitrateOverheadKpbs = 6;
+   static const uint32_t kReconfigureThresholdKbps = 600;
  
- #include "absl/base/nullability.h"
-+#include "absl/container/flat_hash_set.h"
- #include "absl/functional/any_invocable.h"
- #include "absl/strings/str_cat.h"
- #include "absl/strings/string_view.h"
-@@ -792,8 +793,13 @@ StatsReport* LegacyStatsCollector::AddCertificateReports(
+   class VideoStreamFactory
+@@ -696,9 +697,10 @@ TEST_F(CallPerfTest, MAYBE_KeepsHighBitrateWhenReconfiguringSender) {
+         // First time initialization. Frame size is known.
+         // `expected_bitrate` is affected by bandwidth estimation before the
+         // first frame arrives to the encoder.
+-        uint32_t expected_bitrate = last_set_bitrate_kbps_ > 0
+-                                        ? last_set_bitrate_kbps_
+-                                        : kInitialBitrateKbps;
++        uint32_t expected_bitrate =
++            last_set_bitrate_kbps_ > 0
++                ? last_set_bitrate_kbps_
++                : kInitialBitrateKbps - kInitialBitrateOverheadKpbs;
+         EXPECT_EQ(expected_bitrate, config->startBitrate)
+             << "Encoder not initialized at expected bitrate.";
+         EXPECT_EQ(test::VideoTestConstants::kDefaultWidth, config->width);
+diff --git a/media/engine/webrtc_video_engine_unittest.cc b/media/engine/webrtc_video_engine_unittest.cc
+index 368554440c..fdd105de71 100644
+--- a/media/engine/webrtc_video_engine_unittest.cc
++++ b/media/engine/webrtc_video_engine_unittest.cc
+@@ -10020,11 +10020,6 @@ TEST_F(WebRtcVideoChannelBaseTest, EncoderSelectorSwitchCodec) {
+   EXPECT_TRUE(send_channel_->SetSenderParameters(parameters));
+   send_channel_->SetSend(true);
  
-   StatsReport* first_report = nullptr;
-   StatsReport* prev_report = nullptr;
-+  absl::flat_hash_set<std::string> visited_fingerprints;
-   for (SSLCertificateStats* stats = cert_stats.get(); stats;
-        stats = stats->issuer.get()) {
-+    if (!visited_fingerprints.insert(stats->fingerprint).second) {
-+      break;
-+    }
+-  RtpParameters rtp_parameters = send_channel_->GetRtpSendParameters(kSsrc);
+-  ASSERT_EQ(1u, rtp_parameters.encodings.size());
+-  rtp_parameters.encodings[0].max_bitrate_bps = 1000000;
+-  EXPECT_TRUE(send_channel_->SetRtpSendParameters(kSsrc, rtp_parameters).ok());
+-
+   std::optional<Codec> codec = send_channel_->GetSendCodec();
+   ASSERT_TRUE(codec);
+   EXPECT_EQ("VP8", codec->name);
+@@ -10046,20 +10041,23 @@ TEST_F(WebRtcVideoChannelBaseTest, EncoderSelectorSwitchCodec) {
+ 
+ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecast) {
+   VideoSenderParameters parameters;
++  parameters.codecs.push_back(GetEngineCodec("VP8"));
++  ASSERT_TRUE(send_channel_->SetSenderParameters(parameters));
 +
-     StatsReport::Id id(StatsReport::NewTypedId(
-         StatsReport::kStatsReportTypeCertificate, stats->fingerprint));
+   FakeVideoSendStream* stream = AddSendStream();
+-  const uint32_t ssrc = stream->GetConfig().rtp.ssrcs[0];
+   FrameForwarder frame_forwarder;
+   FakeFrameSource frame_source(1280, 720, TimeDelta::Seconds(1) / 30,
+                                env_.clock().CurrentTime());
+-  EXPECT_TRUE(send_channel_->SetVideoSend(ssrc, nullptr, &frame_forwarder));
+-  frame_forwarder.IncomingCapturedFrame(frame_source.GetFrame());
++  EXPECT_TRUE(
++      send_channel_->SetVideoSend(last_ssrc_, nullptr, &frame_forwarder));
  
-diff --git a/pc/legacy_stats_collector.h b/pc/legacy_stats_collector.h
-index 25e61edfdd..f36e509664 100644
---- a/pc/legacy_stats_collector.h
-+++ b/pc/legacy_stats_collector.h
-@@ -114,6 +114,11 @@ class LegacyStatsCollector : public LegacyStatsCollectorInterface {
+   {  // TEST scale_resolution_down_to < frame size
+-    RtpParameters rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    RtpParameters rtp_parameters =
++        send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 640,
+                                                             .height = 360};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
  
-   bool UseStandardBytesStats() const { return use_standard_bytes_stats_; }
+     frame_forwarder.IncomingCapturedFrame(frame_source.GetFrame());
  
-+  StatsReport* AddCertificateReportsForTest(
-+      std::unique_ptr<SSLCertificateStats> cert_stats) {
-+    return AddCertificateReports(std::move(cert_stats));
-+  }
-+
-  private:
-   // Struct that's populated on the network thread and carries the values to
-   // the signaling thread where the stats are added to the stats reports.
-diff --git a/pc/legacy_stats_collector_unittest.cc b/pc/legacy_stats_collector_unittest.cc
-index 63c33ec177..f03911589b 100644
---- a/pc/legacy_stats_collector_unittest.cc
-+++ b/pc/legacy_stats_collector_unittest.cc
-@@ -57,6 +57,7 @@
- #include "rtc_base/null_socket_server.h"
- #include "rtc_base/rtc_certificate.h"
- #include "rtc_base/socket_address.h"
-+#include "rtc_base/ssl_certificate.h"
- #include "rtc_base/ssl_identity.h"
- #include "rtc_base/ssl_stream_adapter.h"
- #include "rtc_base/system/plan_b_only.h"
-@@ -1446,6 +1447,21 @@ TEST_F(LegacyStatsCollectorTest, ChainedCertificateReportsCreated) {
-                          remote_ders);
+@@ -10070,11 +10068,11 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecast) {
+   }
+ 
+   {  // TEST scale_resolution_down_to == frame size
+-    auto rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    auto rtp_parameters = send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 1280,
+                                                             .height = 720};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
+ 
+     frame_forwarder.IncomingCapturedFrame(frame_source.GetFrame());
+     auto streams = stream->GetVideoStreams();
+@@ -10084,11 +10082,11 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecast) {
+   }
+ 
+   {  // TEST scale_resolution_down_to > frame size
+-    auto rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    auto rtp_parameters = send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 2 * 1280,
+                                                             .height = 2 * 720};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
+ 
+     frame_forwarder.IncomingCapturedFrame(frame_source.GetFrame());
+     auto streams = stream->GetVideoStreams();
+@@ -10097,7 +10095,7 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecast) {
+     EXPECT_EQ(checked_cast<size_t>(720), streams[0].height);
+   }
+ 
+-  EXPECT_TRUE(send_channel_->SetVideoSend(ssrc, nullptr, nullptr));
++  EXPECT_TRUE(send_channel_->SetVideoSend(last_ssrc_, nullptr, nullptr));
  }
  
-+TEST_F(LegacyStatsCollectorTest,
-+       AddCertificateReports_DuplicateFingerprintDoesNotCrash) {
-+  auto pc = CreatePeerConnection();
-+  auto stats = CreateStatsCollector(pc.get());
+ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecastScaling) {
+@@ -10106,18 +10104,18 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecastScaling) {
+   ASSERT_TRUE(send_channel_->SetSenderParameters(parameters));
+ 
+   FakeVideoSendStream* stream = AddSendStream();
+-  const uint32_t ssrc = stream->GetConfig().rtp.ssrcs[0];
+   FrameForwarder frame_forwarder;
+   FakeFrameSource frame_source(1280, 720, TimeDelta::Seconds(1) / 30,
+                                env_.clock().CurrentTime());
+-  EXPECT_TRUE(send_channel_->SetVideoSend(ssrc, nullptr, &frame_forwarder));
++  EXPECT_TRUE(
++      send_channel_->SetVideoSend(last_ssrc_, nullptr, &frame_forwarder));
+ 
+   {
+-    auto rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    auto rtp_parameters = send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 720,
+                                                             .height = 720};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
+ 
+     frame_forwarder.IncomingCapturedFrame(frame_source.GetFrame());
+ 
+@@ -10130,11 +10128,11 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecastScaling) {
+   }
+ 
+   {
+-    auto rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    auto rtp_parameters = send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 1280,
+                                                             .height = 1280};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
+ 
+     frame_forwarder.IncomingCapturedFrame(frame_source.GetFrame());
+ 
+@@ -10146,11 +10144,11 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecastScaling) {
+   }
+ 
+   {
+-    auto rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    auto rtp_parameters = send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 650,
+                                                             .height = 650};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
+ 
+     auto streams = stream->GetVideoStreams();
+     ASSERT_EQ(streams.size(), 1u);
+@@ -10161,11 +10159,11 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecastScaling) {
+   }
+ 
+   {
+-    auto rtp_parameters = send_channel_->GetRtpSendParameters(ssrc);
++    auto rtp_parameters = send_channel_->GetRtpSendParameters(last_ssrc_);
+     EXPECT_EQ(1UL, rtp_parameters.encodings.size());
+     rtp_parameters.encodings[0].scale_resolution_down_to = {.width = 2560,
+                                                             .height = 1440};
+-    send_channel_->SetRtpSendParameters(ssrc, rtp_parameters);
++    send_channel_->SetRtpSendParameters(last_ssrc_, rtp_parameters);
+ 
+     auto streams = stream->GetVideoStreams();
+     ASSERT_EQ(streams.size(), 1u);
+@@ -10174,7 +10172,7 @@ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSinglecastScaling) {
+     EXPECT_EQ(checked_cast<size_t>(720), streams[0].height);
+   }
+ 
+-  EXPECT_TRUE(send_channel_->SetVideoSend(ssrc, nullptr, nullptr));
++  EXPECT_TRUE(send_channel_->SetVideoSend(last_ssrc_, nullptr, nullptr));
+ }
+ 
+ TEST_F(WebRtcVideoChannelTest, ScaleResolutionDownToSimulcast) {
+diff --git a/test/peer_scenario/bwe_integration_tests/bwe_ramp_up_test.cc b/test/peer_scenario/bwe_integration_tests/bwe_ramp_up_test.cc
+index 4c5637a36b..8a0bbd37a3 100644
+--- a/test/peer_scenario/bwe_integration_tests/bwe_ramp_up_test.cc
++++ b/test/peer_scenario/bwe_integration_tests/bwe_ramp_up_test.cc
+@@ -16,7 +16,6 @@
+ 
+ #include "api/jsep.h"
+ #include "api/media_types.h"
+-#include "api/rtp_parameters.h"
+ #include "api/rtp_sender_interface.h"
+ #include "api/rtp_transceiver_direction.h"
+ #include "api/scoped_refptr.h"
+@@ -35,7 +34,6 @@
+ #include "modules/rtp_rtcp/source/rtp_header_extensions.h"
+ #include "modules/rtp_rtcp/source/rtp_util.h"
+ #include "pc/media_session.h"
+-#include "rtc_base/logging.h"
+ #include "test/create_frame_generator_capturer.h"
+ #include "test/gmock.h"
+ #include "test/gtest.h"
+@@ -208,7 +206,7 @@ INSTANTIATE_TEST_SUITE_P(
+              .l4s_network = true,
+              .network_capacity = DataRate::KilobitsPerSec(3000),
+              .expected_bwe_min = DataRate::KilobitsPerSec(1500),
+-             .max_bwe = DataRate::KilobitsPerSec(3600),
++             .max_bwe = DataRate::KilobitsPerSec(3000),
+          },
+          {
+              .test_name = "L4s500Kbit",
+@@ -241,18 +239,12 @@ TEST_P(BweRampupWithInitialProbeTest, BweRampUpBothDirectionsWithoutMedia) {
+   PeerScenarioClient* caller = s.CreateClient(config);
+   PeerScenarioClient* callee = s.CreateClient(config);
+ 
+-  auto transceiver_or = caller->pc()->AddTransceiver(MediaType::VIDEO);
+-  ASSERT_TRUE(transceiver_or.error().ok());
+-  auto transceiver = transceiver_or.value();
+-
+-  auto parameters = transceiver->sender()->GetParameters();
+-  ASSERT_THAT(parameters.encodings, testing::SizeIs(1));
+-  parameters.encodings[0].max_bitrate_bps = 3'000'000;
+-  ASSERT_TRUE(transceiver->sender()->SetParameters(parameters).ok());
++  auto transceiver = caller->pc()->AddTransceiver(MediaType::VIDEO);
++  ASSERT_TRUE(transceiver.error().ok());
+ 
+   MockRtpSenderObserver observer;
+   EXPECT_CALL(observer, OnFirstPacketSent).Times(0);
+-  transceiver->sender()->SetObserver(&observer);
++  transceiver.value()->sender()->SetObserver(&observer);
+ 
+   caller->pc()->ReconfigureBandwidthEstimation(
+       {.allow_probe_without_media = true});
+@@ -298,18 +290,6 @@ TEST_P(BweRampupWithInitialProbeTest, BweRampUpBothDirectionsWithoutMedia) {
+   // Wait for SDP negotiation.
+   s.WaitAndProcess(&offer_exchange_done);
+ 
+-  // Set max encoding rate for Callee as well.
+-  ASSERT_THAT(callee->pc()->GetTransceivers(), SizeIs(1));
+-  auto callee_transceiver = callee->pc()->GetTransceivers()[0];
+-  auto callee_params = callee_transceiver->sender()->GetParameters();
+-  if (callee_params.encodings.size() > 0) {
+-    callee_params.encodings[0].max_bitrate_bps = 10'000'000;
+-    ASSERT_TRUE(
+-        callee_transceiver->sender()->SetParameters(callee_params).ok());
+-  } else {
+-    RTC_LOG(LS_WARNING) << "Callee encodings is empty after negotiation!";
+-  }
+-
+   // Test that 1s after offer/answer exchange finish, we have a BWE estimate,
+   // even though no video frames have been sent.
+   s.ProcessMessages(TimeDelta::Seconds(2));
+diff --git a/test/scenario/video_stream_unittest.cc b/test/scenario/video_stream_unittest.cc
+index c1fcd4da1c..c9791bf8fc 100644
+--- a/test/scenario/video_stream_unittest.cc
++++ b/test/scenario/video_stream_unittest.cc
+@@ -281,7 +281,7 @@ TEST(VideoStreamTest, SuspendsBelowMinBitrate) {
+     // Min transmit rate needs to be lower than kMinVideoBitrate for this test
+     // to make sense.
+     c->transport.rates.min_rate = kMinVideoBitrate / 2;
+-    c->transport.rates.start_rate = kMinVideoBitrate * 2;
++    c->transport.rates.start_rate = kMinVideoBitrate;
+     c->transport.rates.max_rate = kMinVideoBitrate * 2;
+   });
+   auto send_net = s.CreateMutableSimulationNode(
+diff --git a/video/video_send_stream_impl.cc b/video/video_send_stream_impl.cc
+index 301939f4eb..ad9130bb1d 100644
+--- a/video/video_send_stream_impl.cc
++++ b/video/video_send_stream_impl.cc
+@@ -236,50 +236,32 @@ int GetEncoderPriorityBitrate(std::string codec_name,
+   return priority_bitrate;
+ }
+ 
+-DataRate GetDefaultMinVideoBitrate(VideoCodecType codec_type) {
+-  if (codec_type == VideoCodecType::kVideoCodecAV1) {
+-    return DataRate::BitsPerSec(kMinDefaultAv1BitrateBps);
+-  }
+-  return DataRate::BitsPerSec(kDefaultMinVideoBitrateBps);
+-}
+-
+-std::optional<DataRate> GetConfiguredMaxVideoBitrate(
+-    const VideoEncoderConfig& config) {
+-  // If spatial layers are configured, the sum of their bitrate takes precedence
+-  // over both simulcast and the global max_bitrate_bps.
+-  if (!config.spatial_layers.empty()) {
+-    std::optional<DataRate> spatial_layer_max_bitrate_sum;
+-    for (const auto& layer : config.spatial_layers) {
+-      if (layer.active && layer.maxBitrate > 0) {
+-        spatial_layer_max_bitrate_sum =
+-            spatial_layer_max_bitrate_sum.value_or(DataRate::Zero()) +
+-            DataRate::KilobitsPerSec(layer.maxBitrate);
+-      }
+-    }
+-    return spatial_layer_max_bitrate_sum;
+-  }
+-
+-  // If simulcast layers are configured, the sum of their bitrate takes
+-  // precedence over the global max_bitrate_bps.
+-  if (!config.simulcast_layers.empty()) {
+-    std::optional<DataRate> simulcast_layer_max_bitrate_sum;
+-    for (const auto& stream : config.simulcast_layers) {
+-      if (stream.active && stream.max_bitrate_bps > 0) {
+-        simulcast_layer_max_bitrate_sum =
+-            simulcast_layer_max_bitrate_sum.value_or(DataRate::Zero()) +
+-            DataRate::BitsPerSec(stream.max_bitrate_bps);
+-      }
+-    }
+-    return simulcast_layer_max_bitrate_sum;
++uint32_t GetInitialEncoderMaxBitrate(int initial_encoder_max_bitrate) {
++  if (initial_encoder_max_bitrate > 0)
++    return dchecked_cast<uint32_t>(initial_encoder_max_bitrate);
 +
-+  // Create duplicate fingerprints chain
-+  auto issuer_stats = std::make_unique<SSLCertificateStats>(
-+      "same_fingerprint", "sha-1", "cert_issuer", nullptr);
-+  auto cert_stats = std::make_unique<SSLCertificateStats>(
-+      "same_fingerprint", "sha-1", "cert_leaf", std::move(issuer_stats));
-+
-+  // This should not crash (Use-After-Free)
-+  stats->AddCertificateReportsForTest(std::move(cert_stats));
++  // TODO(srte): Make sure max bitrate is not set to negative values. We don't
++  // have any way to handle unset values in downstream code, such as the
++  // bitrate allocator. Previously -1 was implicitly casted to UINT32_MAX, a
++  // behaviour that is not safe. Converting to 10 Mbps should be safe for
++  // reasonable use cases as it allows adding the max of multiple streams
++  // without wrappping around.
++  const int kFallbackMaxBitrateBps = 10000000;
++  // Don't log an error for -1 since this is the default value that is used to
++  // signal that the max bitrate is unset.
++  if (initial_encoder_max_bitrate != -1) {
++    RTC_DLOG(LS_ERROR) << "ERROR: Initial encoder max bitrate = "
++                       << initial_encoder_max_bitrate << " which is <= 0!";
+   }
++  RTC_DLOG(LS_INFO) << "Using default encoder max bitrate = 10 Mbps";
++  return kFallbackMaxBitrateBps;
 +}
-+
- // This test verifies that all certificates without chains are correctly
- // reported.
- TEST_F(LegacyStatsCollectorTest, ChainlessCertificateReportsCreated) {
+ 
+-  // If single stream, use the global max_bitrate_bps.
+-  if (config.max_bitrate_bps > 0) {
+-    return DataRate::BitsPerSec(config.max_bitrate_bps);
++int GetDefaultMinVideoBitrateBps(VideoCodecType codec_type) {
++  if (codec_type == VideoCodecType::kVideoCodecAV1) {
++    return kMinDefaultAv1BitrateBps;
+   }
+-
+-  // No max bitrate specified.
+-  return std::nullopt;
++  return kDefaultMinVideoBitrateBps;
+ }
+ 
+ size_t CalculateMaxHeaderSize(const RtpConfig& config) {
+@@ -473,9 +455,10 @@ VideoSendStreamImpl::VideoSendStreamImpl(
+       has_active_encodings_(HasActiveEncodings(encoder_config)),
+       disable_padding_(true),
+       max_padding_bitrate_(0),
+-      encoder_min_bitrate_(DataRate::Zero()),
+-      encoder_max_bitrate_(GetConfiguredMaxVideoBitrate(encoder_config)),
+-      encoder_target_rate_(DataRate::Zero()),
++      encoder_min_bitrate_bps_(0),
++      encoder_max_bitrate_bps_(
++          GetInitialEncoderMaxBitrate(encoder_config.max_bitrate_bps)),
++      encoder_target_rate_bps_(0),
+       encoder_bitrate_priority_(encoder_config.bitrate_priority),
+       encoder_av1_priority_bitrate_override_bps_(
+           GetEncoderPriorityBitrate(config_.rtp.payload_name,
+@@ -489,6 +472,7 @@ VideoSendStreamImpl::VideoSendStreamImpl(
+   RTC_DCHECK_LE(config_.rtp.payload_type, 127);
+   RTC_DCHECK(!config_.rtp.ssrcs.empty());
+   RTC_DCHECK(transport_);
++  RTC_DCHECK_NE(encoder_max_bitrate_bps_, 0);
+   RTC_LOG(LS_INFO) << "VideoSendStreamImpl: " << config_.ToString();
+ 
+   RTC_CHECK(
+@@ -735,7 +719,7 @@ void VideoSendStreamImpl::SignalEncoderTimedOut() {
+   // If the encoder has not produced anything the last kEncoderTimeOut and it
+   // is supposed to, deregister as BitrateAllocatorObserver. This can happen
+   // if a camera stops producing frames.
+-  if (!encoder_target_rate_.IsZero()) {
++  if (encoder_target_rate_bps_ > 0) {
+     RTC_LOG(LS_INFO) << "SignalEncoderTimedOut, Encoder timed out.";
+     bitrate_allocator_->RemoveObserver(this);
+   }
+@@ -747,7 +731,7 @@ void VideoSendStreamImpl::OnBitrateAllocationUpdated(
+   // the worker_queue_.
+   auto task = [this, allocation] {
+     RTC_DCHECK_RUN_ON(&thread_checker_);
+-    if (encoder_target_rate_.IsZero()) {
++    if (encoder_target_rate_bps_ == 0) {
+       return;
+     }
+     int64_t now_ms = env_.clock().TimeInMilliseconds();
+@@ -807,9 +791,8 @@ void VideoSendStreamImpl::SignalEncoderActive() {
+ 
+ MediaStreamAllocationConfig VideoSendStreamImpl::GetAllocationConfig() const {
+   return MediaStreamAllocationConfig{
+-      .min_bitrate_bps = encoder_min_bitrate_.bps<uint32_t>(),
+-      .max_bitrate_bps =
+-          encoder_max_bitrate_.value_or(DataRate::Zero()).bps<uint32_t>(),
++      .min_bitrate_bps = static_cast<uint32_t>(encoder_min_bitrate_bps_),
++      .max_bitrate_bps = encoder_max_bitrate_bps_,
+       .pad_up_bitrate_bps =
+           static_cast<uint32_t>(disable_padding_ ? 0 : max_padding_bitrate_),
+       .priority_bitrate_bps = encoder_av1_priority_bitrate_override_bps_,
+@@ -839,23 +822,17 @@ void VideoSendStreamImpl::OnEncoderConfigurationChanged(
+ 
+     const std::optional<DataRate> experimental_min_bitrate =
+         GetExperimentalMinVideoBitrate(env_.field_trials(), codec_type);
+-    if (experimental_min_bitrate.has_value()) {
+-      encoder_min_bitrate_ = *experimental_min_bitrate;
+-    } else {
+-      DataRate min_bitrate =
+-          streams[0].min_bitrate_bps > 0
+-              ? DataRate::BitsPerSec(streams[0].min_bitrate_bps)
+-              : DataRate::Zero();
+-      encoder_min_bitrate_ =
+-          std::max(min_bitrate, GetDefaultMinVideoBitrate(codec_type));
+-    }
++    encoder_min_bitrate_bps_ =
++        experimental_min_bitrate
++            ? experimental_min_bitrate->bps()
++            : std::max(streams[0].min_bitrate_bps,
++                       GetDefaultMinVideoBitrateBps(codec_type));
+     double stream_bitrate_priority_sum = 0;
+-    std::optional<DataRate> max_bitrate_sum;
++    uint32_t encoder_max_bitrate_bps = 0;
+     for (const auto& stream : streams) {
+       // We don't want to allocate more bitrate than needed to inactive streams.
+-      if (stream.active && stream.max_bitrate_bps > 0) {
+-        max_bitrate_sum = max_bitrate_sum.value_or(DataRate::Zero()) +
+-                          DataRate::BitsPerSec(stream.max_bitrate_bps);
++      if (stream.active) {
++        encoder_max_bitrate_bps += stream.max_bitrate_bps;
+       }
+       if (stream.bitrate_priority) {
+         RTC_DCHECK_GT(*stream.bitrate_priority, 0);
+@@ -864,8 +841,10 @@ void VideoSendStreamImpl::OnEncoderConfigurationChanged(
+     }
+     RTC_DCHECK_GT(stream_bitrate_priority_sum, 0);
+     encoder_bitrate_priority_ = stream_bitrate_priority_sum;
+-    if (max_bitrate_sum.has_value()) {
+-      encoder_max_bitrate_ = std::max(encoder_min_bitrate_, *max_bitrate_sum);
++    if (encoder_max_bitrate_bps > 0) {
++      encoder_max_bitrate_bps_ =
++          std::max(static_cast<uint32_t>(encoder_min_bitrate_bps_),
++                   encoder_max_bitrate_bps);
+     }
+ 
+     // TODO(bugs.webrtc.org/10266): Query the VideoBitrateAllocator instead.
+@@ -952,25 +931,24 @@ uint32_t VideoSendStreamImpl::OnBitrateUpdated(BitrateAllocationUpdate update) {
+       << "VideoSendStream::Start has not been called.";
+ 
+   rtp_video_sender_->OnBitrateUpdated(update, stats_proxy_.GetSendFrameRate());
+-  encoder_target_rate_ =
+-      DataRate::BitsPerSec(rtp_video_sender_->GetPayloadBitrateBps());
+-  const DataRate protection_bitrate =
+-      DataRate::BitsPerSec(rtp_video_sender_->GetProtectionBitrateBps());
++  encoder_target_rate_bps_ = rtp_video_sender_->GetPayloadBitrateBps();
++  const uint32_t protection_bitrate_bps =
++      rtp_video_sender_->GetProtectionBitrateBps();
+   DataRate link_allocation = DataRate::Zero();
+-  if (encoder_target_rate_ > protection_bitrate) {
+-    link_allocation = encoder_target_rate_ - protection_bitrate;
+-  }
+-  if (encoder_max_bitrate_.has_value()) {
+-    encoder_target_rate_ =
+-        std::min(*encoder_max_bitrate_, encoder_target_rate_);
++  if (encoder_target_rate_bps_ > protection_bitrate_bps) {
++    link_allocation =
++        DataRate::BitsPerSec(encoder_target_rate_bps_ - protection_bitrate_bps);
+   }
+-  link_allocation = std::max(encoder_target_rate_, link_allocation);
++  encoder_target_rate_bps_ =
++      std::min(encoder_max_bitrate_bps_, encoder_target_rate_bps_);
++  DataRate encoder_target_rate = DataRate::BitsPerSec(encoder_target_rate_bps_);
++  link_allocation = std::max(encoder_target_rate, link_allocation);
+   video_stream_encoder_->OnBitrateUpdated(
+-      encoder_target_rate_, link_allocation,
++      encoder_target_rate, link_allocation,
+       dchecked_cast<uint8_t>(update.packet_loss_ratio * 256),
+       update.round_trip_time.ms(), update.cwnd_reduce_ratio);
+-  stats_proxy_.OnSetEncoderTargetRate(encoder_target_rate_.bps());
+-  return protection_bitrate.bps();
++  stats_proxy_.OnSetEncoderTargetRate(encoder_target_rate_bps_);
++  return protection_bitrate_bps;
+ }
+ 
+ std::optional<DataRate> VideoSendStreamImpl::GetUsedRate() const {
+diff --git a/video/video_send_stream_impl.h b/video/video_send_stream_impl.h
+index 3f2f8e02bd..88845a1969 100644
+--- a/video/video_send_stream_impl.h
++++ b/video/video_send_stream_impl.h
+@@ -239,9 +239,9 @@ class VideoSendStreamImpl : public webrtc::VideoSendStream,
+   bool has_active_encodings_ RTC_GUARDED_BY(thread_checker_);
+   bool disable_padding_ RTC_GUARDED_BY(thread_checker_);
+   int max_padding_bitrate_ RTC_GUARDED_BY(thread_checker_);
+-  DataRate encoder_min_bitrate_ RTC_GUARDED_BY(thread_checker_);
+-  std::optional<DataRate> encoder_max_bitrate_ RTC_GUARDED_BY(thread_checker_);
+-  DataRate encoder_target_rate_ RTC_GUARDED_BY(thread_checker_);
++  int encoder_min_bitrate_bps_ RTC_GUARDED_BY(thread_checker_);
++  uint32_t encoder_max_bitrate_bps_ RTC_GUARDED_BY(thread_checker_);
++  uint32_t encoder_target_rate_bps_ RTC_GUARDED_BY(thread_checker_);
+   double encoder_bitrate_priority_ RTC_GUARDED_BY(thread_checker_);
+   const int encoder_av1_priority_bitrate_override_bps_
+       RTC_GUARDED_BY(thread_checker_);
+diff --git a/video/video_send_stream_impl_unittest.cc b/video/video_send_stream_impl_unittest.cc
+index 8a8e35e4bc..4bead83d26 100644
+--- a/video/video_send_stream_impl_unittest.cc
++++ b/video/video_send_stream_impl_unittest.cc
+@@ -183,8 +183,6 @@ class VideoSendStreamImplTest : public ::testing::Test {
+     encoder_config.simulcast_layers.push_back(VideoStream());
+     encoder_config.simulcast_layers.back().active = true;
+     encoder_config.simulcast_layers.back().bitrate_priority = 1.0;
+-    encoder_config.simulcast_layers.back().width = 640;
+-    encoder_config.simulcast_layers.back().height = 360;
+     return encoder_config;
+   }
+ 
+@@ -293,7 +291,7 @@ TEST_F(VideoSendStreamImplTest,
+        MaxBitrateCorrectIfActiveEncodingUpdatedAfterCreation) {
+   VideoEncoderConfig one_active_encoding = TestVideoEncoderConfig();
+   ASSERT_THAT(one_active_encoding.simulcast_layers, SizeIs(1));
+-  one_active_encoding.max_bitrate_bps = 2'500'000;
++  one_active_encoding.max_bitrate_bps = 10'000'000;
+   one_active_encoding.simulcast_layers[0].max_bitrate_bps = 2'000'000;
+   VideoEncoderConfig no_active_encodings = one_active_encoding.Copy();
+   no_active_encodings.simulcast_layers[0].active = false;
+@@ -309,12 +307,12 @@ TEST_F(VideoSendStreamImplTest,
+   time_controller_.AdvanceTime(TimeDelta::Zero());
+ 
+   Sequence s;
+-  // Expect zero max bitrate before the encoder has notified about the actual
+-  // send streams.
+-  EXPECT_CALL(
+-      bitrate_allocator_,
+-      AddObserver(vss_impl.get(),
+-                  Field(&MediaStreamAllocationConfig::max_bitrate_bps, Eq(0))))
++  // Expect codec max bitrate as max needed bitrate before the encoder has
++  // notifed about the actual send streams.
++  EXPECT_CALL(bitrate_allocator_,
++              AddObserver(vss_impl.get(),
++                          Field(&MediaStreamAllocationConfig::max_bitrate_bps,
++                                Eq(one_active_encoding.max_bitrate_bps))))
+       .InSequence(s);
+ 
+   // Expect the sum of active encodings as max needed bitrate after
