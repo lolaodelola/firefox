@@ -6,14 +6,9 @@
 const NET_ERROR_PAGE = "https://does-not-exist.test";
 const BAD_CERT = "https://expired.example.com/";
 
-async function getLoadEvents() {
+async function getGleanEvents(metric) {
   await Services.fog.testFlushAllChildren();
-  return Glean.securityUiNeterror.loadAboutneterror.testGetValue();
-}
-
-async function getCertErrorLoadEvents() {
-  await Services.fog.testFlushAllChildren();
-  return Glean.securityUiCerterror.loadAboutcerterror.testGetValue();
+  return metric.testGetValue();
 }
 
 // -- Felt Privacy path (default) --
@@ -35,7 +30,7 @@ add_task(async function test_feltprivacy_neterror_load() {
   await pageLoaded;
 
   let events = await TestUtils.waitForCondition(
-    getLoadEvents,
+    () => getGleanEvents(Glean.securityUiNeterror.loadAboutneterror),
     "Waiting for load_aboutneterror Glean event"
   );
 
@@ -57,7 +52,7 @@ add_task(async function test_feltprivacy_neterror_load_iframe() {
   let tab = await openErrorPage(NET_ERROR_PAGE, true);
 
   let events = await TestUtils.waitForCondition(
-    getLoadEvents,
+    () => getGleanEvents(Glean.securityUiNeterror.loadAboutneterror),
     "Waiting for load_aboutneterror Glean event in iframe"
   );
 
@@ -76,7 +71,7 @@ add_task(async function test_feltprivacy_certerror_no_neterror() {
   // Wait for the cert error telemetry to confirm the page fully loaded
   // and telemetry was processed, then verify no neterror event fired.
   await TestUtils.waitForCondition(
-    getCertErrorLoadEvents,
+    () => getGleanEvents(Glean.securityUiCerterror.loadAboutcerterror),
     "Waiting for cert error load event to confirm page loaded"
   );
 
@@ -108,7 +103,7 @@ add_task(async function test_legacy_neterror_load() {
   await pageLoaded;
 
   let events = await TestUtils.waitForCondition(
-    getLoadEvents,
+    () => getGleanEvents(Glean.securityUiNeterror.loadAboutneterror),
     "Waiting for load_aboutneterror Glean event (legacy path)"
   );
 
@@ -136,7 +131,7 @@ add_task(async function test_legacy_certerror_no_neterror() {
   // Wait for the cert error telemetry to confirm the page fully loaded
   // and telemetry was processed, then verify no neterror event fired.
   await TestUtils.waitForCondition(
-    getCertErrorLoadEvents,
+    () => getGleanEvents(Glean.securityUiCerterror.loadAboutcerterror),
     "Waiting for cert error load event to confirm page loaded (legacy)"
   );
 
@@ -145,4 +140,102 @@ add_task(async function test_legacy_certerror_no_neterror() {
 
   BrowserTestUtils.removeTab(tab);
   await SpecialPowers.popPrefEnv();
+});
+
+// -- TRR-only mode (DoH warning page telemetry) --
+
+function assertDohEventExtras(event, label) {
+  Assert.equal(event.extra.value, "TRROnlyFailure", `${label}: value`);
+  Assert.equal(event.extra.mode, "3", `${label}: mode`);
+  Assert.equal(
+    event.extra.provider_key,
+    "mozilla.cloudflare-dns.com",
+    `${label}: provider_key`
+  );
+  Assert.equal(
+    event.extra.skip_reason,
+    "TRR_UNKNOWN_CHANNEL_FAILURE",
+    `${label}: skip_reason`
+  );
+}
+
+// Test: DoH warning page telemetry for load and button clicks in TRR-only mode
+add_task(async function test_trr_only_telemetry() {
+  Services.fog.testResetFOG();
+
+  let browser = await loadTRRErrorPage();
+
+  let loadEvents = await TestUtils.waitForCondition(
+    () => getGleanEvents(Glean.securityDohNeterror.loadDohwarning),
+    "Waiting for DoH neterror load Glean event"
+  );
+  Assert.equal(loadEvents.length, 1, "Exactly one DoH load event");
+  assertDohEventExtras(loadEvents[0], "load event");
+
+  let tabOpenPromise = BrowserTestUtils.waitForNewTab(
+    gBrowser,
+    "about:preferences#privacy-doh"
+  );
+
+  await SpecialPowers.spawn(browser, [], async function () {
+    const doc = content.document;
+
+    const netErrorCard = await ContentTaskUtils.waitForCondition(
+      () => doc.querySelector("net-error-card")?.wrappedJSObject
+    );
+    if (netErrorCard) {
+      await netErrorCard.getUpdateComplete();
+      const trrSettingsButton = await ContentTaskUtils.waitForCondition(
+        () => netErrorCard.shadowRoot.getElementById("trrSettingsButton"),
+        "Waiting for trrSettingsButton"
+      );
+      trrSettingsButton.click();
+
+      const tryAgainButton = await ContentTaskUtils.waitForCondition(
+        () => netErrorCard.tryAgainButton,
+        "Waiting for tryAgainButton"
+      );
+      tryAgainButton.click();
+    } else {
+      let buttons = ["neterrorTryAgainButton", "trrSettingsButton"];
+      for (let buttonId of buttons) {
+        let button = await ContentTaskUtils.waitForCondition(
+          () => doc.getElementById(buttonId),
+          `Waiting for button ${buttonId}`
+        );
+        button.click();
+      }
+    }
+  }).catch(e => {
+    if (!e.message.includes("Actor 'SpecialPowers' destroyed")) {
+      throw e;
+    }
+  });
+  await tabOpenPromise;
+
+  await BrowserTestUtils.waitForErrorPage(browser);
+
+  Assert.equal(
+    gBrowser.tabs.length,
+    3,
+    "Should open about:preferences#privacy-doh in another tab"
+  );
+
+  let settingsEvents = await TestUtils.waitForCondition(
+    () => getGleanEvents(Glean.securityDohNeterror.clickSettingsButton),
+    "Waiting for DoH settings click Glean event"
+  );
+  Assert.equal(settingsEvents.length, 1, "Exactly one settings click event");
+  assertDohEventExtras(settingsEvents[0], "settings click event");
+
+  let tryAgainEvents = await TestUtils.waitForCondition(
+    () => getGleanEvents(Glean.securityDohNeterror.clickTryAgainButton),
+    "Waiting for DoH try-again click Glean event"
+  );
+  Assert.equal(tryAgainEvents.length, 1, "Exactly one try-again click event");
+  assertDohEventExtras(tryAgainEvents[0], "try-again click event");
+
+  BrowserTestUtils.removeTab(gBrowser.tabs[2]);
+  BrowserTestUtils.removeTab(gBrowser.tabs[1]);
+  resetTRRPrefs();
 });
