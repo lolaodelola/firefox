@@ -411,6 +411,13 @@ macosx1500-aarch64/debug:
         - macosx1500-aarch64-tests
         - macosx1500-64-jittests
 
+macosx1500-aarch64/opt:
+    build-platform: macosx64-aarch64/opt
+    build-signing-label: repackage-macosx64-aarch64/opt
+    test-sets:
+        - macosx1500-aarch64-tests
+
+
 macosx1500-aarch64-shippable/opt:
     build-platform: macosx64-shippable/opt
     build-signing-label: repackage-macosx64-shippable/opt
@@ -418,6 +425,8 @@ macosx1500-aarch64-shippable/opt:
         - macosx1500-64-jittests
         - macosx1500-64-tests
         - macosx1500-64-perftests
+        - macosx1500-aarch64-tests
+        - web-platform-tests-backlog
 
 macosx1470-64-nightlyasrelease/opt:
     build-platform: macosx64-nightlyasrelease/opt
