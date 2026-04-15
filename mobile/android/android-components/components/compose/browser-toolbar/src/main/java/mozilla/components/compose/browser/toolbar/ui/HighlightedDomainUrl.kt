@@ -205,18 +205,21 @@ internal fun computeDomainEndScrollValue(
     highlightRange: Pair<Int, Int>?,
     scrollState: ScrollState,
     textLayoutResult: TextLayoutResult,
-): Int {
-    val endOffset = when (highlightRange?.second == text.length) {
-        true -> scrollState.maxValue
-        else -> {
-            val index = (highlightRange?.second?.plus(END_SCROLL_OFFSET) ?: 0)
-                .coerceAtMost(text.lastIndex)
-            val offset = textLayoutResult.getBoundingBox(index)
-            // Ensure the end of [highlightRange] is shown to the end of the viewport.
-            (offset.right - scrollState.viewportSize).toInt().coerceIn(0, scrollState.maxValue)
-        }
+): Int = when (highlightRange?.second == text.length) {
+    true -> scrollState.maxValue
+    else -> {
+        val startIndex = highlightRange?.first ?: 0
+
+        val endIndex = (highlightRange?.second?.plus(END_SCROLL_OFFSET) ?: 0)
+            .coerceAtMost(text.length)
+
+        // Compute the exact visual boundaries of the domain.
+        val path = textLayoutResult.getPathForRange(startIndex, endIndex)
+        val maxRightEdge = path.getBounds().right
+
+        // Ensure the furthest visual right edge is shown in the viewport.
+        (maxRightEdge - scrollState.viewportSize).toInt().coerceIn(0, scrollState.maxValue)
     }
-    return endOffset
 }
 
 @VisibleForTesting

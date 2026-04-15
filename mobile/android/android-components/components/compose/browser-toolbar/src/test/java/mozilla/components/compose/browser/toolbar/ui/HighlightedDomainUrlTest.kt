@@ -8,6 +8,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import mozilla.components.support.test.mock
@@ -38,7 +39,7 @@ class HighlightedDomainUrlTest {
 
     @Before
     fun setup() {
-        textLayoutResult.stubBoundingBoxForLastDomainChar()
+        textLayoutResult.stubBoundingBoxForText()
     }
 
     @Test
@@ -145,16 +146,21 @@ class HighlightedDomainUrlTest {
         computeDomainEndScrollValue(text, highlightRange, scrollState, textLayoutResult)
 
     /**
-     * Configure the absolute X coordinates of where a particular character would be shown on the screen.
+     * Configure the visual bounds for a range of characters shown on the screen.
      */
-    private fun TextLayoutResult.stubBoundingBoxForLastDomainChar() {
+    private fun TextLayoutResult.stubBoundingBoxForText() {
         doAnswer { invocation ->
-            val index = invocation.getArgument<Int>(0)
-            val indexRightCoord = index * charWidth
-            val indexLeftCoord = index - charWidth
+            val start = invocation.getArgument<Int>(0)
+            val end = invocation.getArgument<Int>(1)
+            val leftCoord = start * charWidth
+            val rightCoord = end * charWidth
 
-            Rect(left = indexLeftCoord, top = 0f, right = indexRightCoord, bottom = 100f)
-        }.`when`(this).getBoundingBox(anyInt())
+            val textDrawingPath: Path = mock()
+            doReturn(Rect(left = leftCoord, top = 0f, right = rightCoord, bottom = 100f))
+                .`when`(textDrawingPath).getBounds()
+
+            textDrawingPath
+        }.`when`(this).getPathForRange(anyInt(), anyInt())
     }
 
     /**
