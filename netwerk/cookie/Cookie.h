@@ -34,7 +34,7 @@ class Cookie final : public nsICookie {
 
  public:
   // nsISupports
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSICOOKIE
 
   static Cookie* Cast(nsICookie* aCookie) {

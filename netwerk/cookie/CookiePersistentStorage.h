@@ -5,6 +5,7 @@
 #ifndef mozilla_net_CookiePersistentStorage_h
 #define mozilla_net_CookiePersistentStorage_h
 
+#include "Cookie.h"
 #include "CookieStorage.h"
 
 #include "mozilla/Atomics.h"
@@ -135,7 +136,7 @@ class CookiePersistentStorage final : public CookieStorage,
   struct CookieDomainTuple {
     CookieKey key;
     OriginAttributes originAttributes;
-    UniquePtr<CookieStruct> cookie;
+    RefPtr<Cookie> cookie;
   };
 
   // thread

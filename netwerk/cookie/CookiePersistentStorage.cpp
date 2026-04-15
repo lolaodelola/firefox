@@ -1983,6 +1983,8 @@ CookiePersistentStorage::OpenDBResult CookiePersistentStorage::Read() {
     // that we don't support
     (void)attrs.PopulateFromSuffix(suffix);
 
+    UniquePtr<CookieStruct> cookieStruct = GetCookieFromRow(stmt);
+
     // Filter cookies with newly invalid hostnames (e.g. legacy DB values that
     // no longer pass URL parsing).
     nsCOMPtr<nsIURI> validatedUri;
@@ -1997,14 +1999,31 @@ CookiePersistentStorage::OpenDBResult CookiePersistentStorage::Read() {
       CookieDomainTuple* cleanupTuple = mCleanupArray.AppendElement();
       cleanupTuple->key = CookieKey(baseDomain, attrs);
       cleanupTuple->originAttributes = attrs;
-      cleanupTuple->cookie = GetCookieFromRow(stmt);
+      cleanupTuple->cookie = Cookie::Create(*cookieStruct, attrs);
       continue;
     }
 
+    // Create the Cookie on the background thread. CreateValidated fixes up
+    // any timestamps in the DB that are far in the future.
+    RefPtr<Cookie> cookie = Cookie::CreateValidated(*cookieStruct, attrs);
+
+    // Clean up invalid first-party partitioned cookies without the
+    // 'Partitioned' attribute. Use Cookie::Create to preserve the original DB
+    // timestamps for the deletion query.
+    if (CookieCommons::IsFirstPartyPartitionedCookieWithoutCHIPS(
+            cookie, baseDomain, attrs)) {
+      CookieDomainTuple* cleanupTuple = mCleanupArray.AppendElement();
+      cleanupTuple->key = CookieKey(baseDomain, attrs);
+      cleanupTuple->originAttributes = attrs;
+      cleanupTuple->cookie = Cookie::Create(*cookieStruct, attrs);
+      continue;
+    }
+
+    MOZ_ASSERT(!cookie->IsSession());
     CookieDomainTuple* tuple = mReadArray.AppendElement();
     tuple->key = CookieKey(baseDomain, attrs);
     tuple->originAttributes = attrs;
-    tuple->cookie = GetCookieFromRow(stmt);
+    tuple->cookie = std::move(cookie);
   }
 
   COOKIE_LOGSTRING(LogLevel::Debug,
@@ -2112,50 +2131,24 @@ void CookiePersistentStorage::InitDBConn() {
     return;
   }
 
+  // Cookies rejected during Read() on the Cookie thread (invalid hostname or
+  // invalid CHIPS attribution) need to be removed from the DB now that the
+  // connection is ready. Cookies are already fully constructed.
   nsTArray<RefPtr<Cookie>> cleanupCookies;
-
-  // Cookies with newly invalid hostnames detected during Read() on the cookie
-  // thread need to be removed from DB now that the connection is ready.
   for (auto& tuple : mCleanupArray) {
     COOKIE_LOGSTRING(LogLevel::Debug,
-                     ("InitDBConn(): Removing cookie from db with "
-                      "newly invalid hostname: '%s'",
-                      tuple.cookie->host().get()));
-    cleanupCookies.AppendElement(
-        Cookie::Create(*tuple.cookie, tuple.originAttributes));
+                     ("InitDBConn(): Removing invalid cookie from db: '%s'",
+                      tuple.cookie->Host().get()));
+    cleanupCookies.AppendElement(tuple.cookie);
   }
   mCleanupArray.Clear();
 
+  // Cookies are already created and validated on the Cookie background thread.
   for (auto& tuple : mReadArray) {
-    MOZ_ASSERT(!tuple.cookie->isSession());
+    MOZ_ASSERT(!tuple.cookie->IsSession());
 
-    // CreateValidated fixes up the creation and lastAccessed times.
-    // If the DB is corrupted and the timestaps are far away in the future
-    // we don't want the creation timestamp to update gLastCreationTimeInUSec
-    // as that would contaminate all the next creation times.
-    // We fix up these dates to not be later than the current time.
-    // The downside is that if the user sets the date far away in the past
-    // then back to the current date, those cookies will be stale,
-    // but if we don't fix their dates, those cookies might never be
-    // evicted.
-    RefPtr<Cookie> cookie =
-        Cookie::CreateValidated(*tuple.cookie, tuple.originAttributes);
-
-    // Clean up the invalid first-party partitioned cookies that don't have
-    // the 'partitioned' cookie attribution. This will also ensure that we don't
-    // read the cookie into memory.
-    if (CookieCommons::IsFirstPartyPartitionedCookieWithoutCHIPS(
-            cookie, tuple.key.mBaseDomain, tuple.key.mOriginAttributes)) {
-      // We cannot directly use the cookie after validation because the
-      // timestamps could be different from the cookies in DB. So, we need to
-      // create one from the cookie struct.
-      RefPtr<Cookie> invalidCookie =
-          Cookie::Create(*tuple.cookie, tuple.originAttributes);
-      cleanupCookies.AppendElement(invalidCookie);
-      continue;
-    }
-
-    AddCookieToList(tuple.key.mBaseDomain, tuple.key.mOriginAttributes, cookie);
+    AddCookieToList(tuple.key.mBaseDomain, tuple.key.mOriginAttributes,
+                    tuple.cookie);
   }
 
   if (NS_FAILED(InitDBConnInternal())) {
