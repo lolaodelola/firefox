@@ -255,7 +255,6 @@ afterEvaluate {
             def projectName = project.getName()
             if (projectName.startsWith('geckoview')
                 || projectName == 'annotations'
-                || projectName == 'exoplayer2'
                 || projectName == 'messaging_example'
                 || projectName == 'port_messaging_example'
                 || projectName == 'test_runner'
@@ -301,7 +300,6 @@ subprojects { project ->
     def projectName = project.getName()
     if (projectName.startsWith('geckoview')
             || projectName == 'annotations'
-            || projectName == 'exoplayer2'
             || projectName == 'messaging_example'
             || projectName == 'port_messaging_example'
             || projectName == 'test_runner'
@@ -338,9 +336,7 @@ subprojects { project ->
     }
 
     afterEvaluate {
-        // Our vendored copy of exoplayer2 hits build failures when targeting Java 17.
-        // Given our intent to remove it in the near future, just leave it alone here.
-        if (it.hasProperty('android') && projectName != 'exoplayer2') {
+        if (it.hasProperty('android')) {
             kotlin {
                 jvmToolchain(config.jvmTargetCompatibility)
             }

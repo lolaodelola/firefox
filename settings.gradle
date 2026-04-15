@@ -46,12 +46,10 @@ System.setProperty('android.home', gradle.mozconfig.substs.ANDROID_SDK_ROOT)
 
 include ':annotations', ':messaging_example', ':port_messaging_example'
 include ':geckoview'
-include ':exoplayer2'
 include ':android-components'
 
 project(':annotations').projectDir = new File("${gradle.mozconfig.topsrcdir}/mobile/android/annotations")
 project(':geckoview').projectDir = new File("${gradle.mozconfig.topsrcdir}/mobile/android/geckoview")
-project(':exoplayer2').projectDir = new File("${gradle.mozconfig.topsrcdir}/mobile/android/exoplayer2")
 project(':android-components').projectDir = new File("${gradle.mozconfig.topsrcdir}/mobile/android/android-components")
 
 if (!gradle.mozconfig.substs.MOZ_ANDROID_SUBPROJECT || gradle.mozconfig.substs.MOZ_ANDROID_SUBPROJECT == "fenix") {
