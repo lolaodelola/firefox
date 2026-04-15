@@ -583,7 +583,9 @@ class HomeFragment : Fragment(), SystemInsetsPaddedFragment {
             messageController = DefaultMessageController(
                 appStore = components.appStore,
                 messagingController = components.nimbus.messaging,
-                homeActivityRef = WeakReference(activity),
+                processIntent = { intent ->
+                    intent?.let { startActivity(it) }
+                },
             ),
             store = store,
             tabCollectionStorage = components.core.tabCollectionStorage,
