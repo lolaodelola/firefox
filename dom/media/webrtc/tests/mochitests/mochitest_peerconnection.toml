@@ -463,8 +463,14 @@ skip-if = [
 ]
 
 ["test_peerConnection_simulcastOddResolution.html"]
+skip-if = [
+  "os == 'android' && arch == 'aarch64' && debug", # Bug 2030403
+]
 
 ["test_peerConnection_simulcastOddResolution_oldSetParameters.html"]
+skip-if = [
+  "os == 'android' && arch == 'aarch64' && debug", # Bug 2030403
+]
 
 ["test_peerConnection_simulcastOffer.html"]
 skip-if = [
@@ -474,8 +480,14 @@ skip-if = [
 ]
 
 ["test_peerConnection_simulcastOffer_lowResFirst.html"]
+skip-if = [
+  "os == 'android' && arch == 'aarch64' && debug", # Bug 2030403
+]
 
 ["test_peerConnection_simulcastOffer_lowResFirst_oldSetParameters.html"]
+skip-if = [
+  "os == 'android' && arch == 'aarch64' && debug", # Bug 2030403
+]
 
 ["test_peerConnection_simulcastOffer_oldSetParameters.html"]
 
