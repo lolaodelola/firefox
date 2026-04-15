@@ -884,7 +884,7 @@
     <fragment
         android:id="@+id/ipProtectionFragment"
         android:name="org.mozilla.fenix.settings.IPProtectionFragment"
-        android:label="@string/preferences_ip_protection_title" />
+        android:label="@string/ip_protection_title" />
     <fragment
         android:id="@+id/aiControlsFragment"
         android:name="org.mozilla.fenix.settings.ai.AIControlsFragment"

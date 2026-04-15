@@ -118,6 +118,12 @@
             android:title="@string/preferences_private_browsing_options" />
 
         <androidx.preference.Preference
+            android:key="@string/pref_key_ip_protection_settings"
+            app:iconSpaceReserved="false"
+            app:isPreferenceVisible="false"
+            android:title="@string/preferences_ip_protection_title_2" />
+
+        <androidx.preference.Preference
             android:key="@string/pref_key_https_only_settings"
             app:iconSpaceReserved="false"
             android:title="@string/preferences_https_only_title" />
@@ -133,12 +139,6 @@
             app:iconSpaceReserved="false"
             app:isPreferenceVisible="false"
             android:title="@string/preferences_cookie_banner_reduction_private_mode" />
-
-        <androidx.preference.Preference
-            android:key="@string/pref_key_ip_protection_settings"
-            app:iconSpaceReserved="false"
-            app:isPreferenceVisible="false"
-            android:title="@string/preferences_ip_protection_title" />
 
         <androidx.preference.Preference
             android:key="@string/pref_key_tracking_protection_settings"

@@ -43,6 +43,6 @@ class IPProtectionFragment : Fragment(), SystemInsetsPaddedFragment {
 
     override fun onResume() {
         super.onResume()
-        showToolbar(getString(R.string.preferences_ip_protection_title))
+        showToolbar(getString(R.string.ip_protection_title))
     }
 }
