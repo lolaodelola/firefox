@@ -234,3 +234,7 @@ uint64_t a11y::GetCacheDomainsForKnownClients(uint64_t aCacheDomains) {
   // caching all domains.
   return CacheDomain::All;
 }
+
+void a11y::GetHumanReadableInstantiatorStr(nsAString& aResult) {
+  aResult.Truncate();
+}

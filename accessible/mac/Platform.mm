@@ -358,6 +358,18 @@ uint64_t GetCacheDomainsForKnownClients(uint64_t aCacheDomains) {
   return aCacheDomains;
 }
 
+void GetHumanReadableInstantiatorStr(nsAString& aResult) {
+  auto [clients, _] = GetClients();
+  nsAutoString result;
+  for (Client client : clients) {
+    if (!result.IsEmpty()) {
+      result.AppendLiteral(",");
+    }
+    result.AppendASCII(GetStringForClient(client));
+  }
+  aResult = result;
+}
+
 }  // namespace a11y
 }  // namespace mozilla
 
