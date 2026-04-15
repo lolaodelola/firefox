@@ -821,10 +821,10 @@ index bad43a5c91..6091e49b7b 100644
      testonly = true
  
 diff --git a/modules/audio_processing/aec3/BUILD.gn b/modules/audio_processing/aec3/BUILD.gn
-index 1f5a2717c9..e5c2bb9714 100644
+index 10b055f4e2..f9a89e8a03 100644
 --- a/modules/audio_processing/aec3/BUILD.gn
 +++ b/modules/audio_processing/aec3/BUILD.gn
-@@ -275,14 +275,11 @@ if (current_cpu == "x86" || current_cpu == "x64") {
+@@ -264,14 +264,11 @@ if (current_cpu == "x86" || current_cpu == "x64") {
        "vector_math_avx2.cc",
      ]
  
@@ -845,7 +845,7 @@ index 1f5a2717c9..e5c2bb9714 100644
      deps = [
        ":adaptive_fir_filter",
 diff --git a/modules/audio_processing/aec3/adaptive_fir_filter_avx2.cc b/modules/audio_processing/aec3/adaptive_fir_filter_avx2.cc
-index f7ba1fda86..121f13e79f 100644
+index f250f84806..46f534dea4 100644
 --- a/modules/audio_processing/aec3/adaptive_fir_filter_avx2.cc
 +++ b/modules/audio_processing/aec3/adaptive_fir_filter_avx2.cc
 @@ -8,7 +8,7 @@
