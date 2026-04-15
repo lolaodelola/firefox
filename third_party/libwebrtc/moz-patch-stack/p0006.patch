@@ -1,482 +1,122 @@
-From: =?UTF-8?q?Erik=20Spr=C3=A5ng?= <sprang@webrtc.org>
-Date: Fri, 13 Mar 2026 10:56:43 +0100
-Subject: (cherry-pick-branch-heads/7727) [M147] Reject frames with
- inconsistent U/V strides.
+From: Tommi <tommi@webrtc.org>
+Date: Mon, 23 Mar 2026 17:29:21 +0100
+Subject: (cherry-pick-branch-heads/7727) [M147] Refactor AddCertificateReports
+ to prevent crash
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-All of openh264, libvpx and libaom seems to have issues with this. For
-now, rejecting frames with this property. This should be seen as a
-temporary workaround to be removed when the implementations have been
-updated to support it.
+When processing certificate stats with duplicate fingerprints,
+ReplaceOrAddNew would delete the existing stats report that was
+previously added and pointed to by first_report or prev_report.
 
-(cherry picked from commit 5460d74631c9df16c9f0d160fb872c9834f8bb59)
+By adding tracking for duplicate fingerprints we can find the existing
+report and avoid replacing it.
 
-Bug: chromium:492213293
-Change-Id: I44e784ed5f70dc514afbecbcd1aa7957c372a238
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456203
-Commit-Queue: Sergey Silkin <ssilkin@webrtc.org>
-Auto-Submit: Erik Språng <sprang@webrtc.org>
-Reviewed-by: Sergey Silkin <ssilkin@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#47152}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/459702
-Commit-Queue: Erik Språng <sprang@webrtc.org>
-Cr-Commit-Position: refs/branch-heads/7727@{#8}
+(cherry picked from commit 731795bab2d89be63e20485407a850173d5d3665)
+
+Bug: chromium:486495143
+Change-Id: Iabc41ae064476c1e5853cdff1dbbcab449f8df27
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/459320
+Reviewed-by: Evan Shrubsole <eshr@webrtc.org>
+Reviewed-by: Henrik Boström <hbos@webrtc.org>
+Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
+Cr-Original-Commit-Position: refs/heads/main@{#47242}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/461160
+Cr-Commit-Position: refs/branch-heads/7727@{#10}
 Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#47086}
 ---
- modules/video_coding/BUILD.gn                 |  1 +
- modules/video_coding/codecs/av1/BUILD.gn      |  2 +
- .../codecs/av1/libaom_av1_encoder.cc          |  7 ++
- .../codecs/av1/libaom_av1_unittest.cc         | 79 +++++++++++++++++++
- .../codecs/h264/h264_encoder_impl_unittest.cc | 42 +++++++++-
- .../codecs/vp8/libvpx_vp8_encoder.cc          | 22 ++++++
- .../codecs/vp8/test/vp8_impl_unittest.cc      | 51 ++++++++++++
- .../codecs/vp9/libvpx_vp9_encoder.cc          | 14 ++++
- .../codecs/vp9/test/vp9_impl_unittest.cc      | 51 ++++++++++++
- 9 files changed, 268 insertions(+), 1 deletion(-)
+ pc/BUILD.gn                           |  1 +
+ pc/legacy_stats_collector.cc          |  6 ++++++
+ pc/legacy_stats_collector.h           |  5 +++++
+ pc/legacy_stats_collector_unittest.cc | 16 ++++++++++++++++
+ 4 files changed, 28 insertions(+)
 
-diff --git a/modules/video_coding/BUILD.gn b/modules/video_coding/BUILD.gn
-index e381e862fe..34ff20e3f5 100644
---- a/modules/video_coding/BUILD.gn
-+++ b/modules/video_coding/BUILD.gn
-@@ -1087,6 +1087,7 @@ if (rtc_include_tests) {
-       "../../api:create_videocodec_test_fixture_api",
-       "../../api:field_trials",
-       "../../api:frame_generator_api",
-+      "../../api:make_ref_counted",
-       "../../api:mock_video_codec_factory",
-       "../../api:mock_video_decoder",
-       "../../api:mock_video_encoder",
-diff --git a/modules/video_coding/codecs/av1/BUILD.gn b/modules/video_coding/codecs/av1/BUILD.gn
-index 1a03a7e365..1e94e36c81 100644
---- a/modules/video_coding/codecs/av1/BUILD.gn
-+++ b/modules/video_coding/codecs/av1/BUILD.gn
-@@ -130,6 +130,8 @@ if (rtc_include_tests) {
-       "../..:video_codec_interface",
-       "../../../../api:array_view",
-       "../../../../api:field_trials",
-+      "../../../../api:make_ref_counted",
-+      "../../../../api:scoped_refptr",
-       "../../../../api/environment",
-       "../../../../api/environment:environment_factory",
-       "../../../../api/transport/rtp:dependency_descriptor",
-diff --git a/modules/video_coding/codecs/av1/libaom_av1_encoder.cc b/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-index 4aa7199715..1079cb8d0a 100644
---- a/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-+++ b/modules/video_coding/codecs/av1/libaom_av1_encoder.cc
-@@ -878,6 +878,13 @@ int32_t LibaomAv1Encoder::Encode(
-                                mapped_buffer->height());
-       auto i420_buffer = mapped_buffer->GetI420();
-       RTC_DCHECK(i420_buffer);
-+
-+      // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
-+      if (i420_buffer->StrideU() != i420_buffer->StrideV()) {
-+        RTC_LOG(LS_ERROR) << "Libaom requires the U and V strides to be equal.";
-+        return WEBRTC_VIDEO_CODEC_ENCODER_FAILURE;
-+      }
-+
-       RTC_CHECK_EQ(i420_buffer->width(), frame_for_encode_->d_w);
-       RTC_CHECK_EQ(i420_buffer->height(), frame_for_encode_->d_h);
-       frame_for_encode_->planes[AOM_PLANE_Y] =
-diff --git a/modules/video_coding/codecs/av1/libaom_av1_unittest.cc b/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-index 58c15f801a..df6f57216e 100644
---- a/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-+++ b/modules/video_coding/codecs/av1/libaom_av1_unittest.cc
-@@ -22,13 +22,18 @@
- #include "api/environment/environment.h"
- #include "api/environment/environment_factory.h"
- #include "api/field_trials.h"
-+#include "api/make_ref_counted.h"
-+#include "api/scoped_refptr.h"
-+#include "api/test/mock_video_encoder.h"
- #include "api/transport/rtp/dependency_descriptor.h"
- #include "api/units/data_rate.h"
- #include "api/units/data_size.h"
- #include "api/units/time_delta.h"
- #include "api/video/encoded_image.h"
-+#include "api/video/i420_buffer.h"
- #include "api/video/video_bitrate_allocation.h"
- #include "api/video/video_frame.h"
-+#include "api/video/video_frame_buffer.h"
- #include "api/video_codecs/scalability_mode.h"
- #include "api/video_codecs/video_codec.h"
- #include "api/video_codecs/video_decoder.h"
-@@ -234,6 +239,80 @@ TEST(LibaomAv1Test, InitReleaseRepeatedly) {
-   }
- }
+diff --git a/pc/BUILD.gn b/pc/BUILD.gn
+index 4315b46bb2..c3e6890ee5 100644
+--- a/pc/BUILD.gn
++++ b/pc/BUILD.gn
+@@ -1439,6 +1439,7 @@ rtc_library("legacy_stats_collector") {
+     "../rtc_base/system:plan_b_only",
+     "../system_wrappers",
+     "//third_party/abseil-cpp/absl/base:nullability",
++    "//third_party/abseil-cpp/absl/container:flat_hash_set",
+     "//third_party/abseil-cpp/absl/functional:any_invocable",
+     "//third_party/abseil-cpp/absl/strings",
+     "//third_party/abseil-cpp/absl/strings:string_view",
+diff --git a/pc/legacy_stats_collector.cc b/pc/legacy_stats_collector.cc
+index f41de1cded..6978f1b06b 100644
+--- a/pc/legacy_stats_collector.cc
++++ b/pc/legacy_stats_collector.cc
+@@ -21,6 +21,7 @@
+ #include <vector>
  
-+TEST(LibaomAv1Test, RejectsNativeFramesWithUnequalChromaStrides) {
-+  const Environment env = CreateEnvironment();
-+  std::unique_ptr<VideoEncoder> encoder = CreateLibaomAv1Encoder(env);
-+  VideoCodec codec_settings = DefaultCodecSettings();
-+  ASSERT_EQ(encoder->InitEncode(&codec_settings, DefaultEncoderSettings()),
-+            WEBRTC_VIDEO_CODEC_OK);
-+
-+  VideoBitrateAllocation allocation;
-+  allocation.SetBitrate(0, 0, 300000);
-+  encoder->SetRates(VideoEncoder::RateControlParameters(
-+      allocation, codec_settings.maxFramerate));
-+
-+  MockEncodedImageCallback callback;
-+  encoder->RegisterEncodeCompleteCallback(&callback);
-+
-+  class FakeNativeBuffer : public VideoFrameBuffer {
-+   public:
-+    FakeNativeBuffer(int width, int height) : width_(width), height_(height) {}
-+    Type type() const override { return Type::kNative; }
-+    int width() const override { return width_; }
-+    int height() const override { return height_; }
-+    scoped_refptr<I420BufferInterface> ToI420() override {
-+      return I420Buffer::Create(width_, height_, width_, (width_ + 1) / 2,
-+                                (width_ + 1) / 2 + 1);
+ #include "absl/base/nullability.h"
++#include "absl/container/flat_hash_set.h"
+ #include "absl/functional/any_invocable.h"
+ #include "absl/strings/str_cat.h"
+ #include "absl/strings/string_view.h"
+@@ -792,8 +793,13 @@ StatsReport* LegacyStatsCollector::AddCertificateReports(
+ 
+   StatsReport* first_report = nullptr;
+   StatsReport* prev_report = nullptr;
++  absl::flat_hash_set<std::string> visited_fingerprints;
+   for (SSLCertificateStats* stats = cert_stats.get(); stats;
+        stats = stats->issuer.get()) {
++    if (!visited_fingerprints.insert(stats->fingerprint).second) {
++      break;
 +    }
 +
-+   private:
-+    int width_;
-+    int height_;
-+  };
-+
-+  auto buffer = make_ref_counted<FakeNativeBuffer>(codec_settings.width,
-+                                                   codec_settings.height);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE,
-+            encoder->Encode(frame, nullptr));
-+}
-+
-+TEST(LibaomAv1Test, RejectsI420FramesWithUnequalChromaStrides) {
-+  const Environment env = CreateEnvironment();
-+  std::unique_ptr<VideoEncoder> encoder = CreateLibaomAv1Encoder(env);
-+  VideoCodec codec_settings = DefaultCodecSettings();
-+  ASSERT_EQ(encoder->InitEncode(&codec_settings, DefaultEncoderSettings()),
-+            WEBRTC_VIDEO_CODEC_OK);
-+
-+  VideoBitrateAllocation allocation;
-+  allocation.SetBitrate(0, 0, 300000);
-+  encoder->SetRates(VideoEncoder::RateControlParameters(
-+      allocation, codec_settings.maxFramerate));
-+
-+  MockEncodedImageCallback callback;
-+  encoder->RegisterEncodeCompleteCallback(&callback);
-+
-+  auto buffer = I420Buffer::Create(
-+      /*width=*/codec_settings.width,
-+      /*height=*/codec_settings.height,
-+      /*stride_y=*/codec_settings.width,
-+      /*stride_u=*/(codec_settings.width + 1) / 2,
-+      /*stride_v=*/(codec_settings.width + 1) / 2 + 1);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE,
-+            encoder->Encode(frame, nullptr));
-+}
-+
- struct LayerId {
-   friend bool operator==(const LayerId& lhs, const LayerId& rhs) {
-     return std::tie(lhs.spatial_id, lhs.temporal_id) ==
-diff --git a/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc b/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
-index e5aade5188..c4f0dad975 100644
---- a/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
-+++ b/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
-@@ -15,12 +15,15 @@
- #include <optional>
+     StatsReport::Id id(StatsReport::NewTypedId(
+         StatsReport::kStatsReportTypeCertificate, stats->fingerprint));
  
- #include "api/environment/environment_factory.h"
-+#include "api/make_ref_counted.h"
-+#include "api/scoped_refptr.h"
- #include "api/test/create_frame_generator.h"
- #include "api/test/frame_generator_interface.h"
- #include "api/test/mock_video_encoder.h"
- #include "api/video/i420_buffer.h"
- #include "api/video/video_codec_type.h"
- #include "api/video/video_frame.h"
-+#include "api/video/video_frame_buffer.h"
- #include "api/video_codecs/video_codec.h"
- #include "api/video_codecs/video_encoder.h"
- #include "modules/video_coding/codecs/h264/include/h264_globals.h"
-@@ -138,7 +141,7 @@ TEST(H264EncoderImplTest, OnFrameDropped) {
-   }
- }
+diff --git a/pc/legacy_stats_collector.h b/pc/legacy_stats_collector.h
+index 25e61edfdd..f36e509664 100644
+--- a/pc/legacy_stats_collector.h
++++ b/pc/legacy_stats_collector.h
+@@ -114,6 +114,11 @@ class LegacyStatsCollector : public LegacyStatsCollectorInterface {
  
--TEST(H264EncoderImplTest, RejectsFramesWithUnequalChromaStrides) {
-+TEST(H264EncoderImplTest, RejectsI420FramesWithUnequalChromaStrides) {
-   H264EncoderImpl encoder(CreateEnvironment(), {});
-   VideoCodec codec_settings;
-   SetDefaultSettings(&codec_settings);
-@@ -163,6 +166,43 @@ TEST(H264EncoderImplTest, RejectsFramesWithUnequalChromaStrides) {
-   EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE, encoder.Encode(frame, nullptr));
- }
+   bool UseStandardBytesStats() const { return use_standard_bytes_stats_; }
  
-+TEST(H264EncoderImplTest, RejectsNativeFramesWithUnequalChromaStrides) {
-+  H264EncoderImpl encoder(CreateEnvironment(), {});
-+  VideoCodec codec_settings;
-+  SetDefaultSettings(&codec_settings);
-+  MockEncodedImageCallback callback;
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder.InitEncode(&codec_settings, kSettings));
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder.RegisterEncodeCompleteCallback(&callback));
-+
-+  class FakeNativeBuffer : public VideoFrameBuffer {
-+   public:
-+    FakeNativeBuffer(int width, int height) : width_(width), height_(height) {}
-+    Type type() const override { return Type::kNative; }
-+    int width() const override { return width_; }
-+    int height() const override { return height_; }
-+    scoped_refptr<I420BufferInterface> ToI420() override {
-+      return I420Buffer::Create(width_, height_, width_, (width_ + 1) / 2,
-+                                (width_ + 1) / 2 + 1);
-+    }
-+
-+   private:
-+    int width_;
-+    int height_;
-+  };
-+
-+  auto buffer = make_ref_counted<FakeNativeBuffer>(codec_settings.width,
-+                                                   codec_settings.height);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE, encoder.Encode(frame, nullptr));
-+}
-+
- }  // anonymous namespace
- 
- }  // namespace webrtc
-diff --git a/modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc b/modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc
-index 3659d4f561..8fb8c972f2 100644
---- a/modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc
-+++ b/modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc
-@@ -1493,6 +1493,13 @@ std::vector<scoped_refptr<VideoFrameBuffer>> LibvpxVp8Encoder::PrepareBuffers(
-                         << " image to I420. Can't encode frame.";
-       return {};
-     }
-+
-+    // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
-+    if (converted_buffer->StrideU() != converted_buffer->StrideV()) {
-+      RTC_LOG(LS_ERROR) << "Libvpx requires the U and V strides to be equal.";
-+      return {};
-+    }
-+
-     RTC_CHECK(converted_buffer->type() == VideoFrameBuffer::Type::kI420 ||
-               converted_buffer->type() == VideoFrameBuffer::Type::kI420A);
- 
-@@ -1564,6 +1571,21 @@ std::vector<scoped_refptr<VideoFrameBuffer>> LibvpxVp8Encoder::PrepareBuffers(
-     SetRawImagePlanes(&raw_images_[i], scaled_buffer.get());
-     prepared_buffers.push_back(scaled_buffer);
-   }
-+
-+  // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
-+  for (const scoped_refptr<VideoFrameBuffer>& prepared_buffer :
-+       prepared_buffers) {
-+    if (prepared_buffer->type() == VideoFrameBuffer::Type::kI420 ||
-+        prepared_buffer->type() == VideoFrameBuffer::Type::kI420A) {
-+      auto i420_buffer = prepared_buffer->GetI420();
-+      RTC_DCHECK(i420_buffer);
-+      if (i420_buffer->StrideU() != i420_buffer->StrideV()) {
-+        RTC_LOG(LS_ERROR) << "Libvpx requires the U and V strides to be equal.";
-+        return {};
-+      }
-+    }
++  StatsReport* AddCertificateReportsForTest(
++      std::unique_ptr<SSLCertificateStats> cert_stats) {
++    return AddCertificateReports(std::move(cert_stats));
 +  }
 +
-   return prepared_buffers;
+  private:
+   // Struct that's populated on the network thread and carries the values to
+   // the signaling thread where the stats are added to the stats reports.
+diff --git a/pc/legacy_stats_collector_unittest.cc b/pc/legacy_stats_collector_unittest.cc
+index 63c33ec177..f03911589b 100644
+--- a/pc/legacy_stats_collector_unittest.cc
++++ b/pc/legacy_stats_collector_unittest.cc
+@@ -57,6 +57,7 @@
+ #include "rtc_base/null_socket_server.h"
+ #include "rtc_base/rtc_certificate.h"
+ #include "rtc_base/socket_address.h"
++#include "rtc_base/ssl_certificate.h"
+ #include "rtc_base/ssl_identity.h"
+ #include "rtc_base/ssl_stream_adapter.h"
+ #include "rtc_base/system/plan_b_only.h"
+@@ -1446,6 +1447,21 @@ TEST_F(LegacyStatsCollectorTest, ChainedCertificateReportsCreated) {
+                          remote_ders);
  }
  
-diff --git a/modules/video_coding/codecs/vp8/test/vp8_impl_unittest.cc b/modules/video_coding/codecs/vp8/test/vp8_impl_unittest.cc
-index 9e0ceb3152..7033b4ecb4 100644
---- a/modules/video_coding/codecs/vp8/test/vp8_impl_unittest.cc
-+++ b/modules/video_coding/codecs/vp8/test/vp8_impl_unittest.cc
-@@ -22,6 +22,7 @@
- #include "absl/memory/memory.h"
- #include "api/environment/environment_factory.h"
- #include "api/field_trials.h"
-+#include "api/make_ref_counted.h"
- #include "api/scoped_refptr.h"
- #include "api/test/create_frame_generator.h"
- #include "api/test/frame_generator_interface.h"
-@@ -30,6 +31,7 @@
- #include "api/units/time_delta.h"
- #include "api/units/timestamp.h"
- #include "api/video/encoded_image.h"
-+#include "api/video/i420_buffer.h"
- #include "api/video/render_resolution.h"
- #include "api/video/video_bitrate_allocation.h"
- #include "api/video/video_codec_constants.h"
-@@ -229,6 +231,55 @@ TEST_F(TestVp8Impl, EncodeFrameAndRelease) {
-             encoder_->Encode(NextInputFrame(), nullptr));
- }
- 
-+TEST_F(TestVp8Impl, RejectsI420FramesWithUnequalChromaStrides) {
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder_->InitEncode(&codec_settings_, kSettings));
++TEST_F(LegacyStatsCollectorTest,
++       AddCertificateReports_DuplicateFingerprintDoesNotCrash) {
++  auto pc = CreatePeerConnection();
++  auto stats = CreateStatsCollector(pc.get());
 +
-+  auto buffer = I420Buffer::Create(
-+      /*width=*/kWidth,
-+      /*height=*/kHeight,
-+      /*stride_y=*/kWidth,
-+      /*stride_u=*/(kWidth + 1) / 2,
-+      /*stride_v=*/(kWidth + 1) / 2 + 1);
++  // Create duplicate fingerprints chain
++  auto issuer_stats = std::make_unique<SSLCertificateStats>(
++      "same_fingerprint", "sha-1", "cert_issuer", nullptr);
++  auto cert_stats = std::make_unique<SSLCertificateStats>(
++      "same_fingerprint", "sha-1", "cert_leaf", std::move(issuer_stats));
 +
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ERROR, encoder_->Encode(frame, nullptr));
++  // This should not crash (Use-After-Free)
++  stats->AddCertificateReportsForTest(std::move(cert_stats));
 +}
 +
-+TEST_F(TestVp8Impl, RejectsNativeFramesWithUnequalChromaStrides) {
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder_->InitEncode(&codec_settings_, kSettings));
-+
-+  class FakeNativeBuffer : public VideoFrameBuffer {
-+   public:
-+    FakeNativeBuffer(int width, int height) : width_(width), height_(height) {}
-+    Type type() const override { return Type::kNative; }
-+    int width() const override { return width_; }
-+    int height() const override { return height_; }
-+    scoped_refptr<I420BufferInterface> ToI420() override {
-+      return I420Buffer::Create(width_, height_, width_, (width_ + 1) / 2,
-+                                (width_ + 1) / 2 + 1);
-+    }
-+
-+   private:
-+    int width_;
-+    int height_;
-+  };
-+
-+  auto buffer = make_ref_counted<FakeNativeBuffer>(kWidth, kHeight);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ERROR, encoder_->Encode(frame, nullptr));
-+}
-+
- TEST_F(TestVp8Impl, EncodeNv12FrameSimulcast) {
-   EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK, encoder_->Release());
-   EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-diff --git a/modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc b/modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc
-index 0d440cda2a..105a6e8215 100644
---- a/modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc
-+++ b/modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc
-@@ -1215,6 +1215,13 @@ int LibvpxVp9Encoder::Encode(const VideoFrame& input_image,
-           i010_buffer = i010_copy.get();
-         }
-       }
-+
-+      // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
-+      if (i010_buffer->StrideU() != i010_buffer->StrideV()) {
-+        RTC_LOG(LS_ERROR) << "Libvpx requires the U and V strides to be equal.";
-+        return WEBRTC_VIDEO_CODEC_ERROR;
-+      }
-+
-       MaybeRewrapRawWithFormat(VPX_IMG_FMT_I42016, i010_buffer->width(),
-                                i010_buffer->height());
-       raw_->planes[VPX_PLANE_Y] = const_cast<uint8_t*>(
-@@ -2159,6 +2166,13 @@ scoped_refptr<VideoFrameBuffer> LibvpxVp9Encoder::PrepareBufferForProfile0(
-                                mapped_buffer->height());
-       const I420BufferInterface* i420_buffer = mapped_buffer->GetI420();
-       RTC_DCHECK(i420_buffer);
-+
-+      // TODO: crbug.com/492213293 - Remove once the root cause is fixed.
-+      if (i420_buffer->StrideU() != i420_buffer->StrideV()) {
-+        RTC_LOG(LS_ERROR) << "Libvpx requires the U and V strides to be equal.";
-+        return {};
-+      }
-+
-       raw_->planes[VPX_PLANE_Y] = const_cast<uint8_t*>(i420_buffer->DataY());
-       raw_->planes[VPX_PLANE_U] = const_cast<uint8_t*>(i420_buffer->DataU());
-       raw_->planes[VPX_PLANE_V] = const_cast<uint8_t*>(i420_buffer->DataV());
-diff --git a/modules/video_coding/codecs/vp9/test/vp9_impl_unittest.cc b/modules/video_coding/codecs/vp9/test/vp9_impl_unittest.cc
-index 9a5273e88b..c6ffdb941e 100644
---- a/modules/video_coding/codecs/vp9/test/vp9_impl_unittest.cc
-+++ b/modules/video_coding/codecs/vp9/test/vp9_impl_unittest.cc
-@@ -23,6 +23,7 @@
- #include "api/array_view.h"
- #include "api/environment/environment_factory.h"
- #include "api/field_trials.h"
-+#include "api/make_ref_counted.h"
- #include "api/scoped_refptr.h"
- #include "api/test/create_frame_generator.h"
- #include "api/test/frame_generator_interface.h"
-@@ -31,6 +32,7 @@
- #include "api/units/timestamp.h"
- #include "api/video/color_space.h"
- #include "api/video/encoded_image.h"
-+#include "api/video/i420_buffer.h"
- #include "api/video/video_bitrate_allocation.h"
- #include "api/video/video_codec_constants.h"
- #include "api/video/video_codec_type.h"
-@@ -269,6 +271,55 @@ TEST_P(TestVp9ImplForPixelFormat, CheckPresentationTimestamp) {
-             encoded_frame.PresentationTimestamp()->us());
- }
- 
-+TEST_F(TestVp9Impl, RejectsI420FramesWithUnequalChromaStrides) {
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder_->InitEncode(&codec_settings_, kSettings));
-+
-+  auto buffer = I420Buffer::Create(
-+      /*width=*/kWidth,
-+      /*height=*/kHeight,
-+      /*stride_y=*/kWidth,
-+      /*stride_u=*/(kWidth + 1) / 2,
-+      /*stride_v=*/(kWidth + 1) / 2 + 1);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ERROR, encoder_->Encode(frame, nullptr));
-+}
-+
-+TEST_F(TestVp9Impl, RejectsNativeFramesWithUnequalChromaStrides) {
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder_->InitEncode(&codec_settings_, kSettings));
-+
-+  class FakeNativeBuffer : public VideoFrameBuffer {
-+   public:
-+    FakeNativeBuffer(int width, int height) : width_(width), height_(height) {}
-+    Type type() const override { return Type::kNative; }
-+    int width() const override { return width_; }
-+    int height() const override { return height_; }
-+    scoped_refptr<I420BufferInterface> ToI420() override {
-+      return I420Buffer::Create(width_, height_, width_, (width_ + 1) / 2,
-+                                (width_ + 1) / 2 + 1);
-+    }
-+
-+   private:
-+    int width_;
-+    int height_;
-+  };
-+
-+  auto buffer = make_ref_counted<FakeNativeBuffer>(kWidth, kHeight);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ERROR, encoder_->Encode(frame, nullptr));
-+}
-+
- TEST_F(TestVp9Impl, SwitchInputPixelFormatsWithoutReconfigure) {
-   EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK, encoder_->Encode(NextInputFrame(), nullptr));
-   EncodedImage encoded_frame;
+ // This test verifies that all certificates without chains are correctly
+ // reported.
+ TEST_F(LegacyStatsCollectorTest, ChainlessCertificateReportsCreated) {
