@@ -658,7 +658,6 @@ cbindgen-types = [
     { gecko = "StyleAnchorNameIdent", servo = "crate::values::specified::position::AnchorNameIdent" },
     { gecko = "StyleCascadeLevel", servo = "crate::rule_tree::level::CascadeLevel" },
     { gecko = "StyleShadowCascadeOrder", servo = "crate::rule_tree::level::ShadowCascadeOrder" },
-    { gecko = "StyleLinkParameters", servo = "crate::values::computed::param::LinkParameters" },
 ]
 
 mapped-generic-types = [

@@ -889,18 +889,6 @@ void nsPresContext::SetColorSchemeOverride(
   }
 }
 
-void nsPresContext::SetLinkParametersOverride(
-    const StyleLinkParameters& aLinkParameters) {
-  if (mLinkParameters == aLinkParameters) {
-    return;
-  }
-  mLinkParameters = aLinkParameters;
-
-  // Link params affect env() functions, so we need to re-cascade but there's no
-  // need to re-selector-match.
-  RebuildAllStyleData(nsChangeHint(0), RestyleHint::RecascadeSubtree());
-}
-
 void nsPresContext::UpdateAnimationsPlayBackRateMultiplier(double aMultiplier) {
   if (mAnimationsPlayBackRateMultiplier == aMultiplier) {
     return;

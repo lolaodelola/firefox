@@ -3424,10 +3424,6 @@ nsChangeHint nsStyleUIReset::CalcDifference(
     hint |= nsChangeHint_NeutralChange;
   }
 
-  if (mLinkParameters != aNewData.mLinkParameters) {
-    hint |= nsChangeHint_RepaintFrame;
-  }
-
   if (!hint &&
       (mTransitions != aNewData.mTransitions ||
        mTransitionTimingFunctionCount !=
