@@ -15,6 +15,9 @@ task-defaults:
         env:
             GRADLE_USER_HOME: "/builds/worker/checkouts/gecko/mobile/android/gradle/dotgradle-offline"
         artifacts:
+            - name: public/build/maven
+              path: /builds/worker/workspace/obj-build/gradle/maven/
+              type: directory
             - name: public/build/geckoview-androidTest.apk
               path: /builds/worker/workspace/obj-build/gradle/build/mobile/android/geckoview/outputs/apk/androidTest/debug/geckoview-debug-androidTest.apk
               type: file

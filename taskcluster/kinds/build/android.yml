@@ -16,6 +16,9 @@ task-defaults:
         env:
             GRADLE_USER_HOME: "/builds/worker/checkouts/gecko/mobile/android/gradle/dotgradle-offline"
         artifacts:
+            - name: public/build/maven
+              path: /builds/worker/workspace/obj-build/gradle/maven/
+              type: directory
             - name: public/build/target.maven.zip
               path: /builds/worker/workspace/obj-build/gradle/target.maven.zip
               type: file
