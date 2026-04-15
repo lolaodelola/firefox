@@ -1,98 +1,122 @@
-From: Palak Agarwal <agpalak@google.com>
-Date: Wed, 18 Mar 2026 16:24:45 +0100
-Subject: (cherry-pick-branch-heads/7727) [M147] Change UMA logging to only log
- once for same kind of error
+From: Tommi <tommi@webrtc.org>
+Date: Mon, 23 Mar 2026 17:29:21 +0100
+Subject: (cherry-pick-branch-heads/7727) [M147] Refactor AddCertificateReports
+ to prevent crash
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-`FullScreenPowerPointHandler::FindEditorWindow()` was previously
-recording `FullScreenFindEditorResult` UMA metrics on every frame. This
-causes log spam, especially when the heuristic fails due to multiple
-editors having the same title.
+When processing certificate stats with duplicate fingerprints,
+ReplaceOrAddNew would delete the existing stats report that was
+previously added and pointed to by first_report or prev_report.
 
-This CL caches the previous result in `previous_find_editor_result_` and
-only records the metric when the result differs from the previous call.
+By adding tracking for duplicate fingerprints we can find the existing
+report and avoid replacing it.
 
-(cherry picked from commit 76018a2ec3a7f982c5bb2288487231cd9aa4510a)
+(cherry picked from commit 731795bab2d89be63e20485407a850173d5d3665)
 
-Bug: chromium:409473386
-Fixed: chromium:494190238
-Change-Id: I44500864c89dd7415327c91778086ecd667cdd15
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458041
-Reviewed-by: Ilya Nikolaevskiy <ilnik@webrtc.org>
-Commit-Queue: Palak Agarwal <agpalak@google.com>
-Cr-Original-Commit-Position: refs/heads/main@{#47193}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458340
-Cr-Commit-Position: refs/branch-heads/7727@{#6}
+Bug: chromium:486495143
+Change-Id: Iabc41ae064476c1e5853cdff1dbbcab449f8df27
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/459320
+Reviewed-by: Evan Shrubsole <eshr@webrtc.org>
+Reviewed-by: Henrik Boström <hbos@webrtc.org>
+Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
+Cr-Original-Commit-Position: refs/heads/main@{#47242}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/461160
+Cr-Commit-Position: refs/branch-heads/7727@{#10}
 Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#47086}
 ---
- .../full_screen_win_application_handler.cc    | 22 +++++++++++++------
- .../win/full_screen_win_application_handler.h |  4 ++++
- 2 files changed, 19 insertions(+), 7 deletions(-)
+ pc/BUILD.gn                           |  1 +
+ pc/legacy_stats_collector.cc          |  6 ++++++
+ pc/legacy_stats_collector.h           |  5 +++++
+ pc/legacy_stats_collector_unittest.cc | 16 ++++++++++++++++
+ 4 files changed, 28 insertions(+)
 
-diff --git a/modules/desktop_capture/win/full_screen_win_application_handler.cc b/modules/desktop_capture/win/full_screen_win_application_handler.cc
-index c7548b0007..7a245c96f8 100644
---- a/modules/desktop_capture/win/full_screen_win_application_handler.cc
-+++ b/modules/desktop_capture/win/full_screen_win_application_handler.cc
-@@ -36,10 +36,16 @@ void RecordFullScreenDetectorResult(FullScreenDetectorResult result) {
-       static_cast<int>(FullScreenDetectorResult::kMaxValue));
- }
+diff --git a/pc/BUILD.gn b/pc/BUILD.gn
+index 03fabe9df5..46568587ba 100644
+--- a/pc/BUILD.gn
++++ b/pc/BUILD.gn
+@@ -1440,6 +1440,7 @@ rtc_library("legacy_stats_collector") {
+     "../rtc_base/system:plan_b_only",
+     "../system_wrappers",
+     "//third_party/abseil-cpp/absl/base:nullability",
++    "//third_party/abseil-cpp/absl/container:flat_hash_set",
+     "//third_party/abseil-cpp/absl/functional:any_invocable",
+     "//third_party/abseil-cpp/absl/strings",
+     "//third_party/abseil-cpp/absl/strings:string_view",
+diff --git a/pc/legacy_stats_collector.cc b/pc/legacy_stats_collector.cc
+index f41de1cded..6978f1b06b 100644
+--- a/pc/legacy_stats_collector.cc
++++ b/pc/legacy_stats_collector.cc
+@@ -21,6 +21,7 @@
+ #include <vector>
  
--void RecordFullScreenFindEditorResult(FullScreenFindEditorResult result) {
--  RTC_HISTOGRAM_ENUMERATION(
--      "WebRTC.Screenshare.FullScreenFindEditorResult", static_cast<int>(result),
--      static_cast<int>(FullScreenFindEditorResult::kMaxValue));
-+void MaybeRecordFullScreenFindEditorResult(
-+    FullScreenFindEditorResult result,
-+    std::optional<FullScreenFindEditorResult>& previous_result) {
-+  if (previous_result != result) {
-+    RTC_HISTOGRAM_ENUMERATION(
-+        "WebRTC.Screenshare.FullScreenFindEditorResult",
-+        static_cast<int>(result),
-+        static_cast<int>(FullScreenFindEditorResult::kMaxValue));
-+    previous_result = result;
-+  }
- }
+ #include "absl/base/nullability.h"
++#include "absl/container/flat_hash_set.h"
+ #include "absl/functional/any_invocable.h"
+ #include "absl/strings/str_cat.h"
+ #include "absl/strings/string_view.h"
+@@ -792,8 +793,13 @@ StatsReport* LegacyStatsCollector::AddCertificateReports(
  
- namespace webrtc {
-@@ -246,15 +252,17 @@ DesktopCapturer::SourceId FullScreenPowerPointHandler::FindEditorWindow(
-   }
- 
-   if (editor_ids.size() != 1) {
--    RecordFullScreenFindEditorResult(
--        FullScreenFindEditorResult::kFailureDueToSameTitleWindows);
-+    MaybeRecordFullScreenFindEditorResult(
-+        FullScreenFindEditorResult::kFailureDueToSameTitleWindows,
-+        previous_find_editor_result_);
-     // If `editor_ids` has more than one id, then there are multiple open
-     // editors with the same title as the full screen slide show and then
-     // there's no way of knowing which editor has opened the slide show.
-     return 0;
-   }
- 
--  RecordFullScreenFindEditorResult(FullScreenFindEditorResult::kSuccess);
-+  MaybeRecordFullScreenFindEditorResult(FullScreenFindEditorResult::kSuccess,
-+                                        previous_find_editor_result_);
-   return *editor_ids.begin();
- }
- 
-diff --git a/modules/desktop_capture/win/full_screen_win_application_handler.h b/modules/desktop_capture/win/full_screen_win_application_handler.h
-index 0accd62e9e..3a51cea7e0 100644
---- a/modules/desktop_capture/win/full_screen_win_application_handler.h
-+++ b/modules/desktop_capture/win/full_screen_win_application_handler.h
-@@ -15,6 +15,7 @@
- 
- #include <cstdint>
- #include <memory>
-+#include <optional>
- #include <string>
- 
- #include "modules/desktop_capture/desktop_capturer.h"
-@@ -82,6 +83,9 @@ class FullScreenPowerPointHandler : public FullScreenApplicationHandler {
-   mutable bool was_slide_show_created_after_capture_started_;
- 
-   mutable FullScreenDetectorResult full_screen_detector_result_;
+   StatsReport* first_report = nullptr;
+   StatsReport* prev_report = nullptr;
++  absl::flat_hash_set<std::string> visited_fingerprints;
+   for (SSLCertificateStats* stats = cert_stats.get(); stats;
+        stats = stats->issuer.get()) {
++    if (!visited_fingerprints.insert(stats->fingerprint).second) {
++      break;
++    }
 +
-+  mutable std::optional<FullScreenFindEditorResult>
-+      previous_find_editor_result_;
- };
+     StatsReport::Id id(StatsReport::NewTypedId(
+         StatsReport::kStatsReportTypeCertificate, stats->fingerprint));
  
- std::unique_ptr<FullScreenApplicationHandler>
+diff --git a/pc/legacy_stats_collector.h b/pc/legacy_stats_collector.h
+index 25e61edfdd..f36e509664 100644
+--- a/pc/legacy_stats_collector.h
++++ b/pc/legacy_stats_collector.h
+@@ -114,6 +114,11 @@ class LegacyStatsCollector : public LegacyStatsCollectorInterface {
+ 
+   bool UseStandardBytesStats() const { return use_standard_bytes_stats_; }
+ 
++  StatsReport* AddCertificateReportsForTest(
++      std::unique_ptr<SSLCertificateStats> cert_stats) {
++    return AddCertificateReports(std::move(cert_stats));
++  }
++
+  private:
+   // Struct that's populated on the network thread and carries the values to
+   // the signaling thread where the stats are added to the stats reports.
+diff --git a/pc/legacy_stats_collector_unittest.cc b/pc/legacy_stats_collector_unittest.cc
+index 63c33ec177..f03911589b 100644
+--- a/pc/legacy_stats_collector_unittest.cc
++++ b/pc/legacy_stats_collector_unittest.cc
+@@ -57,6 +57,7 @@
+ #include "rtc_base/null_socket_server.h"
+ #include "rtc_base/rtc_certificate.h"
+ #include "rtc_base/socket_address.h"
++#include "rtc_base/ssl_certificate.h"
+ #include "rtc_base/ssl_identity.h"
+ #include "rtc_base/ssl_stream_adapter.h"
+ #include "rtc_base/system/plan_b_only.h"
+@@ -1446,6 +1447,21 @@ TEST_F(LegacyStatsCollectorTest, ChainedCertificateReportsCreated) {
+                          remote_ders);
+ }
+ 
++TEST_F(LegacyStatsCollectorTest,
++       AddCertificateReports_DuplicateFingerprintDoesNotCrash) {
++  auto pc = CreatePeerConnection();
++  auto stats = CreateStatsCollector(pc.get());
++
++  // Create duplicate fingerprints chain
++  auto issuer_stats = std::make_unique<SSLCertificateStats>(
++      "same_fingerprint", "sha-1", "cert_issuer", nullptr);
++  auto cert_stats = std::make_unique<SSLCertificateStats>(
++      "same_fingerprint", "sha-1", "cert_leaf", std::move(issuer_stats));
++
++  // This should not crash (Use-After-Free)
++  stats->AddCertificateReportsForTest(std::move(cert_stats));
++}
++
+ // This test verifies that all certificates without chains are correctly
+ // reported.
+ TEST_F(LegacyStatsCollectorTest, ChainlessCertificateReportsCreated) {
