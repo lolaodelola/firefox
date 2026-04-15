@@ -1914,7 +1914,7 @@ class _ContextMenuItem extends (external_React_default()).PureComponent {
       onKeyDown: this.onKeyDown,
       onKeyUp: this.onKeyUp,
       ref: option.first ? this.focusFirst : null,
-      "aria-haspopup": option.id === "newtab-menu-edit-topsites" || option.id === "newtab-menu-section-block" ? "dialog" : null
+      "aria-haspopup": option.ariaHasPopup || null
     }, /*#__PURE__*/external_React_default().createElement("span", {
       "data-l10n-id": option.string_id || option.id
     })));
