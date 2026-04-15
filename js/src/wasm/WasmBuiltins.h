@@ -161,6 +161,7 @@ enum class SymbolicAddress {
   PrintF32,
   PrintF64,
   PrintText,
+  Printf,
 #endif
   Limit
 };
@@ -358,6 +359,7 @@ void PrintF32(float val);
 void PrintF64(double val);
 void PrintPtr(uint8_t* val);
 void PrintText(const char* out);
+void Printf(const char* out, uintptr_t value);
 #endif
 
 }  // namespace wasm

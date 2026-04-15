@@ -6050,6 +6050,22 @@ class MacroAssembler : public MacroAssemblerSpecific {
   void finish();
   void link(JitCode* code);
 
+  void assertUnreachable(const char* output);
+
+  void assert32Compare(Condition condition, Register lhs, Imm32 rhs,
+                       const char* output = nullptr);
+  void assert32Compare(Condition condition, Address lhs, Imm32 rhs,
+                       const char* output = nullptr);
+  void assertPtrCompare(Condition condition, Register lhs, ImmWord rhs,
+                        const char* output = nullptr);
+  void assertPtrCompare(Condition condition, Address lhs, ImmWord rhs,
+                        const char* output = nullptr);
+
+  void assertPtrZero(Address src, const char* output = nullptr);
+  void assertPtrZero(Register src, const char* output = nullptr);
+  void assertPtrNonZero(Address src, const char* output = nullptr);
+  void assertPtrNonZero(Register src, const char* output = nullptr);
+
   void assumeUnreachable(const char* output);
 
   void printf(const char* output);

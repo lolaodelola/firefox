@@ -1639,6 +1639,7 @@ void wasm::PatchDebugSymbolicAccesses(uint8_t* codeBase, MacroAssembler& masm) {
       case SymbolicAddress::PrintF32:
       case SymbolicAddress::PrintF64:
       case SymbolicAddress::PrintText:
+      case SymbolicAddress::Printf:
         break;
       default:
         MOZ_CRASH("unexpected symbol in PatchDebugSymbolicAccesses");

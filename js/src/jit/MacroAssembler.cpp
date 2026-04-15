@@ -4101,26 +4101,88 @@ void MacroAssembler::handleFailure() {
   jump(excTail);
 }
 
-void MacroAssembler::assumeUnreachable(const char* output) {
+void MacroAssembler::assertUnreachable(const char* output) {
 #ifdef JS_MASM_VERBOSE
-  if (!IsCompilingWasm()) {
-    AllocatableRegisterSet regs(RegisterSet::Volatile());
-    LiveRegisterSet save(regs.asLiveSet());
-    PushRegsInMask(save);
-    Register temp = regs.takeAnyGeneral();
+  AllocatableRegisterSet regs(RegisterSet::Volatile());
+  LiveRegisterSet save(regs.asLiveSet());
+  PushRegsInMask(save);
+  Register temp = regs.takeAnyGeneral();
 
+  // Default a null output to the empty string.
+  if (!output) {
+    output = "";
+  }
+
+  if (IsCompilingWasm()) {
+    setupWasmABICall(wasm::SymbolicAddress::PrintText);
+    movePtr(ImmWord(reinterpret_cast<uintptr_t>(output)), temp);
+    passABIArg(temp);
+    callDebugWithABI(wasm::SymbolicAddress::PrintText);
+  } else {
     using Fn = void (*)(const char* output);
     setupUnalignedABICall(temp);
     movePtr(ImmPtr(output), temp);
     passABIArg(temp);
     callWithABI<Fn, AssumeUnreachable>(ABIType::General,
                                        CheckUnsafeCallWithABI::DontCheckOther);
-
-    PopRegsInMask(save);
   }
+
+  PopRegsInMask(save);
 #endif
 
   breakpoint();
+}
+
+void MacroAssembler::assert32Compare(Condition condition, Register lhs,
+                                     Imm32 rhs, const char* output) {
+  Label skip;
+  branch32(condition, lhs, rhs, &skip);
+  assertUnreachable(output);
+  bind(&skip);
+}
+
+void MacroAssembler::assert32Compare(Condition condition, Address lhs,
+                                     Imm32 rhs, const char* output) {
+  Label skip;
+  branch32(condition, lhs, rhs, &skip);
+  assertUnreachable(output);
+  bind(&skip);
+}
+
+void MacroAssembler::assertPtrCompare(Condition condition, Register lhs,
+                                      ImmWord rhs, const char* output) {
+  Label skip;
+  branchPtr(condition, lhs, rhs, &skip);
+  assertUnreachable(output);
+  bind(&skip);
+}
+
+void MacroAssembler::assertPtrCompare(Condition condition, Address lhs,
+                                      ImmWord rhs, const char* output) {
+  Label skip;
+  branchPtr(condition, lhs, rhs, &skip);
+  assertUnreachable(output);
+  bind(&skip);
+}
+
+void MacroAssembler::assertPtrZero(Address src, const char* output) {
+  assertPtrCompare(Assembler::Equal, src, ImmWord(0), output);
+}
+
+void MacroAssembler::assertPtrZero(Register src, const char* output) {
+  assertPtrCompare(Assembler::Equal, src, ImmWord(0), output);
+}
+
+void MacroAssembler::assertPtrNonZero(Address src, const char* output) {
+  assertPtrCompare(Assembler::NotEqual, src, ImmWord(0), output);
+}
+
+void MacroAssembler::assertPtrNonZero(Register src, const char* output) {
+  assertPtrCompare(Assembler::NotEqual, src, ImmWord(0), output);
+}
+
+void MacroAssembler::assumeUnreachable(const char* output) {
+  assertUnreachable(output);
 }
 
 void MacroAssembler::printf(const char* output) {
@@ -4131,11 +4193,18 @@ void MacroAssembler::printf(const char* output) {
 
   Register temp = regs.takeAnyGeneral();
 
-  using Fn = void (*)(const char* output);
-  setupUnalignedABICall(temp);
-  movePtr(ImmPtr(output), temp);
-  passABIArg(temp);
-  callWithABI<Fn, Printf0>();
+  if (IsCompilingWasm()) {
+    setupWasmABICall(wasm::SymbolicAddress::PrintText);
+    movePtr(ImmWord(reinterpret_cast<uintptr_t>(output)), temp);
+    passABIArg(temp);
+    callDebugWithABI(wasm::SymbolicAddress::PrintText);
+  } else {
+    using Fn = void (*)(const char* output);
+    setupUnalignedABICall(temp);
+    movePtr(ImmPtr(output), temp);
+    passABIArg(temp);
+    callWithABI<Fn, Printf0>();
+  }
 
   PopRegsInMask(save);
 #endif
@@ -4151,12 +4220,20 @@ void MacroAssembler::printf(const char* output, Register value) {
 
   Register temp = regs.takeAnyGeneral();
 
-  using Fn = void (*)(const char* output, uintptr_t value);
-  setupUnalignedABICall(temp);
-  movePtr(ImmPtr(output), temp);
-  passABIArg(temp);
-  passABIArg(value);
-  callWithABI<Fn, Printf1>();
+  if (IsCompilingWasm()) {
+    setupWasmABICall(wasm::SymbolicAddress::Printf);
+    movePtr(ImmWord(reinterpret_cast<uintptr_t>(output)), temp);
+    passABIArg(temp);
+    passABIArg(value);
+    callDebugWithABI(wasm::SymbolicAddress::Printf);
+  } else {
+    using Fn = void (*)(const char* output, uintptr_t value);
+    setupUnalignedABICall(temp);
+    movePtr(ImmPtr(output), temp);
+    passABIArg(temp);
+    passABIArg(value);
+    callWithABI<Fn, Printf1>();
+  }
 
   PopRegsInMask(save);
 #endif

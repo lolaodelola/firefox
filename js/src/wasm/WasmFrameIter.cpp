@@ -2248,6 +2248,7 @@ static const char* ThunkedNativeToDescription(SymbolicAddress func) {
     case SymbolicAddress::PrintF32:
     case SymbolicAddress::PrintF64:
     case SymbolicAddress::PrintText:
+    case SymbolicAddress::Printf:
 #endif
     case SymbolicAddress::Limit:
       break;

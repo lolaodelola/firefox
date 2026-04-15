@@ -1367,6 +1367,15 @@ void wasm::PrintF32(float val) { fprintf(stderr, "f32(%f) ", val); }
 void wasm::PrintF64(double val) { fprintf(stderr, "f64(%lf) ", val); }
 
 void wasm::PrintText(const char* out) { fprintf(stderr, "%s", out); }
+
+void wasm::Printf(const char* out, uintptr_t value) {
+  AutoEnterOOMUnsafeRegion oomUnsafe;
+  js::UniqueChars line = JS_sprintf_append(nullptr, out, value);
+  if (!line) {
+    oomUnsafe.crash("OOM at masm.printf");
+  }
+  fprintf(stderr, "%s", line.get());
+}
 #endif
 
 void* wasm::AddressOf(SymbolicAddress imm, ABIFunctionType* abiType) {
@@ -1764,6 +1773,9 @@ void* wasm::AddressOf(SymbolicAddress imm, ABIFunctionType* abiType) {
     case SymbolicAddress::PrintText:
       *abiType = Args_General1;
       return FuncCast(PrintText, *abiType);
+    case SymbolicAddress::Printf:
+      *abiType = Args_General2;
+      return FuncCast(Printf, *abiType);
 #endif
 #define VISIT_BUILTIN_FUNC(op, export, sa_name, abitype, needs_thunk, entry, \
                            ...)                                              \
@@ -1832,6 +1844,7 @@ bool wasm::NeedsBuiltinThunk(SymbolicAddress sym) {
     case SymbolicAddress::PrintF32:
     case SymbolicAddress::PrintF64:
     case SymbolicAddress::PrintText:
+    case SymbolicAddress::Printf:
       return false;
 #endif
 
@@ -2165,6 +2178,7 @@ bool wasm::EnsureBuiltinThunksInitialized(
     return false;
   }
 
+  JitContext jitContext;
   LifoAlloc lifo(BUILTIN_THUNK_LIFO_SIZE, js::MallocArena);
   TempAllocator tempAlloc(&lifo);
   WasmMacroAssembler masm(tempAlloc);
@@ -2234,7 +2248,6 @@ bool wasm::EnsureBuiltinThunksInitialized(
 #ifdef DEBUG
   // We need to allow this machine code to bake in a C++ code pointer, so we
   // disable the wasm restrictions while generating this stub.
-  JitContext jitContext;
   bool oldFlag = jitContext.setIsCompilingWasm(false);
 #endif
 
