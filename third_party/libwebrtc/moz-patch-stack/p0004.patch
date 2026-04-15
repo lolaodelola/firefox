@@ -1,277 +1,279 @@
 From: Tommi <tommi@webrtc.org>
-Date: Fri, 13 Mar 2026 23:22:26 +0100
-Subject: (cherry-pick-branch-heads/7727) [M147] Fetch sender parameters
- asynchronously during GetStats
+Date: Fri, 13 Mar 2026 19:35:01 +0100
+Subject: (cherry-pick-branch-heads/7727) [M147] Fix missing mediaSourceId in
+ simulcast outbound-rtp stats
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Resolve an issue where calling GetStats could block while fetching send
-parameters. Previously, fetching sender parameters relied on
-`GetParametersInternal`, which blocks when cached parameters are
-unavailable.
+When simulcast is enabled, only the primary SSRC was mapped to the
+sender's attachment ID in TrackMediaInfoMap. This resulted in missing
+mediaSourceId properties for secondary simulcast outgoing stats. Updated
+TrackMediaInfoMap to map all valid SSRCs provided in the sender's
+RtpParameters.
 
-This moves the retrieval of sender RTP parameters to the worker thread.
-Parameters are now fetched directly from the media send channel during
-the asynchronous stats collection phase.
-
-This change avoids the thread blocking on the signaling thread and
-re-enables the `RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS` checks.
-
-(cherry picked from commit 254fefeb3a756fd2e829f714e020d19d4bad1410)
+(cherry picked from commit a7f267f8b01ad6a2a11eced7267e61eff932b2ab)
 
 Bug: webrtc:492108787
-Change-Id: I941bed643ff46c4e52b96ae9fbc08a64d7cff7c6
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456580
+Fixes: webrtc:492108787
+Change-Id: I688c169628675d7be3114e75b978a4ad4343dcc0
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456520
 Reviewed-by: Henrik Boström <hbos@webrtc.org>
 Commit-Queue: Tomas Gunnarsson <tommi@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#47166}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458400
+Cr-Original-Commit-Position: refs/heads/main@{#47165}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458361
 Reviewed-by: Artem Titov <titovartem@webrtc.org>
-Cr-Commit-Position: refs/branch-heads/7727@{#5}
+Cr-Commit-Position: refs/branch-heads/7727@{#4}
 Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#47086}
 ---
- pc/peer_connection.cc              | 10 +----
- pc/rtc_stats_collector.cc          | 32 ++++++++++-----
- pc/rtc_stats_collector.h           |  2 +-
- pc/rtc_stats_collector_unittest.cc | 65 ++++++++++++++++++++++++++----
- 4 files changed, 83 insertions(+), 26 deletions(-)
+ pc/peer_connection.cc               | 10 ++++++++--
+ pc/rtc_stats_collector.cc           | 12 ++++++++++--
+ pc/rtc_stats_collector.h            |  2 ++
+ pc/rtc_stats_collector_unittest.cc  | 29 ++++++++++++++++++++++++++---
+ pc/track_media_info_map.cc          | 22 +++++++++++++++++-----
+ pc/track_media_info_map.h           |  1 +
+ pc/track_media_info_map_unittest.cc |  4 +++-
+ 7 files changed, 67 insertions(+), 13 deletions(-)
 
 diff --git a/pc/peer_connection.cc b/pc/peer_connection.cc
-index 78a914253c..e2a4adedc9 100644
+index e2a4adedc9..78a914253c 100644
 --- a/pc/peer_connection.cc
 +++ b/pc/peer_connection.cc
-@@ -1375,10 +1375,7 @@ void PeerConnection::GetStats(
+@@ -1375,7 +1375,10 @@ void PeerConnection::GetStats(
    TRACE_EVENT0("webrtc", "PeerConnection::GetStats");
    RTC_DCHECK_RUN_ON(signaling_thread());
    RTC_DCHECK(callback);
--  // TODO: bugs.webrtc.org/492108787 - Re-enable this when fixing the
--  // call to `sender->internal()->GetParametersInternal()` which can
--  // block when cached parameters aren't available.
--  // RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
-+  RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
+-  RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
++  // TODO: bugs.webrtc.org/492108787 - Re-enable this when fixing the
++  // call to `sender->internal()->GetParametersInternal()` which can
++  // block when cached parameters aren't available.
++  // RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
    scoped_refptr<RtpSenderInternal> internal_sender;
    if (selector) {
      for (const auto& proxy_transceiver :
-@@ -1410,10 +1407,7 @@ void PeerConnection::GetStats(
+@@ -1407,7 +1410,10 @@ void PeerConnection::GetStats(
    TRACE_EVENT0("webrtc", "PeerConnection::GetStats");
    RTC_DCHECK_RUN_ON(signaling_thread());
    RTC_DCHECK(callback);
--  // TODO: bugs.webrtc.org/492108787 - Re-enable this when fixing the
--  // call to `sender->internal()->GetParametersInternal()` which can
--  // block when cached parameters aren't available.
--  // RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
-+  RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
+-  RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
++  // TODO: bugs.webrtc.org/492108787 - Re-enable this when fixing the
++  // call to `sender->internal()->GetParametersInternal()` which can
++  // block when cached parameters aren't available.
++  // RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
    scoped_refptr<RtpReceiverInternal> internal_receiver;
    if (selector) {
      for (const auto& proxy_transceiver :
 diff --git a/pc/rtc_stats_collector.cc b/pc/rtc_stats_collector.cc
-index ea0ae61435..6a2325b6dd 100644
+index 517d6f259f..ea0ae61435 100644
 --- a/pc/rtc_stats_collector.cc
 +++ b/pc/rtc_stats_collector.cc
-@@ -2266,10 +2266,10 @@ RTCStatsCollector::PrepareTransportCertificateStats_n(
- absl::AnyInvocable<RTCStatsCollector::WorkerThreadResult()>
- RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
-   RTC_DCHECK_RUN_ON(signaling_thread_);
-+  RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS();
+@@ -2269,6 +2269,7 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
  
    std::vector<RtpTransceiverStatsInfo> transceiver_stats_infos;
    std::vector<TransceiverReferences> transceiver_references;
--  std::vector<std::vector<RtpParameters>> all_sender_parameters;
++  std::vector<std::vector<RtpParameters>> all_sender_parameters;
    // These are used to invoke GetStats for all the media channels together in
    // one worker thread hop.
    std::map<VoiceMediaSendChannelInterface*, VoiceMediaSendInfo>
-@@ -2297,16 +2297,12 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
+@@ -2296,12 +2297,16 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
                                     scoped_refptr<RtpTransceiver>(transceiver)};
  
      RTC_ALLOW_PLAN_B_DEPRECATION_BEGIN()
--    std::vector<RtpParameters> sender_parameters;
++    std::vector<RtpParameters> sender_parameters;
      for (const auto& sender : transceiver->senders()) {
        stats.sender_infos.push_back(
            {.ssrc = sender->ssrc(),
             .attachment_id = sender->internal()->AttachmentId(),
             .media_type = sender->media_type()});
--      sender_parameters.push_back(sender->internal()->GetParametersInternal(
--          /*may_use_cache=*/true, /*with_all_layers=*/true));
++      sender_parameters.push_back(sender->internal()->GetParametersInternal(
++          /*may_use_cache=*/true, /*with_all_layers=*/true));
      }
--    all_sender_parameters.push_back(std::move(sender_parameters));
++    all_sender_parameters.push_back(std::move(sender_parameters));
      for (const auto& receiver : transceiver->receivers()) {
        stats.receiver_infos.push_back(
            {.track_id = receiver->track() ? receiver->track()->id() : "",
-@@ -2344,7 +2340,6 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
+@@ -2339,6 +2344,7 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
    // which also needs info from the worker thread.
    return [this, transceiver_stats_infos = std::move(transceiver_stats_infos),
            transceiver_references = std::move(transceiver_references),
--          all_sender_parameters = std::move(all_sender_parameters),
++          all_sender_parameters = std::move(all_sender_parameters),
            voice_send_stats = std::move(voice_send_stats),
            voice_receive_stats = std::move(voice_receive_stats),
            video_send_stats = std::move(video_send_stats),
-@@ -2354,7 +2349,6 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
+@@ -2348,6 +2354,7 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
      WorkerThreadResult worker_result;
      worker_result.results.transceiver_stats_infos =
          std::move(transceiver_stats_infos);
--    worker_result.results.sender_parameters = std::move(all_sender_parameters);
++    worker_result.results.sender_parameters = std::move(all_sender_parameters);
      worker_result.transceiver_references = std::move(transceiver_references);
  
      for (auto& pair : voice_send_stats) {
-@@ -2394,6 +2388,27 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
-         continue;
-       }
- 
-+      std::vector<RtpParameters> sender_parameters;
-+      for (const auto& sender : stats.sender_infos) {
-+        RtpParameters params;
-+        if (sender.ssrc != 0 && stats.has_channel) {
-+          auto& transceiver = refs.transceiver;
-+          MediaSendChannelInterface* media_channel =
-+              (stats.media_type == MediaType::AUDIO)
-+                  ? static_cast<MediaSendChannelInterface*>(
-+                        transceiver->voice_media_send_channel())
-+                  : static_cast<MediaSendChannelInterface*>(
-+                        transceiver->video_media_send_channel());
-+          if (media_channel) {
-+            params = media_channel->GetRtpSendParameters(sender.ssrc);
-+          }
-+        }
-+        // `sender_parameters` must be the same size as `stats.sender_infos` to
-+        // allow 1:1 mapping when TrackMediaInfoMap is constructed. Empty params
-+        // are safely ignored since they have no encodings/SSRCs.
-+        sender_parameters.push_back(std::move(params));
-+      }
-+
-       std::vector<RtpParameters> receiver_parameters;
-       for (const auto& receiver : refs.receivers) {
-         receiver_parameters.push_back(receiver->GetParameters());
-@@ -2422,8 +2437,7 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
+@@ -2415,8 +2422,9 @@ RTCStatsCollector::PrepareTransceiverStatsInfosAndCallStats_s_w() {
  
        stats.track_media_info_map = std::make_unique<TrackMediaInfoMap>(
            std::move(voice_media_info), std::move(video_media_info),
--          std::move(stats.sender_infos),
--          std::move(worker_result.results.sender_parameters[i]),
-+          std::move(stats.sender_infos), std::move(sender_parameters),
-           std::move(stats.receiver_infos), std::move(receiver_parameters));
+-          std::move(stats.sender_infos), std::move(stats.receiver_infos),
+-          std::move(receiver_parameters));
++          std::move(stats.sender_infos),
++          std::move(worker_result.results.sender_parameters[i]),
++          std::move(stats.receiver_infos), std::move(receiver_parameters));
        if (stats.media_type == MediaType::AUDIO) {
          has_audio_receiver |= stats.has_receivers;
+       }
 diff --git a/pc/rtc_stats_collector.h b/pc/rtc_stats_collector.h
-index 5103c6e3cb..c873006066 100644
+index 5e9bbfe463..5103c6e3cb 100644
 --- a/pc/rtc_stats_collector.h
 +++ b/pc/rtc_stats_collector.h
-@@ -156,13 +156,13 @@ class RTCStatsCollector {
+@@ -26,6 +26,7 @@
+ #include "api/data_channel_interface.h"
+ #include "api/environment/environment.h"
+ #include "api/media_types.h"
++#include "api/rtp_parameters.h"
+ #include "api/rtp_transceiver_direction.h"
+ #include "api/scoped_refptr.h"
+ #include "api/stats/rtc_stats_collector_callback.h"
+@@ -155,6 +156,7 @@ class RTCStatsCollector {
   private:
    struct StatsGatheringResults {
      std::vector<RtpTransceiverStatsInfo> transceiver_stats_infos;
--    std::vector<std::vector<RtpParameters>> sender_parameters;
++    std::vector<std::vector<RtpParameters>> sender_parameters;
      Call::Stats call_stats;
      std::optional<AudioDeviceModule::Stats> audio_device_stats;
    };
- 
-   struct WorkerThreadResult {
-     StatsGatheringResults results;
-+    std::vector<std::vector<RtpParameters>> sender_parameters;
-     std::vector<TransceiverReferences> transceiver_references;
-   };
-   struct CollectionContext;
 diff --git a/pc/rtc_stats_collector_unittest.cc b/pc/rtc_stats_collector_unittest.cc
-index e3ffa34aac..c044f87f0c 100644
+index 55f19763d2..e3ffa34aac 100644
 --- a/pc/rtc_stats_collector_unittest.cc
 +++ b/pc/rtc_stats_collector_unittest.cc
-@@ -26,6 +26,7 @@
- #include "absl/strings/str_replace.h"
- #include "api/audio/audio_device.h"
- #include "api/audio/audio_processing_statistics.h"
-+#include "api/audio_options.h"
- #include "api/candidate.h"
- #include "api/data_channel_interface.h"
- #include "api/dtls_transport_interface.h"
-@@ -54,6 +55,7 @@
- #include "common_video/include/quality_limitation_reason.h"
- #include "json/reader.h"
- #include "json/value.h"
-+#include "media/base/fake_media_engine.h"
- #include "media/base/media_channel.h"
- #include "media/base/stream_params.h"
- #include "modules/rtp_rtcp/include/report_block_data.h"
-@@ -65,6 +67,7 @@
- #include "p2p/base/transport_description.h"
- #include "pc/media_stream.h"
- #include "pc/peer_connection_internal.h"
-+#include "pc/rtp_sender.h"
- #include "pc/sctp_data_channel.h"
- #include "pc/stream_collection.h"
- #include "pc/test/fake_audio_track.h"
-@@ -2693,14 +2696,14 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
-   auto video_sender = stats_->SetupLocalTrackAndSender(
-       MediaType::VIDEO, "LocalVideoTrackID", 1, true,
-       /*attachment_id=*/50);
--  EXPECT_CALL(*video_sender, GetParametersInternal(_, _)).WillRepeatedly([] {
--    RtpParameters params;
--    params.encodings.push_back(RtpEncodingParameters());
--    params.encodings[0].ssrc = 1;
--    params.encodings.push_back(RtpEncodingParameters());
--    params.encodings[1].ssrc = 2;
--    return params;
--  });
-+
-+  // Set up the fake video channel to return the expected RtpParameters
-+  // containing both simulcast encodings for the primary SSRC.
-+  StreamParams sp;
-+  sp.add_ssrc(1);
-+  sp.add_ssrc(2);
-+  sp.ssrc_groups.push_back(SsrcGroup(kSimSsrcGroupSemantics, {1, 2}));
-+  video_media_channels.first->AddSendStream(sp);
+@@ -2690,9 +2690,17 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
+   auto video_media_channels =
+       pc_->AddVideoChannel("VideoMid", "TransportName", video_media_info);
+   RTC_ALLOW_PLAN_B_DEPRECATION_END();
+-  stats_->SetupLocalTrackAndSender(MediaType::VIDEO, "LocalVideoTrackID", 1,
+-                                   true,
+-                                   /*attachment_id=*/50);
++  auto video_sender = stats_->SetupLocalTrackAndSender(
++      MediaType::VIDEO, "LocalVideoTrackID", 1, true,
++      /*attachment_id=*/50);
++  EXPECT_CALL(*video_sender, GetParametersInternal(_, _)).WillRepeatedly([] {
++    RtpParameters params;
++    params.encodings.push_back(RtpEncodingParameters());
++    params.encodings[0].ssrc = 1;
++    params.encodings.push_back(RtpEncodingParameters());
++    params.encodings[1].ssrc = 2;
++    return params;
++  });
  
    scoped_refptr<const RTCStatsReport> report =
        stats_->GetStatsReport(main_thread_);
-@@ -3823,6 +3826,52 @@ TEST_P(RTCStatsCollectorTest, GetStatsWithReceiverSelector) {
-   EXPECT_FALSE(receiver_report->Get(graph.media_source_id));
- }
+@@ -2757,6 +2765,21 @@ TEST_P(RTCStatsCollectorTest, CollectRTCOutboundRtpStreamStats_Video) {
+       report->Get(expected_video.id())->cast_to<RTCOutboundRtpStreamStats>(),
+       expected_video);
  
-+TEST_P(RTCStatsCollectorTest,
-+       GetStatsDoesNotBlockWhenFetchingSenderParameters) {
-+  // We must create a new FakePeerConnectionForStats with a separate worker
-+  // thread because the test base uses the current thread for all three, which
-+  // bypasses the thread hop and avoids the
-+  // RTC_DCHECK_DISALLOW_THREAD_BLOCKING_CALLS check.
-+  auto worker_thread = Thread::Create();
-+  worker_thread->Start();
-+  pc_ = make_ref_counted<FakePeerConnectionForStats>(env_, worker_thread.get());
-+  SetStatsTimestampWithEnvironmentClock(GetParam());
-+  // Create a track and a real sender to ensure we test the actual blocking
-+  // behavior in RtpSenderBase::GetParametersInternal.
-+  scoped_refptr<MediaStreamTrackInterface> track = CreateFakeTrack(
-+      MediaType::AUDIO, "audioTrack", MediaStreamTrackInterface::kLive);
++  // Find the sub-stats for the second simulcast outbound RTP stream and verify
++  // that its `media_source_id` is set.
++  std::string id_of_second_ssrc;
++  for (const auto* outbound_rtp : stats_of_my_type) {
++    if (outbound_rtp->ssrc.value_or(0) == 2) {
++      id_of_second_ssrc = outbound_rtp->id();
++      break;
++    }
++  }
++  ASSERT_TRUE(report->Get(id_of_second_ssrc));
++  auto& second_video =
++      report->Get(id_of_second_ssrc)->cast_to<RTCOutboundRtpStreamStats>();
++  EXPECT_TRUE(second_video.media_source_id.has_value());
++  EXPECT_EQ(*second_video.media_source_id, "SV50");
 +
-+  auto fake_media_channel = std::make_unique<FakeVoiceMediaSendChannel>(
-+      webrtc::AudioOptions(), pc_->network_thread());
-+
-+  scoped_refptr<AudioRtpSender> sender = AudioRtpSender::Create(
-+      env_, pc_->signaling_thread(), pc_->worker_thread(), "sender_id",
-+      /*stats=*/nullptr, /*set_streams_observer=*/nullptr,
-+      /*media_channel=*/nullptr);
-+
-+  worker_thread->BlockingCall([&] {
-+    fake_media_channel->AddSendStream(StreamParams::CreateLegacy(1234));
-+    sender->SetMediaChannel(fake_media_channel.get());
-+  });
-+
-+  sender->SetSsrc(1234);
-+  sender->SetTrack(track.get());
-+
-+  RTC_ALLOW_PLAN_B_DEPRECATION_BEGIN();
-+  pc_->AddSender(sender);
-+  RTC_ALLOW_PLAN_B_DEPRECATION_END();
-+
-+  scoped_refptr<const RTCStatsReport> report;
-+  stats_->stats_collector().GetStatsReport(
-+      RTCStatsObtainer::Create(&report, [this] { main_thread_.Quit(); }));
-+  main_thread_.Run();
-+
-+  sender->Stop();
-+  sender = nullptr;
-+  stats_.reset();
-+  pc_ = nullptr;
-+}
-+
- TEST_P(RTCStatsCollectorTest, GetStatsWithNullSenderSelector) {
-   ExampleStatsGraph graph = SetupExampleStatsGraphForSelectorTests();
-   scoped_refptr<const RTCStatsReport> empty_report;
+   // Set previously undefined values and "GetStats" again.
+   video_media_info.senders[0].qp_sum = 9;
+   expected_video.qp_sum = 9;
+diff --git a/pc/track_media_info_map.cc b/pc/track_media_info_map.cc
+index 7150f34b16..91d12c509b 100644
+--- a/pc/track_media_info_map.cc
++++ b/pc/track_media_info_map.cc
+@@ -41,13 +41,24 @@ const V* FindAddressOrNull(const flat_map<K, V>& map, const K& key) {
+ 
+ flat_map<uint32_t, int> GetSenderAttachmentIds(
+     std::span<const TrackMediaInfoMap::RtpSenderSignalInfo> senders,
++    std::span<const RtpParameters> sender_parameters,
+     MediaType media_type) {
++  RTC_DCHECK_EQ(senders.size(), sender_parameters.size());
+   flat_map<uint32_t, int> result;
+-  for (const auto& sender : senders) {
+-    if (sender.media_type != media_type || sender.ssrc == 0) {
++  for (size_t i = 0; i < senders.size(); ++i) {
++    const auto& sender = senders[i];
++    if (sender.media_type != media_type) {
+       continue;
+     }
+-    result[sender.ssrc] = sender.attachment_id;
++    const auto& parameters = sender_parameters[i];
++    if (sender.ssrc != 0) {
++      result[sender.ssrc] = sender.attachment_id;
++    }
++    for (const auto& encoding : parameters.encodings) {
++      if (encoding.ssrc) {
++        result[*encoding.ssrc] = sender.attachment_id;
++      }
++    }
+   }
+   return result;
+ }
+@@ -132,14 +143,15 @@ TrackMediaInfoMap::TrackMediaInfoMap(
+     std::optional<VoiceMediaInfo> voice_media_info,
+     std::optional<VideoMediaInfo> video_media_info,
+     std::span<const RtpSenderSignalInfo> senders,
++    std::span<const RtpParameters> sender_parameters,
+     std::span<const RtpReceiverSignalInfo> receivers,
+     std::span<const RtpParameters> receiver_parameters)
+     : voice_media_info_(std::move(voice_media_info)),
+       video_media_info_(std::move(video_media_info)),
+       audio_sender_attachment_id_by_ssrc_(
+-          GetSenderAttachmentIds(senders, MediaType::AUDIO)),
++          GetSenderAttachmentIds(senders, sender_parameters, MediaType::AUDIO)),
+       video_sender_attachment_id_by_ssrc_(
+-          GetSenderAttachmentIds(senders, MediaType::VIDEO)),
++          GetSenderAttachmentIds(senders, sender_parameters, MediaType::VIDEO)),
+       audio_receiver_attachment_id_by_ssrc_(
+           GetReceiverAttachmentIds(receivers,
+                                    receiver_parameters,
+diff --git a/pc/track_media_info_map.h b/pc/track_media_info_map.h
+index 8e63aa8143..f68ec7504c 100644
+--- a/pc/track_media_info_map.h
++++ b/pc/track_media_info_map.h
+@@ -46,6 +46,7 @@ class TrackMediaInfoMap {
+   TrackMediaInfoMap(std::optional<VoiceMediaInfo> voice_media_info,
+                     std::optional<VideoMediaInfo> video_media_info,
+                     std::span<const RtpSenderSignalInfo> senders,
++                    std::span<const RtpParameters> sender_parameters,
+                     std::span<const RtpReceiverSignalInfo> receivers,
+                     std::span<const RtpParameters> receiver_parameters);
+ 
+diff --git a/pc/track_media_info_map_unittest.cc b/pc/track_media_info_map_unittest.cc
+index 01b8cedd2c..fd46ed5759 100644
+--- a/pc/track_media_info_map_unittest.cc
++++ b/pc/track_media_info_map_unittest.cc
+@@ -175,12 +175,14 @@ class TrackMediaInfoMapTest : public ::testing::Test {
+   // into the map.
+   TrackMediaInfoMap InitializeMap() {
+     std::vector<TrackMediaInfoMap::RtpSenderSignalInfo> sender_infos;
++    std::vector<RtpParameters> sender_params;
+     for (const auto& sender : rtp_senders_) {
+       sender_infos.push_back({
+           .ssrc = sender->ssrc(),
+           .attachment_id = sender->AttachmentId(),
+           .media_type = sender->media_type(),
+       });
++      sender_params.push_back(sender->GetParameters());
+     }
+     std::vector<TrackMediaInfoMap::RtpReceiverSignalInfo> receiver_infos;
+     std::vector<RtpParameters> receiver_params;
+@@ -204,7 +206,7 @@ class TrackMediaInfoMapTest : public ::testing::Test {
+     }
+     return TrackMediaInfoMap(std::move(voice_media_info),
+                              std::move(video_media_info), sender_infos,
+-                             receiver_infos, receiver_params);
++                             sender_params, receiver_infos, receiver_params);
+   }
+ 
+  private:

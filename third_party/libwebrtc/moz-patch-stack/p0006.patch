@@ -1,91 +1,98 @@
-From: =?UTF-8?q?Erik=20Spr=C3=A5ng?= <sprang@webrtc.org>
-Date: Thu, 12 Mar 2026 11:55:13 +0100
-Subject: (cherry-pick-branch-heads/7727) [M147] Add workaround for OpenH264
- related to U/V strides.
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Palak Agarwal <agpalak@google.com>
+Date: Wed, 18 Mar 2026 16:24:45 +0100
+Subject: (cherry-pick-branch-heads/7727) [M147] Change UMA logging to only log
+ once for same kind of error
 
-This CL adds a workaround for a bug in OpenH264, where using an input
-frame where the U and V strides are different may result in a crash.
+`FullScreenPowerPointHandler::FindEditorWindow()` was previously
+recording `FullScreenFindEditorResult` UMA metrics on every frame. This
+causes log spam, especially when the heuristic fails due to multiple
+editors having the same title.
 
-This fix should be removed once the root cause has been addressed.
+This CL caches the previous result in `previous_find_editor_result_` and
+only records the metric when the result differs from the previous call.
 
-(cherry picked from commit 7c36f795d925c3f08fb89611166cc6b2e2de02a6)
+(cherry picked from commit 76018a2ec3a7f982c5bb2288487231cd9aa4510a)
 
-Bug: chromium:491655161
-Change-Id: I2e8bccefab3ffcd08bf1e086763407ceb461bba7
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/456121
-Reviewed-by: Sergey Silkin <ssilkin@webrtc.org>
-Commit-Queue: Sergey Silkin <ssilkin@webrtc.org>
-Auto-Submit: Erik Språng <sprang@webrtc.org>
-Cr-Original-Commit-Position: refs/heads/main@{#47131}
-Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/459700
-Commit-Queue: Erik Språng <sprang@webrtc.org>
-Cr-Commit-Position: refs/branch-heads/7727@{#7}
+Bug: chromium:409473386
+Fixed: chromium:494190238
+Change-Id: I44500864c89dd7415327c91778086ecd667cdd15
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458041
+Reviewed-by: Ilya Nikolaevskiy <ilnik@webrtc.org>
+Commit-Queue: Palak Agarwal <agpalak@google.com>
+Cr-Original-Commit-Position: refs/heads/main@{#47193}
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/458340
+Cr-Commit-Position: refs/branch-heads/7727@{#6}
 Cr-Branched-From: 5788235ac856f62f1522d1491c4a8b00dba10c82-refs/heads/main@{#47086}
 ---
- .../codecs/h264/h264_encoder_impl.cc          |  5 ++++
- .../codecs/h264/h264_encoder_impl_unittest.cc | 26 +++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ .../full_screen_win_application_handler.cc    | 22 +++++++++++++------
+ .../win/full_screen_win_application_handler.h |  4 ++++
+ 2 files changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/modules/video_coding/codecs/h264/h264_encoder_impl.cc b/modules/video_coding/codecs/h264/h264_encoder_impl.cc
-index 02602029b8..b682013e62 100644
---- a/modules/video_coding/codecs/h264/h264_encoder_impl.cc
-+++ b/modules/video_coding/codecs/h264/h264_encoder_impl.cc
-@@ -450,6 +450,11 @@ int32_t H264EncoderImpl::Encode(
-                       << " image to I420. Can't encode frame.";
-     return WEBRTC_VIDEO_CODEC_ENCODER_FAILURE;
-   }
-+  if (frame_buffer->StrideU() != frame_buffer->StrideV()) {
-+    // TODO: crbug.com/chromium:491655161 - Remove once the root cause is fixed.
-+    RTC_LOG(LS_ERROR) << "OpenH264 requires the U and V strides to be equal.";
-+    return WEBRTC_VIDEO_CODEC_ENCODER_FAILURE;
-+  }
-   RTC_CHECK(frame_buffer->type() == VideoFrameBuffer::Type::kI420 ||
-             frame_buffer->type() == VideoFrameBuffer::Type::kI420A);
- 
-diff --git a/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc b/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
-index 0149a8cd86..e5aade5188 100644
---- a/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
-+++ b/modules/video_coding/codecs/h264/h264_encoder_impl_unittest.cc
-@@ -18,6 +18,7 @@
- #include "api/test/create_frame_generator.h"
- #include "api/test/frame_generator_interface.h"
- #include "api/test/mock_video_encoder.h"
-+#include "api/video/i420_buffer.h"
- #include "api/video/video_codec_type.h"
- #include "api/video/video_frame.h"
- #include "api/video_codecs/video_codec.h"
-@@ -137,6 +138,31 @@ TEST(H264EncoderImplTest, OnFrameDropped) {
-   }
+diff --git a/modules/desktop_capture/win/full_screen_win_application_handler.cc b/modules/desktop_capture/win/full_screen_win_application_handler.cc
+index c7548b0007..7a245c96f8 100644
+--- a/modules/desktop_capture/win/full_screen_win_application_handler.cc
++++ b/modules/desktop_capture/win/full_screen_win_application_handler.cc
+@@ -36,10 +36,16 @@ void RecordFullScreenDetectorResult(FullScreenDetectorResult result) {
+       static_cast<int>(FullScreenDetectorResult::kMaxValue));
  }
  
-+TEST(H264EncoderImplTest, RejectsFramesWithUnequalChromaStrides) {
-+  H264EncoderImpl encoder(CreateEnvironment(), {});
-+  VideoCodec codec_settings;
-+  SetDefaultSettings(&codec_settings);
-+  MockEncodedImageCallback callback;
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder.InitEncode(&codec_settings, kSettings));
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_OK,
-+            encoder.RegisterEncodeCompleteCallback(&callback));
-+  // Create a VideoFrame where the U and V strides are different.
-+  auto buffer = I420Buffer::Create(
-+      /*width=*/codec_settings.width,
-+      /*height=*/codec_settings.height,
-+      /*stride_y=*/codec_settings.width,
-+      /*stride_u=*/(codec_settings.width + 1) / 2,
-+      /*stride_v=*/(codec_settings.width + 1) / 2 + 1);
-+
-+  VideoFrame frame = VideoFrame::Builder()
-+                         .set_video_frame_buffer(buffer)
-+                         .set_rtp_timestamp(0)
-+                         .build();
-+
-+  EXPECT_EQ(WEBRTC_VIDEO_CODEC_ENCODER_FAILURE, encoder.Encode(frame, nullptr));
-+}
-+
- }  // anonymous namespace
+-void RecordFullScreenFindEditorResult(FullScreenFindEditorResult result) {
+-  RTC_HISTOGRAM_ENUMERATION(
+-      "WebRTC.Screenshare.FullScreenFindEditorResult", static_cast<int>(result),
+-      static_cast<int>(FullScreenFindEditorResult::kMaxValue));
++void MaybeRecordFullScreenFindEditorResult(
++    FullScreenFindEditorResult result,
++    std::optional<FullScreenFindEditorResult>& previous_result) {
++  if (previous_result != result) {
++    RTC_HISTOGRAM_ENUMERATION(
++        "WebRTC.Screenshare.FullScreenFindEditorResult",
++        static_cast<int>(result),
++        static_cast<int>(FullScreenFindEditorResult::kMaxValue));
++    previous_result = result;
++  }
+ }
  
- }  // namespace webrtc
+ namespace webrtc {
+@@ -246,15 +252,17 @@ DesktopCapturer::SourceId FullScreenPowerPointHandler::FindEditorWindow(
+   }
+ 
+   if (editor_ids.size() != 1) {
+-    RecordFullScreenFindEditorResult(
+-        FullScreenFindEditorResult::kFailureDueToSameTitleWindows);
++    MaybeRecordFullScreenFindEditorResult(
++        FullScreenFindEditorResult::kFailureDueToSameTitleWindows,
++        previous_find_editor_result_);
+     // If `editor_ids` has more than one id, then there are multiple open
+     // editors with the same title as the full screen slide show and then
+     // there's no way of knowing which editor has opened the slide show.
+     return 0;
+   }
+ 
+-  RecordFullScreenFindEditorResult(FullScreenFindEditorResult::kSuccess);
++  MaybeRecordFullScreenFindEditorResult(FullScreenFindEditorResult::kSuccess,
++                                        previous_find_editor_result_);
+   return *editor_ids.begin();
+ }
+ 
+diff --git a/modules/desktop_capture/win/full_screen_win_application_handler.h b/modules/desktop_capture/win/full_screen_win_application_handler.h
+index 0accd62e9e..3a51cea7e0 100644
+--- a/modules/desktop_capture/win/full_screen_win_application_handler.h
++++ b/modules/desktop_capture/win/full_screen_win_application_handler.h
+@@ -15,6 +15,7 @@
+ 
+ #include <cstdint>
+ #include <memory>
++#include <optional>
+ #include <string>
+ 
+ #include "modules/desktop_capture/desktop_capturer.h"
+@@ -82,6 +83,9 @@ class FullScreenPowerPointHandler : public FullScreenApplicationHandler {
+   mutable bool was_slide_show_created_after_capture_started_;
+ 
+   mutable FullScreenDetectorResult full_screen_detector_result_;
++
++  mutable std::optional<FullScreenFindEditorResult>
++      previous_find_editor_result_;
+ };
+ 
+ std::unique_ptr<FullScreenApplicationHandler>
