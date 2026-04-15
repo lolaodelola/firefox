@@ -52,7 +52,7 @@ index 2320dfdffc..7849ef7f70 100644
    frame_info.rtp_timestamp = frame.RtpTimestamp();
    frame_info.decode_start = now;
 diff --git a/rtc_base/BUILD.gn b/rtc_base/BUILD.gn
-index 2152e0f082..366969b6e0 100644
+index 15c4a71731..58a7f3b816 100644
 --- a/rtc_base/BUILD.gn
 +++ b/rtc_base/BUILD.gn
 @@ -236,6 +236,7 @@ rtc_library("event_tracer") {
