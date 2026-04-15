@@ -202,7 +202,7 @@ index 4d154f8e19..821060e2e3 100644
      }
  
 diff --git a/api/BUILD.gn b/api/BUILD.gn
-index 8c62fe2a0d..73d95a4ba2 100644
+index 9df13cc56d..e09ae0d775 100644
 --- a/api/BUILD.gn
 +++ b/api/BUILD.gn
 @@ -35,6 +35,9 @@ rtc_library("enable_media") {
@@ -292,7 +292,7 @@ index 8c62fe2a0d..73d95a4ba2 100644
    # but should not be depended on by webrtc source.
    visibility = [ "*" ]
 @@ -668,6 +696,7 @@ rtc_library("libjingle_peerconnection_api") {
-     "../rtc_base/system:rtc_export",
+     "../rtc_base/system:rtc_export",  # keep
    ]
  }
 +}
