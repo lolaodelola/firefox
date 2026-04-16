@@ -2471,9 +2471,6 @@ pref("browser.contentblocking.reject-and-isolate-cookies.preferences.ui.enabled"
 //   Restrict relaxing default referrer policy for top navigation:
 //     "rpTop": Restrict relaxing default referrer policy enabled
 //     "-rpTop": Restrict relaxing default referrer policy disabled
-//   OCSP cache partitioning:
-//     "ocsp": OCSP cache partitioning enabled
-//     "-ocsp": OCSP cache partitioning disabled
 //   Query parameter stripping:
 //     "qps": Query parameter stripping enabled
 //     "-qps": Query parameter stripping disabled
@@ -2510,7 +2507,7 @@ pref("browser.contentblocking.reject-and-isolate-cookies.preferences.ui.enabled"
 //     "lna": LNA enabled
 //     "-lna": LNA disabled
 // One value from each section must be included in the browser.contentblocking.features.strict pref.
-pref("browser.contentblocking.features.strict", "tp,tpPrivate,cookieBehavior5,cookieBehaviorPBM5,cryptoTP,fp,stp,emailTP,emailTPPrivate,-consentmanagerSkip,-consentmanagerSkipPrivate,lvl2,rp,rpTop,ocsp,qps,qpsPBM,fpp,fppPrivate,btp,lna");
+pref("browser.contentblocking.features.strict", "tp,tpPrivate,cookieBehavior5,cookieBehaviorPBM5,cryptoTP,fp,stp,emailTP,emailTPPrivate,-consentmanagerSkip,-consentmanagerSkipPrivate,lvl2,rp,rpTop,qps,qpsPBM,fpp,fppPrivate,btp,lna");
 
 // Enable Protections report's Lockwise card by default.
 pref("browser.contentblocking.report.lockwise.enabled", true);

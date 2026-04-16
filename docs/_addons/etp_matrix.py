@@ -244,14 +244,6 @@ FEATURES = [
         "desc": "Applies strict referrer policy to top-level navigation (not just subresources).",
     },
     {
-        "name": "OCSP Cache Partitioning",
-        "normal_code": "ocsp",
-        "pb_code": None,
-        "pref_normal": "privacy.partition.network_state.ocsp_cache",
-        "pref_pb": None,
-        "desc": "Partitions OCSP cache by top-level origin key.",
-    },
-    {
         "name": "Bounce Tracking Protection",
         "normal_code": "btp",
         "pb_code": None,

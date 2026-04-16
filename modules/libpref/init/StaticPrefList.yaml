@@ -17238,18 +17238,6 @@
   value: true
   mirror: always
 
-# Partition the OCSP cache by the partitionKey.
-- name: privacy.partition.network_state.ocsp_cache
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
-
-# Partition the OCSP cache by the partitionKey for private browsing mode.
-- name: privacy.partition.network_state.ocsp_cache.pbmode
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
-
 # Always partition web storage APIs except cookies.
 - name: privacy.partition.always_partition_third_party_non_cookie_storage
   type: RelaxedAtomicBool
