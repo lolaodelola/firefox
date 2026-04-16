@@ -3852,7 +3852,7 @@ static bool CallDefaultPromiseRejectFunction(
 }
 
 [[nodiscard]] static JSObject* CommonStaticResolveImpl(JSContext* cx,
-                                                       HandleObject thisObj,
+                                                       HandleObject C,
                                                        HandleValue argVal);
 
 static bool IsPromiseSpecies(JSContext* cx, JSFunction* species);
@@ -5633,10 +5633,8 @@ static bool PromiseAllSettledKeyedRejectElementFunction(JSContext* cx,
  * https://tc39.es/ecma262/#sec-promise-resolve
  */
 [[nodiscard]] static JSObject* CommonStaticResolveImpl(JSContext* cx,
-                                                       HandleObject thisObj,
+                                                       HandleObject C,
                                                        HandleValue argVal) {
-  RootedObject C(cx, thisObj);
-
   // Promise.resolve
   // Step 3. Return ? PromiseResolve(C, x).
   //
@@ -5671,7 +5669,7 @@ static bool PromiseAllSettledKeyedRejectElementFunction(JSContext* cx,
       }
 
       // Step 2.b. If SameValue(xConstructor, C) is true, return x.
-      if (ctorVal == ObjectValue(*thisObj)) {
+      if (ctorVal == ObjectValue(*C)) {
         return xObj;
       }
     }
@@ -5790,22 +5788,21 @@ PromiseObject* PromiseObject::unforgeableReject(JSContext* cx,
  */
 bool js::Promise_static_resolve(JSContext* cx, unsigned argc, Value* vp) {
   CallArgs args = CallArgsFromVp(argc, vp);
-  HandleValue thisVal = args.thisv();
-  HandleValue argVal = args.get(0);
-
   // Promise.resolve
   // Step 1. Let C be the this value.
+  HandleValue Cval = args.thisv();
+  HandleValue argVal = args.get(0);
+
   // Step 2. If Type(C) is not Object, throw a TypeError exception
-  if (!thisVal.isObject()) {
+  if (!Cval.isObject()) {
     const char* msg = "Receiver of Promise.resolve call";
     JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr,
                               JSMSG_OBJECT_REQUIRED, msg);
     return false;
   }
 
-  RootedObject thisObj(cx, &thisVal.toObject());
-
-  JSObject* result = CommonStaticResolveImpl(cx, thisObj, argVal);
+  RootedObject C(cx, &Cval.toObject());
+  JSObject* result = CommonStaticResolveImpl(cx, C, argVal);
   if (!result) {
     return false;
   }
