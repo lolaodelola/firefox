@@ -20,20 +20,6 @@
 
 class JSJitInfo;
 
-/*
- * Set a callback used to trace gray roots.
- *
- * The callback is called after the first slice of GC so the embedding must
- * implement appropriate barriers on its gray roots to ensure correctness.
- *
- * This callback may be called multiple times for different sets of zones. Use
- * JS::ZoneIsGrayMarking() to determine whether roots from a particular zone are
- * required.
- */
-extern JS_PUBLIC_API void JS_SetGrayGCRootsTracer(JSContext* cx,
-                                                  JSGrayRootsTracer traceOp,
-                                                  void* data);
-
 extern JS_PUBLIC_API JSObject* JS_FindCompilationScope(JSContext* cx,
                                                        JS::HandleObject obj);
 
@@ -76,13 +62,6 @@ extern JS_PUBLIC_API bool JS_IsDeadWrapper(JSObject* obj);
  */
 extern JS_PUBLIC_API JSObject* JS_NewDeadWrapper(
     JSContext* cx, JSObject* origObject = nullptr);
-
-/*
- * Used by the cycle collector to trace through a shape and all
- * cycle-participating data it reaches, using bounded stack space.
- */
-extern JS_PUBLIC_API void JS_TraceShapeCycleCollectorChildren(
-    JS::CallbackTracer* trc, JS::GCCellPtr shape);
 
 extern JS_PUBLIC_API JSPrincipals* JS_GetScriptPrincipals(JSScript* script);
 
@@ -235,50 +214,8 @@ extern JS_PUBLIC_API bool IsSystemCompartment(JS::Compartment* comp);
 
 extern JS_PUBLIC_API bool IsSystemZone(JS::Zone* zone);
 
-struct WeakMapTracer {
-  JSRuntime* runtime;
-
-  explicit WeakMapTracer(JSRuntime* rt) : runtime(rt) {}
-
-  // Weak map tracer callback, called once for every binding of every
-  // weak map that was live at the time of the last garbage collection.
-  //
-  // m will be nullptr if the weak map is not contained in a JS Object.
-  //
-  // The callback should not GC (and will assert in a debug build if it does
-  // so.)
-  virtual void trace(JSObject* m, JS::GCCellPtr key, JS::GCCellPtr value) = 0;
-};
-
-extern JS_PUBLIC_API void TraceWeakMaps(WeakMapTracer* trc);
-
-extern JS_PUBLIC_API bool AreGCGrayBitsValid(JSRuntime* rt);
-
-extern JS_PUBLIC_API bool ZoneGlobalsAreAllGray(JS::Zone* zone);
-
 extern JS_PUBLIC_API bool IsCompartmentZoneSweepingOrCompacting(
     JS::Compartment* comp);
-
-using IterateGCThingCallback = void (*)(void*, JS::GCCellPtr,
-                                        const JS::AutoRequireNoGC&);
-
-extern JS_PUBLIC_API void TraceGrayWrapperTargets(JSTracer* trc,
-                                                  JS::Zone* zone);
-
-/**
- * Invoke cellCallback on every gray JSObject in the given zone.
- */
-extern JS_PUBLIC_API void IterateGrayObjects(
-    JS::Zone* zone, IterateGCThingCallback cellCallback, void* data);
-
-#if defined(JS_GC_ZEAL) || defined(DEBUG)
-// Trace the heap and check there are no black to gray edges. These are
-// not allowed since the cycle collector could throw away the gray thing and
-// leave a dangling pointer.
-//
-// This doesn't trace weak maps as these are handled separately.
-extern JS_PUBLIC_API bool CheckGrayMarkingState(JSRuntime* rt);
-#endif
 
 // Note: this returns nullptr iff |zone| is the atoms zone.
 extern JS_PUBLIC_API JS::Realm* GetAnyRealmInZone(JS::Zone* zone);

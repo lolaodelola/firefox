@@ -90,6 +90,7 @@
 #include <stdlib.h>
 
 #include "xpcpublic.h"
+#include "js/friend/CycleCollector.h"
 #include "js/HashTable.h"
 #include "js/GCHashTable.h"
 #include "js/Object.h"              // JS::GetClass, JS::GetCompartment
