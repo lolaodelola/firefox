@@ -866,96 +866,8 @@ class OutputParser {
     }
 
     const stackEntry = this.#stack.at(-1);
-    if (
-      stackEntry.lowerCaseFunctionName === "light-dark" &&
-      typeof options.isDarkColorScheme === "boolean" &&
-      // light-dark takes exactly two parameters, so if we don't get exactly 1 separator
-      // at this point, that means that the value is valid at parse time, but is invalid
-      // at computed value time.
-      // TODO: We might want to add a class to indicate that this is invalid at computed
-      // value time (See Bug 1910845)
-      stackEntry.separatorIndexes.length === 1
-    ) {
-      const stackEntryParts = this.#getCurrentStackParts();
-      const separatorIndex = stackEntry.separatorIndexes[0];
-      let startIndex;
-      let endIndex;
-      if (options.isDarkColorScheme) {
-        // If we're using a dark color scheme, we want to mark the first param as
-        // not used.
-
-        // The first "part" is `light-dark(`, so we can start after that.
-        // We want to filter out white space character before the first parameter
-        for (startIndex = 1; startIndex < separatorIndex; startIndex++) {
-          const part = stackEntryParts[startIndex];
-          if (typeof part !== "string" || part.trim() !== "") {
-            break;
-          }
-        }
-
-        // same for the end of the parameter, we want to filter out whitespaces
-        // after the parameter and before the comma
-        for (
-          endIndex = separatorIndex - 1;
-          endIndex >= startIndex;
-          endIndex--
-        ) {
-          const part = stackEntryParts[endIndex];
-          if (typeof part !== "string" || part.trim() !== "") {
-            // We found a non-whitespace part, we need to include it, so increment the endIndex
-            endIndex++;
-            break;
-          }
-        }
-      } else {
-        // If we're not using a dark color scheme, we want to mark the second param as
-        // not used.
-
-        // We want to filter out white space character after the comma and before the
-        // second parameter
-        for (
-          startIndex = separatorIndex + 1;
-          startIndex < stackEntryParts.length;
-          startIndex++
-        ) {
-          const part = stackEntryParts[startIndex];
-          if (typeof part !== "string" || part.trim() !== "") {
-            break;
-          }
-        }
-
-        // same for the end of the parameter, we want to filter out whitespaces
-        // after the parameter and before the closing parenthesis (which is not yet
-        // included in stackEntryParts)
-        for (
-          endIndex = stackEntryParts.length - 1;
-          endIndex > separatorIndex;
-          endIndex--
-        ) {
-          const part = stackEntryParts[endIndex];
-          if (typeof part !== "string" || part.trim() !== "") {
-            // We found a non-whitespace part, we need to include it, so increment the endIndex
-            endIndex++;
-            break;
-          }
-        }
-      }
-
-      const parts = stackEntryParts.slice(startIndex, endIndex);
-
-      // If the item we need to mark is already an element (e.g. a parsed color),
-      // just add a class to it.
-      if (parts.length === 1 && Element.isInstance(parts[0])) {
-        parts[0].classList.add(options.unmatchedClass);
-      } else {
-        // Otherwise, we need to wrap our parts into a specific element so we can
-        // style them
-        const node = this.#createNode("span", {
-          class: options.unmatchedClass,
-        });
-        node.append(...parts);
-        stackEntryParts.splice(startIndex, parts.length, node);
-      }
+    if (stackEntry.lowerCaseFunctionName === "light-dark") {
+      this.#onCloseParenthesisForLightDark(stackEntry, options);
     }
 
     // Our job is done here, pop last stack entry
@@ -963,6 +875,106 @@ class OutputParser {
     // Put all the parts in the "new" last stack, or the main parsed array if there
     // is no more entry in the stack
     this.#getCurrentStackParts().push(...parts);
+  }
+
+  /**
+   * Called when we got the closing bracket for `light-dark()`
+   *
+   * @param {object} stackEntry
+   *        The last item in this.#stack
+   * @param {object} options
+   *        options passed to the parse function. @see #mergeOptions for valid options
+   *        and default values
+   */
+  #onCloseParenthesisForLightDark(stackEntry, options) {
+    if (
+      typeof options.isDarkColorScheme !== "boolean" ||
+      // light-dark takes exactly two parameters, so if we don't get exactly 1 separator
+      // at this point, that means that the value is valid at parse time, but is invalid
+      // at computed value time.
+      // TODO: We might want to add a class to indicate that this is invalid at computed
+      // value time (See Bug 1910845)
+      stackEntry.separatorIndexes.length !== 1
+    ) {
+      return;
+    }
+
+    const stackEntryParts = this.#getCurrentStackParts();
+    const separatorIndex = stackEntry.separatorIndexes[0];
+    let startIndex;
+    let endIndex;
+    if (options.isDarkColorScheme) {
+      // If we're using a dark color scheme, we want to mark the first param as
+      // not used.
+
+      // The first "part" is `light-dark(`, so we can start after that.
+      // We want to filter out white space character before the first parameter
+      for (startIndex = 1; startIndex < separatorIndex; startIndex++) {
+        const part = stackEntryParts[startIndex];
+        if (typeof part !== "string" || part.trim() !== "") {
+          break;
+        }
+      }
+
+      // same for the end of the parameter, we want to filter out whitespaces
+      // after the parameter and before the comma
+      for (endIndex = separatorIndex - 1; endIndex >= startIndex; endIndex--) {
+        const part = stackEntryParts[endIndex];
+        if (typeof part !== "string" || part.trim() !== "") {
+          // We found a non-whitespace part, we need to include it, so increment the endIndex
+          endIndex++;
+          break;
+        }
+      }
+    } else {
+      // If we're not using a dark color scheme, we want to mark the second param as
+      // not used.
+
+      // We want to filter out white space character after the comma and before the
+      // second parameter
+      for (
+        startIndex = separatorIndex + 1;
+        startIndex < stackEntryParts.length;
+        startIndex++
+      ) {
+        const part = stackEntryParts[startIndex];
+        if (typeof part !== "string" || part.trim() !== "") {
+          break;
+        }
+      }
+
+      // same for the end of the parameter, we want to filter out whitespaces
+      // after the parameter and before the closing parenthesis (which is not yet
+      // included in stackEntryParts)
+      for (
+        endIndex = stackEntryParts.length - 1;
+        endIndex > separatorIndex;
+        endIndex--
+      ) {
+        const part = stackEntryParts[endIndex];
+        if (typeof part !== "string" || part.trim() !== "") {
+          // We found a non-whitespace part, we need to include it, so increment the endIndex
+          endIndex++;
+          break;
+        }
+      }
+    }
+
+    const parts = stackEntryParts.slice(startIndex, endIndex);
+
+    // If the item we need to mark is already an element (e.g. a parsed color),
+    // just add a class to it.
+    if (parts.length === 1 && Element.isInstance(parts[0])) {
+      parts[0].classList.add(options.unmatchedClass);
+    } else {
+      // Otherwise, we need to wrap our parts into a specific element so we can
+      // style them
+      const node = this.#createNode("span", {
+        class: options.unmatchedClass,
+      });
+      node.append(...parts);
+      stackEntryParts.splice(startIndex, parts.length, node);
+    }
   }
 
   /**
