@@ -179,6 +179,19 @@ class RadioSearchEngineListPreference @JvmOverloads constructor(
     override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
         if (!isChecked) return
 
+        // RadioGroup cannot enforce mutual exclusivity for nested RadioButtons,
+        // so manually uncheck all siblings.
+        val searchEngineGroup = (buttonView.parent as? View)?.parent as? RadioGroup
+        if (searchEngineGroup != null) {
+            for (i in 0 until searchEngineGroup.childCount) {
+                val child = searchEngineGroup.getChildAt(i) as? ViewGroup ?: continue
+                val radioButton = child.findViewById<CompoundButton>(R.id.radio_button) ?: continue
+                if (radioButton != buttonView && radioButton.isChecked) {
+                    radioButton.isChecked = false
+                }
+            }
+        }
+
         val searchEngineId = buttonView.tag.toString()
 
         if (isForPrivateBrowsing && searchEngineId == USE_DEFAULT_TAG) {
