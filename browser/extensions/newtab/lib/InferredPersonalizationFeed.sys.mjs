@@ -15,6 +15,7 @@ import {
   FORMAT,
   AggregateResultKeys,
   DEFAULT_INFERRED_MODEL_DATA,
+  DEFAULT_USER_CTR,
 } from "resource://newtab/lib/InferredModel/InferredConstants.sys.mjs";
 
 import {
@@ -52,6 +53,61 @@ const TEST_MODEL_ID = "TEST";
 
 const OLD_DATA_PRESERVE_DAYS_DEFAULT = 30 * 6;
 const OLD_DATA_CLEAR_CHECK_FREQUENCY_MS = 5 * 3600 * 24 * 1000; // 5 days
+
+const KNOWN_TOPICS = new Set([
+  "t_business",
+  "t_career",
+  "t_arts",
+  "t_food",
+  "t_health",
+  "t_home",
+  "t_finance",
+  "t_government",
+  "t_sports",
+  "t_tech",
+  "t_travel",
+  "t_education",
+  "t_hobbies",
+  "t_society-parenting",
+  "t_education-science",
+  "t_society",
+]);
+
+/**
+ * Computes average CTR from raw interval data, counting only known topic features.
+ *
+ * @param {Array.<Array>} clickDataPerInterval Raw click SQL results per time interval.
+ * @param {Array.<Array>} impressionDataPerInterval Raw impression SQL results per time interval.
+ * @param {{[key: string]: number}} indexSchema Map of keys to indices in each row.
+ * @returns {number} Average CTR, or DEFAULT_USER_CTR if no topic impressions found.
+ */
+export function computeAverageCTRFromTopics(
+  clickDataPerInterval,
+  impressionDataPerInterval,
+  indexSchema
+) {
+  const featureIdx = indexSchema[AggregateResultKeys.FEATURE];
+  const valueIdx = indexSchema[AggregateResultKeys.VALUE];
+
+  function sumTopics(dataPerInterval) {
+    let total = 0;
+    for (const intervalData of dataPerInterval) {
+      for (const row of intervalData) {
+        if (KNOWN_TOPICS.has(row[featureIdx])) {
+          total += row[valueIdx];
+        }
+      }
+    }
+    return total;
+  }
+
+  const impressionsTotal = sumTopics(impressionDataPerInterval);
+  if (impressionsTotal <= 0) {
+    return DEFAULT_USER_CTR;
+  }
+  const clicksTotal = sumTopics(clickDataPerInterval);
+  return clicksTotal / impressionsTotal;
+}
 
 /**
  * A feature that periodically generates a interest vector for inferred personalization.
@@ -281,12 +337,20 @@ export class InferredPersonalizationFeed {
           interests.inferredInterests;
         const debugOverrideCoarseValueDictionary =
           await this._getDebugOverrides();
+        const averageCtr = model.hasBayesianSmoothing()
+          ? computeAverageCTRFromTopics(
+              aggClickPerInterval,
+              aggImpressionsPerInterval,
+              schema
+            )
+          : null;
         const inferredInterests = model.computeCTRInterestVectors({
           clicks: clickTotals,
           impressions: ivImpressions,
           model_id,
           timeZoneOffset: lazy.NewTabUtils.getUtcOffset(),
           debugOverrideCoarseValueDictionary,
+          averageCtr,
         });
         return inferredInterests;
       }

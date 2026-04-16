@@ -433,3 +433,147 @@ add_task(
     sandbox.restore();
   }
 );
+
+// computeAverageCTRFromTopics tests
+// The function and its dependencies are lazily imported inside each test to
+// avoid eager module load failures in the xpcshell test environment.
+
+add_task(function test_computeAverageCTRFromTopics_basic() {
+  const { computeAverageCTRFromTopics } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredPersonalizationFeed.sys.mjs"
+  );
+  const { AggregateResultKeys } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredModel/InferredConstants.sys.mjs"
+  );
+  const schema = {
+    [AggregateResultKeys.FEATURE]: 0,
+    [AggregateResultKeys.FORMAT_ENUM]: 1,
+    [AggregateResultKeys.VALUE]: 2,
+  };
+
+  const clickIntervals = [
+    [
+      ["t_food", 0, 10],
+      ["t_sports", 0, 5],
+      ["unknown_feature", 0, 100],
+    ],
+  ];
+  const impressionIntervals = [
+    [
+      ["t_food", 0, 200],
+      ["t_sports", 0, 100],
+      ["unknown_feature", 0, 50],
+    ],
+  ];
+
+  const avg = computeAverageCTRFromTopics(
+    clickIntervals,
+    impressionIntervals,
+    schema
+  );
+
+  // topic clicks = 10+5 = 15, topic impressions = 200+100 = 300
+  Assert.less(
+    Math.abs(avg - 0.05),
+    0.001,
+    `Average CTR from known topics only: ${avg}`
+  );
+});
+
+add_task(function test_computeAverageCTRFromTopics_noTopics() {
+  const { computeAverageCTRFromTopics } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredPersonalizationFeed.sys.mjs"
+  );
+  const { AggregateResultKeys } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredModel/InferredConstants.sys.mjs"
+  );
+  const schema = {
+    [AggregateResultKeys.FEATURE]: 0,
+    [AggregateResultKeys.FORMAT_ENUM]: 1,
+    [AggregateResultKeys.VALUE]: 2,
+  };
+
+  const clickIntervals = [[["unknown_a", 0, 10]]];
+  const impressionIntervals = [[["unknown_a", 0, 200]]];
+
+  const avg = computeAverageCTRFromTopics(
+    clickIntervals,
+    impressionIntervals,
+    schema
+  );
+
+  Assert.equal(avg, 0.002, "No known topics returns DEFAULT_USER_CTR");
+});
+
+add_task(function test_computeAverageCTRFromTopics_zeroImpressions() {
+  const { computeAverageCTRFromTopics } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredPersonalizationFeed.sys.mjs"
+  );
+  const { AggregateResultKeys } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredModel/InferredConstants.sys.mjs"
+  );
+  const schema = {
+    [AggregateResultKeys.FEATURE]: 0,
+    [AggregateResultKeys.FORMAT_ENUM]: 1,
+    [AggregateResultKeys.VALUE]: 2,
+  };
+
+  const clickIntervals = [[["t_food", 0, 0]]];
+  const impressionIntervals = [[["t_food", 0, 0]]];
+
+  const avg = computeAverageCTRFromTopics(
+    clickIntervals,
+    impressionIntervals,
+    schema
+  );
+
+  Assert.equal(avg, 0.002, "Zero topic impressions returns DEFAULT_USER_CTR");
+});
+
+add_task(function test_computeAverageCTRFromTopics_multipleIntervals() {
+  const { computeAverageCTRFromTopics } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredPersonalizationFeed.sys.mjs"
+  );
+  const { AggregateResultKeys } = ChromeUtils.importESModule(
+    "resource://newtab/lib/InferredModel/InferredConstants.sys.mjs"
+  );
+  const schema = {
+    [AggregateResultKeys.FEATURE]: 0,
+    [AggregateResultKeys.FORMAT_ENUM]: 1,
+    [AggregateResultKeys.VALUE]: 2,
+  };
+
+  const clickIntervals = [
+    [
+      ["t_food", 0, 5],
+      ["t_sports", 0, 3],
+    ],
+    [
+      ["t_food", 0, 5],
+      ["t_sports", 0, 2],
+    ],
+  ];
+  const impressionIntervals = [
+    [
+      ["t_food", 0, 100],
+      ["t_sports", 0, 50],
+    ],
+    [
+      ["t_food", 0, 100],
+      ["t_sports", 0, 50],
+    ],
+  ];
+
+  const avg = computeAverageCTRFromTopics(
+    clickIntervals,
+    impressionIntervals,
+    schema
+  );
+
+  // topic clicks = 5+3+5+2 = 15, topic impressions = 100+50+100+50 = 300
+  Assert.less(
+    Math.abs(avg - 0.05),
+    0.001,
+    `Multiple intervals averaged correctly: ${avg}`
+  );
+});
