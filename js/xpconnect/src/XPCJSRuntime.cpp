@@ -2587,7 +2587,7 @@ static nsresult JSSizeOfTab(JSObject* obj, size_t* jsObjectsSize,
 static void AccumulateTelemetryCallback(JSMetric id, uint32_t sample) {
   switch (id) {
     case JSMetric::GC_MS:
-      glean::javascript_gc::total_time.AccumulateRawDuration(
+      glean::javascript_gc::total_time.ProcessGet().AccumulateRawDuration(
           TimeDuration::FromMilliseconds(sample));
       break;
     case JSMetric::GC_MINOR_US:
@@ -2627,15 +2627,15 @@ static void AccumulateTelemetryCallback(JSMetric id, uint32_t sample) {
           TimeDuration::FromMilliseconds(sample));
       break;
     case JSMetric::GC_BUDGET_OVERRUN:
-      glean::javascript_gc::budget_overrun.AccumulateRawDuration(
+      glean::javascript_gc::budget_overrun.ProcessGet().AccumulateRawDuration(
           TimeDuration::FromMicroseconds(sample));
       break;
     case JSMetric::GC_ANIMATION_MS:
-      glean::javascript_gc::animation.AccumulateRawDuration(
+      glean::javascript_gc::animation.ProcessGet().AccumulateRawDuration(
           TimeDuration::FromMilliseconds(sample));
       break;
     case JSMetric::GC_MAX_PAUSE_MS_2:
-      glean::javascript_gc::max_pause.AccumulateRawDuration(
+      glean::javascript_gc::max_pause.ProcessGet().AccumulateRawDuration(
           TimeDuration::FromMilliseconds(sample));
       break;
     case JSMetric::GC_MARK_GRAY_MS_2:
