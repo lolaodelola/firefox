@@ -62,11 +62,7 @@ add_task(async function test_shouldResistFingerprinting_accessible() {
     return content.document.cookieJarSettings.shouldResistFingerprinting;
   });
 
-  Assert.equal(
-    typeof rfp,
-    "boolean",
-    "shouldResistFingerprinting is a boolean"
-  );
+  Assert.equal(typeof rfp, "boolean", "shouldResistFingerprinting is a boolean");
 
   await page.close();
 });
@@ -79,7 +75,8 @@ add_task(async function test_fingerprintingRandomizationKey_accessible() {
   });
 
   let keyLen = await page.spawn([], () => {
-    let key = content.document.cookieJarSettings.fingerprintingRandomizationKey;
+    let key =
+      content.document.cookieJarSettings.fingerprintingRandomizationKey;
     return key.length;
   });
 
