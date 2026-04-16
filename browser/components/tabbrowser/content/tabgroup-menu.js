@@ -13,6 +13,9 @@
   const { TabStateFlusher } = ChromeUtils.importESModule(
     "resource:///modules/sessionstore/TabStateFlusher.sys.mjs"
   );
+  const { ContentSharingUtils } = ChromeUtils.importESModule(
+    "resource:///modules/contentsharing/ContentSharingUtils.sys.mjs"
+  );
 
   ChromeUtils.importESModule(
     "chrome://browser/content/genai/content/model-optin.mjs",
@@ -94,6 +97,13 @@
           id="tabGroupEditor_ungroupTabs"
           class="subviewbutton"
           data-l10n-id="tab-group-editor-action-ungroup">
+        </toolbarbutton>
+        <toolbarbutton
+          tabindex="0"
+          id="tabGroupEditor_shareTabGroup"
+          class="subviewbutton"
+          data-l10n-id="tab-group-editor-action-share-tab-group"
+          hidden="">
         </toolbarbutton>
         <toolbarseparator class="tab-group-edit-mode-only" />
         <toolbarbutton
@@ -450,6 +460,7 @@
           "tabGroupEditor_saveAndCloseGroup"
         ),
         deleteGroup: document.getElementById("tabGroupEditor_deleteGroup"),
+        shareTabGroup: document.getElementById("tabGroupEditor_shareTabGroup"),
       };
 
       this.#commandButtons.addNewTabInGroup.addEventListener("command", () => {
@@ -481,6 +492,10 @@
             TabMetrics.METRIC_SOURCE.TAB_GROUP_MENU
           )
         );
+      });
+
+      this.#commandButtons.shareTabGroup.addEventListener("command", () => {
+        ContentSharingUtils.handleShareTabGroup(this.activeGroup);
       });
 
       this.panel.addEventListener("popupshown", this);
@@ -936,6 +951,9 @@
       for (const button of Object.values(this.#commandButtons)) {
         button.tooltipText = button.label;
       }
+
+      this.#commandButtons.shareTabGroup.hidden =
+        !ContentSharingUtils.isEnabled;
     }
 
     on_popuphidden() {

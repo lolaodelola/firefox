@@ -80,6 +80,32 @@ class ContentSharingUtilsClass {
   }
 
   /**
+   * Handles sharing a tab group by building a share object and sending it to the
+   * content sharing server to get a shareable link, which is then opened in a
+   * new tab.
+   *
+   * @param {MozTabbrowserTabGroup} tabGroup The tab group element to share
+   */
+  async handleShareTabGroup(tabGroup) {
+    let title = tabGroup.label;
+    if (!title) {
+      title = await tabGroup.ownerDocument.l10n.formatValue(
+        "tab-group-name-default"
+      );
+    }
+    const shareObject = {
+      title,
+      type: "tab_group",
+      children: tabGroup.tabs.map(t => {
+        return { uri: t.linkedBrowser.currentURI.spec, title: t.label };
+      }),
+    };
+
+    const share = this.buildShare(shareObject);
+    await this.openShareUrlInNewTab(share);
+  }
+
+  /**
    * Builds a share object from bookmark folder guids. It first builds out the
    * bookmark tree and then builds a share object from that tree, returning an
    * object to be validated against contentsharing.schema.json and sent to the
@@ -134,6 +160,7 @@ class ContentSharingUtilsClass {
    * @returns {object} The built share object that will be validated against
    * the contentsharing.schema.json
    */
+
   buildShare(shareObject) {
     const share = {
       type: shareObject.type ?? "bookmarks",
