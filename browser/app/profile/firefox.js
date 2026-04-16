@@ -819,6 +819,9 @@ pref("browser.urlbar.suggest.sports", true);
 // urlbar searches.
 pref("browser.urlbar.lastUrlbarSearchSeconds", 0);
 
+// Feature gate pref for Nova UI in the urlbar.
+pref("browser.urlbar.nova.featureGate", false);
+
 // When selecting and hovering over certain types of urlbar results, replace
 // their URLs with strings that explain why they're shown.
 pref("browser.urlbar.resultExplanations.featureGate", false);

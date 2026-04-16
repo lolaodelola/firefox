@@ -618,7 +618,7 @@ export class SearchModeSwitcher {
     menuitem.dataset.action = "openpreferences";
     this.#input.document.l10n.setAttributes(
       menuitem,
-      Services.prefs.getBoolPref("browser.nova.enabled", false)
+      lazy.UrlbarPrefs.get("nova.featureGate")
         ? "urlbar-searchmode-popup-settings-panelitem"
         : "urlbar-searchmode-popup-search-settings-panelitem"
     );

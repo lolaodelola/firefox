@@ -260,6 +260,9 @@ const PREF_URLBAR_DEFAULTS = /** @type {PreferenceDefinition[]} */ ([
   // Set default NER threshold value of 0.5
   ["nerThreshold", [0.5, "float"]],
 
+  // Feature gate pref for Nova UI.
+  ["nova.featureGate", false],
+
   // Whether addresses and search results typed into the address bar
   // should be opened in new tabs by default.
   ["openintab", false],
