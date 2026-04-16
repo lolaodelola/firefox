@@ -150,11 +150,7 @@ class OutputParser {
   parseCssProperty(name, value, options = {}) {
     options = this.#mergeOptions(options);
 
-    options.expectCubicBezier = this.#cssProperties.supportsType(
-      name,
-      "timing-function"
-    );
-    options.expectLinearEasing = this.#cssProperties.supportsType(
+    options.expectTimingFunction = this.#cssProperties.supportsType(
       name,
       "timing-function"
     );
@@ -626,7 +622,7 @@ class OutputParser {
                   this.#appendTextNode(functionText);
                 }
               } else if (
-                options.expectLinearEasing &&
+                options.expectTimingFunction &&
                 lowerCaseFunctionName === "linear"
               ) {
                 this.#appendLinear(functionText, options);
@@ -665,7 +661,7 @@ class OutputParser {
 
         case "Ident":
           if (
-            options.expectCubicBezier &&
+            options.expectTimingFunction &&
             BEZIER_KEYWORDS.has(lowerCaseTokenText)
           ) {
             this.#append(
@@ -674,11 +670,6 @@ class OutputParser {
                 parseOptions: options,
               }) || token.text
             );
-          } else if (
-            options.expectLinearEasing &&
-            lowerCaseTokenText == "linear"
-          ) {
-            this.#appendLinear(token.text, options);
           } else if (this.#isDisplayFlex(text, token, options)) {
             this.#appendDisplayWithHighlighterToggle(
               token.text,
@@ -1002,7 +993,7 @@ class OutputParser {
    * @returns {Array<string|Element>} The updated parts for the stack entry that is being closed.
    */
   #onCloseParenthesisForCubicBezier(stackEntry, options) {
-    if (!options.expectCubicBezier) {
+    if (!options.expectTimingFunction) {
       return stackEntry.parts;
     }
 
