@@ -209,7 +209,18 @@ add_task(async function searchTip() {
   });
 
   info("Open new tab.");
-  const tab = await openAboutNewTab(win);
+  // Prevent the panel from closing on blur during page load: the search tip
+  // fires after a 200ms delay, and focus interference while the page loads
+  // could blur the urlbar and close the popup before we can interact.
+  await SpecialPowers.pushPrefEnv({
+    set: [["ui.popup.disable_autohide", true]],
+  });
+  let tab;
+  try {
+    tab = await openAboutNewTab(win);
+  } finally {
+    await SpecialPowers.popPrefEnv();
+  }
 
   info("Click the tip button.");
   const result = await UrlbarTestUtils.getDetailsOfResultAt(win, 0);
