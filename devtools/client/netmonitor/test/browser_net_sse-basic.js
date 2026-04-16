@@ -174,7 +174,7 @@ add_task(async function testBasicServerSentEvents() {
     "Data column shows correct payload"
   );
 
-  await waitForDOM(
+  await waitForDOMIfNeeded(
     document,
     "#messages-view .msg-connection-closed-message",
     1

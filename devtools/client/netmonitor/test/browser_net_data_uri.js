@@ -105,10 +105,8 @@ add_task(async function test_content_request_to_data_uri() {
   document.querySelector("#response-tab").click();
   const [imageNode] = await waitDOM;
 
-  await waitFor(
-    () => imageNode.complete === true && imageNode.naturalWidth > 0,
-    "Wait for the image to load"
-  );
+  // Wait for the image to load.
+  await once(imageNode, "load");
 
   const [name, dimensions, mime] = document.querySelectorAll(
     ".response-image-box .tabpanel-summary-value"
@@ -121,8 +119,9 @@ add_task(async function test_content_request_to_data_uri() {
     "The image name matches the base 64 string"
   );
   is(mime.textContent, "image/gif", "The image mime info is image/gif");
-  await waitFor(
-    () => dimensions.textContent === "1" + " \u00D7 " + "1",
+  is(
+    dimensions.textContent,
+    "1" + " \u00D7 " + "1",
     "The image dimensions are correct"
   );
 

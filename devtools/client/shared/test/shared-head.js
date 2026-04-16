@@ -1265,41 +1265,10 @@ function waitForNEvents(target, eventName, numTimes, useCapture = false) {
 }
 
 /**
- * Wait until the browser element is no longer loading a document. In general
- * if you are loading an existing browser element, prefer the shared helper
- * BrowserTestUtils.isLoaded(browser).
- *
- * However in cases where the browser element is dynamically created and the
- * load might be missed because the event loop had time to spin before calling
- * isLoaded, this helper can be used as a fallback.
- *
- * @param {XULBrowser} browser
- *        The browser to wait the load for.
- */
-async function waitForBrowserLoaded(browser) {
-  return waitFor(
-    () =>
-      !browser.webProgress.isLoadingDocument &&
-      browser.currentURI?.spec &&
-      browser.currentURI?.spec !== "about:blank",
-    {
-      toString() {
-        return (
-          `Browser element did not load as expected. ` +
-          `isLoadingDocument=${browser.webProgress.isLoadingDocument} and ` +
-          `URI.spec=${browser.currentURI?.spec}.`
-        );
-      },
-    }
-  );
-}
-
-/**
- * Wait for DOM to be updated until the number of elements matching the provided
- * selector correspond to the expectation.
+ * Wait for DOM change on target.
  *
  * @param {object} target
- *        The Node on which to query the selector.
+ *        The Node on which to observe DOM mutations.
  * @param {string} selector
  *        Given a selector to watch whether the expected element is changed
  *        on target.
@@ -1307,25 +1276,27 @@ async function waitForBrowserLoaded(browser) {
  *        Optional, default set to 1
  *        There may be more than one element match an array match the selector,
  *        give an expected length to wait for more elements.
- * @return A promise that resolves with the NodeList of the elements matching
- *         the selector.
+ * @return A promise that resolves when the event has been handled
  */
-async function waitForDOM(target, selector, expectedLength = 1) {
-  info(`Wait for ${expectedLength} elements to match selector "${selector}"`);
-  await waitFor(
-    () => target.querySelectorAll(selector).length === expectedLength,
-    {
-      toString() {
-        return (
-          `Expected ${expectedLength} elements for selector: "${selector}", ` +
-          `got ${target.querySelectorAll(selector).length}.`
-        );
-      },
-    }
-  );
+function waitForDOM(target, selector, expectedLength = 1) {
+  return new Promise(resolve => {
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        const elements = mutation.target.querySelectorAll(selector);
 
-  info(`Successfully found ${expectedLength} elements matching "${selector}"`);
-  return target.querySelectorAll(selector);
+        if (elements.length === expectedLength) {
+          observer.disconnect();
+          resolve(elements);
+        }
+      });
+    });
+
+    observer.observe(target, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+  });
 }
 
 /**
