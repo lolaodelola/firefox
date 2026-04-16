@@ -1013,6 +1013,11 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStylePosition {
   inline mozilla::StyleContentDistribution UsedContentAlignment(
       LogicalAxis aAxis) const;
 
+  bool CanHaveDefaultAnchor() const {
+    return mPositionAnchor.value.IsIdent() || mPositionAnchor.value.IsAuto() ||
+           (mPositionAnchor.value.IsNormal() && !mPositionArea.IsNone());
+  }
+
   Position mObjectPosition;
   StyleRect<mozilla::StyleInset> mOffset;
   StyleSize mWidth;

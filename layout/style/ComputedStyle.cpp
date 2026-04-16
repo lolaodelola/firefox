@@ -428,7 +428,7 @@ bool ComputedStyle::HasAnchorPosReference() const {
     return true;
   }
 
-  if (pos->mPositionAnchor.value.IsAuto()) {
+  if (pos->CanHaveDefaultAnchor()) {
     if (!pos->mPositionArea.IsNone()) {
       // Position area is relative to an anchor.
       return true;
