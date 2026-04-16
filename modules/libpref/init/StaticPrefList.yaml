@@ -3177,7 +3177,13 @@
 # This pref enables the keyboardLock option for requestFullscreen.
 - name: dom.fullscreen.keyboard_lock.enabled
   type: bool
+#ifdef ANDROID
+# Fullscreen Keyboard Lock is not functional on Android, so disable the feature
+# until there is handling for it.
   value: false
+#else
+  value: true
+#endif
   mirror: always
 
 # The interval in milliseconds the Escape key needs to be held in order to
