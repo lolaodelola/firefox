@@ -9,6 +9,7 @@
 #include "PerformanceInteractionMetrics.h"
 #include "PerformanceNavigation.h"
 #include "PerformancePaintTiming.h"
+#include "SharedLcpMarkerState.h"
 #include "js/GCAPI.h"
 #include "js/PropertyAndElement.h"  // JS_DefineProperty
 #include "jsapi.h"
@@ -123,21 +124,17 @@ PerformanceMainThread::PerformanceMainThread(nsPIDOMWindowInner* aWindow,
     // - During the Document unload, so we can record the closed pages.
     // - During the profile capture, so we can record the open pages.
     // We are capturing the second one here.
-    // Our static analysis doesn't allow capturing ref-counted pointers in
-    // lambdas, so we need to hide it in a uintptr_t. This is safe because this
-    // lambda will be destroyed in ~PerformanceMainThread().
-    uintptr_t self = reinterpret_cast<uintptr_t>(this);
+    RefPtr<SharedLcpMarkerState> sharedLcpMarkerState =
+        aDOMTiming->GetSharedLcpMarkerState();
     profiler_add_state_change_callback(
         // Using the "Pausing" state as "GeneratingProfile" profile happens too
         // late; we can not record markers if the profiler is already paused.
         ProfilingState::Pausing,
-        [self, innerWindowID](ProfilingState aProfilingState) {
-          const PerformanceMainThread* selfPtr =
-              reinterpret_cast<const PerformanceMainThread*>(self);
-
-          selfPtr->GetDOMTiming()->MaybeAddLCPProfilerMarker(innerWindowID);
+        [sharedLcpMarkerState = std::move(sharedLcpMarkerState),
+         innerWindowID](ProfilingState aProfilingState) {
+          sharedLcpMarkerState->MaybeAddLCPProfilerMarker(innerWindowID);
         },
-        self);
+        reinterpret_cast<uintptr_t>(this));
   }
 }
 
