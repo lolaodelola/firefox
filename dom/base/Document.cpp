@@ -10940,27 +10940,7 @@ nsINode* Document::AdoptNode(nsINode& aAdoptedNode, ErrorResult& rv,
 
   nsCOMPtr<Document> oldDocument = adoptedNode->OwnerDoc();
   bool sameDocument = oldDocument == this;
-
-  AutoJSContext cx;
-  JS::Rooted<JSObject*> newScope(cx, nullptr);
-  if (!sameDocument) {
-    newScope = GetWrapper();
-    if (!newScope && GetScopeObject() && GetScopeObject()->HasJSGlobal()) {
-      // Make sure cx is in a semi-sane compartment before we call WrapNative.
-      // It's kind of irrelevant, given that we're passing aAllowWrapping =
-      // false, and documents should always insist on being wrapped in an
-      // canonical scope. But we try to pass something sane anyway.
-      JSObject* globalObject = GetScopeObject()->GetGlobalJSObject();
-      JSAutoRealm ar(cx, globalObject);
-      JS::Rooted<JS::Value> v(cx);
-      rv = nsContentUtils::WrapNative(cx, ToSupports(this), this, &v,
-                                      /* aAllowWrapping = */ false);
-      if (rv.Failed()) return nullptr;
-      newScope = &v.toObject();
-    }
-  }
-
-  adoptedNode->Adopt(sameDocument ? nullptr : mNodeInfoManager, newScope, rv);
+  adoptedNode->Adopt(sameDocument ? nullptr : mNodeInfoManager, rv);
   if (rv.Failed()) {
     // Disconnect all nodes from their parents, since some have the old document
     // as their ownerDocument and some have this as their ownerDocument.
