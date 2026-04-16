@@ -441,7 +441,7 @@ export const RecommendedPreferences = {
       // single map. Hereby the extra preferences have higher priority.
       preferences = new Map([...COMMON_PREFERENCES, ...preferences]);
 
-      Services.obs.addObserver(this, "quit-application");
+      Services.obs.addObserver(this, "xpcom-shutdown");
       this.isInitialized = true;
     }
 
@@ -464,14 +464,14 @@ export const RecommendedPreferences = {
         }
 
         // Keep track all the altered preferences to restore them on
-        // quit-application.
+        // xpcom-shutdown.
         this.alteredPrefs.add(k);
       }
     }
   },
 
   observe(subject, topic) {
-    if (topic === "quit-application") {
+    if (topic === "xpcom-shutdown") {
       this.restoreAllPreferences();
     }
   },
@@ -482,7 +482,7 @@ export const RecommendedPreferences = {
   restoreAllPreferences() {
     this.restorePreferences(this.alteredPrefs);
     if (this.isInitialized) {
-      Services.obs.removeObserver(this, "quit-application");
+      Services.obs.removeObserver(this, "xpcom-shutdown");
     }
     this.isInitialized = false;
   },
