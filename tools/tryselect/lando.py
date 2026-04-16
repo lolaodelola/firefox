@@ -456,7 +456,7 @@ def push_to_lando_try(
     default_lando_config_section = OLD_LANDO_ENTRY
 
     # Bug 1979252: A/B test use of new lando for some pushes to try.
-    new_lando_probability = 0.1
+    new_lando_probability = 1
 
     if not force_old_lando and random() < new_lando_probability:
         default_lando_config_section = NEW_LANDO_ENTRY
