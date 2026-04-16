@@ -279,9 +279,6 @@ android {
                 useLegacyPackaging = true
             }
         }
-        resources {
-            excludes += ["META-INF/LICENSE.md", "META-INF/LICENSE-notice.md"]
-        }
     }
 
     buildFeatures {
