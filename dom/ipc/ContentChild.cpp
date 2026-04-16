@@ -1051,9 +1051,9 @@ nsresult ContentChild::ProvideWindowCommon(
       (void)SendCreateWindowInDifferentProcess(
           aTabOpener, parent, aChromeFlags, aCalledFromJS,
           aOpenWindowInfo->GetIsTopLevelCreatedByWebContent(), aURI, features,
-          aModifiers, name, WrapNotNull(triggeringPrincipal), policyContainer,
-          referrerInfo, aOpenWindowInfo->GetOriginAttributes(),
-          hasValidUserGestureActivation, textDirectiveUserActivation);
+          aModifiers, name, triggeringPrincipal, policyContainer, referrerInfo,
+          aOpenWindowInfo->GetOriginAttributes(), hasValidUserGestureActivation,
+          textDirectiveUserActivation);
 
       // We return NS_ERROR_ABORT, so that the caller knows that we've abandoned
       // the window open as far as it is concerned.

@@ -4695,11 +4695,6 @@ mozilla::ipc::IPCResult ContentParent::RecvLoadURIExternal(
     return IPC_FAIL(this, "uri must not be null.");
   }
 
-  if (!ValidatePrincipal(aTriggeringPrincipal)) {
-    LogAndAssertFailedPrincipalValidationInfo(aTriggeringPrincipal, __func__);
-    return IPC_FAIL(this, "Principal not valid for this content process");
-  }
-
   BrowsingContext* bc = aContext.get();
   extProtService->LoadURI(uri, aTriggeringPrincipal, aRedirectPrincipal, bc,
                           aWasExternallyTriggered,
@@ -5591,11 +5586,6 @@ mozilla::ipc::IPCResult ContentParent::RecvCreateWindowInDifferentProcess(
     const OriginAttributes& aOriginAttributes, bool aUserActivation,
     bool aTextDirectiveUserActivation) {
   MOZ_DIAGNOSTIC_ASSERT(!nsContentUtils::IsSpecialName(aName));
-
-  if (!ValidatePrincipal(aTriggeringPrincipal)) {
-    LogAndAssertFailedPrincipalValidationInfo(aTriggeringPrincipal, __func__);
-    return IPC_FAIL(this, "Principal not valid for this content process");
-  }
 
   // Don't continue to try to create a new window if we've been fully discarded.
   RefPtr<BrowsingContext> parent = aParent.GetMaybeDiscarded();
@@ -6625,12 +6615,6 @@ mozilla::ipc::IPCResult ContentParent::RecvCompleteAllowAccessFor(
     return IPC_OK();
   }
 
-  if (!ValidatePrincipal(aTrackingPrincipal,
-                         {ValidatePrincipalOptions::AllowNullPtr})) {
-    LogAndAssertFailedPrincipalValidationInfo(aTrackingPrincipal, __func__);
-    return IPC_FAIL(this, "Principal not valid for this content process");
-  }
-
   StorageAccessAPIHelper::CompleteAllowAccessForOnParentProcess(
       aParentContext.get_canonical(), aTopLevelWindowId, aTrackingPrincipal,
       aTrackingOrigin, aCookieBehavior, aReason, nullptr)
@@ -6670,11 +6654,6 @@ mozilla::ipc::IPCResult ContentParent::RecvTestCookiePermissionDecided(
 
   if (!aPrincipal) {
     return IPC_FAIL(this, "No principal");
-  }
-
-  if (!ValidatePrincipal(aPrincipal)) {
-    LogAndAssertFailedPrincipalValidationInfo(aPrincipal, __func__);
-    return IPC_FAIL(this, "Principal not valid for this content process");
   }
 
   RefPtr<WindowGlobalParent> wgp =
@@ -7409,17 +7388,6 @@ mozilla::ipc::IPCResult ContentParent::RecvBlobURLDataRequest(
     nsIPrincipal* aLoadingPrincipal, const OriginAttributes& aOriginAttributes,
     uint64_t aInnerWindowId, const nsCString& aPartitionKey,
     BlobURLDataRequestResolver&& aResolver) {
-  if (!ValidatePrincipal(aTriggeringPrincipal)) {
-    LogAndAssertFailedPrincipalValidationInfo(aTriggeringPrincipal, __func__);
-    return IPC_FAIL(this, "Principal not valid for this content process");
-  }
-
-  if (!ValidatePrincipal(aLoadingPrincipal,
-                         {ValidatePrincipalOptions::AllowNullPtr})) {
-    LogAndAssertFailedPrincipalValidationInfo(aLoadingPrincipal, __func__);
-    return IPC_FAIL(this, "Principal not valid for this content process");
-  }
-
   RefPtr<BlobImpl> blobImpl;
 
   // Since revoked blobs are also retrieved, it is possible that the blob no
