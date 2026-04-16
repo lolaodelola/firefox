@@ -192,7 +192,7 @@ export class MarionetteCommandsChild extends JSWindowActorChild {
           result = this.#getInViewCentrePoint(data);
           break;
         case "MarionetteCommandsParent:_finalizeAction":
-          this.#finalizeAction();
+          await this.#finalizeAction();
           break;
         case "MarionetteCommandsParent:_toBrowserWindowCoordinates":
           result = this.#toBrowserWindowCoordinates(data);
