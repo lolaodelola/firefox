@@ -736,29 +736,6 @@ mozilla::ipc::IPCResult WindowGlobalParent::RecvGetContentBlockingEvents(
 
 mozilla::ipc::IPCResult WindowGlobalParent::RecvUpdateCookieJarSettings(
     const CookieJarSettingsArgs& aCookieJarSettingsArgs) {
-  if (mCookieJarSettings) {
-    net::CookieJarSettings* current =
-        net::CookieJarSettings::Cast(mCookieJarSettings);
-
-    if (current->IsFixed() && !aCookieJarSettingsArgs.isFixed()) {
-      return IPC_FAIL(this,
-                      "CookieJarSettings cannot transition from fixed to progressive");
-    }
-
-    if (current->GetShouldResistFingerprinting() &&
-        !aCookieJarSettingsArgs.shouldResistFingerprinting()) {
-      return IPC_FAIL(this,
-                      "CookieJarSettings cannot disable shouldResistFingerprinting");
-    }
-
-    if (current->HasFingerprintingRandomizationKey() &&
-        !aCookieJarSettingsArgs.hasFingerprintingRandomizationKey()) {
-      return IPC_FAIL(
-          this,
-          "CookieJarSettings cannot remove fingerprinting randomization key");
-    }
-  }
-
   net::CookieJarSettings::Deserialize(aCookieJarSettingsArgs,
                                       getter_AddRefs(mCookieJarSettings));
   return IPC_OK();
