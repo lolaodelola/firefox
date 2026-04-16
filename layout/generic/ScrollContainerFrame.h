@@ -170,20 +170,14 @@ class ScrollContainerFrame : public nsContainerFrame,
   }
 
   // nsIAnonymousContentCreator
-  nsresult CreateAnonymousContent(nsTArray<ContentInfo>&) override;
-  void AppendAnonymousContentTo(nsTArray<nsIContent*>&,
-                                uint32_t aFilter) override;
+  nsresult CreateAnonymousContent(nsTArray<ContentInfo>&) final;
+  void AppendAnonymousContentTo(nsTArray<nsIContent*>&, uint32_t aFilter) final;
 
   /**
    * Get the frame for the content that we are scrolling within
    * this scrollable frame.
    */
   nsIFrame* GetScrolledFrame() const { return mScrolledFrame; }
-
-  // Returns the frame for the "button box" (e.g., number spin-box, password
-  // reveal button) that lives outside the scrolled area. Used by
-  // nsTextControlFrame.
-  virtual nsIFrame* GetButtonBoxFrame() const { return nullptr; }
 
   /**
    * Get the overflow styles (StyleOverflow::Scroll, StyleOverflow::Hidden, or
@@ -1106,7 +1100,6 @@ class ScrollContainerFrame : public nsContainerFrame,
   void LayoutScrollbars(ScrollReflowInput& aState,
                         const nsRect& aInsideBorderArea,
                         const nsRect& aOldScrollPort);
-  void LayoutButtonBox(const ScrollReflowInput& aState, nsIFrame* aButtonBox);
 
   void LayoutScrollbarPartAtRect(const ScrollReflowInput&,
                                  ReflowInput& aKidReflowInput, const nsRect&);
