@@ -7544,7 +7544,11 @@ const ApplicationsHandler = (function () {
     filter() {
       const filterValue = this._filter.value.toLowerCase();
       for (let item of this.items) {
-        item.node.hidden = !item.node.label.toLowerCase().includes(filterValue);
+        item.node.hidden =
+          !item.node.label.toLowerCase().includes(filterValue) &&
+          !item.actionsMenu.selectedOption.label
+            .toLowerCase()
+            .includes(filterValue);
       }
     }
 

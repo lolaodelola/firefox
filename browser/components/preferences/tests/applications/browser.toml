@@ -9,6 +9,8 @@ tags = "os_integration"
 
 ["browser_application_xml_handle_internally_xul.js"]
 
+["browser_applications_filter.js"]
+
 ["browser_applications_selection.js"]
 
 ["browser_applications_selection_xul.js"]
