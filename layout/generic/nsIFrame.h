@@ -2540,13 +2540,11 @@ class nsIFrame : public nsQueryFrame {
    */
   bool HasAnyStateBits(nsFrameState aBits) const { return mState & aBits; }
 
- protected:
+ private:
   /**
    * Called when this frame becomes primary for mContent.
    */
-  virtual void InitPrimaryFrame();
-
- private:
+  void InitPrimaryFrame();
   /**
    * Called when the primary frame style changes.
    *
