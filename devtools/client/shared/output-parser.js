@@ -495,7 +495,8 @@ class OutputParser {
           if (
             isColorTakingFunction ||
             ANGLE_TAKING_FUNCTIONS.has(lowerCaseFunctionName) ||
-            lowerCaseFunctionName === "cubic-bezier"
+            lowerCaseFunctionName === "cubic-bezier" ||
+            lowerCaseFunctionName === "linear"
           ) {
             // The function can accept a color or an angle argument, and we know
             // it isn't special in some other way. So, we let it
@@ -621,11 +622,6 @@ class OutputParser {
                 } else {
                   this.#appendTextNode(functionText);
                 }
-              } else if (
-                options.expectTimingFunction &&
-                lowerCaseFunctionName === "linear"
-              ) {
-                this.#appendLinear(functionText, options);
               } else if (
                 lowerCaseFunctionName === "attr" &&
                 typeof options.getAttributeValue === "function"
@@ -868,6 +864,8 @@ class OutputParser {
       parts = this.#onCloseParenthesisForLightDark(stackEntry, options);
     } else if (stackEntry.lowerCaseFunctionName === "cubic-bezier") {
       parts = this.#onCloseParenthesisForCubicBezier(stackEntry, options);
+    } else if (stackEntry.lowerCaseFunctionName === "linear") {
+      parts = this.#onCloseParenthesisForLinear(stackEntry, options);
     }
 
     // Put all the parts in the "new" last stack, or the main parsed array if there
@@ -1006,6 +1004,50 @@ class OutputParser {
   }
 
   /**
+   * Called when we got the closing bracket for `linear()`
+   *
+   * @param {object} stackEntry
+   *        The last item in this.#stack
+   * @param {object} options
+   *        options passed to the parse function. @see #mergeOptions for valid options
+   *        and default values
+   * @returns {Array<string|Element>} The updated parts for the stack entry that is being closed.
+   */
+  #onCloseParenthesisForLinear(stackEntry, options) {
+    if (!options.expectTimingFunction) {
+      return stackEntry.parts;
+    }
+
+    const linear = stackEntry.parts.map(p => p.textContent ?? p).join("");
+
+    if (linear.includes("var(")) {
+      // For now, we don't support cubic-bezier with CSS variables (see Bug 2031696)
+      return stackEntry.parts;
+    }
+
+    const container = this.#createNode("span", {
+      "data-linear": linear,
+    });
+
+    if (options.linearEasingSwatchClass) {
+      const swatch = this.#createNode("span", {
+        class: options.linearEasingSwatchClass,
+        tabindex: "0",
+        role: "button",
+        "data-linear": linear,
+      });
+      container.appendChild(swatch);
+    }
+
+    const valueEl = this.#createNode("span", {
+      class: options.linearEasingClass,
+    });
+    valueEl.append(...stackEntry.parts);
+    container.appendChild(valueEl);
+    return [container];
+  }
+
+  /**
    * Parse a string.
    *
    * @param  {string} text
@@ -1102,33 +1144,6 @@ class OutputParser {
 
     container.appendChild(valueEl);
     return container;
-  }
-
-  #appendLinear(text, options) {
-    const container = this.#createNode("span", {
-      "data-linear": text,
-    });
-
-    if (options.linearEasingSwatchClass) {
-      const swatch = this.#createNode("span", {
-        class: options.linearEasingSwatchClass,
-        tabindex: "0",
-        role: "button",
-        "data-linear": text,
-      });
-      container.appendChild(swatch);
-    }
-
-    const value = this.#createNode(
-      "span",
-      {
-        class: options.linearEasingClass,
-      },
-      text
-    );
-
-    container.appendChild(value);
-    this.#append(container);
   }
 
   /**
