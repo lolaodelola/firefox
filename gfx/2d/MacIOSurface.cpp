@@ -95,8 +95,9 @@ already_AddRefed<MacIOSurface> MacIOSurface::CreateIOSurface(int aWidth,
     return nullptr;
   }
 
-  RefPtr<MacIOSurface> ioSurface =
-      new MacIOSurface(std::move(surfaceRef), aHasAlpha);
+  RefPtr<MacIOSurface> ioSurface = new MacIOSurface(
+      std::move(surfaceRef), aHasAlpha, gfx::YUVColorSpace::Identity,
+      gfx::TransferFunction::SRGB);
 
   return ioSurface.forget();
 }

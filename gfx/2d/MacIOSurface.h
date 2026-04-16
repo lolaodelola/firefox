@@ -69,18 +69,14 @@ class MacIOSurface final
       TransferFunction aTransferFunction, ColorRange aColorRange);
   static void ReleaseIOSurface(MacIOSurface* aIOSurface);
   static already_AddRefed<MacIOSurface> LookupSurface(
-      IOSurfaceID aSurfaceID, bool aHasAlpha = true,
-      mozilla::gfx::YUVColorSpace aColorSpace =
-          mozilla::gfx::YUVColorSpace::Identity,
-      TransferFunction aTransferFunction = TransferFunction::SRGB);
+      IOSurfaceID aSurfaceID, bool aHasAlpha, YUVColorSpace aColorSpace,
+      TransferFunction aTransferFunction);
   static mozilla::gfx::SurfaceFormat SurfaceFormatForPixelFormat(
       OSType aPixelFormat, bool aHasAlpha);
 
-  explicit MacIOSurface(
-      CFTypeRefPtr<IOSurfaceRef> aIOSurfaceRef, bool aHasAlpha = true,
-      mozilla::gfx::YUVColorSpace aColorSpace =
-          mozilla::gfx::YUVColorSpace::Identity,
-      TransferFunction aTransferFunction = TransferFunction::SRGB);
+  explicit MacIOSurface(CFTypeRefPtr<IOSurfaceRef> aIOSurfaceRef,
+                        bool aHasAlpha, YUVColorSpace aColorSpace,
+                        TransferFunction aTransferFunction);
 
   ~MacIOSurface();
   IOSurfaceID GetIOSurfaceID() const;

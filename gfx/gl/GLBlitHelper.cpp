@@ -914,7 +914,8 @@ std::unique_ptr<const DrawBlitProg> GLBlitHelper::CreateDrawBlitProg(
 static RefPtr<MacIOSurface> LookupSurface(
     const layers::SurfaceDescriptorMacIOSurface& sd) {
   return MacIOSurface::LookupSurface(sd.surfaceId(), !sd.isOpaque(),
-                                     sd.yUVColorSpace());
+                                     sd.yUVColorSpace(),
+                                     gfx::TransferFunction::SRGB);
 }
 #endif
 
@@ -1596,7 +1597,8 @@ bool GLBlitHelper::BlitImage(layers::GPUVideoImage* const srcImage,
         TSurfaceDescriptorMacIOSurface: {
       const auto& subdesc = subdescUnion.get_SurfaceDescriptorMacIOSurface();
       RefPtr<MacIOSurface> surface = MacIOSurface::LookupSurface(
-          subdesc.surfaceId(), !subdesc.isOpaque(), subdesc.yUVColorSpace());
+          subdesc.surfaceId(), !subdesc.isOpaque(), subdesc.yUVColorSpace(),
+          subdesc.transferFunction());
       MOZ_ASSERT(surface);
       if (!surface) {
         return false;
