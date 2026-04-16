@@ -3910,6 +3910,9 @@ ContentParent::Observe(nsISupports* aSubject, const char* aTopic,
     nsCOMPtr<nsICookieNotification> notification = do_QueryInterface(aSubject);
     MOZ_ASSERT(notification,
                "cookie changed notification must have nsICookieNotification.");
+    if (!notification) {
+      return NS_OK;
+    }
     nsICookieNotification::Action action = notification->GetAction();
 
     PNeckoParent* neckoParent = LoneManagedOrNullAsserts(ManagedPNeckoParent());
