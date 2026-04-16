@@ -37,6 +37,8 @@ stage-package: multilocale.txt locale-manifest.in $(MOZ_PKG_MANIFEST) $(MOZ_PKG_
 		$(addprefix --compress ,$(JAR_COMPRESSION)) \
 		$(MOZ_PKG_MANIFEST) '$(DIST)' '$(DIST)'/$(MOZ_PKG_DIR)$(if $(MOZ_PKG_MANIFEST),,$(_BINPATH:%=/%)) \
 		$(if $(filter omni,$(MOZ_PACKAGER_FORMAT)),$(if $(NON_OMNIJAR_FILES),--non-resource $(NON_OMNIJAR_FILES)))
+
+prepare-package: stage-package
 ifdef RUN_FIND_DUPES
 	$(PYTHON3) $(MOZILLA_DIR)/toolkit/mozapps/installer/find-dupes.py $(DEFINES) $(ACDEFINES) $(MOZ_PKG_DUPEFLAGS) $(DIST)/$(MOZ_PKG_DIR)
 endif # RUN_FIND_DUPES
@@ -124,8 +126,6 @@ ifeq (Darwin, $(OS_ARCH))
 	$(call py_action,zip $(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip,-C $(ABS_DIST)/update_framework_artifacts '$(ABS_DIST)/$(PKG_PATH)$(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.framework')
 endif # Darwin
 endif # MOZ_ARTIFACT_BUILDS
-
-prepare-package: stage-package
 
 make-package-internal: prepare-package make-sourcestamp-file
 	@echo 'Compressing...'
