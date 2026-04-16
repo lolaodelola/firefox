@@ -142,10 +142,6 @@ class SocketProcessChild final : public PSocketProcessChild {
 
   mozilla::ipc::IPCResult RecvFlushFOGData(FlushFOGDataResolver&& aResolver);
 
-  mozilla::ipc::IPCResult RecvLoadSSLTokensCache(ByteBuf&& aBuf);
-  mozilla::ipc::IPCResult RecvFlushSSLTokensCache(
-      FlushSSLTokensCacheResolver&& aResolver);
-
   mozilla::ipc::IPCResult RecvTestTriggerMetrics(
       TestTriggerMetricsResolver&& aResolve);
 

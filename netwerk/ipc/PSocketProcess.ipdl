@@ -137,10 +137,6 @@ parent:
 
   async GeckoTraceExport(ByteBuf aBuf);
 
-  // Socket process pushes its TLS session token cache to the parent for
-  // persistence to disk.
-  async SSLTokensCacheData(ByteBuf buf);
-
 #if defined(XP_WIN)
   async GetModulesTrust(ModulePaths aModPaths, bool aRunAtNormalPriority)
       returns (ModulesMapResult? modMapResult);
@@ -201,13 +197,6 @@ child:
   // Used in tests and ping assembly. Buffer contains bincoded Rust structs.
   // https://firefox-source-docs.mozilla.org/toolkit/components/glean/dev/ipc.html
   async FlushFOGData() returns (ByteBuf buf);
-
-  // Parent sends persisted TLS session tokens to the socket process on startup.
-  async LoadSSLTokensCache(ByteBuf buf);
-
-  // Parent requests a final TLS session token flush from the socket process
-  // before shutdown.
-  async FlushSSLTokensCache() returns (ByteBuf buf);
 
   // Test-only method.
   // Asks the Socket process to trigger test-only instrumentation.

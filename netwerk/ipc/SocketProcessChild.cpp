@@ -6,7 +6,6 @@
 #include "SocketProcessLogging.h"
 
 #include "base/task.h"
-#include "SSLTokensCache.h"
 #include "InputChannelThrottleQueueChild.h"
 #include "HttpInfo.h"
 #include "HttpTransactionChild.h"
@@ -745,30 +744,6 @@ mozilla::ipc::IPCResult SocketProcessChild::RecvRecheckDNS() {
 mozilla::ipc::IPCResult SocketProcessChild::RecvFlushFOGData(
     FlushFOGDataResolver&& aResolver) {
   glean::FlushFOGData(std::move(aResolver));
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult SocketProcessChild::RecvLoadSSLTokensCache(
-    ByteBuf&& aBuf) {
-  if (aBuf.mLen == 0) {
-    return IPC_OK();
-  }
-  NS_DispatchBackgroundTask(NS_NewRunnableFunction(
-      "SSLTokensCache::RecvLoadSSLTokensCache", [buf = std::move(aBuf)]() {
-        SSLTokensCache::DeserializeFromIPC(Span(buf.mData, buf.mLen));
-      }));
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult SocketProcessChild::RecvFlushSSLTokensCache(
-    FlushSSLTokensCacheResolver&& aResolver) {
-  // Serialize on a background thread to avoid blocking the main thread,
-  // then call the resolver with the result (IPDL resolvers are thread-safe).
-  NS_DispatchBackgroundTask(NS_NewRunnableFunction(
-      "SSLTokensCache::FlushSSLTokensCache",
-      [resolver = std::move(aResolver)]() mutable {
-        resolver(mozilla::ipc::ByteBufFrom(SSLTokensCache::SerializeForIPC()));
-      }));
   return IPC_OK();
 }
 

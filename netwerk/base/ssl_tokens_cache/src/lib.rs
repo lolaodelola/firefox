@@ -12,7 +12,6 @@ use std::ffi::c_void;
 use std::io::{Read as _, Write as _};
 use std::path::Path;
 use std::sync::Mutex;
-use thin_vec::ThinVec;
 
 /// Callback type for [`ssl_tokens_cache_read`].
 pub type SslTokensReadCallback =
@@ -221,17 +220,6 @@ fn with_state<F: FnOnce(&mut SslTokensState)>(f: F) {
     }
 }
 
-fn serialize_filtered(records: &[PersistedRecord], ids: &HashSet<u64>) -> Vec<u8> {
-    to_file_bytes(
-        &records
-            .iter()
-            .filter(|r| ids.contains(&r.id))
-            .cloned()
-            .collect::<Vec<_>>(),
-        MAGIC,
-    )
-}
-
 /// Appends a record to the in-memory shadow copy.
 ///
 /// # Safety
@@ -267,7 +255,15 @@ pub unsafe extern "C" fn ssl_tokens_cache_write(
     // Serialize while holding the lock (fast, no I/O), then write outside it.
     let buf = {
         let Ok(state) = STATE.lock() else { return };
-        serialize_filtered(&state.records, &ids)
+        to_file_bytes(
+            &state
+                .records
+                .iter()
+                .filter(|r| ids.contains(&r.id))
+                .cloned()
+                .collect::<Vec<_>>(),
+            MAGIC,
+        )
     };
 
     if let Err(e) = write_atomically(&buf, Path::new(path_str)) {
@@ -366,71 +362,11 @@ pub unsafe extern "C" fn ssl_tokens_cache_retain_only(
     with_state(|state| state.records.retain(|r| ids.contains(&r.id)));
 }
 
-/// Serializes the in-memory shadow filtered to `valid_ids` into STCF format
-/// for IPC transport, appending the bytes to `out` (mapped to
-/// `nsTArray<uint8_t>*` in C++). `out` is left unchanged on failure.
-///
-/// # Safety
-///
-/// `valid_ids` and `out` must be valid non-null pointers.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn ssl_tokens_cache_serialize(
-    valid_ids: &ThinVec<u64>,
-    out: &mut ThinVec<u8>,
-) {
-    let ids: HashSet<u64> = valid_ids.iter().copied().collect();
-    let Ok(state) = STATE.lock() else {
-        return;
-    };
-    out.extend_from_slice(&serialize_filtered(&state.records, &ids));
-}
-
-/// Parses an STCF-format buffer (as produced by [`ssl_tokens_cache_serialize`])
-/// and dispatches each non-expired record to `callback`.
-///
-/// Does not modify the in-memory shadow; the C++ callback is expected to call
-/// `ssl_tokens_cache_append` for records that should be persisted.
-///
-/// # Safety
-///
-/// `data` must point to `data_len` valid bytes. `callback` must be a valid
-/// function pointer. `ctx` must remain valid for the duration of this call.
-/// The pointer passed to `callback` is stack-allocated and is only valid inside
-/// the callback.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn ssl_tokens_cache_deserialize_ipc(
-    data: *const u8,
-    data_len: usize,
-    now: PrTime,
-    callback: SslTokensReadCallback,
-    ctx: *mut c_void,
-) {
-    // SAFETY: data points to data_len valid bytes per the contract.
-    let bytes = unsafe { std::slice::from_raw_parts(data, data_len) };
-    let records = match from_file_bytes(bytes, MAGIC) {
-        Ok(r) => r,
-        Err(e) => {
-            warn!("SslTokensCache: IPC deserialize error ({e:?})");
-            return;
-        }
-    };
-    // SAFETY: callback and ctx are valid for the duration of this call.
-    unsafe {
-        dispatch_records(&records, now, callback, ctx);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     type TestResult = Result<(), Box<dyn std::error::Error>>;
-
-    unsafe extern "C" fn noop_callback(
-        _ctx: *mut c_void,
-        _rec: *const SslTokensPersistedRecordFfi,
-    ) {
-    }
 
     fn make_record(id: u64, key: &str, token: &[u8], expiration_time: i64) -> PersistedRecord {
         PersistedRecord {
@@ -563,92 +499,5 @@ mod tests {
         let out = from_file_bytes(&data, MAGIC).expect("valid file bytes");
         assert_eq!(out[0].key, b"a.com:443");
         Ok(())
-    }
-
-    // --- ssl_tokens_cache_serialize / ssl_tokens_cache_deserialize_ipc ---
-
-    #[test]
-    fn ipc_round_trip_empty() {
-        with_state(|s| s.records.clear());
-        let mut buf = ThinVec::new();
-        let empty_ids: ThinVec<u64> = ThinVec::new();
-        unsafe { ssl_tokens_cache_serialize(&empty_ids, &mut buf) };
-        assert!(
-            !buf.is_empty(),
-            "empty cache still produces a valid STCF header"
-        );
-        let mut count = 0u32;
-        unsafe {
-            ssl_tokens_cache_deserialize_ipc(
-                buf.as_ptr(),
-                buf.len(),
-                i64::MAX,
-                noop_callback,
-                &raw mut count as *mut c_void,
-            );
-        }
-        assert_eq!(count, 0);
-    }
-
-    #[test]
-    fn ipc_round_trip_records() {
-        struct StateGuard;
-        impl Drop for StateGuard {
-            fn drop(&mut self) {
-                with_state(|s| s.records.clear());
-            }
-        }
-        let _guard = StateGuard;
-
-        with_state(|s| {
-            s.records.clear();
-            s.records
-                .push(make_record(1, "a.com:443", b"tok1", i64::MAX));
-            s.records
-                .push(make_record(2, "b.com:443", b"tok2", i64::MAX));
-            s.records
-                .push(make_record(3, "c.com:443", b"tok3", i64::MAX));
-        });
-        let ids: ThinVec<u64> = vec![1, 3].into(); // exclude id=2
-        let mut buf = ThinVec::new();
-        unsafe { ssl_tokens_cache_serialize(&ids, &mut buf) };
-        assert!(!buf.is_empty());
-
-        let mut keys: Vec<Vec<u8>> = Vec::new();
-        unsafe extern "C" fn collect(ctx: *mut c_void, rec: *const SslTokensPersistedRecordFfi) {
-            // SAFETY: ctx points to a valid Vec<Vec<u8>>, rec is valid for this call.
-            let keys = unsafe { &mut *ctx.cast::<Vec<Vec<u8>>>() };
-            let rec = unsafe { &*rec };
-            let key =
-                unsafe { std::slice::from_raw_parts(rec.key.as_ptr().cast::<u8>(), rec.key.len()) };
-            keys.push(key.to_vec());
-        }
-        unsafe {
-            ssl_tokens_cache_deserialize_ipc(
-                buf.as_ptr(),
-                buf.len(),
-                i64::MAX,
-                collect,
-                &raw mut keys as *mut c_void,
-            );
-        }
-        assert_eq!(keys.len(), 2);
-        assert!(keys.iter().any(|k| k == b"a.com:443"));
-        assert!(keys.iter().any(|k| k == b"c.com:443"));
-    }
-
-    #[test]
-    fn ipc_deserialize_bad_data() {
-        // Should silently ignore corrupt data without panicking.
-        let bad = b"not valid STCF data at all";
-        unsafe {
-            ssl_tokens_cache_deserialize_ipc(
-                bad.as_ptr(),
-                bad.len(),
-                i64::MAX,
-                noop_callback,
-                std::ptr::null_mut(),
-            );
-        }
     }
 }

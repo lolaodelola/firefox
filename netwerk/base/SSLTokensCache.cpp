@@ -26,9 +26,6 @@
 #include "ssl.h"
 #include "sslexp.h"
 #include "mozilla/net/ssl_tokens_cache.h"
-#include "mozilla/ipc/ByteBuf.h"
-#include "mozilla/net/SocketProcessChild.h"
-#include "mozilla/net/SocketProcessParent.h"
 
 namespace mozilla {
 namespace net {
@@ -200,57 +197,9 @@ void SSLTokensCache::PutFromPersistedCallback(
 }
 
 // static
-void SSLTokensCache::SyncRustShadow(const nsTArray<uint64_t>& aRemainingIds) {
+void SSLTokensCache::SyncRustShadow(nsTArray<uint64_t>&& aRemainingIds) {
   ssl_tokens_cache_retain_only(aRemainingIds.Elements(),
                                aRemainingIds.Length());
-}
-
-void SSLTokensCache::ClearCacheLocked() {
-  sLock.AssertCurrentThreadOwns();
-  mLoadGeneration++;
-  mExpirationArray.Clear();
-  mTokenCacheRecords.Clear();
-  mCacheSize = 0;
-}
-
-// static
-nsTArray<uint8_t> SSLTokensCache::SerializeForIPC() {
-  nsTArray<uint64_t> ids;
-  {
-    StaticMutexAutoLock lock(sLock);
-    if (!gInstance) {
-      return {};
-    }
-    ids = gInstance->CollectValidIdsLocked();
-  }
-  nsTArray<uint8_t> out;
-  ssl_tokens_cache_serialize(&ids, &out);
-  return out;
-}
-
-// static
-void SSLTokensCache::DeserializeFromIPC(Span<const uint8_t> aData) {
-  if (aData.IsEmpty()) {
-    return;
-  }
-  // Clear the Rust shadow before taking sLock so there is no window where a
-  // concurrent Put() can append to the Rust shadow between ClearCacheLocked()
-  // and ssl_tokens_cache_clear(). Any such Put() either completes before this
-  // call (and will be cleared here) or appends after ssl_tokens_cache_clear()
-  // (and will be picked up on the next DoWrite). The mLoadGeneration bump in
-  // ClearCacheLocked invalidates any in-flight PutFromPersisted dispatches.
-  ssl_tokens_cache_clear();
-  uint32_t loadGen = 0;
-  {
-    StaticMutexAutoLock lock(sLock);
-    if (!gInstance) {
-      return;
-    }
-    gInstance->ClearCacheLocked();
-    loadGen = gInstance->mLoadGeneration;
-  }
-  ssl_tokens_cache_deserialize_ipc(aData.data(), aData.Length(), PR_Now(),
-                                   PutFromPersistedCallback, &loadGen);
 }
 
 // static
@@ -291,11 +240,14 @@ nsresult SSLTokensCache::Init() {
   {
     StaticMutexAutoLock lock(sLock);
 
-    // SSLTokensCache is used in both the parent process and the socket process.
-    // The socket process runs TLS handshakes and holds the live token cache;
-    // the parent process holds the persistence layer (disk I/O) and receives
-    // periodic token updates from the socket process via IPC.
-    // Some xpcshell tests also use sockets directly in the parent process.
+    // SSLTokensCache should be only used in parent process and socket process.
+    // Ideally, parent process should not use this when socket process is
+    // enabled. However, some xpcsehll tests may need to create and use sockets
+    // directly, so we still allow to use this in parent process no matter
+    // socket process is enabled or not.
+    // TODO: When the socket process is enabled, the parent process should read
+    // persisted tokens and forward them to the socket process, and vice versa.
+    // Until then, persistence is limited to the parent process.
     if (!(XRE_IsSocketProcess() || XRE_IsParentProcess())) {
       return NS_OK;
     }
@@ -306,22 +258,8 @@ nsresult SSLTokensCache::Init() {
 
     RegisterWeakMemoryReporter(gInstance);
 
-    if (!StaticPrefs::network_ssl_tokens_cache_persistence()) {
-      return NS_OK;
-    }
-
-    // Both the parent and the socket process register for idle/background
-    // notifications to trigger DoWrite():
-    //   Parent:  DoWrite() writes to disk.
-    //   Socket:  DoWrite() serializes and sends the cache to the parent via
-    //   IPC.
-    nsCOMPtr<nsIObserverService> obs = mozilla::services::GetObserverService();
-    if (obs) {
-      obs->AddObserver(gInstance, "application-background", false);
-      obs->AddObserver(gInstance, "idle-daily", false);
-    }
-
-    if (!XRE_IsParentProcess()) {
+    if (!XRE_IsParentProcess() ||
+        !StaticPrefs::network_ssl_tokens_cache_persistence()) {
       return NS_OK;
     }
 
@@ -337,6 +275,12 @@ nsresult SSLTokensCache::Init() {
     NS_CreateBackgroundTaskQueue("SslTokensCachePersist",
                                  getter_AddRefs(writeQueue));
     gInstance->mWriteTaskQueue = writeQueue;
+
+    nsCOMPtr<nsIObserverService> obs = mozilla::services::GetObserverService();
+    if (obs) {
+      obs->AddObserver(gInstance, "application-background", false);
+      obs->AddObserver(gInstance, "idle-daily", false);
+    }
 
     // Register an async shutdown blocker on ProfileBeforeChange so the cache
     // is written off the main thread before the profile is torn down.
@@ -394,9 +338,6 @@ nsresult SSLTokensCache::Init() {
 nsresult SSLTokensCache::Shutdown() {
   RefPtr<SSLTokensCache> instance;
   nsCOMPtr<nsIObserverService> obs;
-#ifdef ENABLE_TESTS
-  bool writeTaskQueueIsNull = false;
-#endif
   {
     StaticMutexAutoLock lock(sLock);
 
@@ -407,10 +348,6 @@ nsresult SSLTokensCache::Shutdown() {
     UnregisterWeakMemoryReporter(gInstance);
     instance = gInstance;
     obs = mozilla::services::GetObserverService();
-#ifdef ENABLE_TESTS
-    // Read mWriteTaskQueue under the lock so the check below is race-free.
-    writeTaskQueueIsNull = !gInstance->mWriteTaskQueue;
-#endif
     // Do not null gInstance yet — DoWrite needs it to collect valid IDs.
   }
 
@@ -419,7 +356,7 @@ nsresult SSLTokensCache::Shutdown() {
   // async-shutdown service and thus never trigger BlockShutdown(). Guard on
   // mWriteTaskQueue being null so we don't race with a BlockShutdown write
   // task in environments that do have the async-shutdown service.
-  if (writeTaskQueueIsNull) {
+  if (!instance->mWriteTaskQueue) {
     instance->DoWrite(true);
   }
 #endif
@@ -576,7 +513,6 @@ nsresult SSLTokensCache::Put(const nsACString& aKey, const uint8_t* aToken,
     };
 
     auto makeRecord = [&]() {
-      sLock.AssertCurrentThreadOwns();
       auto rec = MakeUnique<TokenCacheRecord>();
       rec->mKey = aKey;
       rec->mExpirationTime = aExpirationTime;
@@ -823,8 +759,6 @@ nsresult SSLTokensCache::RemoveAllLocked(const nsACString& aKey) {
 }
 
 void SSLTokensCache::OnRecordDestroyed(TokenCacheRecord* aRec) {
-  // Always called from destructors of map entries while sLock is held.
-  sLock.AssertCurrentThreadOwns();
   mExpirationArray.RemoveElement(aRec);
 }
 
@@ -870,10 +804,10 @@ size_t SSLTokensCache::SizeOfIncludingThis(
   n += mTokenCacheRecords.ShallowSizeOfExcludingThis(mallocSizeOf);
   n += mExpirationArray.ShallowSizeOfExcludingThis(mallocSizeOf);
 
-  for (const auto* rec : mExpirationArray) {
-    n += mallocSizeOf(rec);
-    n += rec->mKey.SizeOfExcludingThisIfUnshared(mallocSizeOf);
-    n += rec->mToken.ShallowSizeOfExcludingThis(mallocSizeOf);
+  for (uint32_t i = 0; i < mExpirationArray.Length(); ++i) {
+    n += mallocSizeOf(mExpirationArray[i]);
+    n += mExpirationArray[i]->mKey.SizeOfExcludingThisIfUnshared(mallocSizeOf);
+    n += mExpirationArray[i]->mToken.ShallowSizeOfExcludingThis(mallocSizeOf);
   }
 
   return n;
@@ -922,7 +856,10 @@ void SSLTokensCache::Clear() {
       return;
     }
 
-    gInstance->ClearCacheLocked();
+    gInstance->mLoadGeneration++;
+    gInstance->mExpirationArray.Clear();
+    gInstance->mTokenCacheRecords.Clear();
+    gInstance->mCacheSize = 0;
     backingFile = gInstance->mBackingFile;
     taskQueue = gInstance->mWriteTaskQueue;
   }
@@ -956,28 +893,6 @@ void SSLTokensCache::DoWrite(bool aSynchronous) {
   }
 
   if (!backingFile) {
-    if (XRE_IsSocketProcess() && !validIds.IsEmpty()) {
-      // The socket process has no mWriteTaskQueue and only calls DoWrite
-      // from Observe() (aSynchronous=false, main thread). Serialize on a
-      // background thread to avoid blocking it.
-      NS_DispatchBackgroundTask(NS_NewRunnableFunction(
-          "SSLTokensCache::DoWriteToParent",
-          [ids = std::move(validIds)]() mutable {
-            nsTArray<uint8_t> data;
-            ssl_tokens_cache_serialize(&ids, &data);
-            if (data.IsEmpty()) {
-              return;
-            }
-            NS_DispatchToMainThread(NS_NewRunnableFunction(
-                "SSLTokensCache::SendToParent", [data = std::move(data)]() {
-                  auto* child = SocketProcessChild::GetSingleton();
-                  if (child && child->CanSend()) {
-                    (void)child->SendSSLTokensCacheData(
-                        mozilla::ipc::ByteBufFrom(data));
-                  }
-                }));
-          }));
-    }
     return;
   }
   if (validIds.IsEmpty()) {
@@ -1037,38 +952,6 @@ void SSLTokensCache::OnLoadCompleteNotify(uint32_t aCount) {
       elapsed);
   LOG(("SSLTokensCache::OnLoadCompleteNotify [records=%u, time=%.1fms]", aCount,
        elapsed.ToMilliseconds()));
-
-  // Forward persisted tokens to the socket process. Uses
-  // CallOrWaitForSocketProcess so it fires immediately if the socket process
-  // is already up, or is deferred until it is ready.
-  if (StaticPrefs::network_ssl_tokens_cache_persistence() &&
-      nsIOService::UseSocketProcess()) {
-    NS_DispatchToMainThread(
-        NS_NewRunnableFunction("SSLTokensCache::ForwardToSocketProcess", []() {
-          // Serialize on a background thread, then send on the main thread.
-          // No captures: the lambda is trivially copyable for
-          // CallOrWaitForSocketProcess.
-          gIOService->CallOrWaitForSocketProcess([]() {
-            NS_DispatchBackgroundTask(NS_NewRunnableFunction(
-                "SSLTokensCache::SerializeForSocket", []() {
-                  nsTArray<uint8_t> data = SSLTokensCache::SerializeForIPC();
-                  if (data.IsEmpty()) {
-                    return;
-                  }
-                  NS_DispatchToMainThread(NS_NewRunnableFunction(
-                      "SSLTokensCache::SendToSocket",
-                      [data = std::move(data)]() {
-                        RefPtr<SocketProcessParent> parent =
-                            SocketProcessParent::GetSingleton();
-                        if (parent && parent->CanSend()) {
-                          (void)parent->SendLoadSSLTokensCache(
-                              mozilla::ipc::ByteBufFrom(data));
-                        }
-                      }));
-                }));
-          });
-        }));
-  }
 }
 
 // static
@@ -1101,7 +984,7 @@ bool SSLTokensCache::PutFromPersisted(const SslTokensPersistedRecordFfi* aFfi,
     // flush. Use the newly-assigned sRecordId so validIds filtering works.
     // Apply the same guards as Put(): never shadow PBM tokens or tokens for
     // connections with cert-error overrides.
-    if ((gInstance->mBackingFile || XRE_IsSocketProcess()) &&
+    if (gInstance->mBackingFile &&
         ShouldPersistKey(aFfi->key, aFfi->overridable_error)) {
       shadowFfi = *aFfi;
       shadowFfi.id = newId;
@@ -1124,7 +1007,6 @@ uint64_t SSLTokensCache::InsertRecordLocked(UniquePtr<TokenCacheRecord> aRec,
   uint64_t id = aRec->mId;
   TokenCacheEntry* cacheEntry =
       mTokenCacheRecords.WithEntryHandle(aRec->mKey, [&](auto&& entry) {
-        sLock.AssertCurrentThreadOwns();
         if (!entry) {
           auto ce = MakeUnique<TokenCacheEntry>();
           ce->AddRecord(std::move(aRec), mExpirationArray);
@@ -1163,7 +1045,7 @@ void SSLTokensCache::RemoveMatchingAndSync(Pred&& aPredicate) {
     remainingIds =
         gInstance->RemoveMatchingLocked(std::forward<Pred>(aPredicate));
   }
-  SyncRustShadow(remainingIds);
+  SyncRustShadow(std::move(remainingIds));
 }
 
 // static
@@ -1283,8 +1165,6 @@ SSLTokensCache::Observe(nsISupports* aSubject, const char* aTopic,
 
 NS_IMETHODIMP
 SSLTokensCache::BlockShutdown(nsIAsyncShutdownClient* /* aClient */) {
-  MOZ_ASSERT(NS_IsMainThread());
-  MOZ_ASSERT(XRE_IsParentProcess());
   nsCOMPtr<nsISerialEventTarget> taskQueue;
   {
     StaticMutexAutoLock lock(sLock);
@@ -1294,50 +1174,16 @@ SSLTokensCache::BlockShutdown(nsIAsyncShutdownClient* /* aClient */) {
     RemoveShutdownBlocker();
     return NS_OK;
   }
-
-  // Helper that dispatches the actual disk write to the background queue
-  // and then removes the shutdown blocker on the main thread once done.
-  auto doWriteAndRelease = [taskQueue](RefPtr<SSLTokensCache> self) {
-    InvokeAsync(taskQueue.get(), "SSLTokensCache::BlockShutdown::DoWrite",
-                [self]() {
-                  self->DoWrite(true);
-                  NS_DispatchToMainThread(NS_NewRunnableFunction(
-                      "SSLTokensCache::RemoveShutdownBlocker",
-                      [self]() { self->RemoveShutdownBlocker(); }));
-                  return GenericPromise::CreateAndResolve(true, __func__);
-                });
-  };
-
-  // If the socket process is alive, request a final token flush before writing
-  // so the persisted file reflects the most recent handshake data.
-  RefPtr<SocketProcessParent> socketParent =
-      SocketProcessParent::GetSingleton();
-  if (socketParent && socketParent->CanSend()) {
-    RefPtr<SSLTokensCache> self = this;
-    socketParent->SendFlushSSLTokensCache()->Then(
-        GetMainThreadSerialEventTarget(), __func__,
-        [self, doWriteAndRelease](mozilla::ipc::ByteBuf&& aBuf) {
-          // Deserialize off the main thread to avoid racing concurrent
-          // background serialization tasks (both paths go through the Rust
-          // STATE mutex, but clear+deserialize must be atomic w.r.t. any
-          // concurrent serialize). Chain the disk write after completion.
-          NS_DispatchBackgroundTask(NS_NewRunnableFunction(
-              "SSLTokensCache::DeserializeFromFlush",
-              [self, doWriteAndRelease, buf = std::move(aBuf)]() {
-                SSLTokensCache::DeserializeFromIPC(Span(buf.mData, buf.mLen));
-                NS_DispatchToMainThread(NS_NewRunnableFunction(
-                    "SSLTokensCache::DoWriteAfterFlush",
-                    [self, doWriteAndRelease]() { doWriteAndRelease(self); }));
-              }));
-        },
-        [self, doWriteAndRelease](mozilla::ipc::ResponseRejectReason) {
-          // Socket process gone — write whatever the parent has.
-          doWriteAndRelease(self);
-        });
-    return NS_OK;
-  }
-
-  doWriteAndRelease(this);
+  RefPtr<SSLTokensCache> self = this;
+  // Dispatch the write to the background write queue so it happens off the
+  // main thread, then release the shutdown blocker once complete.
+  InvokeAsync(taskQueue.get(), __func__, [self]() {
+    self->DoWrite(true);
+    NS_DispatchToMainThread(
+        NS_NewRunnableFunction("SSLTokensCache::RemoveShutdownBlocker",
+                               [self]() { self->RemoveShutdownBlocker(); }));
+    return GenericPromise::CreateAndResolve(true, __func__);
+  });
   return NS_OK;
 }
 

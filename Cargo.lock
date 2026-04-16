@@ -6915,7 +6915,6 @@ dependencies = [
  "serde",
  "static_assertions",
  "tempfile",
- "thin-vec",
 ]
 
 [[package]]
