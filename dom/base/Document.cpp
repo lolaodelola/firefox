@@ -16625,9 +16625,7 @@ bool Document::FullscreenElementReadyCheck(FullscreenRequest& aRequest) {
   // should change and no event should be dispatched, but we still need
   // to resolve the returned promise.
   Element* fullscreenElement = GetUnretargetedFullscreenElement();
-  if (NS_WARN_IF(elem == fullscreenElement &&
-                 aRequest.mFullscreenKeyboardLock ==
-                     mFullscreenKeyboardLockStatus)) {
+  if (NS_WARN_IF(elem == fullscreenElement)) {
     // But this introduces behavior that we now need to account for;
     // because we can have arbitrary depth of OOP-frames, we may hit this check
     // for a process that already is fullscreen, e.g. the parent process.
