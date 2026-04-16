@@ -1529,22 +1529,6 @@ void FetchEventOp::GetRequestURL(nsAString& aOutRequestURL) {
   CopyUTF8toUTF16(urls.LastElement()->GetSpecOrDefault(), aOutRequestURL);
 }
 
-namespace {
-
-nsresult GetChildToParentSynthesizeResponseArgs(
-    ChildToParentSynthesizeResponseArgs* aIPCArgs,
-    SafeRefPtr<InternalResponse> aInternalResponse,
-    FetchEventRespondWithClosure aClosure, FetchEventTimeStamps aTimeStamps) {
-  aIPCArgs->closure() = std::move(aClosure);
-  aIPCArgs->timeStamps() = std::move(aTimeStamps);
-
-  aInternalResponse->ToChildToParentInternalResponse(
-      &aIPCArgs->internalResponse(), nullptr);
-  return NS_OK;
-}
-
-}  // anonymous namespace
-
 void FetchEventOp::ResolvedCallback(JSContext* aCx,
                                     JS::Handle<JS::Value> aValue,
                                     ErrorResult& aRv) {
@@ -1697,13 +1681,6 @@ void FetchEventOp::ResolvedCallback(JSContext* aCx,
     ir->InitChannelInfo(worker->GetChannelInfo());
   }
 
-  ChildToParentSynthesizeResponseArgs synthesizeResponseArgs;
-  if (NS_FAILED(GetChildToParentSynthesizeResponseArgs(
-          &synthesizeResponseArgs, std::move(ir), mRespondWithClosure.ref(),
-          FetchEventTimeStamps(mFetchHandlerStart, mFetchHandlerFinish)))) {
-    MOZ_DIAGNOSTIC_CRASH("fail to convert response to ipc response...");
-  }
-
   autoCancel.Reset();
 
   // https://w3c.github.io/ServiceWorker/#on-fetch-request-algorithm Step 26: If
@@ -1714,8 +1691,11 @@ void FetchEventOp::ResolvedCallback(JSContext* aCx,
   ir->SnapshotUnfilteredHeaders();
 
   mHandled->MaybeResolveWithUndefined();
-  mRespondWithPromiseHolder.Resolve(AsVariant(synthesizeResponseArgs),
-                                    __func__);
+  mRespondWithPromiseHolder.Resolve(
+      FetchEventRespondWithResult(std::make_tuple(
+          std::move(ir), mRespondWithClosure.ref(),
+          FetchEventTimeStamps(mFetchHandlerStart, mFetchHandlerFinish))),
+      __func__);
 }
 
 void FetchEventOp::RejectedCallback(JSContext* aCx,

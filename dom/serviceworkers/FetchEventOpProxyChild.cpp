@@ -28,6 +28,31 @@ using namespace ipc;
 
 namespace dom {
 
+namespace {
+
+nsresult GetIPCSynthesizeResponseArgs(
+    ChildToParentSynthesizeResponseArgs* aIPCArgs,
+    SynthesizeResponseArgs&& aArgs) {
+  MOZ_ASSERT(RemoteWorkerService::Thread()->IsOnCurrentThread());
+
+  auto [internalResponse, closure, timeStamps] = std::move(aArgs);
+
+  aIPCArgs->closure() = std::move(closure);
+  aIPCArgs->timeStamps() = std::move(timeStamps);
+
+  PBackgroundChild* bgChild = BackgroundChild::GetOrCreateForCurrentThread();
+
+  if (NS_WARN_IF(!bgChild)) {
+    return NS_ERROR_DOM_INVALID_STATE_ERR;
+  }
+
+  internalResponse->ToChildToParentInternalResponse(
+      &aIPCArgs->internalResponse(), bgChild);
+  return NS_OK;
+}
+
+}  // anonymous namespace
+
 void FetchEventOpProxyChild::Initialize(
     const ParentToChildServiceWorkerFetchEventOpArgs& aArgs) {
   MOZ_ASSERT(RemoteWorkerService::Thread()->IsOnCurrentThread());
@@ -122,9 +147,18 @@ void FetchEventOpProxyChild::Initialize(
 
                auto& result = aResult.ResolveValue();
 
-               if (result.is<ChildToParentSynthesizeResponseArgs>()) {
-                 (void)self->SendRespondWith(
-                     result.extract<ChildToParentSynthesizeResponseArgs>());
+               if (result.is<SynthesizeResponseArgs>()) {
+                 ChildToParentSynthesizeResponseArgs ipcArgs;
+                 nsresult rv = GetIPCSynthesizeResponseArgs(
+                     &ipcArgs, result.extract<SynthesizeResponseArgs>());
+
+                 if (NS_WARN_IF(NS_FAILED(rv))) {
+                   (void)self->SendRespondWith(
+                       CancelInterceptionArgs(rv, ipcArgs.timeStamps()));
+                   return;
+                 }
+
+                 (void)self->SendRespondWith(ipcArgs);
                } else if (result.is<ResetInterceptionArgs>()) {
                  (void)self->SendRespondWith(
                      result.extract<ResetInterceptionArgs>());
