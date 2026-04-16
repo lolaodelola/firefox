@@ -536,9 +536,7 @@ add_task(async function test_search_history() {
       searchTextbox,
       "Search input is focused"
     );
-    let clearButton = SpecialPowers.wrap(
-      searchTextbox.inputEl
-    ).openOrClosedShadowRoot.querySelector("button");
+    let clearButton = SpecialPowers.getInputButton(searchTextbox.inputEl);
     EventUtils.synthesizeMouseAtCenter(clearButton, {}, content);
     await BrowserTestUtils.waitForMutationCondition(
       historyComponent.shadowRoot,
@@ -592,9 +590,7 @@ add_task(async function test_search_ignores_stale_queries() {
     );
 
     info("Clear the bogus query.");
-    let clearButton = SpecialPowers.wrap(
-      searchTextbox.inputEl
-    ).openOrClosedShadowRoot.querySelector("button");
+    let clearButton = SpecialPowers.getInputButton(searchTextbox.inputEl);
     EventUtils.synthesizeMouseAtCenter(clearButton, {}, content);
     await searchTextbox.updateComplete;
 

@@ -99,6 +99,7 @@
 #include "nsTableRowFrame.h"
 #include "nsTableRowGroupFrame.h"
 #include "nsTableWrapperFrame.h"
+#include "nsTextControlFrame.h"
 #include "nsTextNode.h"
 #include "nsTransitionManager.h"
 #include "nsUnicharUtils.h"
@@ -2993,58 +2994,28 @@ nsIFrame* nsCSSFrameConstructor::ConstructListBoxSelectFrame(
     nsFrameConstructorState& aState, FrameConstructionItem& aItem,
     nsContainerFrame* aParentFrame, const nsStyleDisplay* aStyleDisplay,
     nsFrameList& aFrameList) {
-  nsIContent* const content = aItem.mContent;
-  ComputedStyle* const computedStyle = aItem.mComputedStyle;
-
-  // Listbox, not combobox
   nsContainerFrame* listFrame =
-      NS_NewListControlFrame(mPresShell, computedStyle);
-
-  nsContainerFrame* scrolledFrame = NS_NewBlockFrame(mPresShell, computedStyle);
-
-  // ******* this code stolen from Initialze ScrollFrame ********
-  // please adjust this code to use BuildScrollFrame.
-
-  InitializeListboxSelect(aState, listFrame, scrolledFrame, content,
-                          aParentFrame, computedStyle, aFrameList);
-
+      NS_NewListControlFrame(mPresShell, aItem.mComputedStyle);
+  InitAndRestoreFrame(aState, aItem.mContent,
+                      aState.GetGeometricParent(*aStyleDisplay, aParentFrame),
+                      listFrame);
+  ConstructScrollableBlockWithScrollContainer(
+      aState, aItem, aParentFrame, aStyleDisplay, aFrameList, listFrame);
   return listFrame;
 }
 
-void nsCSSFrameConstructor::InitializeListboxSelect(
-    nsFrameConstructorState& aState, nsContainerFrame* scrollFrame,
-    nsContainerFrame* scrolledFrame, nsIContent* aContent,
-    nsContainerFrame* aParentFrame, ComputedStyle* aComputedStyle,
+nsIFrame* nsCSSFrameConstructor::ConstructTextControl(
+    nsFrameConstructorState& aState, FrameConstructionItem& aItem,
+    nsContainerFrame* aParentFrame, const nsStyleDisplay* aStyleDisplay,
     nsFrameList& aFrameList) {
-  // Initialize it
-  nsContainerFrame* geometricParent =
-      aState.GetGeometricParent(*aComputedStyle->StyleDisplay(), aParentFrame);
-
-  // We don't call InitAndRestoreFrame for scrollFrame because we can only
-  // restore the frame state after its parts have been created (in particular,
-  // the scrollable view). So we have to split Init and Restore.
-
-  scrollFrame->Init(aContent, geometricParent, nullptr);
-  aState.AddChild(scrollFrame, aFrameList, aContent, aParentFrame);
-  BuildScrollContainerFrame(aState, aContent, aComputedStyle, scrolledFrame,
-                            geometricParent, scrollFrame);
-  if (aState.mFrameState) {
-    // Restore frame state for the scroll frame
-    RestoreFrameStateFor(scrollFrame, aState.mFrameState);
-  }
-
-  nsFrameConstructorSaveState floatSaveState;
-  aState.MaybePushFloatContainingBlock(scrolledFrame, floatSaveState);
-
-  // Process children
-  nsFrameList childList;
-
-  ProcessChildren(aState, aContent, aComputedStyle, scrolledFrame, false,
-                  childList, false);
-
-  // Set the scrolled frame's initial child lists
-  scrolledFrame->SetInitialChildList(FrameChildListID::Principal,
-                                     std::move(childList));
+  nsContainerFrame* tcf =
+      NS_NewTextControlFrame(mPresShell, aItem.mComputedStyle);
+  InitAndRestoreFrame(aState, aItem.mContent,
+                      aState.GetGeometricParent(*aStyleDisplay, aParentFrame),
+                      tcf);
+  ConstructScrollableBlockWithScrollContainer(aState, aItem, aParentFrame,
+                                              aStyleDisplay, aFrameList, tcf);
+  return tcf;
 }
 
 nsIFrame* nsCSSFrameConstructor::ConstructFieldSetFrame(
@@ -3444,7 +3415,7 @@ nsCSSFrameConstructor::FindHTMLData(const Element& aElement,
       SIMPLE_TAG_CREATE(wbr, NS_NewWBRFrame),
       SIMPLE_TAG_CHAIN(button, nsCSSFrameConstructor::FindHTMLButtonData),
       SIMPLE_TAG_CHAIN(input, nsCSSFrameConstructor::FindInputData),
-      SIMPLE_TAG_CREATE(textarea, NS_NewTextControlFrame),
+      SIMPLE_TAG_CREATE(textarea, &nsCSSFrameConstructor::ConstructTextControl),
       SIMPLE_TAG_CHAIN(select, nsCSSFrameConstructor::FindSelectData),
       SIMPLE_TAG_CHAIN(object, nsCSSFrameConstructor::FindObjectData),
       SIMPLE_TAG_CHAIN(embed, nsCSSFrameConstructor::FindObjectData),
@@ -3555,23 +3526,32 @@ nsCSSFrameConstructor::FindInputData(const Element& aElement,
       SIMPLE_INT_CREATE(FormControlType::InputFile, NS_NewFileControlFrame),
       SIMPLE_INT_CHAIN(FormControlType::InputImage,
                        nsCSSFrameConstructor::FindImgControlData),
-      SIMPLE_INT_CREATE(FormControlType::InputEmail, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputText, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputTel, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputUrl, NS_NewTextControlFrame),
+      SIMPLE_INT_CREATE(FormControlType::InputEmail,
+                        &nsCSSFrameConstructor::ConstructTextControl),
+      SIMPLE_INT_CREATE(FormControlType::InputText,
+                        &nsCSSFrameConstructor::ConstructTextControl),
+      SIMPLE_INT_CREATE(FormControlType::InputTel,
+                        &nsCSSFrameConstructor::ConstructTextControl),
+      SIMPLE_INT_CREATE(FormControlType::InputUrl,
+                        &nsCSSFrameConstructor::ConstructTextControl),
       SIMPLE_INT_CREATE(FormControlType::InputRange, NS_NewRangeFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputPassword, NS_NewTextControlFrame),
+      SIMPLE_INT_CREATE(FormControlType::InputPassword,
+                        &nsCSSFrameConstructor::ConstructTextControl),
       SIMPLE_INT_CREATE(FormControlType::InputColor, NS_NewColorControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputSearch, NS_NewTextControlFrame),
-      SIMPLE_INT_CREATE(FormControlType::InputNumber, NS_NewTextControlFrame),
+      SIMPLE_INT_CREATE(FormControlType::InputSearch,
+                        &nsCSSFrameConstructor::ConstructTextControl),
+      SIMPLE_INT_CREATE(FormControlType::InputNumber,
+                        &nsCSSFrameConstructor::ConstructTextControl),
       SIMPLE_INT_CREATE(FormControlType::InputTime, NS_NewDateTimeControlFrame),
       SIMPLE_INT_CREATE(FormControlType::InputDate, NS_NewDateTimeControlFrame),
       SIMPLE_INT_CREATE(FormControlType::InputDatetimeLocal,
                         NS_NewDateTimeControlFrame),
       // TODO: this is temporary until a frame is written: bug 888320
-      SIMPLE_INT_CREATE(FormControlType::InputMonth, NS_NewTextControlFrame),
+      SIMPLE_INT_CREATE(FormControlType::InputMonth,
+                        &nsCSSFrameConstructor::ConstructTextControl),
       // TODO: this is temporary until a frame is written: bug 888320
-      SIMPLE_INT_CREATE(FormControlType::InputWeek, NS_NewTextControlFrame),
+      SIMPLE_INT_CREATE(FormControlType::InputWeek,
+                        &nsCSSFrameConstructor::ConstructTextControl),
       SIMPLE_INT_CREATE(FormControlType::InputSubmit,
                         NS_NewInputButtonControlFrame),
       SIMPLE_INT_CREATE(FormControlType::InputReset,
@@ -4323,14 +4303,25 @@ nsIFrame* nsCSSFrameConstructor::ConstructScrollableBlock(
     nsFrameConstructorState& aState, FrameConstructionItem& aItem,
     nsContainerFrame* aParentFrame, const nsStyleDisplay* aDisplay,
     nsFrameList& aFrameList) {
+  nsContainerFrame* newFrame = nullptr;
+  ConstructScrollableBlockWithScrollContainer(aState, aItem, aParentFrame,
+                                              aDisplay, aFrameList, newFrame);
+  MOZ_ASSERT(newFrame);
+  return newFrame;
+}
+
+void nsCSSFrameConstructor::ConstructScrollableBlockWithScrollContainer(
+    nsFrameConstructorState& aState, FrameConstructionItem& aItem,
+    nsContainerFrame* aParentFrame, const nsStyleDisplay* aDisplay,
+    nsFrameList& aFrameList, nsContainerFrame*& aNewFrame) {
   nsIContent* const content = aItem.mContent;
   ComputedStyle* const computedStyle = aItem.mComputedStyle;
+  MOZ_ASSERT_IF(aNewFrame, aNewFrame->IsScrollContainerOrSubclass());
 
-  nsContainerFrame* newFrame = nullptr;
   RefPtr<ComputedStyle> scrolledContentStyle =
       BeginBuildingScrollContainerFrame(
           aState, content, computedStyle,
-          aState.GetGeometricParent(*aDisplay, aParentFrame), false, newFrame);
+          aState.GetGeometricParent(*aDisplay, aParentFrame), false, aNewFrame);
 
   // Create our block frame
   // pass a temporary stylecontext, the correct one will be set later
@@ -4338,18 +4329,16 @@ nsIFrame* nsCSSFrameConstructor::ConstructScrollableBlock(
 
   // Make sure to AddChild before we call ConstructBlock so that we
   // end up before our descendants in fixed-pos lists as needed.
-  aState.AddChild(newFrame, aFrameList, content, aParentFrame);
+  aState.AddChild(aNewFrame, aFrameList, content, aParentFrame);
 
   nsFrameList blockList;
-  ConstructBlock(aState, content, newFrame, newFrame, scrolledContentStyle,
+  ConstructBlock(aState, content, aNewFrame, aNewFrame, scrolledContentStyle,
                  &scrolledFrame, blockList,
-                 newFrame->IsAbsPosContainingBlock() ? newFrame : nullptr);
+                 aNewFrame->IsAbsPosContainingBlock() ? aNewFrame : nullptr);
 
   MOZ_ASSERT(blockList.OnlyChild() == scrolledFrame,
              "Scrollframe's frameList should be exactly the scrolled frame!");
-  FinishBuildingScrollContainerFrame(newFrame, scrolledFrame);
-
-  return newFrame;
+  FinishBuildingScrollContainerFrame(aNewFrame, scrolledFrame);
 }
 
 nsIFrame* nsCSSFrameConstructor::ConstructNonScrollableBlock(

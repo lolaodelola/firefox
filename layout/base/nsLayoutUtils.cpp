@@ -7968,8 +7968,19 @@ float nsLayoutUtils::FontSizeInflationInner(const nsIFrame* aFrame,
           f->StylePosition()->ISize(wm, anchorResolutionParams);
       const auto stylePosBSize =
           f->StylePosition()->BSize(wm, anchorResolutionParams);
-      if (!stylePosISize->IsAuto() ||
-          !stylePosBSize->BehavesLikeInitialValueOnBlockAxis()) {
+      const bool isTextControlPseudo = [&] {
+        switch (f->Style()->GetPseudoType()) {
+          case PseudoStyleType::MozTextControlEditingRoot:
+          case PseudoStyleType::MozTextControlPreview:
+          case PseudoStyleType::Placeholder:
+            return true;
+          default:
+            return false;
+        }
+      }();
+      if (!isTextControlPseudo &&
+          (!stylePosISize->IsAuto() ||
+           !stylePosBSize->BehavesLikeInitialValueOnBlockAxis())) {
         return 1.0;
       }
     }
