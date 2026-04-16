@@ -202,7 +202,7 @@ toolbar[inactive="true"] .urlbar,
   }
 
   /* stylelint-disable-next-line media-query-no-invalid */
-  @media -moz-pref("browser.urlbar.nova.featureGate") {
+  @media -moz-pref("browser.nova.enabled") {
     &::selection {
       border-radius: var(--border-radius-xsmall);
     }
@@ -1300,7 +1300,7 @@ toolbar[inactive="true"] .urlbar,
   padding: 8px;
 
   /* stylelint-disable-next-line media-query-no-invalid */
-  @media -moz-pref("browser.urlbar.nova.featureGate") {
+  @media -moz-pref("browser.nova.enabled") {
     min-width: 17em;
   }
 
@@ -1337,7 +1337,7 @@ toolbar[inactive="true"] .urlbar,
   padding: var(--menuitem-padding);
 
   /* stylelint-disable-next-line media-query-no-invalid */
-  @media -moz-pref("browser.urlbar.nova.featureGate") {
+  @media -moz-pref("browser.nova.enabled") {
     color: var(--text-color-deemphasized);
   }
 }
