@@ -105,26 +105,26 @@ ifeq ($(MOZ_BUILD_APP),mobile/android)
           zip -r5D '$(ABS_DIST)/$(PKG_PATH)$(MOZSEARCH_JAVA_INDEX_BASENAME).zip' .
 endif # MOZ_BUILD_APP == mobile/android
 endif
-ifeq (Darwin, $(OS_ARCH))
+ifeq (Darwin_cocoa, $(OS_ARCH)_$(MOZ_WIDGET_TOOLKIT))
 ifneq (,$(MOZ_ASAN)$(LIBFUZZER)$(MOZ_UBSAN))
 	@echo "Rewriting sanitizer runtime dylib paths for all binaries in $(DIST)/$(MOZ_PKG_DIR)/$(_BINPATH) ..."
 	$(PYTHON3) $(MOZILLA_DIR)/build/unix/rewrite_sanitizer_dylib.py '$(DIST)/$(MOZ_PKG_DIR)/$(_BINPATH)'
 endif # MOZ_ASAN || LIBFUZZER || MOZ_UBSAN
-endif # Darwin
+endif # Darwin_cocoa
 ifndef MOZ_ARTIFACT_BUILDS
 	@echo 'Generating XPT artifacts archive ($(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip)'
-	$(call py_action,zip $(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip,-C $(topobjdir)/config/makefiles/xpidl '$(ABS_DIST)/$(PKG_PATH)$(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.xpt')
-ifeq (Darwin, $(OS_ARCH))
+	$(call py_action,zip $(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip,--error-if-empty -C $(topobjdir)/config/makefiles/xpidl '$(ABS_DIST)/$(PKG_PATH)$(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.xpt')
+ifeq (Darwin_cocoa, $(OS_ARCH)_$(MOZ_WIDGET_TOOLKIT))
 	@echo 'Generating update-related macOS framework artifacts archive ($(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip)'
-	$(call py_action,zip $(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip,-C '$(ABS_DIST)/update_framework_artifacts' '$(ABS_DIST)/$(PKG_PATH)$(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.framework')
-endif # Darwin
+	$(call py_action,zip $(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip,--error-if-empty -C '$(ABS_DIST)/update_framework_artifacts' '$(ABS_DIST)/$(PKG_PATH)$(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.framework')
+endif # Darwin_cocoa
 else
 	@echo 'Packaging existing XPT artifacts from artifact build into archive ($(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip)'
-	$(call py_action,zip $(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip,-C $(ABS_DIST)/xpt_artifacts '$(ABS_DIST)/$(PKG_PATH)$(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.xpt')
-ifeq (Darwin, $(OS_ARCH))
+	$(call py_action,zip $(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip,--error-if-empty -C $(ABS_DIST)/xpt_artifacts '$(ABS_DIST)/$(PKG_PATH)$(XPT_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.xpt')
+ifeq (Darwin_cocoa, $(OS_ARCH)_$(MOZ_WIDGET_TOOLKIT))
 	@echo 'Packaging existing update-related macOS framework artifacts from artifact build into archive ($(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip)'
-	$(call py_action,zip $(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip,-C $(ABS_DIST)/update_framework_artifacts '$(ABS_DIST)/$(PKG_PATH)$(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.framework')
-endif # Darwin
+	$(call py_action,zip $(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip,--error-if-empty -C $(ABS_DIST)/update_framework_artifacts '$(ABS_DIST)/$(PKG_PATH)$(UPDATE_FRAMEWORK_ARTIFACTS_ARCHIVE_BASENAME).zip' '*.framework')
+endif # Darwin_cocoa
 endif # MOZ_ARTIFACT_BUILDS
 
 make-package-internal: prepare-package make-sourcestamp-file
