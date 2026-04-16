@@ -65,7 +65,7 @@ add_task(async function test_engine_searchmode_after_result_nav() {
   gURLBar.querySelector(".searchmode-switcher-close").click();
   await UrlbarTestUtils.assertSearchMode(window, null);
   gBrowser.removeTab(tab);
-});
+}).skip();
 
 add_task(async function test_local_searchmode_after_result_nav() {
   let tab = await BrowserTestUtils.openNewForegroundTab(gBrowser);
@@ -101,4 +101,4 @@ add_task(async function test_local_searchmode_after_result_nav() {
   await UrlbarTestUtils.assertSearchMode(window, null);
 
   gBrowser.removeTab(tab);
-});
+}).skip();

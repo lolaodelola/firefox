@@ -425,6 +425,46 @@ add_task(async function open_engine_page_directly() {
   await searchExtension.unload();
 });
 
+add_task(async function test_searchWithPostEngine() {
+  let searchExtension = await SearchTestUtils.installSearchExtension(
+    {
+      name: "MozSearch",
+      search_url: "https://example.com/",
+      search_url_post_params: "q={searchTerms}",
+      favicon_url: "https://example.com/favicon.ico",
+    },
+    { skipUnload: true }
+  );
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: "a b c",
+  });
+
+  let spy = sinon.spy(window, "openTrustedLinkIn");
+
+  let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
+  let promise = Promise.all([
+    UrlbarTestUtils.searchModeSwitcherPopupClosed(window),
+    BrowserTestUtils.browserLoaded(gBrowser.selectedBrowser),
+  ]);
+  popup.querySelector("panel-item[data-engine-name=MozSearch]").button.click();
+  await promise;
+
+  Assert.equal(spy.firstCall.args[0], "https://example.com/", "Correct URL");
+  let postData = spy.firstCall.args[2].postData;
+  Assert.equal(
+    NetUtil.readInputStreamToString(postData, postData.available()),
+    "q=a+b+c",
+    "postData contains the search terms"
+  );
+
+  // Cleanup.
+  spy.restore();
+  await PlacesUtils.history.clear();
+  await searchExtension.unload();
+});
+
 add_task(async function open_engine_page_in_tab() {
   const TEST_DATA = [
     {
