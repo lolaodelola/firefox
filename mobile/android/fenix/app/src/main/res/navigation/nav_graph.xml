@@ -1953,6 +1953,9 @@
             <argument
                 android:name="isLocalPdf"
                 app:argType="boolean" />
+            <action
+                android:id="@+id/action_trustPanelFragment_to_ipProtectionFragment"
+                app:destination="@id/ipProtectionFragment" />
         </dialog>
     </navigation>
     <dialog

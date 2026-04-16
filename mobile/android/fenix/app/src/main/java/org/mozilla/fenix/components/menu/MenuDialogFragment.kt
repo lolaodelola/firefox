@@ -763,8 +763,7 @@ class MenuDialogFragment : BottomSheetDialogFragment() {
                                         }
                                     },
                                     onIPProtectionClick = {
-                                        // Toggle handled by the feature observing IPProtectionStore.
-                                        // Dispatch is a no-op placeholder until bug 2030143.
+                                        // will be implemented in https://bugzilla.mozilla.org/show_bug.cgi?id=2030143
                                     },
                                     onIPProtectionNavigate = {
                                         store.dispatch(MenuAction.Navigate.IPProtectionSettings)
