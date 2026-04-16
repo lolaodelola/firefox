@@ -577,8 +577,6 @@ run-sequentially = [
 
 ["test_cookies_partition_migration.js"]
 
-["test_cookies_validation_epoch.js"]
-
 ["test_cookies_privatebrowsing.js"]
 
 ["test_cookies_profile_close.js"]
