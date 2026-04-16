@@ -380,12 +380,12 @@ tasks.register("lint") {
     description = "Runs lint on all mobile projects."
     mobileProjects.each { dependsOn "${it}:lint" }
 }
-tasks.register("ktlint") {
+tasks.named("ktlint").configure {
     group = "verification"
     description = "Runs ktlint on all mobile projects."
     mobileProjects.each { dependsOn "${it}:ktlint" }
 }
-tasks.register("ktlintFormat") {
+tasks.named("ktlintFormat").configure {
     group = "formatting"
     description = "Runs ktlintFormat on all mobile projects."
     mobileProjects.each { dependsOn "${it}:ktlintFormat" }

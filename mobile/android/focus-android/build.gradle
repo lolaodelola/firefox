@@ -28,6 +28,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+mozilla {
+    ktlintSourcePaths = ["app/**/*.kt", "buildSrc/**/*.kt", "!**/build/**/*.kt"]
+}
+
 dependencyAnalysis {
     structure {
         bundle("leakcanary") {
@@ -92,44 +96,8 @@ tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
 
-
-configurations {
-    ktlint
-}
-
 dependencies {
     detektPlugins project(':components:tooling-detekt')
-
-    ktlint(libs.ktlint) {
-        attributes {
-            attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
-        }
-    }
-}
-
-tasks.register('ktlint', JavaExec) {
-    description = "Check Kotlin code style."
-    classpath = configurations.ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
-    args "app/**/*.kt"
-    args "!**/build/**/*.kt"
-    args "buildSrc/**/*.kt"
-    args "--reporter=json,output=build/reports/ktlint/ktlint.json"
-    args "--reporter=plain"
-}
-
-
-tasks.register('ktlintFormat', JavaExec) {
-    description = "Fix Kotlin code style deviations."
-    classpath = configurations.ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
-    args "-F"
-    args "app/**/*.kt"
-    args "!**/build/**/*.kt"
-    args "buildSrc/**/*.kt"
-    args "--reporter=json,output=build/reports/ktlint/ktlintFormat.json"
-    args "--reporter=plain"
-    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
 }
 
 tasks.register("listRepositories") {

@@ -9,19 +9,22 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySubstitution
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.plugins.AppliedPlugin
+import org.gradle.api.tasks.JavaExec
 import java.io.File
 
 class ProjectPlugin : Plugin<Project> {
     @Suppress("UNCHECKED_CAST")
     override fun apply(project: Project) {
-        project.extensions.create("mozilla", ProjectExtension::class.java).apply {
-            androidComponentsProject.convention(false)
-        }
+        val mozilla = project.extensions.create("mozilla", ProjectExtension::class.java)
+        mozilla.androidComponentsProject.convention(false)
+        mozilla.ktlintSourcePaths.convention(emptyList())
 
         val extraProperties = project.gradle.extensions.extraProperties
         val mozconfig = extraProperties["mozconfig"] as Map<String, Any>
@@ -44,6 +47,7 @@ class ProjectPlugin : Plugin<Project> {
         configureAppServicesSubstitution(project, extraProperties, substs)
         configureGleanSubstitution(project, extraProperties)
         configureGleanVersionResolution(project)
+        configureKtlint(project, mozilla)
     }
 
     // Initialize the project buildDir to be in ${topobjdir} to follow
@@ -289,5 +293,48 @@ class ProjectPlugin : Plugin<Project> {
         private const val LOCAL_SNAPSHOT_VERSION = "0.0.1-SNAPSHOT-+"
         private val APP_SERVICES_GROUPS = setOf("org.mozilla.appservices", "org.mozilla.appservices.nightly")
         private val GLEAN_GROUPS = setOf("org.mozilla.telemetry")
+    }
+
+    private fun configureKtlint(project: Project, mozilla: ProjectExtension) {
+        val sourcePaths = mozilla.ktlintSourcePaths
+
+        val ktlintConfig = project.configurations.create("ktlint")
+
+        val ktlintDep = project.provider {
+            val versionCatalogs = project.extensions.getByType(VersionCatalogsExtension::class.java)
+            val libs = versionCatalogs.named("libs")
+            val dep = project.dependencies.create(libs.findLibrary("ktlint").get().get())
+            if (dep is ExternalModuleDependency) {
+                dep.attributes {
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling::class.java, Bundling.EXTERNAL))
+                }
+            }
+            dep
+        }
+        ktlintConfig.dependencies.addLater(ktlintDep)
+
+        project.tasks.register("ktlint", JavaExec::class.java) {
+            group = "verification"
+            description = "Check Kotlin code style."
+            classpath = ktlintConfig
+            mainClass.set("com.pinterest.ktlint.Main")
+            onlyIf { sourcePaths.get().isNotEmpty() }
+            sourcePaths.get().forEach { args(it) }
+            args("--reporter=json,output=build/reports/ktlint/ktlint.json")
+            args("--reporter=plain")
+        }
+
+        project.tasks.register("ktlintFormat", JavaExec::class.java) {
+            group = "formatting"
+            description = "Fix Kotlin code style deviations."
+            classpath = ktlintConfig
+            mainClass.set("com.pinterest.ktlint.Main")
+            onlyIf { sourcePaths.get().isNotEmpty() }
+            args("-F")
+            sourcePaths.get().forEach { args(it) }
+            args("--reporter=json,output=build/reports/ktlint/ktlintFormat.json")
+            args("--reporter=plain")
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        }
     }
 }
