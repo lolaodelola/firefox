@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const { MODEL_FEATURES, openAIEngine, renderPrompt } =
+const { DEFAULT_ENGINE_ID, MODEL_FEATURES, openAIEngine, renderPrompt } =
   ChromeUtils.importESModule(
     "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs"
   );
@@ -69,8 +69,8 @@ add_task(async function test_createOpenAIEngine_with_chat_feature() {
     Assert.equal(opts.baseURL, ENDPOINT, "baseURL should come from pref");
     Assert.equal(
       opts.engineId,
-      "smart-openai",
-      "engineId should be smart-openai"
+      `${DEFAULT_ENGINE_ID}-${MODEL_FEATURES.CHAT}`,
+      "engineId should be derived from the feature name"
     );
     Assert.ok(opts.modelId, "modelId should be set");
     Assert.equal(opts.modelRevision, "main", "modelRevision should be main");

@@ -275,7 +275,7 @@ describe("SmartWindowRequestResponseTelemetry", () => {
         );
         for (const call of chatBuildCalls) {
           Assert.equal(
-            call.args[2],
+            call.args[1],
             chatId,
             "Every chat engine build receives conversationId as flowId"
           );
@@ -358,7 +358,7 @@ describe("SmartWindowRequestResponseTelemetry", () => {
           "At least two chat engine builds"
         );
 
-        const flowIds = new Set(chatBuilds.map(call => call.args[2]));
+        const flowIds = new Set(chatBuilds.map(call => call.args[1]));
         Assert.ok(
           flowIds.has(chatIdA),
           "Engine build for conversation A used chatIdA as flowId"

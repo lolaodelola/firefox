@@ -10,7 +10,6 @@ import {
   openAIEngine,
   renderPrompt,
   MODEL_FEATURES,
-  DEFAULT_ENGINE_ID,
 } from "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs";
 
 import { MESSAGE_ROLE } from "moz-src:///browser/components/aiwindow/ui/modules/ChatStore.sys.mjs";
@@ -205,7 +204,6 @@ export async function generateConversationStartersSidebar(
     // Build engine and load prompt
     const engineInstance = await openAIEngine.build(
       MODEL_FEATURES.CONVERSATION_SUGGESTIONS_SIDEBAR_STARTER,
-      DEFAULT_ENGINE_ID,
       flowId
     );
 
@@ -297,7 +295,6 @@ export async function generateFollowupPrompts(
     // Build engine and load prompt
     const engineInstance = await openAIEngine.build(
       MODEL_FEATURES.CONVERSATION_SUGGESTIONS_FOLLOWUP,
-      DEFAULT_ENGINE_ID,
       flowId
     );
 

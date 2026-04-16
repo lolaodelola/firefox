@@ -624,19 +624,18 @@ export class openAIEngine {
    *
    * @param {string} feature
    *   The feature name to use to retrieve remote settings for prompts.
-   * @param {string} engineId
-   *   The engine ID for MLEngine creation. Defaults to DEFAULT_ENGINE_ID.
    * @param {string | null} [flowId]
    *   Flow ID for correlating frontend and backend telemetry.
    * @returns {Promise<object>}
    *   Promise that will resolve to the configured engine instance.
    */
-  static async build(feature, engineId = DEFAULT_ENGINE_ID, flowId = null) {
+  static async build(feature, flowId = null) {
     const engine = new openAIEngine();
 
     await engine.loadConfig(feature);
 
     const config = engine.getConfig(feature);
+    const engineId = `${DEFAULT_ENGINE_ID}-${feature}`;
     engine.#engineId = engineId;
     engine.#serviceType =
       config?.service_type ?? getDefaultServiceType(feature);

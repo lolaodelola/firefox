@@ -16,8 +16,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
   Chat: "moz-src:///browser/components/aiwindow/models/Chat.sys.mjs",
   MODEL_FEATURES: "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs",
   openAIEngine: "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs",
-  DEFAULT_ENGINE_ID:
-    "moz-src:///browser/components/aiwindow/models/Utils.sys.mjs",
   generateChatTitle:
     "moz-src:///browser/components/aiwindow/models/TitleGeneration.sys.mjs",
   AIWindow:
@@ -128,6 +126,7 @@ export class AIWindow extends MozLitElement {
   #visibilityChangeHandler;
 
   #starters = [];
+  #starterPromptsAbortController = null;
   #smartbarResizeObserver = null;
   #windowModeObserver = null;
   #swapDocShellsChromeWindow = null;
@@ -724,6 +723,9 @@ export class AIWindow extends MozLitElement {
       return;
     }
 
+    const abortController = new AbortController();
+    this.#starterPromptsAbortController = abortController;
+
     if (clear) {
       this.#renderStarterPrompts([]);
     }
@@ -776,7 +778,10 @@ export class AIWindow extends MozLitElement {
       lazy.log.error("[Prompts] Failed to load initial starters:", e);
     }
 
-    this.#renderStarterPrompts(starters);
+    this.#starterPromptsAbortController = null;
+    if (!abortController.signal.aborted) {
+      this.#renderStarterPrompts(starters);
+    }
   }
 
   /**
@@ -1305,6 +1310,12 @@ export class AIWindow extends MozLitElement {
     inputText,
     { skipUserDispatch = false, pageUrl, ...userOpts } = {}
   ) {
+    // Capture conversation and browsingContext at call time so that a tab switch
+    // mid-stream cannot redirect this request to the wrong target.
+    const conversation = this.#conversation;
+    const browsingContext = this.#getBrowsingContext();
+
+    this.#starterPromptsAbortController?.abort();
     this.showStarters = false;
     this.showFooter = false;
     this.showDisclaimer = true;
@@ -1318,19 +1329,18 @@ export class AIWindow extends MozLitElement {
         return;
       }
       firstTokenTime = Date.now();
-      this.#conversation?.off("chat-conversation:message-update", onUpdate);
+      conversation?.off("chat-conversation:message-update", onUpdate);
     };
-    this.#conversation.on("chat-conversation:message-update", onUpdate);
+    conversation.on("chat-conversation:message-update", onUpdate);
 
     try {
       const engineInstance = await lazy.openAIEngine.build(
         lazy.MODEL_FEATURES.CHAT,
-        lazy.DEFAULT_ENGINE_ID,
         this.conversationId
       );
 
       if (inputText) {
-        await this.#conversation.generatePrompt(
+        await conversation.generatePrompt(
           inputText,
           pageUrl,
           engineInstance,
@@ -1341,14 +1351,15 @@ export class AIWindow extends MozLitElement {
         // @todo
         // fill out these assistant message flags
         const assistantRoleOpts = new lazy.AssistantRoleOpts();
-        this.#conversation.addAssistantMessage("text", "", assistantRoleOpts);
+        conversation.addAssistantMessage("text", "", assistantRoleOpts);
+
         this.#sendModelRequestTelemetryEvent();
       }
 
       await lazy.Chat.fetchWithHistory({
-        conversation: this.#conversation,
+        conversation,
         engineInstance,
-        browsingContext: this.#getBrowsingContext(),
+        browsingContext,
         mode: this.mode,
       });
 

@@ -302,6 +302,8 @@ export class AIChatContent extends MozLitElement {
     if (convIdChanged || isReloadingSameConvo) {
       this.conversationState = [];
       this.followUpSuggestions = [];
+      this.assistantIsLoading = false;
+      this.isSearching = false;
       if (convIdChanged) {
         this.shadowRoot
           ?.querySelector(".chat-inner-wrapper")

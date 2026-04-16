@@ -12,7 +12,6 @@ import {
 } from "moz-src:///browser/components/aiwindow/models/memories/MemoriesHistorySource.sys.mjs";
 import { getRecentChats } from "./MemoriesChatSource.sys.mjs";
 import {
-  DEFAULT_ENGINE_ID,
   MODEL_FEATURES,
   openAIEngine,
   renderPrompt,
@@ -84,8 +83,7 @@ export class MemoriesManager {
   static async ensureOpenAIEngineForGeneration() {
     const buildFresh = () => {
       this.#openAIEngineGenerationPromise = openAIEngine.build(
-        MODEL_FEATURES.MEMORIES_INITIAL_GENERATION_SYSTEM,
-        `${DEFAULT_ENGINE_ID}-memories-generation`
+        MODEL_FEATURES.MEMORIES_INITIAL_GENERATION_SYSTEM
       );
       return this.#openAIEngineGenerationPromise;
     };
@@ -119,8 +117,7 @@ export class MemoriesManager {
   static async ensureOpenAIEngineForUsage() {
     const buildFresh = () => {
       this.#openAIEngineUsagePromise = openAIEngine.build(
-        MODEL_FEATURES.MEMORIES_MESSAGE_CLASSIFICATION_SYSTEM,
-        `${DEFAULT_ENGINE_ID}-memories-usage`
+        MODEL_FEATURES.MEMORIES_MESSAGE_CLASSIFICATION_SYSTEM
       );
       return this.#openAIEngineUsagePromise;
     };

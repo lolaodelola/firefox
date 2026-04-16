@@ -90,10 +90,8 @@ add_task(async function test_smartbar_submit_chat() {
     const browser = win.gBrowser.selectedBrowser;
 
     await dispatchSmartbarCommit(browser, "Test prompt", "chat");
-    await TestUtils.waitForTick();
-
-    Assert.ok(
-      fetchWithHistoryStub.calledOnce,
+    await TestUtils.waitForCondition(
+      () => fetchWithHistoryStub.calledOnce,
       "Should call fetchWithHistory once"
     );
 

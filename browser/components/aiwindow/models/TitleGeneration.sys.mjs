@@ -55,7 +55,6 @@ export async function generateChatTitle(
     // Build the OpenAI engine
     const engine = await openAIEngine.build(
       MODEL_FEATURES.TITLE_GENERATION,
-      `${MODEL_FEATURES.TITLE_GENERATION}-engine`,
       flowId
     );
 
