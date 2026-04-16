@@ -32,8 +32,6 @@ import com.android.build.api.variant.FilterConfiguration
 import com.google.android.gms.oss.licenses.plugin.DependencyTask
 import groovy.json.JsonOutput
 
-import static org.gradle.api.tasks.testing.TestResult.ResultType
-
 android {
     if (project.hasProperty("testBuildType")) {
         // Allowing to configure the test build type via command line flag (./gradlew -PtestBuildType=beta ..)
@@ -695,49 +693,6 @@ tasks.withType(DependencyTask).configureEach { task ->
     def cleanUpTaskName = task.name.replace("DependencyTask", "LicensesCleanUp")
     // make the dependency task depend on its cleanup task.
     task.dependsOn(tasks.named(cleanUpTaskName))
-}
-
-afterEvaluate {
-
-    // Format test output. Copied from Fenix, which was ported from AC #2401
-    tasks.withType(Test).configureEach {
-        systemProperty "robolectric.logging", "stdout"
-        systemProperty "logging.test-mode", "true"
-
-        testLogging.events = []
-
-        beforeSuite { descriptor ->
-            if (descriptor.getClassName() != null) {
-                println("\nSUITE: " + descriptor.getClassName())
-            }
-        }
-
-        beforeTest { descriptor ->
-            println("  TEST: " + descriptor.getName())
-        }
-
-        onOutput { descriptor, event ->
-            it.logger.lifecycle("    " + event.message.trim())
-        }
-
-        afterTest { descriptor, result ->
-            switch (result.getResultType()) {
-                case ResultType.SUCCESS:
-                    println("  SUCCESS")
-                    break
-
-                case ResultType.FAILURE:
-                    def testId = descriptor.getClassName() + "." + descriptor.getName()
-                    println("  TEST-UNEXPECTED-FAIL | " + testId + " | " + result.getException())
-                    break
-
-                case ResultType.SKIPPED:
-                    println("  SKIPPED")
-                    break
-            }
-            it.logger.lifecycle("")
-        }
-    }
 }
 
 mozilla {

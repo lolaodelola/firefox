@@ -3,8 +3,6 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 
-import static org.gradle.api.tasks.testing.TestResult.ResultType
-
 buildscript {
     repositories {
         gradle.configureMavenRepositories(delegate)
@@ -66,47 +64,6 @@ subprojects {
 
     afterEvaluate {
         if (it.hasProperty('android')) {
-            // Format test output
-            tasks.matching {it instanceof Test}.configureEach() {
-                systemProperty "robolectric.logging", "stdout"
-                systemProperty "logging.test-mode", "true"
-                systemProperty "javax.net.ssl.trustStoreType", "JKS"
-
-                testLogging.events = []
-
-                beforeSuite { descriptor ->
-                    if (descriptor.getClassName() != null) {
-                        println("\nSUITE: " + descriptor.getClassName())
-                    }
-                }
-
-                beforeTest { descriptor ->
-                    println("  TEST: " + descriptor.getName())
-                }
-
-                onOutput { descriptor, event ->
-                    it.logger.lifecycle("    " + event.message.trim())
-                }
-
-                afterTest { descriptor, result ->
-                    switch (result.getResultType()) {
-                        case ResultType.SUCCESS:
-                            println("  SUCCESS")
-                            break
-
-                        case ResultType.FAILURE:
-                            def testId = descriptor.getClassName() + "." + descriptor.getName()
-                            println("  TEST-UNEXPECTED-FAIL | " + testId + " | " + result.getException())
-                            break
-
-                        case ResultType.SKIPPED:
-                            println("  SKIPPED")
-                            break
-                    }
-                    it.logger.lifecycle("")
-                }
-            }
-
             dependencies {
                 lintChecks project(':components:tooling-lint')
             }

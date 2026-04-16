@@ -14,9 +14,16 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.logging.Logger
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestListener
+import org.gradle.api.tasks.testing.TestOutputEvent
+import org.gradle.api.tasks.testing.TestOutputListener
+import org.gradle.api.tasks.testing.TestResult
 import java.io.File
 
 class ProjectPlugin : Plugin<Project> {
@@ -48,6 +55,7 @@ class ProjectPlugin : Plugin<Project> {
         configureGleanSubstitution(project, extraProperties)
         configureGleanVersionResolution(project)
         configureKtlint(project, mozilla)
+        configureTestOutputFormatting(project)
     }
 
     // Initialize the project buildDir to be in ${topobjdir} to follow
@@ -336,5 +344,55 @@ class ProjectPlugin : Plugin<Project> {
             args("--reporter=plain")
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
         }
+    }
+
+    // Translates JUnit test events into Mozilla's TBPL-like textual format that Taskcluster
+    // log parsing expects. See also: testing/mozbase/mozlog/mozlog/formatters/tbplformatter.py
+    private fun configureTestOutputFormatting(project: Project) {
+        project.pluginManager.withPlugin("com.android.base") {
+            project.tasks.withType(Test::class.java).configureEach {
+                systemProperty("robolectric.logging", "stdout")
+                systemProperty("logging.test-mode", "true")
+                systemProperty("javax.net.ssl.trustStoreType", "JKS")
+
+                testLogging.events = emptySet()
+
+                val listener = MozillaTestOutputListener(logger)
+                addTestListener(listener)
+                addTestOutputListener(listener)
+            }
+        }
+    }
+}
+
+private class MozillaTestOutputListener(
+    private val taskLogger: Logger,
+) : TestListener, TestOutputListener {
+    override fun beforeSuite(suite: TestDescriptor) {
+        if (suite.className != null) {
+            println("\nSUITE: ${suite.className}")
+        }
+    }
+
+    override fun afterSuite(suite: TestDescriptor, result: TestResult) {}
+
+    override fun beforeTest(testDescriptor: TestDescriptor) {
+        println("  TEST: ${testDescriptor.name}")
+    }
+
+    override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+        when (result.resultType) {
+            TestResult.ResultType.SUCCESS -> println("  SUCCESS")
+            TestResult.ResultType.FAILURE -> {
+                val testId = "${testDescriptor.className}.${testDescriptor.name}"
+                println("  TEST-UNEXPECTED-FAIL | $testId | ${result.exception}")
+            }
+            TestResult.ResultType.SKIPPED -> println("  SKIPPED")
+        }
+        taskLogger.lifecycle("")
+    }
+
+    override fun onOutput(testDescriptor: TestDescriptor, outputEvent: TestOutputEvent) {
+        taskLogger.lifecycle("    ${outputEvent.message.trim()}")
     }
 }
