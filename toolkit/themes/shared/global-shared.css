@@ -365,6 +365,8 @@ button.text-link .button-text {
   --panel-border-color: rgba(0, 0, 0, 0.4);
   --panel-padding: 0;
   --panel-background: rgba(249, 249, 250, 0.8) no-repeat center var(--autoscroll-background-image);
+  --panel-shadow: 0 0 var(--panel-shadow-margin) rgba(0, 0, 0, 0.2);
+  --panel-shadow-margin: 4px;
   --panel-border-radius: 100%;
 
   /* Set pointer-events: none; so that mousemove events can be handled by AutoScrollChild.sys.mjs. */
