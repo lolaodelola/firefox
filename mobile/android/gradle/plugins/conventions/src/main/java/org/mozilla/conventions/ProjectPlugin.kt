@@ -9,6 +9,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySubstitution
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.plugins.AppliedPlugin
@@ -41,6 +43,7 @@ class ProjectPlugin : Plugin<Project> {
         configureKotlinJvmToolchain(project)
         configureAppServicesSubstitution(project, extraProperties, substs)
         configureGleanSubstitution(project, extraProperties)
+        configureGleanVersionResolution(project)
     }
 
     // Initialize the project buildDir to be in ${topobjdir} to follow
@@ -236,6 +239,50 @@ class ProjectPlugin : Plugin<Project> {
                     .invoke(kotlin, jvmTargetCompatibility)
             }
         }
+    }
+
+    private fun configureGleanVersionResolution(project: Project) {
+        // Dependencies can't depend on a different major version of Glean than A-C itself.
+        val action = Action<AppliedPlugin> {
+            val versionCatalogs = project.extensions.getByType(VersionCatalogsExtension::class.java)
+            val libs = versionCatalogs.named("libs")
+            val gleanVersion = libs.findVersion("glean").get().requiredVersion
+
+            project.configurations.configureEach {
+                resolutionStrategy {
+                    eachDependency {
+                        if (requested.group == "org.mozilla.telemetry" && requested.name.contains("glean")) {
+                            val requestedMajor = requested.version?.split(".")?.firstOrNull()
+                            val definedMajor = gleanVersion.split(".").firstOrNull()
+                            // Check the major version
+                            if (requestedMajor != definedMajor) {
+                                throw AssertionError(
+                                    "Cannot resolve to a single Glean version. " +
+                                        "Requested: ${requested.version}, version catalog defines: $gleanVersion"
+                                )
+                            } else {
+                                // Enforce that all (transitive) dependencies are using the defined Glean version
+                                useVersion(gleanVersion)
+                            }
+                        }
+                    }
+                    capabilitiesResolution {
+                        withCapability("org.mozilla.telemetry:glean-native") {
+                            val toBeSelected = candidates.find {
+                                it.id is ModuleComponentIdentifier &&
+                                    (it.id as ModuleComponentIdentifier).module.contains("geckoview")
+                            }
+                            if (toBeSelected != null) {
+                                select(toBeSelected)
+                            }
+                            because("use GeckoView Glean instead of standalone Glean")
+                        }
+                    }
+                }
+            }
+        }
+        project.pluginManager.withPlugin("com.android.library", action)
+        project.pluginManager.withPlugin("com.android.application", action)
     }
 
     companion object {
