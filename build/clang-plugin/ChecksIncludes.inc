@@ -43,5 +43,6 @@
 #include "RefCountedThisInsideConstructorChecker.h"
 #include "ScopeChecker.h"
 #include "SprintfLiteralChecker.h"
+#include "SupportsWeakPtrCycleCollectionChecker.h"
 #include "TrivialCtorDtorChecker.h"
 #include "TrivialDtorChecker.h"

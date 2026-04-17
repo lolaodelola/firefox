@@ -50,6 +50,7 @@ SOURCES += [
     "TestSprintfLiteral.cpp",
     "TestStackClass.cpp",
     "TestStaticLocalClass.cpp",
+    "TestSupportsWeakPtrCycleCollection.cpp",
     "TestTemporaryClass.cpp",
     "TestTrivialCtorDtor.cpp",
     "TestTrivialDtor.cpp",
