@@ -3086,6 +3086,76 @@ const BASE_MESSAGES = () => [
     targeting:
       "('termsofuse.acceptedDate'|preferenceValue != '0') && (('termsofuse.acceptedDate'|preferenceValue * 1) < 1765972800000)",
   },
+  {
+    id: "RELAY_50_MASKS_ANNOUNCEMENT",
+    template: "feature_callout",
+    groups: ["cfr"],
+    trigger: {
+      id: "relayMaskUsed",
+    },
+    targeting:
+      "masksUsedCount >= 1 && !activeNotifications && !isMajorUpgrade && userPrefs.cfrFeatures && (currentDate|date - profileAgeCreated|date) / 86400000 > 3",
+    frequency: {
+      lifetime: 1,
+    },
+    content: {
+      id: "RELAY_50_MASKS_ANNOUNCEMENT",
+      template: "multistage",
+      backdrop: "transparent",
+      transitions: false,
+      disableHistoryUpdates: true,
+      screens: [
+        {
+          id: "RELAY_SURVEY_SCREEN",
+          anchors: [
+            {
+              selector: "#PanelUI-menu-button",
+              panel_position: {
+                anchor_attachment: "bottomcenter",
+                callout_attachment: "topright",
+              },
+            },
+          ],
+          content: {
+            position: "callout",
+            width: "280px",
+            logo: {
+              imageURL:
+                "chrome://browser/content/asrouter/assets/hero-relay-email-masks.svg",
+              alt: "Firefox Relay email masks",
+              height: "132px",
+            },
+            title: {
+              string_id: "relay-50-masks-announcement-title",
+            },
+            subtitle: {
+              string_id: "relay-50-masks-announcement-subtitle",
+            },
+            primary_button: {
+              label: {
+                string_id: "relay-50-masks-announcement-primary-button",
+              },
+              action: {
+                type: "OPEN_URL",
+                data: {
+                  args: "https://relay.firefox.com",
+                },
+                dismiss: true,
+              },
+            },
+            secondary_button: {
+              label: {
+                string_id: "relay-50-masks-announcement-secondary-button",
+              },
+              action: {
+                dismiss: true,
+              },
+            },
+          },
+        },
+      ],
+    },
+  },
 ];
 
 const PREONBOARDING_MESSAGES = () => [
