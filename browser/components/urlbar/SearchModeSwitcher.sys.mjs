@@ -645,13 +645,14 @@ export class SearchModeSwitcher {
       searchEngine: engine,
       searchModeEntry: "searchbutton",
     };
+    let searchString = this.#getSearchString();
 
-    if (restrict || (!this.#input.userTypedValue && !whereToOpenSerp)) {
-      let search = restrict ? restrict + " " + this.#input.userTypedValue : "";
+    if (restrict || (!searchString && !whereToOpenSerp)) {
+      let search = restrict ? restrict + " " + searchString : "";
       this.#input.search(search, opts);
     } else {
       if (engine && !whereToOpenSerp) {
-        this.#input.value = this.#input.userTypedValue;
+        this.#input.value = searchString;
         this.#input.setSearchMode(
           {
             engineName: engine.name,
@@ -666,7 +667,7 @@ export class SearchModeSwitcher {
         opts.where = whereToOpenSerp;
         opts.inBackground = true;
       }
-      this.#input.openEngineHomePage(this.#input.userTypedValue || "", opts);
+      this.#input.openEngineHomePage(searchString, opts);
     }
 
     if (engine) {
@@ -685,6 +686,18 @@ export class SearchModeSwitcher {
         `Unexpected search: ${JSON.stringify({ engine, restrict, whereToOpenSerp })}`
       );
     }
+  }
+
+  /**
+   * The string to use when starting a search via the search mode switcher.
+   *
+   * @returns {string}
+   */
+  #getSearchString() {
+    if (this.#input.getAttribute("pageproxystate") == "valid") {
+      return "";
+    }
+    return this.#input.value;
   }
 
   #enableObservers() {
