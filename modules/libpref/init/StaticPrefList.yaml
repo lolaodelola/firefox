@@ -6913,6 +6913,17 @@
   value: true
   mirror: always
 
+#if defined(XP_MACOSX)
+# Whether or not to interpret the MacOS geolocation permission value
+# NotDetermined as a reason to show a different permission request prompt.
+# This is currently disabled because the OS returns NotDetermined more
+# frequently than we expect.
+-   name: geo.prompt.macos_use_not_determined
+    type: bool
+    value: false
+    mirror: always
+#endif
+
 #---------------------------------------------------------------------------
 # Prefs starting with "gfx."
 #---------------------------------------------------------------------------

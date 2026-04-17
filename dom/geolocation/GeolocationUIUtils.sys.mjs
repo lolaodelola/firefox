@@ -3,11 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * Implements nsIGeolocationUIUtilsWin
+ * Implements nsIGeolocationUIUtils
  *
- * @class GeolocationUIUtilsWin
+ * @class GeolocationUIUtils
  */
-export class GeolocationUIUtilsWin {
+export class GeolocationUIUtils {
   dismissPrompts(aBrowsingContext) {
     // browser will be null if the tab was closed
     let embedder = aBrowsingContext?.top.embedderElement;
@@ -21,6 +21,6 @@ export class GeolocationUIUtilsWin {
   }
 }
 
-GeolocationUIUtilsWin.prototype.QueryInterface = ChromeUtils.generateQI([
-  "nsIGeolocationUIUtilsWin",
+GeolocationUIUtils.prototype.QueryInterface = ChromeUtils.generateQI([
+  "nsIGeolocationUIUtils",
 ]);
