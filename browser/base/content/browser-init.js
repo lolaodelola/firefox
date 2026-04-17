@@ -215,13 +215,18 @@ var gBrowserInit = {
 
     // Run menubar initialization first, to avoid CustomTitlebar code picking
     // up mutations from it and causing a reflow.
-    AutoHideMenubar.init();
+    BrowserUtils.callModulesFromCategory(
+      {
+        categoryName:
+          "browser-window-before-initial-xul-layout-document-preparation",
+        jsGlobal: globalThis,
+      },
+      window
+    );
+
     // Update the customtitlebar attribute so the window can be sized
     // correctly.
     window.TabBarVisibility.update();
-    CustomTitlebar.init();
-
-    new LightweightThemeConsumer(document);
 
     if (
       Services.prefs.getBoolPref(
@@ -232,9 +237,17 @@ var gBrowserInit = {
       document.documentElement.setAttribute("icon", "main-window");
     }
 
-    // Call this after we set attributes that might change toolbars' computed
-    // text color.
-    ToolbarIconColor.init(window);
+    // The following modules would be initialized:
+    // CustomTitlebar, LightweightThemeConsumer, and ToolbarIconColor.
+    // ToolbarIconColor.init should be called after we set the attributes, since
+    // it might change the toolbars' computed text color.
+    BrowserUtils.callModulesFromCategory(
+      {
+        categoryName: "browser-window-before-initial-xul-layout",
+        jsGlobal: globalThis,
+      },
+      window
+    );
   },
 
   onDOMContentLoaded() {
@@ -1162,9 +1175,10 @@ var gBrowserInit = {
   onUnload() {
     gUIDensity.uninit();
 
-    CustomTitlebar.uninit();
-
-    ToolbarIconColor.uninit(window);
+    BrowserUtils.callModulesFromCategory(
+      { categoryName: "browser-window-unload-begin", jsGlobal: globalThis },
+      window
+    );
 
     // In certain scenarios it's possible for unload to be fired before onload,
     // (e.g. if the window is being closed after browser.js loads but before the

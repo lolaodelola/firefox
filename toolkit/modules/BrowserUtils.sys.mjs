@@ -34,11 +34,30 @@ ChromeUtils.defineLazyGetter(lazy, "CatManListenerManager", () => {
         ({ data: module, value }) => {
           try {
             let [objName, method] = value.split(".");
-            let fn = (...args) => {
-              if (!Object.hasOwn(this.cachedModules, module)) {
-                this.cachedModules[module] = ChromeUtils.importESModule(module);
+            let fn = (jsGlobal, ...args) => {
+              let obj;
+              if (module.endsWith(".js")) {
+                if (!jsGlobal) {
+                  throw new Error(
+                    `jsGlobal must be provided to load ${objName} from ${module}.`
+                  );
+                }
+                // For plain JS scripts, rely on a lazy getter defined on
+                // jsGlobal to load the script on first access.
+                obj = jsGlobal[objName];
+                if (!obj) {
+                  throw new Error(
+                    `Could not access ${objName} from ${module}. ` +
+                      `Did you forget to define a lazy getter for ${objName} on the global?`
+                  );
+                }
+              } else {
+                if (!Object.hasOwn(this.cachedModules, module)) {
+                  this.cachedModules[module] =
+                    ChromeUtils.importESModule(module);
+                }
+                obj = this.cachedModules[module][objName];
               }
-              let obj = this.cachedModules[module][objName];
               if (!obj) {
                 throw new Error(
                   `Could not access ${objName} in ${module}. Is it exported?`
@@ -49,7 +68,7 @@ ChromeUtils.defineLazyGetter(lazy, "CatManListenerManager", () => {
                   `${objName}.${method} in ${module} is not a function.`
                 );
               }
-              return this.cachedModules[module][objName][method](...args);
+              return obj[method](...args);
             };
             fn._descriptiveName = value;
             return fn;
@@ -661,6 +680,9 @@ export var BrowserUtils = {
    * @param {Function} [options.failureHandler]
    *        If specified, will be called for any exceptions raised, in
    *        order to do custom failure handling.
+   * @param {object} [options.jsGlobal=null]
+   *        If specified, will be used as the global object when loading any
+   *        JS modules specified in the category entries.
    * @param {...any} args
    *        Arguments to pass to the consumers.
    * @returns {Promise}
@@ -672,6 +694,7 @@ export var BrowserUtils = {
       profilerMarker = "",
       idleDispatch = false,
       failureHandler = null,
+      jsGlobal = null,
     },
     ...args
   ) {
@@ -681,7 +704,7 @@ export var BrowserUtils = {
     let callSingleListener = async fn => {
       let startTime = profilerMarker ? ChromeUtils.now() : 0;
       try {
-        await fn(...args);
+        await fn(jsGlobal, ...args);
       } catch (ex) {
         console.error(
           `Error in processing ${categoryName} for ${fn._descriptiveName}`
