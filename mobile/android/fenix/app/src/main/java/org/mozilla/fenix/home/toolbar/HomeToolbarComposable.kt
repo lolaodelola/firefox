@@ -115,6 +115,10 @@ internal class HomeToolbarComposable(
 
         setContent {
             val isSearching = toolbarStore.observeAsComposableState { it.isEditMode() }.value
+            val queryWasPrefilled = toolbarStore.observeAsComposableState {
+                it.editState.queryWasPrefilled
+            }.value
+            val currentQuery = toolbarStore.observeAsComposableState { it.editState.query.current }.value
             val shouldShowTabStrip: Boolean = remember { settings.isTabStripEnabled }
             val isAddressBarVisible = remember { addressBarVisibility }
 
@@ -125,18 +129,19 @@ internal class HomeToolbarComposable(
 
             BackInvokedHandler(isSearching) {
                 val sourceTabId = appStore.state.searchState.sourceTabId
-                appStore.dispatch(SearchEnded)
-                browserStore.dispatch(AwesomeBarAction.EngagementFinished(abandoned = true))
                 if (sourceTabId != null) {
                     navController.navigate(R.id.browserFragment)
                 }
+                appStore.dispatch(SearchEnded)
+                browserStore.dispatch(AwesomeBarAction.EngagementFinished(abandoned = true))
             }
 
             FirefoxTheme {
                 MaterialTheme(
                     colorScheme = homepageToolbarColors(
                         isPrivateMode = browsingModeManager.mode == BrowsingMode.Private,
-                        shouldUseEdgeToEdgeColors = isEdgeToEdgeBackgroundEnabled && !isSearching,
+                        shouldUseEdgeToEdgeColors = isEdgeToEdgeBackgroundEnabled &&
+                            (!isSearching || (currentQuery.isEmpty() && !queryWasPrefilled)),
                     ),
                 ) {
                     Column {
