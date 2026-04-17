@@ -9,8 +9,10 @@
 use crate::thread_bound::ThreadBound;
 use std::cell::RefCell;
 use std::future::Future;
+use std::panic::{catch_unwind, resume_unwind, UnwindSafe};
 use std::pin::Pin;
 use std::sync::{Arc, Weak};
+use std::task::{Context, Poll};
 
 pub type TaskFn<T> = Box<dyn FnOnce(&T) + Send + 'static>;
 
@@ -105,8 +107,8 @@ struct FutWaker<'a, T> {
 
 impl FutWaker<'static, ()> {
     fn poll(self: Arc<Self>) {
-        let waker = std::task::Waker::from(self.clone());
-        let mut cx = std::task::Context::from_waker(&waker);
+        let waker = self.clone().into();
+        let mut cx = Context::from_waker(&waker);
         // We don't need to know whether the poll returns pending or ready; if pending, the waker
         // will handle queueing things again.
         let _ = self.fut.borrow().borrow_mut().as_mut().poll(&mut cx);
@@ -117,5 +119,96 @@ impl std::task::Wake for FutWaker<'static, ()> {
     fn wake(self: Arc<Self>) {
         let inner = self.clone();
         self.task.push(move |()| inner.poll());
+    }
+}
+
+pub struct AsyncJoinHandle<'a, T>(Option<AsyncJoinHandleState<'a, T>>);
+
+enum AsyncJoinHandleState<'a, T> {
+    Start(Box<dyn FnOnce() -> T + UnwindSafe + Send + 'a>),
+    Pending(std::thread::JoinHandle<T>),
+}
+
+impl<'a, T> Future for AsyncJoinHandle<'a, T>
+where
+    T: Send + 'static,
+{
+    type Output = T;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let me = self.get_mut();
+        match me.0.take() {
+            Some(AsyncJoinHandleState::Start(f)) => {
+                let waker = cx.waker().clone();
+                // SAFETY: The calling frame will suspend until the thread completes, so the
+                // lifetimes will remain valid. AsyncJoinHandle will block joining the thread before
+                // dropping, which also maintains validity of the references.
+                let staticfn = unsafe {
+                    std::mem::transmute::<
+                        Box<dyn FnOnce() -> T + UnwindSafe + Send + 'a>,
+                        Box<dyn FnOnce() -> T + UnwindSafe + Send + 'static>,
+                    >(f)
+                };
+                #[cfg(mock)]
+                let mock = crate::std::mock::SharedMockData::new();
+                me.0 = Some(AsyncJoinHandleState::Pending(std::thread::spawn(
+                    move || {
+                        #[cfg(mock)]
+                        unsafe {
+                            mock.set()
+                        };
+                        let result = catch_unwind(staticfn);
+                        waker.wake();
+                        match result {
+                            Ok(v) => v,
+                            Err(e) => resume_unwind(e),
+                        }
+                    },
+                )));
+                Poll::Pending
+            }
+            // We assume there won't be a spurious poll(), and the only poll will be after the
+            // thread waker.
+            Some(AsyncJoinHandleState::Pending(jh)) => Poll::Ready(jh.join().unwrap()),
+            None => panic!("future polled after complete"),
+        }
+    }
+}
+
+impl<'a, T> Drop for AsyncJoinHandle<'a, T> {
+    fn drop(&mut self) {
+        if let Some(AsyncJoinHandleState::Pending(h)) = self.0.take() {
+            h.join().unwrap();
+        }
+    }
+}
+
+pub fn async_scoped_thread<'a, T, F>(f: F) -> AsyncJoinHandle<'a, T>
+where
+    F: FnOnce() -> T + UnwindSafe + Send + 'a,
+    T: Send + 'static,
+{
+    AsyncJoinHandle(Some(AsyncJoinHandleState::Start(Box::new(f))))
+}
+
+pub fn block_on<Fut: Future>(f: Fut) -> Fut::Output {
+    let mut f = std::pin::pin!(f);
+
+    let current_thread = std::thread::current();
+    let waker = Arc::new(ThreadWaker(current_thread)).into();
+    let mut cx = Context::from_waker(&waker);
+    loop {
+        match f.as_mut().poll(&mut cx) {
+            Poll::Pending => std::thread::park(),
+            Poll::Ready(res) => break res,
+        }
+    }
+}
+
+struct ThreadWaker(std::thread::Thread);
+
+impl std::task::Wake for ThreadWaker {
+    fn wake(self: Arc<Self>) {
+        self.0.unpark();
     }
 }
