@@ -13809,6 +13809,20 @@
   value: 2
   mirror: always
 
+# The validation epoch last completed for the cookie database. Compared against
+# network.cookie.validation.epoch to decide whether to re-run validation.
+- name: network.cookie.validation.lastEpoch
+  type: RelaxedAtomicUint32
+  value: 0
+  mirror: always
+
+# The current validation epoch. Bump this value whenever the cookie validation
+# logic changes to trigger a new scan on next startup.
+- name: network.cookie.validation.epoch
+  type: RelaxedAtomicUint32
+  value: 1
+  mirror: always
+
 # Stale threshold for cookies in seconds.
 - name: network.cookie.staleThreshold
   type: uint32_t
