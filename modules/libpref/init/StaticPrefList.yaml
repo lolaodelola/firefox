@@ -5916,7 +5916,7 @@
 # Whether the WebSerial API is enabled
 - name: dom.webserial.enabled
   type: RelaxedAtomicBool
-  value: @IS_NOT_MOBILE@
+  value: false
   mirror: always
 
 # Whether the WebSerial API is addon-gated
