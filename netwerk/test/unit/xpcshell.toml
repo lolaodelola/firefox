@@ -95,17 +95,6 @@ skip-if = [
 ["test_altsvc.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
 
-["test_altsvc_http3.js"]
-run-sequentially = ["true"] # http3server
-skip-if = [
-  "os == 'android' && os_version == '14' && arch == 'x86_64'",
-  "os == 'win' && os_version == '10.2009' && arch == 'x86_64'", # Bug 1807931
-  "os == 'win' && os_version == '11.26100' && arch == 'x86'", # Bug 1807931
-  "os == 'win' && os_version == '11.26100' && arch == 'x86_64' && msix", # Bug 1807931
-  "os == 'win' && os_version == '11.26200' && arch == 'x86'", # Bug 1807931
-  "os == 'win' && os_version == '11.26200' && arch == 'x86_64' && msix", # Bug 1807931
-]
-
 ["test_altsvc_pref.js"]
 skip-if = [
   "os == 'win' && os_version == '11.26100' && arch == 'x86_64' && msix",

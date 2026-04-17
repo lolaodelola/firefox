@@ -275,7 +275,6 @@ nsHttpHandler::nsHttpHandler()
       mPrivateBrowsingIdempotencyKeySeed(mozilla::RandomUint64OrDie()),
       mDebugObservations(false),
       mEnableAltSvc(false),
-      mEnableAltSvcOE(false),
       mSpdyPingThreshold(PR_SecondsToInterval(
           StaticPrefs::network_http_http2_ping_threshold())),
       mSpdyPingTimeout(PR_SecondsToInterval(
@@ -1622,11 +1621,6 @@ void nsHttpHandler::PrefsChanged(const char* pref) {
   if (PREF_CHANGED(HTTP_PREF("altsvc.enabled"))) {
     rv = Preferences::GetBool(HTTP_PREF("altsvc.enabled"), &cVar);
     if (NS_SUCCEEDED(rv)) mEnableAltSvc = cVar;
-  }
-
-  if (PREF_CHANGED(HTTP_PREF("altsvc.oe"))) {
-    rv = Preferences::GetBool(HTTP_PREF("altsvc.oe"), &cVar);
-    if (NS_SUCCEEDED(rv)) mEnableAltSvcOE = cVar;
   }
 
   if (PREF_CHANGED(HTTP_PREF("http2.push-allowance"))) {

@@ -1261,7 +1261,6 @@ pref("network.http.http3.alt-svc-mapping-for-testing", "");
 // alt-svc allows separation of transport routing from
 // the origin host without using a proxy.
 pref("network.http.altsvc.enabled", true);
-pref("network.http.altsvc.oe", false);
 
 pref("network.http.diagnostics", false);
 

@@ -276,15 +276,7 @@ class nsHttpChannel final : public HttpBaseChannel,
   already_AddRefed<WebTransportSessionEventListener>
   GetWebTransportSessionEventListener();
 
- private:  // used for alternate service validation
-  RefPtr<TransactionObserver> mTransactionObserver;
-
  public:
-  void SetTransactionObserver(TransactionObserver* arg) {
-    mTransactionObserver = arg;
-  }
-  TransactionObserver* GetTransactionObserver() { return mTransactionObserver; }
-
   CacheDisposition mCacheDisposition{kCacheUnresolved};
 
  protected:
