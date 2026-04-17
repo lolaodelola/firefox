@@ -7,7 +7,7 @@ add_setup(async function () {
   await SpecialPowers.pushPrefEnv({
     set: [
       // Show the ETP status section in the privacy pane.
-      ["browser.settings-redesign.etpStatus.enabled", true],
+      ["browser.settings-redesign.enabled", true],
       // Ensure we start from ETP "standard".
       ["browser.contentblocking.category", "standard"],
     ],
@@ -93,6 +93,7 @@ add_task(async function test_protections_dashboard_link() {
     gBrowser,
     "about:protections"
   );
+  protectionsDashboardLink.scrollIntoView();
   await BrowserTestUtils.synthesizeMouseAtCenter(
     "#protectionsDashboardLink",
     {},

@@ -12,7 +12,7 @@ Services.scriptloader.loadSubScript(
 
 add_setup(async function () {
   await SpecialPowers.pushPrefEnv({
-    set: [["browser.settings-redesign.history2.enabled", true]],
+    set: [["browser.settings-redesign.enabled", true]],
   });
 });
 

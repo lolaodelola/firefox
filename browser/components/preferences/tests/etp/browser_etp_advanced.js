@@ -9,12 +9,17 @@ const CAT_PREF = "browser.contentblocking.category";
 const BASELINE_PREF = "privacy.trackingprotection.allow_list.baseline.enabled";
 const CONVENIENCE_PREF =
   "privacy.trackingprotection.allow_list.convenience.enabled";
+const ALLOW_LIST_CATEGORY_MIGRATION_PREF =
+  "privacy.trackingprotection.allow_list.hasMigratedCategoryPrefs";
 const PERMISSIONS_DIALOG_URL =
   "chrome://browser/content/preferences/dialogs/permissions.xhtml";
 
 add_setup(async function () {
   await SpecialPowers.pushPrefEnv({
-    set: [["browser.settings-redesign.enabled", true]],
+    set: [
+      ["browser.settings-redesign.enabled", true],
+      ["privacy.trackingprotection.allow_list.hasMigratedCategoryPrefs", true],
+    ],
   });
 });
 
