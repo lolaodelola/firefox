@@ -113,7 +113,7 @@ class SelectionManager(object):
 
     def _input_or_textarea(self):
         """Return True if element is either <input> or <textarea>."""
-        return self.element.tag_name in ("INPUT", "TEXTAREA")
+        return self.element.tag_name in ("input", "textarea")
 
     def js_selection_cmd(self):
         """Return a command snippet to get selection object.

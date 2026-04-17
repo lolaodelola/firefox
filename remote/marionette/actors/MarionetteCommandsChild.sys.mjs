@@ -499,7 +499,7 @@ export class MarionetteCommandsChild extends JSWindowActorChild {
   async getElementTagName(options = {}) {
     const { elem } = options;
 
-    return elem.tagName;
+    return elem.tagName.toLowerCase();
   }
 
   /**
