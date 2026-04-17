@@ -1141,6 +1141,11 @@ class Settings(
         default = true,
     )
 
+    var shouldUseTrackingProtectionDatabase by booleanPreference(
+        appContext.getPreferenceKey(R.string.pref_key_tracking_protection_database_status),
+        default = false,
+    )
+
     var shouldEnableGlobalPrivacyControl by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_privacy_enable_global_privacy_control),
         false,
