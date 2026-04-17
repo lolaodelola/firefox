@@ -182,6 +182,7 @@ skip-if = [
 ["test_meter_pseudo-classes.html"]
 
 ["test_min_attribute.html"]
+support-files = ["datetime_utils.js"]
 
 ["test_minlength_attribute.html"]
 
@@ -237,6 +238,7 @@ skip-if = [
 ["test_set_range_text.html"]
 
 ["test_step_attribute.html"]
+support-files = ["datetime_utils.js"]
 
 ["test_stepup_stepdown.html"]
 
