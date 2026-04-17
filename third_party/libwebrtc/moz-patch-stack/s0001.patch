@@ -686,7 +686,7 @@ index 03f846a905..12405e1646 100644
  // Subclasses must defined kId and kUri static constexpr members.
  class BaseRtpStringExtension {
 diff --git a/modules/rtp_rtcp/source/rtp_packet.cc b/modules/rtp_rtcp/source/rtp_packet.cc
-index 97f6b54148..e8c2553bb3 100644
+index 2b6cd006df..fe2f51a58b 100644
 --- a/modules/rtp_rtcp/source/rtp_packet.cc
 +++ b/modules/rtp_rtcp/source/rtp_packet.cc
 @@ -212,6 +212,10 @@ void RtpPacket::ZeroMutableExtensions() {
@@ -701,10 +701,10 @@ index 97f6b54148..e8c2553bb3 100644
    }
  }
 diff --git a/modules/rtp_rtcp/source/rtp_packet_unittest.cc b/modules/rtp_rtcp/source/rtp_packet_unittest.cc
-index 37b5f62d66..3445122ee7 100644
+index 1343d0a7b4..970795e7e2 100644
 --- a/modules/rtp_rtcp/source/rtp_packet_unittest.cc
 +++ b/modules/rtp_rtcp/source/rtp_packet_unittest.cc
-@@ -141,6 +141,18 @@ constexpr uint8_t kPacketWithMid[] = {
+@@ -142,6 +142,18 @@ constexpr uint8_t kPacketWithMid[] = {
      0xbe, 0xde, 0x00, 0x01,
      0xb2, 'm', 'i', 'd'};
  
@@ -723,7 +723,7 @@ index 37b5f62d66..3445122ee7 100644
  constexpr uint32_t kCsrcs[] = {0x34567890, 0x32435465};
  constexpr uint8_t kPayload[] = {'p', 'a', 'y', 'l', 'o', 'a', 'd'};
  constexpr uint8_t kPacketPaddingSize = 8;
-@@ -420,6 +432,24 @@ TEST(RtpPacketTest, FailsToSetUnregisteredExtension) {
+@@ -421,6 +433,24 @@ TEST(RtpPacketTest, FailsToSetUnregisteredExtension) {
    EXPECT_EQ(packet.GetExtension<TransportSequenceNumber>(), std::nullopt);
  }
  
