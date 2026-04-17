@@ -138,6 +138,7 @@
 }
 
 ::slotted([slot="action"]) {
-  align-self: flex-start;
+  --button-padding: var(--space-large);
+  width: 100%;
   margin-block-start: var(--space-large);
 }
