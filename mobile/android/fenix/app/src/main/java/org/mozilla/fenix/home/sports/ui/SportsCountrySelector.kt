@@ -49,7 +49,11 @@ import org.mozilla.fenix.home.sports.regionGrouping
 import org.mozilla.fenix.theme.FirefoxTheme
 
 @Composable
-private fun countryDisplayName(country: Country): String = country.displayName()
+private fun countryDisplayName(country: Country): String = when (country.countryCode) {
+    "GB-ENG" -> stringResource(R.string.sports_widget_country_england)
+    "GB-SCT" -> stringResource(R.string.sports_widget_country_scotland)
+    else -> country.displayName()
+}
 
 /**
  * A bottom sheet that displays a country selector for the sports tournament.
@@ -107,7 +111,7 @@ private fun CountrySelectorContent(
             ),
     ) {
         Text(
-            text = "Follow your team!",
+            text = stringResource(R.string.sports_widget_country_selector_title),
             style = FirefoxTheme.typography.headline7,
             modifier = Modifier
                 .fillMaxWidth()
@@ -136,7 +140,7 @@ private fun RegionSection(
     onCountrySelected: (String) -> Unit,
 ) {
     Text(
-        text = region.name,
+        text = stringResource(region.nameResId),
         style = FirefoxTheme.typography.headline8,
         color = MaterialTheme.colorScheme.tertiary,
         modifier = Modifier.padding(bottom = 8.dp),

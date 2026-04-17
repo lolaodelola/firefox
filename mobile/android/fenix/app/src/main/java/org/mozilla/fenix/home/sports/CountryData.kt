@@ -5,6 +5,7 @@
 package org.mozilla.fenix.home.sports
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import org.mozilla.fenix.R
 import java.util.Locale
 
@@ -20,13 +21,13 @@ data class Country(
 )
 
 /**
- * A region grouping of participating countries in a sports tournament
+ * A region grouping of participating countries in a sports tournament.
  *
- * @property name Region's display name.
+ * @property nameResId String resource ID for the region's display name.
  * @property countries List of participating countries in this region.
  */
 data class Region(
-    val name: String,
+    @param:StringRes val nameResId: Int,
     val countries: List<Country>,
 )
 
@@ -46,7 +47,7 @@ fun Country.displayName(): String = when (countryCode) {
  */
 val regionGrouping: List<Region> = listOf(
     Region(
-        name = "Host nations",
+        nameResId = R.string.sports_widget_confederation_north_america,
         countries = listOf(
             Country("CA", R.drawable.flag_ca),
             Country("MX", R.drawable.flag_mx),
@@ -54,7 +55,7 @@ val regionGrouping: List<Region> = listOf(
         ),
     ),
     Region(
-        name = "Africa",
+        nameResId = R.string.sports_widget_confederation_africa,
         countries = listOf(
             Country("DZ", R.drawable.flag_dz),
             Country("CV", R.drawable.flag_cv),
@@ -69,7 +70,7 @@ val regionGrouping: List<Region> = listOf(
         ),
     ),
     Region(
-        name = "Asia",
+        nameResId = R.string.sports_widget_confederation_asia,
         countries = listOf(
             Country("AU", R.drawable.flag_au),
             Country("IR", R.drawable.flag_ir),
@@ -83,7 +84,7 @@ val regionGrouping: List<Region> = listOf(
         ),
     ),
     Region(
-        name = "CONCACAF",
+        nameResId = R.string.sports_widget_confederation_concacaf,
         countries = listOf(
             Country("CW", R.drawable.flag_cw),
             Country("HT", R.drawable.flag_ht),
@@ -91,7 +92,7 @@ val regionGrouping: List<Region> = listOf(
         ),
     ),
     Region(
-        name = "Europe",
+        nameResId = R.string.sports_widget_confederation_europe,
         countries = listOf(
             Country("AT", R.drawable.flag_at),
             Country("BE", R.drawable.flag_be),
@@ -112,13 +113,13 @@ val regionGrouping: List<Region> = listOf(
         ),
     ),
     Region(
-        name = "Oceania",
+        nameResId = R.string.sports_widget_confederation_oceania,
         countries = listOf(
             Country("NZ", R.drawable.flag_nz),
         ),
     ),
     Region(
-        name = "South America",
+        nameResId = R.string.sports_widget_confederation_south_america,
         countries = listOf(
             Country("AR", R.drawable.flag_ar),
             Country("BR", R.drawable.flag_br),
