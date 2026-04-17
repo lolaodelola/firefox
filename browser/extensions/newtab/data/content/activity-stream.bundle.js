@@ -15532,7 +15532,7 @@ function SectionsMgmtPanel({
   // @nova-cleanup(remove-conditional): Remove novaEnabled check, keep arrowIconSrc computation
   let arrowIconSrc;
   if (novaEnabled) {
-    const isRTL = document.dir === "rtl";
+    const isRTL = typeof document !== "undefined" && document.dir === "rtl";
     arrowIconSrc = `chrome://global/skin/icons/shaft-arrow-${isRTL ? "right" : "left"}.svg`;
   }
   const panelBody = /*#__PURE__*/external_React_default().createElement((external_React_default()).Fragment, null, /*#__PURE__*/external_React_default().createElement("h3", {
@@ -15991,7 +15991,7 @@ class _WallpaperCategories extends (external_React_default()).PureComponent {
     // @nova-cleanup(remove-conditional): Remove novaEnabled check, keep arrowIconSrc computation
     let arrowIconSrc;
     if (novaEnabled) {
-      const isRTL = document.dir === "rtl";
+      const isRTL = typeof document !== "undefined" && document.dir === "rtl";
       arrowIconSrc = `chrome://global/skin/icons/shaft-arrow-${isRTL ? "right" : "left"}.svg`;
     }
     // Enable custom color select if pref'ed on
@@ -16360,7 +16360,7 @@ function WidgetsManagementPanel({
     timerEnabled,
     listsEnabled
   } = enabledWidgets;
-  const isRTL = document.dir === "rtl";
+  const isRTL = typeof document !== "undefined" && document.dir === "rtl";
   const arrowIconSrc = `chrome://global/skin/icons/shaft-arrow-${isRTL ? "right" : "left"}.svg`;
   return /*#__PURE__*/external_React_default().createElement("div", {
     id: "widgets-management-panel",

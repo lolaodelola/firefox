@@ -297,9 +297,10 @@ export const AboutHomeStartupCacheChild = {
     let worker = this.getOrCreateWorker();
 
     let timerId = Glean.newtab.abouthomeCacheConstruction.start();
+    let direction = Services.locale.isAppLocaleRTL ? "rtl" : "ltr";
 
     let { page, script } = await worker
-      .post("construct", [state])
+      .post("construct", [state, direction])
       .finally(() => {
         Glean.newtab.abouthomeCacheConstruction.stopAndAccumulate(timerId);
       });

@@ -107,7 +107,7 @@ function WidgetsManagementPanel({
 
   const { weatherEnabled } = enabledSections;
   const { timerEnabled, listsEnabled } = enabledWidgets;
-  const isRTL = document.dir === "rtl";
+  const isRTL = typeof document !== "undefined" && document.dir === "rtl";
   const arrowIconSrc = `chrome://global/skin/icons/shaft-arrow-${isRTL ? "right" : "left"}.svg`;
 
   return (

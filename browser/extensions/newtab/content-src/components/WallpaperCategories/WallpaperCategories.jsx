@@ -447,7 +447,7 @@ export class _WallpaperCategories extends React.PureComponent {
     // @nova-cleanup(remove-conditional): Remove novaEnabled check, keep arrowIconSrc computation
     let arrowIconSrc;
     if (novaEnabled) {
-      const isRTL = document.dir === "rtl";
+      const isRTL = typeof document !== "undefined" && document.dir === "rtl";
       arrowIconSrc = `chrome://global/skin/icons/shaft-arrow-${isRTL ? "right" : "left"}.svg`;
     }
     // Enable custom color select if pref'ed on
