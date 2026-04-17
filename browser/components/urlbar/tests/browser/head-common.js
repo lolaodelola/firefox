@@ -7,6 +7,7 @@ ChromeUtils.defineESModuleGetters(this, {
   Preferences: "resource://gre/modules/Preferences.sys.mjs",
   SearchService: "moz-src:///toolkit/components/search/SearchService.sys.mjs",
   sinon: "resource://testing-common/Sinon.sys.mjs",
+  TelemetryTestUtils: "resource://testing-common/TelemetryTestUtils.sys.mjs",
   TopSites: "resource:///modules/topsites/TopSites.sys.mjs",
   UrlbarProvider: "moz-src:///browser/components/urlbar/UrlbarUtils.sys.mjs",
   ProvidersManager:

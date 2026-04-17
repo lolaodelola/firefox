@@ -99,6 +99,7 @@ BROWSER_CHROME_MANIFESTS += [
     "tests/browser-tips/browser.toml",
     "tests/browser-tips/suppress-tips/browser.toml",
     "tests/browser-updateResults/browser.toml",
+    "tests/browser-UrlbarInput/browser.toml",
     "tests/browser/browser.toml",
     "tests/browser/browserDisableAPZ.toml",
     "tests/browser/browserSidebarRevamp.toml",
