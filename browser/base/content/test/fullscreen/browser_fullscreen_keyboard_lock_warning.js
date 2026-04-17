@@ -200,3 +200,46 @@ add_task(async function test_keyboard_lock_change_warning_change_iframe() {
     EventUtils.synthesizeKey("KEY_Escape", { repeat: 2 });
   });
 });
+
+add_task(async function test_keyboard_lock_warning_long_press() {
+  // Change the pref to make sure the long-press won't exit fullscreen.
+  await SpecialPowers.pushPrefEnv({
+    set: [
+      ["dom.fullscreen.keyboard_lock.long_press_interval", 5000],
+      ["dom.fullscreen.keyboard_lock.long_press_warning_interval", 0],
+    ],
+  });
+
+  await BrowserTestUtils.withNewTab("https://example.com", async browser => {
+    info("start fullscreen with keyboard lock");
+    let warningShownPromise = DOMFullscreenTestUtils.waitForWarningState(
+      browser,
+      "onscreen",
+      true
+    );
+    await DOMFullscreenTestUtils.changeFullscreen(browser, true, {
+      keyboardLock: "browser",
+    });
+    await warningShownPromise;
+
+    info("Wait for fullscreen warning timed out");
+    await DOMFullscreenTestUtils.waitForWarningState(browser, "hidden");
+
+    info("Log press will trigger the fullscreen warning");
+    warningShownPromise = DOMFullscreenTestUtils.waitForWarningState(
+      browser,
+      "onscreen",
+      true
+    );
+    EventUtils.synthesizeKey("KEY_Escape", { repeat: 2 });
+    await warningShownPromise;
+
+    info("Wait for fullscreen warning timed out");
+    await DOMFullscreenTestUtils.waitForWarningState(browser, "hidden");
+
+    info("Exit fullscreen.");
+    await DOMFullscreenTestUtils.changeFullscreen(browser, false);
+  });
+
+  await SpecialPowers.popPrefEnv();
+});

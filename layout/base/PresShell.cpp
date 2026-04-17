@@ -729,6 +729,7 @@ PresShell::PresShell(Document* aDocument)
       mProcessingReflowCommands(false),
       mPendingDidDoReflow(false),
       mHasSeenAnchorPos(false),
+      mHasShownFullscreenWarningForCurrentEscapeKeyLongPress(false),
       mEscapeKeyDownCountForFullscreenKeyboardLockWarning(0) {
   MOZ_LOG(gLog, LogLevel::Debug, ("PresShell::PresShell this=%p", this));
   MOZ_ASSERT(aDocument);
@@ -9390,6 +9391,8 @@ void PresShell::EventHandler::MaybeHandleKeyboardEventBeforeDispatch(
         // now wait for the escape key to be held for longer than a given
         // interval before exiting.
         if (!aKeyboardEvent->mIsRepeat) {
+          mPresShell->mHasShownFullscreenWarningForCurrentEscapeKeyLongPress =
+              false;
           mPresShell->mFirstUnmatchedEscapeKeyDownForFullscreen =
               aKeyboardEvent->mTimeStamp;
 
@@ -9399,8 +9402,19 @@ void PresShell::EventHandler::MaybeHandleKeyboardEventBeforeDispatch(
                 root, root, u"MozDOMFullscreen:WarnAboutKeyboardLock"_ns,
                 CanBubble::eYes, Cancelable::eNo, /* DefaultAction */ nullptr);
           }
-        } else if (mPresShell->mFirstUnmatchedEscapeKeyDownForFullscreen) {
-          bool escapeHasBeenHeldLongEnough =
+          return;
+        }
+
+        MOZ_ASSERT(aKeyboardEvent->mIsRepeat);
+        if (mPresShell->mFirstUnmatchedEscapeKeyDownForFullscreen) {
+          if (mPresShell->ShouldShowFullscreenKeyboardLockWarning(
+                  *aKeyboardEvent)) {
+            nsContentUtils::DispatchEventOnlyToChrome(
+                root, root, u"MozDOMFullscreen:WarnAboutKeyboardLock"_ns,
+                CanBubble::eYes, Cancelable::eNo, /* DefaultAction */ nullptr);
+          }
+
+          const bool escapeHasBeenHeldLongEnough =
               (aKeyboardEvent->mTimeStamp -
                mPresShell->mFirstUnmatchedEscapeKeyDownForFullscreen) >=
               TimeDuration::FromMilliseconds(
@@ -12925,6 +12939,7 @@ void PresShell::CleanupFullscreenState() {
   mFirstUnmatchedEscapeKeyDownForFullscreen = TimeStamp();
   mEscapeKeyDownCountForFullscreenKeyboardLockWarning = 0;
   mLastEscapeKeyDownTimeForFullscreenKeyboardLockWarning = TimeStamp();
+  mHasShownFullscreenWarningForCurrentEscapeKeyLongPress = false;
 }
 
 bool PresShell::ShouldShowFullscreenKeyboardLockWarning(
@@ -12937,6 +12952,24 @@ bool PresShell::ShouldShowFullscreenKeyboardLockWarning(
     return false;
   }
 
+  if (aKeyboardEvent.mIsRepeat) {
+    // Only when we are in tracking a long press of the escape key and haven't
+    // shown the warning for the current long press yet.
+    if (mFirstUnmatchedEscapeKeyDownForFullscreen &&
+        !mHasShownFullscreenWarningForCurrentEscapeKeyLongPress) {
+      if ((aKeyboardEvent.mTimeStamp -
+           mFirstUnmatchedEscapeKeyDownForFullscreen) >=
+          TimeDuration::FromMilliseconds(
+              StaticPrefs::
+                  dom_fullscreen_keyboard_lock_long_press_warning_interval())) {
+        mHasShownFullscreenWarningForCurrentEscapeKeyLongPress = true;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  MOZ_ASSERT(!aKeyboardEvent.mIsRepeat);
   const TimeStamp previousEscapeKeyDownTime =
       mLastEscapeKeyDownTimeForFullscreenKeyboardLockWarning;
   mLastEscapeKeyDownTimeForFullscreenKeyboardLockWarning =

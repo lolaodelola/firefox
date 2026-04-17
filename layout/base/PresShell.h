@@ -3513,6 +3513,10 @@ class PresShell final : public nsStubDocumentObserver,
   // positioning has ever been seen in any descendant presshell.
   bool mHasSeenAnchorPos : 1;
 
+  // Whether we have already shown a warning about how to exit fullscreen for
+  // the current Escape key down long-press.
+  bool mHasShownFullscreenWarningForCurrentEscapeKeyLongPress : 1;
+
   // The last TimeStamp when the keyup event did not exit fullscreen because it
   // was consumed.
   TimeStamp mLastConsumedEscapeKeyUpForFullscreen;

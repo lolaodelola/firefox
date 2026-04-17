@@ -3193,6 +3193,13 @@
   value: 1500
   mirror: always
 
+# The interval in milliseconds the warning will be trigger while holding Escape
+# key.
+- name: dom.fullscreen.keyboard_lock.long_press_warning_interval
+  type: uint32_t
+  value: 500
+  mirror: always
+
 # The interval in milliseconds between Escape key events where the
 # third key event will trigger a warning about how to exit full screen,
 # when the fullscreen keyboard lock is enabled.
