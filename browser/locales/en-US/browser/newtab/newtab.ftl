@@ -529,6 +529,12 @@ newtab-new-user-custom-wallpaper-title = Choose a wallpaper to make { -brand-pro
 newtab-new-user-custom-wallpaper-subtitle = Make every new tab feel like home with custom wallpapers and colors.
 newtab-new-user-custom-wallpaper-cta = Try it now
 
+## Strings for Nova wallpaper feature highlight
+
+newtab-wallpaper-feature-highlight-title = Fresh new wallpapers just landed
+newtab-wallpaper-feature-highlight-subtitle = Choose your favorite and make every new tab feel like home.
+newtab-wallpaper-feature-highlight-cta = Choose wallpaper
+
 ## Strings for download mobile highlight
 
 newtab-download-mobile-highlight-title = Download { -brand-product-name } for mobile
