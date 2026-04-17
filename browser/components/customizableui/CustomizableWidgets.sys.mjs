@@ -713,12 +713,3 @@ if (PrivateBrowsingUtils.enabled) {
     },
   });
 }
-
-if (Services.prefs.getBoolPref("browser.tabs.groups.alternateMenu", false)) {
-  CustomizableWidgets.push({
-    id: "tab-groups-button",
-    type: "view",
-    viewId: "toolbar-tabGroupsListView",
-    l10nId: "toolbar-button-tab-groups",
-  });
-}

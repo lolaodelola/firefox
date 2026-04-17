@@ -381,10 +381,6 @@
   }
 }
 
-#tab-groups-button {
-  list-style-image: url("chrome://browser/skin/tabbrowser/tab-groups.svg");
-}
-
 #taskbar-tabs-favicon {
   margin: auto 8px;
   height: var(--icon-size);

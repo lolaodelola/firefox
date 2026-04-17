@@ -1104,10 +1104,6 @@ toolbar-button-share-tab =
   .label = Share
   .tooltiptext = Share this page
 
-toolbar-button-tab-groups =
-  .label = Tab groups
-  .tooltiptext = Show your tab groups
-
 ## EME notification panel
 
 eme-notifications-drm-content-playing = Some audio or video on this site uses DRM software, which may limit what { -brand-short-name } can let you do with it.
