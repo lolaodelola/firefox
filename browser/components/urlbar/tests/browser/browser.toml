@@ -144,45 +144,12 @@ support-files = [
   "add_search_engine_two.html",
 ]
 
-["browser_autoFill_adaptive_origin_fallback.js"]
-
-["browser_autoFill_backspace_dismissal.js"]
-
-["browser_autoFill_backspaced.js"]
-
-["browser_autoFill_canonize.js"]
-https_first_disabled = true
-
-["browser_autoFill_caretNotAtEnd.js"]
-
-["browser_autoFill_clear_properly_on_accent_char.js"]
-
-["browser_autoFill_firstResult.js"]
-
-["browser_autoFill_originToAdaptive.js"]
-
-["browser_autoFill_paste.js"]
-
-["browser_autoFill_placeholder.js"]
-
-["browser_autoFill_preserve.js"]
-
-["browser_autoFill_reintegration_telemetry.js"]
-
-["browser_autoFill_resultMenu_dismissal.js"]
-
-["browser_autoFill_trimURLs.js"]
-
-["browser_autoFill_typed.js"]
-
-["browser_autoFill_undo.js"]
-
 ["browser_autoOpen.js"]
 
 ["browser_autocomplete_a11y_label.js"]
 support-files = [
-  "searchSuggestionEngine.xml",
-  "searchSuggestionEngine.sjs",
+  "../browser/searchSuggestionEngine.xml",
+  "../browser/searchSuggestionEngine.sjs",
 ]
 skip-if = [
   "a11y_checks", # Test times out (bug 1854660)

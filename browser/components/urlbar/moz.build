@@ -95,6 +95,7 @@ TESTING_JS_MODULES += [
     "tests/UrlbarTestUtils.sys.mjs",
 ]
 BROWSER_CHROME_MANIFESTS += [
+    "tests/browser-autofill/browser.toml",
     "tests/browser-tips/browser.toml",
     "tests/browser-tips/suppress-tips/browser.toml",
     "tests/browser-updateResults/browser.toml",
