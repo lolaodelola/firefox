@@ -206,10 +206,11 @@ class GooglePlayIntegrityClient(
      * This method is safe to call multiple times and will only attempt
      * provider creation once unless the provider is refreshed.
      */
-    suspend fun warmUp() {
+    suspend fun warmUp(): Boolean {
         if (tokenProvider == null) {
             refreshTokenProvider()
         }
+        return tokenProvider?.isSuccess == true
     }
 
     /**

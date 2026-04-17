@@ -15093,10 +15093,21 @@ integrity:
     type: event
     description: |
       Records when the Play Integrity client has completed its warm-up.
+    extra_keys:
+      success:
+        description: |
+          Whether the request succeeded.
+        type: boolean
+      duration_ms:
+        description: |
+          Time in milliseconds between requesting warmup and warmup completion.
+        type: quantity
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=2026727
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2033110
     data_reviews:
       - https://phabricator.services.mozilla.com/D290217
+      - https://phabricator.services.mozilla.com/D295065
     data_sensitivity:
       - technical
     notification_emails:

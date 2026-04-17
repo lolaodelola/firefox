@@ -84,7 +84,6 @@ import mozilla.components.support.utils.RunWhenReadyQueue
 import mozilla.components.support.utils.logElapsedTime
 import mozilla.components.support.webextensions.WebExtensionSupport
 import mozilla.telemetry.glean.Glean
-import mozilla.telemetry.glean.private.NoExtras
 import org.mozilla.fenix.GleanMetrics.Addons
 import org.mozilla.fenix.GleanMetrics.Addresses
 import org.mozilla.fenix.GleanMetrics.AndroidAutofill
@@ -573,8 +572,14 @@ open class FenixApplication : Application(), Provider, ThemeProvider {
         }
         runOnVisualCompleteness(queue) {
             GlobalScope.launch(IO) {
-                components.integrityClient.warmUp()
-                Integrity.warmedUp.record(NoExtras())
+                val start = System.currentTimeMillis()
+                val result = components.integrityClient.warmUp()
+                Integrity.warmedUp.record(
+                    Integrity.WarmedUpExtra(
+                        durationMs = (System.currentTimeMillis() - start).toInt(),
+                        success = result,
+                        ),
+                    )
             }
         }
     }
