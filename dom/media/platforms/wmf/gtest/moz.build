@@ -4,8 +4,12 @@
 
 UNIFIED_SOURCES += [
     "TestCanCreateMFTDecoder.cpp",
-    "TestMFVideoTransFunc.cpp",
 ]
+
+if CONFIG["MOZ_WMF_MEDIA_ENGINE"]:
+    UNIFIED_SOURCES += [
+        "TestMFVideoTransFunc.cpp",
+    ]
 
 LOCAL_INCLUDES += [
     "/dom/media/ipc",
