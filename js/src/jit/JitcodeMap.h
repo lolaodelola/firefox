@@ -6,6 +6,7 @@
 #define jit_JitcodeMap_h
 
 #include "mozilla/Assertions.h"  // MOZ_ASSERT, MOZ_ASSERT_IF, MOZ_CRASH
+#include "mozilla/Maybe.h"
 
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint8_t, uint32_t, uint64_t
@@ -104,7 +105,10 @@ class RealmIndependentSharedEntry;
 // Base class for all entries.
 class JitcodeGlobalEntry : public JitCodeRange {
  protected:
+  // May be null if the JitCode has been collected by the GC but the entry
+  // is kept alive because it is still referenced from the profiler buffer.
   JitCode* jitcode_;
+  JS::Zone* zone_;
   // If this entry is referenced from the profiler buffer, this is the
   // position where the most recent sample that references it starts.
   // Otherwise set to kNoSampleInBuffer.
@@ -123,16 +127,10 @@ class JitcodeGlobalEntry : public JitCodeRange {
 
  protected:
   Kind kind_;
+  bool inTree_ = false;
 
   JitcodeGlobalEntry(Kind kind, JitCode* code, void* nativeStartAddr,
-                     void* nativeEndAddr)
-      : JitCodeRange(nativeStartAddr, nativeEndAddr),
-        jitcode_(code),
-        kind_(kind) {
-    MOZ_ASSERT(code);
-    MOZ_ASSERT(nativeStartAddr);
-    MOZ_ASSERT(nativeEndAddr);
-  }
+                     void* nativeEndAddr);
 
   // Protected destructor to ensure this is called through DestroyPolicy.
   ~JitcodeGlobalEntry() = default;
@@ -154,6 +152,9 @@ class JitcodeGlobalEntry : public JitCodeRange {
       return false;
     }
     return bufferRangeStart <= samplePositionInBuffer_;
+  }
+  bool isReferencedByProfiler(const mozilla::Maybe<uint64_t>& rangeStart) {
+    return rangeStart && isSampled(*rangeStart);
   }
 
   Kind kind() const { return kind_; }
@@ -184,12 +185,11 @@ class JitcodeGlobalEntry : public JitCodeRange {
 
   JitCode* jitcode() const { return jitcode_; }
   JitCode** jitcodePtr() { return &jitcode_; }
-  Zone* zone() const { return jitcode()->zone(); }
+  bool hasJitcode() const { return jitcode_ != nullptr; }
+  Zone* zone() const { return zone_; }
+  bool isInTree() const { return inTree_; }
+  void setInTree(bool v) { inTree_ = v; }
 
-  bool traceJitcode(JSTracer* trc);
-  bool isJitcodeMarkedFromAnyThread(JSRuntime* rt);
-
-  bool trace(JSTracer* trc);
   uint64_t realmID(JSRuntime* rt) const;
   void* canonicalNativeAddrFor(JSRuntime* rt, void* ptr) const;
 
@@ -518,7 +518,6 @@ class JitcodeGlobalTable {
   [[nodiscard]] bool addEntry(UniqueJitcodeGlobalEntry entry);
 
   void setAllEntriesAsExpired();
-  [[nodiscard]] bool markIteratively(GCMarker* marker);
   void traceWeak(JSRuntime* rt, JSTracer* trc);
 
  private:
