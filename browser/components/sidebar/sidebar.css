@@ -41,7 +41,6 @@ moz-card {
   background-color: var(--sidebar-box-background);
   color: var(--sidebar-box-color);
   border: var(--sidebar-box-border);
-  border-radius: var(--border-radius-medium);
 
   &::part(summary) {
     padding-block: var(--space-medium);
