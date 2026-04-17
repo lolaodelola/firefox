@@ -785,10 +785,8 @@ export const FocusTimer = ({
               // @nova-cleanup(remove-conditional): Remove the novaEnabled check; always
               // render the size submenu after Nova ships
               novaEnabled && (
-                <panel-item
-                  submenu="focus-timer-size-submenu"
-                  data-l10n-id="newtab-widget-menu-change-size"
-                >
+                <panel-item submenu="focus-timer-size-submenu">
+                  <span data-l10n-id="newtab-widget-menu-change-size"></span>
                   <panel-list
                     ref={sizeSubmenuRef}
                     slot="submenu"

@@ -12607,9 +12607,10 @@ function Lists({
   // @nova-cleanup(remove-conditional): Remove the novaEnabled check; always
   // render the size submenu after Nova ships
   novaEnabled && /*#__PURE__*/external_React_default().createElement("panel-item", {
-    submenu: "lists-size-submenu",
+    submenu: "lists-size-submenu"
+  }, /*#__PURE__*/external_React_default().createElement("span", {
     "data-l10n-id": "newtab-widget-menu-change-size"
-  }, /*#__PURE__*/external_React_default().createElement("panel-list", {
+  }), /*#__PURE__*/external_React_default().createElement("panel-list", {
     ref: sizeSubmenuRef,
     slot: "submenu",
     id: "lists-size-submenu"
@@ -13507,9 +13508,10 @@ const FocusTimer = ({
   // @nova-cleanup(remove-conditional): Remove the novaEnabled check; always
   // render the size submenu after Nova ships
   novaEnabled && /*#__PURE__*/external_React_default().createElement("panel-item", {
-    submenu: "focus-timer-size-submenu",
+    submenu: "focus-timer-size-submenu"
+  }, /*#__PURE__*/external_React_default().createElement("span", {
     "data-l10n-id": "newtab-widget-menu-change-size"
-  }, /*#__PURE__*/external_React_default().createElement("panel-list", {
+  }), /*#__PURE__*/external_React_default().createElement("panel-list", {
     ref: sizeSubmenuRef,
     slot: "submenu",
     id: "focus-timer-size-submenu"
@@ -14455,12 +14457,13 @@ function Weather_Weather({
       "data-l10n-id": "newtab-weather-menu-detect-my-location",
       onClick: handleDetectLocation
     }), prefs["widgets.system.enabled"] && prefs["widgets.enabled"] && /*#__PURE__*/external_React_default().createElement("panel-item", {
-      submenu: "weather-widget-size-submenu",
+      submenu: "weather-size-submenu"
+    }, /*#__PURE__*/external_React_default().createElement("span", {
       "data-l10n-id": "newtab-widget-menu-change-size"
-    }, /*#__PURE__*/external_React_default().createElement("panel-list", {
+    }), /*#__PURE__*/external_React_default().createElement("panel-list", {
       ref: sizeSubmenuRef,
       slot: "submenu",
-      id: "weather-widget-size-submenu"
+      id: "weather-size-submenu"
     }, ["small", "medium", "large"].map(s => /*#__PURE__*/external_React_default().createElement("panel-item", {
       key: s,
       type: "checkbox",
@@ -17789,9 +17792,10 @@ class _Weather extends (external_React_default()).PureComponent {
     // @nova-cleanup(remove-conditional): Remove the novaEnabled check
     // Always render the size submenu
     novaEnabled && /*#__PURE__*/external_React_default().createElement("panel-item", {
-      submenu: "weather-size-submenu",
+      submenu: "weather-size-submenu"
+    }, /*#__PURE__*/external_React_default().createElement("span", {
       "data-l10n-id": "newtab-widget-menu-change-size"
-    }, /*#__PURE__*/external_React_default().createElement("panel-list", {
+    }), /*#__PURE__*/external_React_default().createElement("panel-list", {
       ref: this.setSizeSubmenuRef,
       slot: "submenu",
       id: "weather-size-submenu"

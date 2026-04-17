@@ -323,7 +323,7 @@ describe("<Weather> (Widgets/Weather)", () => {
       const { container } = renderWeather();
       expect(
         container.querySelector(
-          "panel-item[data-l10n-id='newtab-widget-menu-change-size']"
+          "span[data-l10n-id='newtab-widget-menu-change-size']"
         )
       ).toBeInTheDocument();
       expect(
@@ -458,7 +458,7 @@ describe("<Weather> (Widgets/Weather)", () => {
     it("dispatches SET_PREF(widgets.weather.size) and WIDGETS_USER_EVENT on size submenu click", () => {
       const { container, dispatch } = renderWeather();
       const submenuNode = container.querySelector(
-        "panel-list[id='weather-widget-size-submenu']"
+        "panel-list[id='weather-size-submenu']"
       );
       const mockItem = document.createElement("div");
       mockItem.dataset.size = "small";
@@ -486,7 +486,7 @@ describe("<Weather> (Widgets/Weather)", () => {
     it("dispatches SET_PREF(widgets.weather.size, large) on large size click", () => {
       const { container, dispatch } = renderWeather();
       const submenuNode = container.querySelector(
-        "panel-list[id='weather-widget-size-submenu']"
+        "panel-list[id='weather-size-submenu']"
       );
       const mockItem = document.createElement("div");
       mockItem.dataset.size = "large";
@@ -786,7 +786,7 @@ describe("<Weather> (Widgets/Weather)", () => {
       const { container } = renderWeather("medium", optInMockState);
       expect(
         container.querySelector(
-          "panel-item[data-l10n-id='newtab-widget-menu-change-size']"
+          "span[data-l10n-id='newtab-widget-menu-change-size']"
         )
       ).toBeInTheDocument();
       expect(

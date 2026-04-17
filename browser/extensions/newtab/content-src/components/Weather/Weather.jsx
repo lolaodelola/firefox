@@ -698,10 +698,8 @@ export class _Weather extends React.PureComponent {
             // @nova-cleanup(remove-conditional): Remove the novaEnabled check
             // Always render the size submenu
             novaEnabled && (
-              <panel-item
-                submenu="weather-size-submenu"
-                data-l10n-id="newtab-widget-menu-change-size"
-              >
+              <panel-item submenu="weather-size-submenu">
+                <span data-l10n-id="newtab-widget-menu-change-size"></span>
                 <panel-list
                   ref={this.setSizeSubmenuRef}
                   slot="submenu"

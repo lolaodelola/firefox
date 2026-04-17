@@ -122,7 +122,7 @@ describe("<Weather>", () => {
 
       assert.isFalse(
         wrapper
-          .find("panel-item[data-l10n-id='newtab-widget-menu-change-size']")
+          .find("span[data-l10n-id='newtab-widget-menu-change-size']")
           .exists()
       );
     });
@@ -136,7 +136,7 @@ describe("<Weather>", () => {
 
       assert.ok(
         wrapper
-          .find("panel-item[data-l10n-id='newtab-widget-menu-change-size']")
+          .find("span[data-l10n-id='newtab-widget-menu-change-size']")
           .exists()
       );
       assert.ok(
