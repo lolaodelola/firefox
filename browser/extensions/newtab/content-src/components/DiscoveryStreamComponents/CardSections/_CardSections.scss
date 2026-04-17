@@ -212,7 +212,7 @@
     padding: 0;
   }
 
-  &:not(.placeholder) {
+  &:not(.placeholder, .ds-spoc-rectangle) {
     .img-wrapper>.ds-image.img>img {
       border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
     }

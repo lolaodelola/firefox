@@ -42,7 +42,7 @@
   }
 }
 
-.nova-enabled .ds-card-grid:not(.ds-section-grid) .ds-card:not(.ds-spoc) {
+.nova-enabled .ds-card-grid:not(.ds-section-grid) .ds-card:not(.ds-spoc, .ds-spoc-rectangle) {
   &:not(.placeholder) {
     .img-wrapper > .ds-image.img > img {
       border-radius: var(--border-radius-medium);
@@ -82,6 +82,56 @@
       height: var(--icon-size);
       margin-inline-end: 0;
       border-radius: var(--border-radius-circle);
+    }
+  }
+}
+
+.nova-enabled .ds-card-grid,
+.nova-enabled .ds-section-grid {
+  // Intentionally duplicated classname to match specificity of classic MREC rules
+  .ds-card.ds-spoc-rectangle.ds-spoc-rectangle {
+    .ds-card-link {
+      padding-block-start: var(--space-small);
+    }
+
+    .ds-image {
+      padding-block-start: 0;
+      height: var(--mrec-height);
+      width: var(--mrec-width);
+      margin-inline: auto;
+    }
+
+    .img-wrapper .ds-image img {
+      border-radius: 0;
+    }
+
+    .meta {
+      padding-block-start: 0;
+
+      .title {
+        font-size: var(--font-size-small);
+        margin-block-end: var(--space-xxsmall);
+      }
+
+      .excerpt {
+        display: none;
+      }
+    }
+
+    --nova-stp-inset: var(--space-xxsmall);
+
+    @include nova-card-stp-controls; // defined in nova/_CardSections.scss
+
+  }
+}
+
+// The shared selectors above lack the specificity to override the classic
+// section-card-medium rule; .ds-section-grid.ds-card-grid matches it.
+.nova-enabled .ds-card-grid,
+.nova-enabled .ds-section-grid.ds-card-grid {
+  .ds-card.ds-spoc-rectangle.ds-spoc-rectangle {
+    .card-stp-button-hover-background .card-stp-button-position-wrapper {
+      inset-inline-end: var(--space-medium);
     }
   }
 }
