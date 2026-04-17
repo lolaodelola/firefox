@@ -5927,6 +5927,13 @@ void nsCocoaWindow::CocoaWindowWillEnterFullscreen(bool aFullscreen) {
 
   mHasStartedNativeFullscreen = true;
 
+  // Snapshot the pre-fullscreen bounds so GetRestoredBounds() can report
+  // them while the window is in fullscreen. This fires before macOS starts
+  // resizing the window for the fullscreen animation.
+  if (aFullscreen && mSizeMode == nsSizeMode_Normal) {
+    mRestoredBounds = Some(mBounds);
+  }
+
   // Ensure that we update our fullscreen state as early as possible, when the
   // resize happens.
   mUpdateFullscreenOnResize =
@@ -6108,6 +6115,11 @@ void nsCocoaWindow::ProcessTransitions() {
 
       case TransitionType::EmulatedFullscreen: {
         if (!mInFullScreenMode) {
+          // Snapshot pre-fullscreen bounds for GetRestoredBounds() before the
+          // upcoming resize overwrites mBounds.
+          if (mSizeMode == nsSizeMode_Normal) {
+            mRestoredBounds = Some(mBounds);
+          }
           mSuppressSizeModeEvents = true;
           // The order here matters. When we exit full screen mode, we need to
           // show the Dock first, otherwise the newly-created window won't have
@@ -6176,6 +6188,10 @@ void nsCocoaWindow::ProcessTransitions() {
 
       case TransitionType::Miniaturize:
         if (!mWindow.miniaturized) {
+          // Snapshot pre-minimize bounds for GetRestoredBounds().
+          if (mSizeMode == nsSizeMode_Normal) {
+            mRestoredBounds = Some(mBounds);
+          }
           // This triggers an async animation, so continue.
           [mWindow miniaturize:nil];
           continue;
@@ -6192,6 +6208,11 @@ void nsCocoaWindow::ProcessTransitions() {
 
       case TransitionType::Zoom:
         if (!mWindow.zoomed) {
+          // Snapshot pre-zoom bounds for GetRestoredBounds() before the
+          // zoom resizes the window to fill the screen.
+          if (mSizeMode == nsSizeMode_Normal) {
+            mRestoredBounds = Some(mBounds);
+          }
           [mWindow zoom:nil];
         }
         break;
@@ -6404,6 +6425,18 @@ LayoutDeviceIntRect nsCocoaWindow::GetScreenBounds() {
   return mBounds;
 
   NS_OBJC_END_TRY_BLOCK_RETURN(LayoutDeviceIntRect(0, 0, 0, 0));
+}
+
+nsresult nsCocoaWindow::GetRestoredBounds(LayoutDeviceIntRect& aRect) {
+  if (SizeMode() == nsSizeMode_Normal) {
+    aRect = GetScreenBounds();
+    return NS_OK;
+  }
+  if (mRestoredBounds.isSome()) {
+    aRect = *mRestoredBounds;
+    return NS_OK;
+  }
+  return NS_ERROR_FAILURE;
 }
 
 double nsCocoaWindow::GetDefaultScaleInternal() { return BackingScaleFactor(); }

@@ -359,6 +359,7 @@ class nsCocoaWindow final : public nsIWidget {
   LayoutDeviceIntRect GetClientBounds() override;
   LayoutDeviceIntRect GetScreenBounds() override;
   LayoutDeviceIntRect GetBounds() override { return mBounds; }
+  [[nodiscard]] nsresult GetRestoredBounds(LayoutDeviceIntRect& aRect) override;
   void ReportMoveEvent();
   void ReportSizeEvent();
   bool WidgetTypeSupportsAcceleration() override { return true; }
@@ -655,6 +656,13 @@ class nsCocoaWindow final : public nsIWidget {
   NSWindowAnimationBehavior mWindowAnimationBehavior;
 
   LayoutDeviceIntRect mBounds;
+
+  // The window bounds saved just before the window last left nsSizeMode_Normal
+  // (for fullscreen, maximized, or minimized). Used by GetRestoredBounds() so
+  // that we can persist the pre-transition position/size while the window is
+  // not in normal mode. Nothing() until the first transition out of normal
+  // mode occurs.
+  mozilla::Maybe<LayoutDeviceIntRect> mRestoredBounds;
 
   mozilla::widget::PlatformCompositorWidgetDelegate* mCompositorWidgetDelegate =
       nullptr;
