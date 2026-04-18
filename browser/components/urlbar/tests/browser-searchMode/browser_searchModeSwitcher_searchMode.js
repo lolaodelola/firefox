@@ -155,3 +155,29 @@ async function makeSearchModeSwitcherVisible() {
   await UrlbarTestUtils.promisePopupClose(window);
   EventUtils.synthesizeKey("KEY_Tab", { shiftKey: true });
 }
+
+add_task(async function test_closeButtonFocus() {
+  await BrowserTestUtils.loadURIString({
+    browser: gBrowser.selectedBrowser,
+    uriString: "about:blank",
+  });
+
+  let popup = await UrlbarTestUtils.openSearchModeSwitcher(window);
+  let popupHidden = UrlbarTestUtils.searchModeSwitcherPopupClosed(window);
+  info("Press on the engine button to enter search mode");
+  popup.querySelector(`panel-item[data-engine-id=engine]`).button.click();
+  await popupHidden;
+
+  Assert.equal(document.activeElement, gURLBar.inputField, "Input is focused");
+
+  EventUtils.synthesizeMouseAtCenter(gBrowser.selectedBrowser, {});
+  Assert.equal(
+    document.activeElement,
+    gBrowser.selectedBrowser,
+    "Content was focused"
+  );
+  gURLBar.querySelector(".searchmode-switcher-close").click();
+  Assert.equal(document.activeElement, gURLBar.inputField, "Input was focused");
+  await UrlbarTestUtils.promiseSearchComplete(window);
+  Assert.ok(gURLBar.view.isOpen, "Urlbar view was opened");
+});

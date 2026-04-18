@@ -174,6 +174,7 @@ export class SearchModeSwitcher {
       // to #button which would open the popup.
       event.stopPropagation();
       if (event.type == "click") {
+        this.#input.focus();
         this.exitSearchMode(event);
       }
       return;
@@ -189,8 +190,7 @@ export class SearchModeSwitcher {
     if (event.type == "hidden") {
       if (this.#input.document.activeElement == this.#button) {
         // This moves the focus to the urlbar when the popup is closed.
-        this.#input.document.commandDispatcher.focusedElement =
-          this.#input.inputField;
+        this.#input.focus();
       }
       return;
     }
