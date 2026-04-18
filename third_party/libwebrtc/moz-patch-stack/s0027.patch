@@ -208,7 +208,7 @@ index 4d154f8e19..f1d13160d2 100644
      }
  
 diff --git a/api/BUILD.gn b/api/BUILD.gn
-index 5e0e0f4fe0..8fe405a3bf 100644
+index 3555ec0202..adc78d5aa8 100644
 --- a/api/BUILD.gn
 +++ b/api/BUILD.gn
 @@ -34,6 +34,9 @@ rtc_library("enable_media") {
@@ -289,7 +289,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
  
  rtc_library("sctp_transport_interface") {
    visibility = [ "*" ]
-@@ -572,6 +599,7 @@ rtc_library("video_track_source_proxy_factory") {
+@@ -573,6 +600,7 @@ rtc_library("video_track_source_proxy_factory") {
  }
  
  rtc_library("libjingle_peerconnection_api") {
@@ -297,7 +297,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
    # This target is visible externally for backwards compatibility,
    # but should not be depended on by webrtc source.
    visibility = [ "*" ]
-@@ -675,6 +703,7 @@ rtc_library("libjingle_peerconnection_api") {
+@@ -676,6 +704,7 @@ rtc_library("libjingle_peerconnection_api") {
      "../rtc_base/system:rtc_export",  # keep
    ]
  }
@@ -305,7 +305,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
  
  rtc_library("frame_transformer_interface") {
    visibility = [ "*" ]
-@@ -902,6 +931,7 @@ rtc_source_set("peer_network_dependencies") {
+@@ -903,6 +932,7 @@ rtc_source_set("peer_network_dependencies") {
  }
  
  rtc_source_set("peer_connection_quality_test_fixture_api") {
@@ -313,7 +313,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
    visibility = [ "*" ]
    testonly = true
    sources = [ "test/peerconnection_quality_test_fixture.h" ]
-@@ -917,6 +947,7 @@ rtc_source_set("peer_connection_quality_test_fixture_api") {
+@@ -918,6 +948,7 @@ rtc_source_set("peer_connection_quality_test_fixture_api") {
      "//third_party/abseil-cpp/absl/strings:string_view",
    ]
  }
@@ -321,7 +321,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
  
  rtc_library("frame_generator_api") {
    visibility = [ "*" ]
-@@ -1018,6 +1049,7 @@ rtc_library("create_frame_generator") {
+@@ -1019,6 +1050,7 @@ rtc_library("create_frame_generator") {
    ]
  }
  
@@ -329,7 +329,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
  rtc_library("create_peer_connection_quality_test_frame_generator") {
    visibility = [ "*" ]
    testonly = true
-@@ -1035,6 +1067,7 @@ rtc_library("create_peer_connection_quality_test_frame_generator") {
+@@ -1036,6 +1068,7 @@ rtc_library("create_peer_connection_quality_test_frame_generator") {
      "units:time_delta",
    ]
  }
@@ -337,7 +337,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
  
  rtc_source_set("data_channel_event_observer_interface") {
    visibility = [ "*" ]
-@@ -1213,6 +1246,7 @@ rtc_source_set("refcountedbase") {
+@@ -1214,6 +1247,7 @@ rtc_source_set("refcountedbase") {
  }
  
  rtc_library("ice_transport_factory") {
@@ -345,7 +345,7 @@ index 5e0e0f4fe0..8fe405a3bf 100644
    visibility = [ "*" ]
    sources = [
      "ice_transport_factory.cc",
-@@ -1230,6 +1264,7 @@ rtc_library("ice_transport_factory") {
+@@ -1231,6 +1265,7 @@ rtc_library("ice_transport_factory") {
      "../rtc_base/system:rtc_export",
    ]
  }
@@ -483,7 +483,7 @@ index 136a8f937a..ba03201e69 100644
  if (rtc_include_tests) {
    rtc_source_set("test_feedback_generator_interface") {
 diff --git a/call/BUILD.gn b/call/BUILD.gn
-index c8675f72bb..92cddae002 100644
+index 7b66277041..a306f575e7 100644
 --- a/call/BUILD.gn
 +++ b/call/BUILD.gn
 @@ -46,7 +46,7 @@ rtc_library("call_interfaces") {
@@ -554,7 +554,7 @@ index 88890be798..c9aefc297b 100644
  #include "rtc_base/memory/aligned_malloc.h"
  
 diff --git a/media/BUILD.gn b/media/BUILD.gn
-index e292762430..d67344a2cd 100644
+index 15c2cf92dc..1aafa89b8b 100644
 --- a/media/BUILD.gn
 +++ b/media/BUILD.gn
 @@ -76,7 +76,7 @@ rtc_library("rtc_media_base") {
@@ -614,7 +614,7 @@ index e292762430..d67344a2cd 100644
  
  rtc_source_set("media_channel") {
    sources = [ "base/media_channel.h" ]
-@@ -408,6 +425,7 @@ rtc_library("codec_list") {
+@@ -411,6 +428,7 @@ rtc_library("codec_list") {
  }
  
  rtc_library("rtp_utils") {
@@ -622,7 +622,7 @@ index e292762430..d67344a2cd 100644
    sources = [
      "base/rtp_utils.cc",
      "base/rtp_utils.h",
-@@ -423,8 +441,10 @@ rtc_library("rtp_utils") {
+@@ -426,8 +444,10 @@ rtc_library("rtp_utils") {
      "//third_party/abseil-cpp/absl/strings:string_view",
    ]
  }
@@ -633,7 +633,7 @@ index e292762430..d67344a2cd 100644
    sources = [
      "base/stream_params.cc",
      "base/stream_params.h",
-@@ -438,6 +458,7 @@ rtc_library("stream_params") {
+@@ -441,6 +461,7 @@ rtc_library("stream_params") {
      "//third_party/abseil-cpp/absl/strings:string_view",
    ]
  }
@@ -641,7 +641,7 @@ index e292762430..d67344a2cd 100644
  
  rtc_library("media_constants") {
    sources = [
-@@ -448,6 +469,7 @@ rtc_library("media_constants") {
+@@ -451,6 +472,7 @@ rtc_library("media_constants") {
  }
  
  rtc_library("turn_utils") {
@@ -649,7 +649,7 @@ index e292762430..d67344a2cd 100644
    sources = [
      "base/turn_utils.cc",
      "base/turn_utils.h",
-@@ -458,8 +480,10 @@ rtc_library("turn_utils") {
+@@ -461,8 +483,10 @@ rtc_library("turn_utils") {
      "../rtc_base/system:rtc_export",
    ]
  }
@@ -660,7 +660,7 @@ index e292762430..d67344a2cd 100644
    sources = [
      "base/rid_description.cc",
      "base/rid_description.h",
-@@ -469,6 +493,7 @@ rtc_library("rid_description") {
+@@ -472,6 +496,7 @@ rtc_library("rid_description") {
      "//third_party/abseil-cpp/absl/strings:string_view",
    ]
  }
@@ -668,7 +668,7 @@ index e292762430..d67344a2cd 100644
  
  rtc_library("rtc_simulcast_encoder_adapter") {
    visibility = [ "*" ]
-@@ -552,6 +577,11 @@ rtc_library("rtc_internal_video_codecs") {
+@@ -555,6 +580,11 @@ rtc_library("rtc_internal_video_codecs") {
      "//third_party/abseil-cpp/absl/container:inlined_vector",
      "//third_party/abseil-cpp/absl/strings",
    ]
@@ -680,7 +680,7 @@ index e292762430..d67344a2cd 100644
  
    if (enable_libaom) {
      defines += [ "RTC_USE_LIBAOM_AV1_ENCODER" ]
-@@ -571,6 +601,13 @@ rtc_library("rtc_internal_video_codecs") {
+@@ -574,6 +604,13 @@ rtc_library("rtc_internal_video_codecs") {
      "engine/internal_encoder_factory.cc",
      "engine/internal_encoder_factory.h",
    ]
@@ -695,10 +695,10 @@ index e292762430..d67344a2cd 100644
  
  rtc_library("rtc_audio_video") {
 diff --git a/media/base/media_channel.h b/media/base/media_channel.h
-index cdc19280cc..38dc298cd5 100644
+index 70756943ff..40dc7faa13 100644
 --- a/media/base/media_channel.h
 +++ b/media/base/media_channel.h
-@@ -68,9 +68,6 @@ namespace webrtc {
+@@ -69,9 +69,6 @@ namespace webrtc {
  class VideoFrame;
  struct VideoFormat;
  
