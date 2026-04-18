@@ -1163,6 +1163,7 @@ if (rtc_include_tests) {
           "../net/dcsctp/public:factory",
           "../net/dcsctp/public:mocks",
           "../net/dcsctp/public:socket",
+          "../test:run_loop",
         ]
       }
     }
