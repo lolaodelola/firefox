@@ -15,7 +15,7 @@ Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/9c487a574d218cc1c
  1 file changed, 12 insertions(+)
 
 diff --git a/audio/audio_receive_stream.h b/audio/audio_receive_stream.h
-index 111cd898dc..4768794c48 100644
+index 41a470f8b8..5e40cebfa9 100644
 --- a/audio/audio_receive_stream.h
 +++ b/audio/audio_receive_stream.h
 @@ -34,7 +34,11 @@

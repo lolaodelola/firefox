@@ -275,7 +275,7 @@ index 7106dc197d..89869f6d0b 100644
  
  rtc_library("scalability_mode") {
 diff --git a/audio/BUILD.gn b/audio/BUILD.gn
-index c39c42dd70..b449ac3c6e 100644
+index c710be09b9..586f38bb1c 100644
 --- a/audio/BUILD.gn
 +++ b/audio/BUILD.gn
 @@ -8,8 +8,8 @@
@@ -290,10 +290,10 @@ index c39c42dd70..b449ac3c6e 100644
  
  rtc_library("audio") {
 diff --git a/common_audio/BUILD.gn b/common_audio/BUILD.gn
-index 3f90fe6963..b70ff5da9a 100644
+index df23b36999..2681439c03 100644
 --- a/common_audio/BUILD.gn
 +++ b/common_audio/BUILD.gn
-@@ -290,7 +290,7 @@ if (rtc_build_with_neon) {
+@@ -289,7 +289,7 @@ if (rtc_build_with_neon) {
  
      if (target_cpu != "arm64") {
        # Enable compilation for the NEON instruction set.
@@ -302,7 +302,7 @@ index 3f90fe6963..b70ff5da9a 100644
        cflags = [ "-mfpu=neon" ]
      }
  
-@@ -313,7 +313,7 @@ if (rtc_build_with_neon) {
+@@ -312,7 +312,7 @@ if (rtc_build_with_neon) {
  
      if (target_cpu != "arm64") {
        # Enable compilation for the NEON instruction set.
@@ -325,7 +325,7 @@ index 589142b014..2ee80ded55 100644
      }
    }
 diff --git a/examples/BUILD.gn b/examples/BUILD.gn
-index 4dd7670cd3..2a93c0b7be 100644
+index dae37ec578..776e947b18 100644
 --- a/examples/BUILD.gn
 +++ b/examples/BUILD.gn
 @@ -9,15 +9,15 @@
@@ -349,7 +349,7 @@ index 4dd7670cd3..2a93c0b7be 100644
  }
  
  group("examples") {
-@@ -631,7 +631,7 @@ if (is_ios || (is_mac && target_cpu != "x86")) {
+@@ -630,7 +630,7 @@ if (is_ios || (is_mac && target_cpu != "x86")) {
            "../sdk:mediaconstraints_objc",
            "../sdk:peerconnectionfactory_base_objc",
            "../sdk:videocapture_objc",
@@ -358,7 +358,7 @@ index 4dd7670cd3..2a93c0b7be 100644
            "//third_party/ocmock",
          ]
        }
-@@ -738,7 +738,7 @@ if (is_linux || is_chromeos || is_win) {
+@@ -736,7 +736,7 @@ if (is_linux || is_chromeos || is_win) {
          "peerconnection/client/main_wnd.cc",
          "peerconnection/client/main_wnd.h",
        ]
@@ -396,7 +396,7 @@ index ff4458e79f..a9178d933c 100644
      deps = [
        ":generated_jni",
 diff --git a/examples/androidvoip/BUILD.gn b/examples/androidvoip/BUILD.gn
-index 1954875050..8dee85583a 100644
+index c26d2b2b50..14a8e16c55 100644
 --- a/examples/androidvoip/BUILD.gn
 +++ b/examples/androidvoip/BUILD.gn
 @@ -50,8 +50,8 @@ if (is_android) {
@@ -727,7 +727,7 @@ index 264d00b23c..1f962e2e8c 100644
            ]
          }
 diff --git a/system_wrappers/BUILD.gn b/system_wrappers/BUILD.gn
-index 12a5a828f8..ebc7da741a 100644
+index a3e9a49204..6bb07f9740 100644
 --- a/system_wrappers/BUILD.gn
 +++ b/system_wrappers/BUILD.gn
 @@ -7,8 +7,8 @@

@@ -483,7 +483,7 @@ index 136a8f937a..ba03201e69 100644
  if (rtc_include_tests) {
    rtc_source_set("test_feedback_generator_interface") {
 diff --git a/call/BUILD.gn b/call/BUILD.gn
-index 7b66277041..a306f575e7 100644
+index b67bb98075..eeb5dc9c67 100644
 --- a/call/BUILD.gn
 +++ b/call/BUILD.gn
 @@ -46,7 +46,7 @@ rtc_library("call_interfaces") {
@@ -509,7 +509,7 @@ index 40bfd812a4..46be3bcc47 100644
  #include "api/units/time_delta.h"
  #include "call/audio_sender.h"
 diff --git a/call/video_send_stream.h b/call/video_send_stream.h
-index c5a24d2c48..6ae8932ca9 100644
+index 683be5f469..2eaed4a961 100644
 --- a/call/video_send_stream.h
 +++ b/call/video_send_stream.h
 @@ -24,7 +24,7 @@
@@ -522,10 +522,10 @@ index c5a24d2c48..6ae8932ca9 100644
  #include "api/units/data_rate.h"
  #include "api/video/encoded_image.h"
 diff --git a/common_audio/BUILD.gn b/common_audio/BUILD.gn
-index 83e9ef98a0..6e4d7c99cc 100644
+index c54c797a84..1b55f07e0a 100644
 --- a/common_audio/BUILD.gn
 +++ b/common_audio/BUILD.gn
-@@ -266,14 +266,10 @@ if (current_cpu == "x86" || current_cpu == "x64") {
+@@ -265,14 +265,10 @@ if (current_cpu == "x86" || current_cpu == "x64") {
        "resampler/sinc_resampler_avx2.cc",
      ]
  
