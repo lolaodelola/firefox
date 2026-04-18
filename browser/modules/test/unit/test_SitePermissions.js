@@ -11,6 +11,7 @@ const RESIST_FINGERPRINTING_ENABLED = Services.prefs.getBoolPref(
   "privacy.resistFingerprinting"
 );
 const MIDI_ENABLED = Services.prefs.getBoolPref("dom.webmidi.enabled");
+const WEBSERIAL_ENABLED = Services.prefs.getBoolPref("dom.webserial.enabled");
 
 const SPEAKER_SELECTION_ENABLED = Services.prefs.getBoolPref(
   "media.setsinkid.enabled"
@@ -49,6 +50,9 @@ add_task(async function testPermissionsListing() {
     // Should remove this checking and add it as default after it is fully pref'd-on.
     expectedPermissions.push("midi");
     expectedPermissions.push("midi-sysex");
+  }
+  if (WEBSERIAL_ENABLED) {
+    expectedPermissions.push("serial");
   }
   if (SPEAKER_SELECTION_ENABLED) {
     expectedPermissions.push("speaker");
