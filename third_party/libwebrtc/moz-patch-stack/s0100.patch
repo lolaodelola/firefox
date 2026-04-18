@@ -125,7 +125,7 @@ index 9c258bf486..2e498a0f67 100644
              "Generated during 'gn gen' by //BUILD.gn.",
              "",
 diff --git a/api/BUILD.gn b/api/BUILD.gn
-index adc78d5aa8..8506989db7 100644
+index a77c9d7e2f..597cfa4880 100644
 --- a/api/BUILD.gn
 +++ b/api/BUILD.gn
 @@ -8,8 +8,8 @@
@@ -140,7 +140,7 @@ index adc78d5aa8..8506989db7 100644
  
  rtc_source_set("call_api") {
 diff --git a/api/audio/test/BUILD.gn b/api/audio/test/BUILD.gn
-index b1060faae3..c567b6b0f3 100644
+index edd3dcd701..c8cdec999b 100644
 --- a/api/audio/test/BUILD.gn
 +++ b/api/audio/test/BUILD.gn
 @@ -8,8 +8,8 @@
@@ -155,7 +155,7 @@ index b1060faae3..c567b6b0f3 100644
  
  if (rtc_include_tests) {
 diff --git a/api/audio_codecs/BUILD.gn b/api/audio_codecs/BUILD.gn
-index 25ea12557b..aca296a06c 100644
+index 0d5b919e8a..b5ec38c29d 100644
 --- a/api/audio_codecs/BUILD.gn
 +++ b/api/audio_codecs/BUILD.gn
 @@ -8,8 +8,8 @@
@@ -245,7 +245,7 @@ index 40714b196e..2c6b39f59e 100644
  
  if (rtc_include_tests) {
 diff --git a/api/video/BUILD.gn b/api/video/BUILD.gn
-index d6186040dc..cd9c96117d 100644
+index 0566d8b205..a9d312fa13 100644
 --- a/api/video/BUILD.gn
 +++ b/api/video/BUILD.gn
 @@ -8,8 +8,8 @@
@@ -260,7 +260,7 @@ index d6186040dc..cd9c96117d 100644
  
  rtc_library("video_rtp_headers") {
 diff --git a/api/video_codecs/BUILD.gn b/api/video_codecs/BUILD.gn
-index 2b16682954..caaf1ebd8e 100644
+index 1ec3dff92c..522907e1f1 100644
 --- a/api/video_codecs/BUILD.gn
 +++ b/api/video_codecs/BUILD.gn
 @@ -8,8 +8,8 @@
