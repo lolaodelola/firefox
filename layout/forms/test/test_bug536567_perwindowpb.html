@@ -181,11 +181,11 @@ MockFilePicker.showCallback = function(filepicker) {
   } else {
     is(returned, test[1], 'test ' + testIndex);
   }
-};
 
-MockFilePicker.afterOpenCallback = function() {
-  testIndex++;
-  runTest();
+  filepicker.window.setTimeout(function() {
+    testIndex++;
+    runTest();
+  }, 0);
 };
 
 window.onload = function() {

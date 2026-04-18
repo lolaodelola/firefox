@@ -43,10 +43,6 @@ add_task(async function setOverrideInDebugger_removeOverrideInNetmonitor() {
   info("Select script.js tree node, and add override");
   await selectSourceFromSourceTree(dbg, "script.js");
 
-  const waitForSetOverride = waitForDispatch(
-    dbg.toolbox.store,
-    "SET_NETWORK_OVERRIDE"
-  );
   const path = prepareFilePicker("script-override.js", window);
   await triggerSourceTreeContextMenu(
     dbg,
@@ -54,7 +50,6 @@ add_task(async function setOverrideInDebugger_removeOverrideInNetmonitor() {
     "#node-menu-overrides"
   );
   await writeTextContentToPath(OVERRIDDEN_SCRIPT, path);
-  await waitForSetOverride;
 
   overrides = [...findAllElementsWithSelector(dbg, ".has-network-override")];
   is(overrides.length, 1, "An override is now displayed in the debugger");
