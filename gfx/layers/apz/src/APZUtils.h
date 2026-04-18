@@ -187,8 +187,40 @@ namespace apz {
  */
 bool IsCloseToHorizontal(float aAngle, float aThreshold);
 
-// As above, but for the vertical axis.
+// As above, but taking a vector instead of a pre-computed angle.
+// Returns false if aVector is a zero vector.
+// FIXME: Bug 2032315: Narrow the signature to only accept ParentLayerPoint, and
+// convert call sites that currently pass Screen coordinates to pass ParentLayer
+// instead.
+template <typename Units>
+bool IsCloseToHorizontal(const gfx::PointTyped<Units>& aVector,
+                         float aThreshold) {
+  if (aVector == gfx::PointTyped<Units>()) {
+    return false;
+  }
+  return IsCloseToHorizontal(float(fabs(atan2(aVector.y, aVector.x))),
+                             aThreshold);
+}
+
+// Is aAngle within the given threshold of the vertical axis?
+// @param aAngle an angle in radians in the range [0, pi]
+// @param aThreshold an angle in radians in the range [0, pi/2]
 bool IsCloseToVertical(float aAngle, float aThreshold);
+
+// As above, but taking a vector instead of a pre-computed angle.
+// Returns false if aVector is a zero vector.
+// FIXME: Bug 2032315: Narrow the signature to only accept ParentLayerPoint, and
+// convert call sites that currently pass Screen coordinates to pass ParentLayer
+// instead.
+template <typename Units>
+bool IsCloseToVertical(const gfx::PointTyped<Units>& aVector,
+                       float aThreshold) {
+  if (aVector == gfx::PointTyped<Units>()) {
+    return false;
+  }
+  return IsCloseToVertical(float(fabs(atan2(aVector.y, aVector.x))),
+                           aThreshold);
+}
 
 // Returns true if a sticky layer with async translation |aTranslation| is
 // stuck with a bottom margin. The inner/outer ranges are produced by the main
