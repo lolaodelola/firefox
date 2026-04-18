@@ -45,6 +45,7 @@ import {
 } from "chrome://browser/content/ipprotection/ipprotection-constants.mjs";
 
 const BANDWIDTH_THRESHOLD_PREF = "browser.ipProtection.bandwidthThreshold";
+const BANDWIDTH_RESET_DATE_PREF = "browser.ipProtection.bandwidthResetDate";
 const DEFAULT_EGRESS_LOCATION = { name: "United States", code: "us" };
 const EGRESS_LOCATION_PREF = "browser.ipProtection.egressLocationEnabled";
 const USER_OPENED_PREF = "browser.ipProtection.everOpenedPanel";
@@ -952,6 +953,17 @@ export class IPProtectionPanel {
         this.#measureBandwidthThreshold(threshold, lastRecordedThreshold);
       }
 
+      const resetDate = usage.reset.toString();
+      const lastResetDate = Services.prefs.getStringPref(
+        BANDWIDTH_RESET_DATE_PREF,
+        ""
+      );
+      Services.prefs.setStringPref(BANDWIDTH_RESET_DATE_PREF, resetDate);
+
+      if (threshold === 0 && lastResetDate && resetDate !== lastResetDate) {
+        this.#sendBandwidthResetTrigger();
+      }
+
       if (lazy.BANDWIDTH_USAGE_ENABLED) {
         this.setState({
           bandwidthUsage: {
@@ -964,6 +976,16 @@ export class IPProtectionPanel {
     } else if (event.type == "IPPUsageHelper:StateChanged") {
       this.setState({ bandwidthWarning: this.#shouldShowBandwidthWarning() });
     }
+  }
+
+  async #sendBandwidthResetTrigger() {
+    await lazy.ASRouter.waitForInitialized;
+    const win = Services.wm.getMostRecentBrowserWindow();
+    const browser = win?.gBrowser?.selectedBrowser;
+    await lazy.ASRouter.sendTriggerMessage({
+      browser,
+      id: "ipProtectionBandwidthReset",
+    });
   }
 
   #measureBandwidthThreshold(threshold, lastRecordedThreshold) {

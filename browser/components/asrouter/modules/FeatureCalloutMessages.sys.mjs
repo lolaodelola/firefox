@@ -350,8 +350,7 @@ const MESSAGES = () => {
       targeting:
         "'browser.ipProtection.bandwidthThreshold' | preferenceValue == 0 && 'browser.ipProtection.userEnableCount' | preferenceValue > 0 && !hasActiveEnterprisePolicies && !activeNotifications && previousSessionEnd",
       trigger: {
-        id: "preferenceObserver",
-        params: ["browser.ipProtection.bandwidthThreshold"],
+        id: "ipProtectionBandwidthReset",
       },
       frequency: {
         lifetime: 2,
