@@ -85,6 +85,9 @@ WebBrowserPersistLocalDocument::GetIsClosed(bool* aIsClosed) {
 }
 
 NS_IMETHODIMP
+WebBrowserPersistLocalDocument::Close() { return NS_OK; }
+
+NS_IMETHODIMP
 WebBrowserPersistLocalDocument::GetIsPrivate(bool* aIsPrivate) {
   nsCOMPtr<nsILoadContext> privacyContext = mDocument->GetLoadContext();
   *aIsPrivate = privacyContext && privacyContext->UsePrivateBrowsing();

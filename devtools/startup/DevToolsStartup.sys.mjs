@@ -1453,6 +1453,10 @@ const JsonView = {
             ) /* private browsing ? */,
             Services.scriptSecurityManager.getSystemPrincipal()
           );
+          // Close the persist document to tear down the IPC actor
+          // that otherwise prevents the content window from being
+          // destroyed until GC runs.
+          doc.close();
         },
         onError() {
           throw new Error("JSON Viewer's onSave failed in startPersistence");
