@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Test compression dictionary usage via fetch()</title>
+  <script src="/tests/SimpleTest/SimpleTest.js"></script>
+  <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css"/>
+</head>
+<body>
+<script type="application/javascript">
+
+SimpleTest.waitForExplicitFinish();
+SimpleTest.requestFlakyTimeout("Polling for dictionary availability");
+
+const DICTIONARY_CONTENT = "This is a test dictionary.\n";
+const EXPECTED_HASH = ":U5abz16WDg7b8KS93msLPpOB4Vbef1uRzoORYkJw9BY=:";
+const EXPECTED_DECOMPRESSED =
+  "This is compressed test data using a test dictionary";
+const CHECK_HEADER_MAX_RETRY = 10;
+const CHECK_HEADER_RETRY_TIMEOUT = 200;
+
+const SJS = "dictionary_fetch.sjs";
+
+async function waitForDictionary() {
+  for (let i = 0; i < CHECK_HEADER_MAX_RETRY; i++) {
+    let resp = await fetch(SJS + "?action=check_header");
+    let json = await resp.json();
+    if (json["available-dictionary"]) {
+      return json["available-dictionary"];
+    }
+    await new Promise(r => setTimeout(r, CHECK_HEADER_RETRY_TIMEOUT));
+  }
+  return "";
+}
+
+(async () => {
+  await SpecialPowers.pushPrefEnv({
+    set: [["network.http.dictionaries.enable", true]],
+  });
+
+  // Test 1: Fetch dictionary with Use-As-Dictionary header
+  let dictResp = await fetch(SJS + "?action=dict");
+  let dictText = await dictResp.text();
+  is(dictText, DICTIONARY_CONTENT, "Dictionary content matches");
+
+  // Test 2: Wait for the browser to register the dictionary
+  let hash = await waitForDictionary();
+  is(hash, EXPECTED_HASH, "Available-Dictionary header present with correct hash");
+
+  if (!hash) {
+    ok(false, "Dictionary was not registered, skipping decompression tests");
+    SimpleTest.finish();
+    return;
+  }
+
+  // Test 3: DCB (dictionary-compressed Brotli) decompression via fetch()
+  try {
+    let dcbResp = await fetch(SJS + "?action=dcb");
+    let dcbText = await dcbResp.text();
+    is(dcbText, EXPECTED_DECOMPRESSED, "DCB decompression produces correct content");
+  } catch (e) {
+    ok(false, "DCB fetch threw: " + e);
+  }
+
+  // Test 4: DCZ (dictionary-compressed Zstandard) decompression via fetch()
+  try {
+    let dczResp = await fetch(SJS + "?action=dcz");
+    let dczText = await dczResp.text();
+    is(dczText, EXPECTED_DECOMPRESSED, "DCZ decompression produces correct content");
+  } catch (e) {
+    ok(false, "DCZ fetch threw: " + e);
+  }
+
+  SimpleTest.finish();
+})();
+
+</script>
+</body>
+</html>

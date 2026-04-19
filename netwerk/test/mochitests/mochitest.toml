@@ -121,6 +121,13 @@ skip-if = [
   "tsan", # TSan shadow memory causes OOMs.
 ]
 
+["test_dictionary_fetch.html"]
+support-files = ["dictionary_fetch.sjs"]
+scheme = "https"
+skip-if = [
+  "xorigin",
+]
+
 ["test_different_domain_in_hierarchy.html"]
 skip-if = [
   "http2",
