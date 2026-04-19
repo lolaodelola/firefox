@@ -22,6 +22,7 @@ use crate::prim_store::{
     InternablePrimitive, PrimitiveStore,
 };
 use crate::prim_store::PrimitiveInstanceKind;
+use crate::scratch_buffer::ScratchHandle;
 use crate::spatial_tree::SpatialNodeIndex;
 use crate::util::clamp_to_scale_factor;
 
@@ -95,11 +96,11 @@ impl LineDecorationData {
         prim_spatial_node_index: SpatialNodeIndex,
         frame_context: &FrameBuildingContext,
         frame_state: &mut FrameBuildingState,
-    ) -> Option<RenderTaskId> {
+    ) -> RenderTaskId {
         // If we have a cache key, it's a wavy / dashed / dotted line. Otherwise, it's
         // a simple solid line.
         let Some(cache_key) = self.cache_key.as_ref() else {
-            return None;
+            return RenderTaskId::INVALID;
         };
 
         // TODO(gw): These scale factors don't do a great job if the world transform
@@ -142,7 +143,7 @@ impl LineDecorationData {
         task_size.height = task_size.height.max(1);
 
         // Request a pre-rendered image task.
-        Some(frame_state.resource_cache.request_render_task(
+        frame_state.resource_cache.request_render_task(
             Some(RenderTaskCacheKey {
                 origin: DeviceIntPoint::zero(),
                 size: task_size,
@@ -164,7 +165,7 @@ impl LineDecorationData {
                     ),
                 ))
             }
-        ))
+        )
     }
 
     fn write_prim_gpu_blocks(
@@ -231,7 +232,7 @@ impl InternablePrimitive for LineDecoration {
     ) -> PrimitiveInstanceKind {
         PrimitiveInstanceKind::LineDecoration {
             data_handle,
-            render_task: None,
+            scratch_handle: ScratchHandle::INVALID,
         }
     }
 }

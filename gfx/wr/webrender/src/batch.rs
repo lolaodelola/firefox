@@ -1968,39 +1968,38 @@ impl BatchBuilder {
                     },
                 );
             }
-            PrimitiveInstanceKind::LineDecoration { ref render_task, .. } => {
+            PrimitiveInstanceKind::LineDecoration { scratch_handle, .. } => {
+                let render_task_id = *ctx.scratch.arena.read(scratch_handle);
+
                 let (clip_task_address, clip_mask_texture_id) = ctx.get_prim_clip_task_and_texture(
                     prim_info.clip_task_index,
                     render_tasks,
                 ).unwrap();
 
-                let (batch_kind, textures, prim_user_data, specific_resource_address) = match render_task {
-                    Some(task_id) => {
-                        let (uv_rect_address, texture) = render_tasks.resolve_location(*task_id).unwrap();
-                        let textures = BatchTextures::prim_textured(
-                            texture,
-                            clip_mask_texture_id,
-                        );
-                        (
-                            BrushBatchKind::Image(texture.image_buffer_kind()),
-                            textures,
-                            ImageBrushUserData {
-                                color_mode: ShaderColorMode::Image,
-                                alpha_type: AlphaType::PremultipliedAlpha,
-                                raster_space: RasterizationSpace::Local,
-                                opacity: 1.0,
-                            }.encode(),
-                            uv_rect_address.as_int(),
-                        )
-                    }
-                    None => {
-                        (
-                            BrushBatchKind::Solid,
-                            BatchTextures::prim_untextured(clip_mask_texture_id),
-                            [get_shader_opacity(1.0), 0, 0, 0],
-                            0,
-                        )
-                    }
+                let (batch_kind, textures, prim_user_data, specific_resource_address) = if render_task_id != RenderTaskId::INVALID {
+                    let (uv_rect_address, texture) = render_tasks.resolve_location(render_task_id).unwrap();
+                    let textures = BatchTextures::prim_textured(
+                        texture,
+                        clip_mask_texture_id,
+                    );
+                    (
+                        BrushBatchKind::Image(texture.image_buffer_kind()),
+                        textures,
+                        ImageBrushUserData {
+                            color_mode: ShaderColorMode::Image,
+                            alpha_type: AlphaType::PremultipliedAlpha,
+                            raster_space: RasterizationSpace::Local,
+                            opacity: 1.0,
+                        }.encode(),
+                        uv_rect_address.as_int(),
+                    )
+                } else {
+                    (
+                        BrushBatchKind::Solid,
+                        BatchTextures::prim_untextured(clip_mask_texture_id),
+                        [get_shader_opacity(1.0), 0, 0, 0],
+                        0,
+                    )
                 };
 
                 let prim_header = PrimitiveHeader {

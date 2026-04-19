@@ -567,21 +567,20 @@ fn prepare_interned_prim_for_render(
 
             return;
         }
-        PrimitiveInstanceKind::LineDecoration { data_handle, ref mut render_task, .. } => {
+        PrimitiveInstanceKind::LineDecoration { data_handle, ref mut scratch_handle } => {
             profile_scope!("LineDecoration");
             let prim_data = &mut data_stores.line_decoration[*data_handle];
             let common_data = &mut prim_data.common;
             let line_dec_data = &mut prim_data.kind;
 
-            // Update the template this instane references, which may refresh the GPU
-            // cache with any shared template data.
             line_dec_data.update(common_data, frame_state);
 
-            *render_task = line_dec_data.prepare_render_task(
+            let render_task = line_dec_data.prepare_render_task(
                 prim_spatial_node_index,
                 frame_context,
                 frame_state,
             );
+            *scratch_handle = scratch.arena.push(render_task);
         }
         PrimitiveInstanceKind::TextRun { run_index, data_handle, .. } => {
             profile_scope!("TextRun");

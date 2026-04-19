@@ -24,7 +24,7 @@ use crate::picture::PicturePrimitive;
 use crate::render_task_graph::RenderTaskId;
 use crate::resource_cache::ImageProperties;
 use std::{hash, u32, usize};
-use crate::scratch_buffer::ScratchBuffer;
+use crate::scratch_buffer::{ScratchBuffer, ScratchHandle};
 use crate::util::Recycler;
 use crate::internal_types::{FastHashSet, LayoutPrimitiveInfo};
 use crate::visibility::PrimitiveVisibility;
@@ -749,15 +749,7 @@ pub enum PrimitiveInstanceKind {
     LineDecoration {
         /// Handle to the common interned data for this primitive.
         data_handle: LineDecorationDataHandle,
-        // TODO(gw): For now, we need to store some information in
-        //           the primitive instance that is created during
-        //           prepare_prims and read during the batching pass.
-        //           Once we unify the prepare_prims and batching to
-        //           occur at the same time, we can remove most of
-        //           the things we store here in the instance, and
-        //           use them directly. This will remove cache_handle,
-        //           but also the opacity, clip_task_id etc below.
-        render_task: Option<RenderTaskId>,
+        scratch_handle: ScratchHandle<RenderTaskId>,
     },
     NormalBorder {
         /// Handle to the common interned data for this primitive.
