@@ -72,19 +72,17 @@ skip-if = [
 
 ["browser_aiwindow_smartbar_ask.js"]
 
-["browser_aiwindow_smartbar_context_chips.js"]
-
 ["browser_aiwindow_smartbar_focus.js"]
-
-["browser_aiwindow_smartbar_inline_mentions.js"]
 
 ["browser_aiwindow_smartbar_interactions.js"]
 
 ["browser_aiwindow_smartbar_keyboard_navigation.js"]
 
-["browser_aiwindow_smartbar_telemetry.js"]
+["browser_aiwindow_smartbar_context_chips.js"]
 
-["browser_aiwindow_stop_generation.js"]
+["browser_aiwindow_smartbar_inline_mentions.js"]
+
+["browser_aiwindow_smartbar_telemetry.js"]
 
 ["browser_aiwindow_switcher.js"]
 skip-if = [
@@ -165,6 +163,8 @@ skip-if = [
 
 ["browser_smartwindow_tab_move.js"]
 
+["browser_smartwindow_sidebar_prefs.js"]
+
 ["browser_smartwindow_tab_switching.js"]
 
 ["browser_smartwindow_tab_switching_memories.js"]
@@ -175,9 +175,9 @@ skip-if = [
 skip-if = [
   "os == 'linux' && os_version == '24.04' && arch == 'x86_64' && display == 'x11'", # Bug 2024015
   "os == 'mac' && os_version == '10.15' && arch == 'x86_64' && opt", # Bug 2024015
-  "os == 'win' && debug && standalone", # Bug 2024015
   "os == 'win' && os_version == '11.26100' && arch == 'x86'", # Bug 2024015
-  "os == 'win' && os_version == '11.26100' && arch == 'x86_64'", # Bug 2024015
   "os == 'win' && os_version == '11.26200' && arch == 'x86'", # Bug 2024015
+  "os == 'win' && os_version == '11.26100' && arch == 'x86_64'", # Bug 2024015
   "os == 'win' && os_version == '11.26200' && arch == 'x86_64'", # Bug 2024015
+  "os == 'win' && debug && standalone", # Bug 2024015
 ]

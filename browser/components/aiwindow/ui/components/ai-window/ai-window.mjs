@@ -113,7 +113,6 @@ export class AIWindow extends MozLitElement {
     showStarters: { type: Boolean, state: true },
     showFooter: { type: Boolean, state: true },
     showDisclaimer: { type: Boolean, state: true },
-    isGenerating: { type: Boolean, state: true },
   };
 
   #browser;
@@ -125,7 +124,6 @@ export class AIWindow extends MozLitElement {
   #reportLink =
     "https://connect.mozilla.org/t5/discussions/smart-window-beta-feedback/td-p/122365";
   #visibilityChangeHandler;
-  #abortController = null;
 
   #starters = [];
   #starterPromptsAbortController = null;
@@ -302,7 +300,6 @@ export class AIWindow extends MozLitElement {
     this.showStarters = false;
     this.showFooter = this.mode === MODE.FULLPAGE;
     this.showDisclaimer = this.mode !== MODE.FULLPAGE;
-    this.isGenerating = false;
 
     // Apply chat-active immediately if restoring a conversation
     if (this.#hostBrowser?.getAttribute("data-conversation-id")) {
@@ -393,10 +390,6 @@ export class AIWindow extends MozLitElement {
       "smartbar-commit",
       this.#handleSmartbarCommit,
       true
-    );
-    this.ownerDocument.addEventListener(
-      "smartbar-stop-generation",
-      this.#handleStopGeneration
     );
 
     this.#loadPendingConversation();
@@ -590,10 +583,6 @@ export class AIWindow extends MozLitElement {
       "smartbar-commit",
       this.#handleSmartbarCommit,
       true
-    );
-    this.ownerDocument.removeEventListener(
-      "smartbar-stop-generation",
-      this.#handleStopGeneration
     );
     if (this.#smartbar) {
       this.#smartbar.removeEventListener(
@@ -967,28 +956,6 @@ export class AIWindow extends MozLitElement {
   }
 
   /**
-   * Handles the stop generation action from the smartbar.
-   *
-   * @private
-   */
-  #handleStopGeneration = () => {
-    if (!this.#abortController) {
-      return;
-    }
-    this.#abortController.abort();
-    this.isGenerating = false;
-    const lastAssistant = this.#conversation?.messages
-      ?.filter(
-        m => m.role == lazy.MESSAGE_ROLE.ASSISTANT && m?.content?.type == "text"
-      )
-      .at(-1);
-    this.#dispatchMessageToChatContent({
-      role: "assistant-message-complete",
-      content: { id: lastAssistant?.id },
-    });
-  };
-
-  /**
    * Handles the smartbar-commit action for the user prompt
    *
    * @param {CustomEvent} event - The smartbar-commit event
@@ -1355,11 +1322,6 @@ export class AIWindow extends MozLitElement {
     this.#updateTabFavicon();
     this.#setBrowserContainerActiveState(true);
 
-    this.#abortController?.abort();
-    this.#abortController = new AbortController();
-    const { signal } = this.#abortController;
-    this.isGenerating = true;
-
     const requestStart = Date.now();
     let firstTokenTime = null;
     const onUpdate = (_e, message) => {
@@ -1399,7 +1361,6 @@ export class AIWindow extends MozLitElement {
         engineInstance,
         browsingContext,
         mode: this.mode,
-        signal,
       });
 
       this.#sendModelResponseTelemetryEvent(
@@ -1407,26 +1368,12 @@ export class AIWindow extends MozLitElement {
         this.#getModelRequestLatencyAndDuration(requestStart, firstTokenTime)
       );
     } catch (e) {
-      if (!signal.aborted) {
-        this.showSearchingIndicator(false, null);
-        this.#handleError(
-          e,
-          this.#getModelRequestLatencyAndDuration(requestStart, firstTokenTime)
-        );
-      }
+      this.showSearchingIndicator(false, null);
+      this.#handleError(
+        e,
+        this.#getModelRequestLatencyAndDuration(requestStart, firstTokenTime)
+      );
       this.requestUpdate?.();
-    } finally {
-      if (this.#abortController?.signal === signal) {
-        this.isGenerating = false;
-        this.#abortController = null;
-      }
-    }
-  }
-
-  updated(changedProps) {
-    super.updated?.(changedProps);
-    if (changedProps.has("isGenerating") && this.#smartbar) {
-      this.#smartbar.assistantIsGenerating = this.isGenerating;
     }
   }
 
@@ -2083,13 +2030,6 @@ export class AIWindow extends MozLitElement {
           </div>`
         : ""}
       ${this.showFooter ? html`<smartwindow-footer></smartwindow-footer>` : ""}
-      <div
-        class="sr-only"
-        aria-live="polite"
-        aria-atomic="true"
-        data-l10n-id="aiwindow-generation-started-announcement"
-        ?hidden=${!this.isGenerating}
-      ></div>
     `;
   }
 }
