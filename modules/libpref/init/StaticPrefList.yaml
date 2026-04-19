@@ -16198,7 +16198,7 @@
 
 - name: network.http.happy_eyeballs_enabled
   type: RelaxedAtomicBool
-  value: @IS_EARLY_BETA_OR_EARLIER@
+  value: false
   mirror: always
 
 # If true, it will include extra tags to be sniffed by nsUnknownDecoder

@@ -8,7 +8,6 @@
 #include "HappyEyeballsConnectionAttempt.h"
 #include "ConnectionEntry.h"
 #include "mozilla/net/NeckoChannelParams.h"
-#include "mozilla/StaticPrefs_network.h"
 #include "nsIHttpActivityObserver.h"
 #include "PendingTransactionInfo.h"
 #include "nsHttpTransaction.h"
@@ -79,9 +78,7 @@ nsresult HappyEyeballsConnectionAttempt::CreateHappyEyeballs(
     ConnectionEntry* ent) {
   happy_eyeballs::IpPreference ipPref =
       happy_eyeballs::IpPreference::DualStackPreferV6;
-  if (mConnInfo->GetIPv6Disabled()) {
-    ipPref = happy_eyeballs::IpPreference::Ipv4Only;
-  } else if (ent->PreferenceKnown() && ent->mPreferIPv4) {
+  if (ent->PreferenceKnown() && ent->mPreferIPv4) {
     ipPref = happy_eyeballs::IpPreference::DualStackPreferV4;
   }
 

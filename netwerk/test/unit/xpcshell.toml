@@ -739,12 +739,6 @@ skip-if = [
 ["test_happy_eyeballs_concurrent_channels.js"]
 run-sequentially = ["true"]
 
-["test_happy_eyeballs_cancel_and_reuse.js"]
-skip-if = [
-  "os == 'android'",
-  "os == 'win' && msix",
-]
-
 ["test_happy_eyeballs_conn_failure.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
 skip-if = [

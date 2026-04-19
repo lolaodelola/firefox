@@ -24,8 +24,6 @@ use winapi::shared::ws2def::{AF_INET, AF_INET6};
 pub enum IpPreference {
     DualStackPreferV6 = 0,
     DualStackPreferV4 = 1,
-    Ipv6Only = 2,
-    Ipv4Only = 3,
 }
 
 impl From<IpPreference> for happy_eyeballs::IpPreference {
@@ -33,8 +31,6 @@ impl From<IpPreference> for happy_eyeballs::IpPreference {
         match v {
             IpPreference::DualStackPreferV6 => Self::DualStackPreferV6,
             IpPreference::DualStackPreferV4 => Self::DualStackPreferV4,
-            IpPreference::Ipv6Only => Self::Ipv6Only,
-            IpPreference::Ipv4Only => Self::Ipv4Only,
         }
     }
 }
