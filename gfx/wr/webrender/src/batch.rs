@@ -23,6 +23,7 @@ use crate::prim_store::{PrimitiveInstanceKind, ClipData};
 use crate::prim_store::{PrimitiveInstance, PrimitiveOpacity, SegmentInstanceIndex};
 use crate::prim_store::{BrushSegment, ClipMaskKind, ClipTaskIndex};
 use crate::prim_store::VECS_PER_SEGMENT;
+use crate::prim_store::borders::NormalBorderScratch;
 use crate::quad;
 use crate::render_target::RenderTargetContext;
 use crate::render_task_graph::{RenderTaskId, RenderTaskGraph};
@@ -1686,9 +1687,9 @@ impl BatchBuilder {
             PrimitiveInstanceKind::BoxShadow { .. } => {
                 unreachable!("BUG: Should not hit box-shadow here as they are handled by quad infra");
             }
-            PrimitiveInstanceKind::NormalBorder { data_handle, ref render_task_ids, .. } => {
+            PrimitiveInstanceKind::NormalBorder { data_handle, scratch_handle, .. } => {
                 let prim_data = &ctx.data_stores.normal_border[data_handle];
-                let task_ids = &ctx.scratch.border_cache_handles[*render_task_ids];
+                let task_ids = NormalBorderScratch::get_cache_handles(scratch_handle, &ctx.scratch.arena);
                 let mut segment_data: SmallVec<[SegmentInstanceData; 8]> = SmallVec::new();
 
                 // Collect the segment instance data from each render

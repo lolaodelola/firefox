@@ -754,7 +754,7 @@ pub enum PrimitiveInstanceKind {
     NormalBorder {
         /// Handle to the common interned data for this primitive.
         data_handle: NormalBorderDataHandle,
-        render_task_ids: storage::Range<RenderTaskId>,
+        scratch_handle: ScratchHandle<borders::NormalBorderScratch>,
     },
     ImageBorder {
         /// Handle to the common interned data for this primitive.
@@ -923,7 +923,6 @@ pub type TextRunIndex = storage::Index<TextRunPrimitive>;
 pub type TextRunStorage = storage::Storage<TextRunPrimitive>;
 pub type ColorBindingIndex = storage::Index<PropertyBinding<ColorU>>;
 pub type ColorBindingStorage = storage::Storage<PropertyBinding<ColorU>>;
-pub type BorderHandleStorage = storage::Storage<RenderTaskId>;
 pub type SegmentStorage = storage::Storage<BrushSegment>;
 pub type SegmentsRange = storage::Range<BrushSegment>;
 pub type SegmentInstanceStorage = storage::Storage<SegmentedInstance>;
@@ -947,10 +946,6 @@ pub struct PrimitiveScratchBuffer {
     /// List of glyphs keys that are allocated by each
     /// text run instance.
     pub glyph_keys: GlyphKeyStorage,
-
-    /// List of render task handles for border segment instances
-    /// that have been added this frame.
-    pub border_cache_handles: BorderHandleStorage,
 
     /// A list of brush segments that have been built for this scene.
     pub segments: SegmentStorage,
@@ -986,7 +981,6 @@ impl Default for PrimitiveScratchBuffer {
             arena: ScratchBuffer::new(),
             clip_mask_instances: Vec::new(),
             glyph_keys: GlyphKeyStorage::new(0),
-            border_cache_handles: BorderHandleStorage::new(0),
             segments: SegmentStorage::new(0),
             segment_instances: SegmentInstanceStorage::new(0),
             debug_items: Vec::new(),
@@ -1005,7 +999,6 @@ impl PrimitiveScratchBuffer {
         self.arena.recycle(recycler);
         recycler.recycle_vec(&mut self.clip_mask_instances);
         self.glyph_keys.recycle(recycler);
-        self.border_cache_handles.recycle(recycler);
         self.segments.recycle(recycler);
         self.segment_instances.recycle(recycler);
         recycler.recycle_vec(&mut self.debug_items);
@@ -1025,8 +1018,6 @@ impl PrimitiveScratchBuffer {
         self.quad_direct_segments.clear();
         self.quad_color_segments.clear();
         self.quad_indirect_segments.clear();
-
-        self.border_cache_handles.clear();
 
         // TODO(gw): As in the previous code, the gradient tiles store GPU cache
         //           handles that are cleared (and thus invalidated + re-uploaded)
