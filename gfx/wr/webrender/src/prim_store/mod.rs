@@ -24,6 +24,7 @@ use crate::picture::PicturePrimitive;
 use crate::render_task_graph::RenderTaskId;
 use crate::resource_cache::ImageProperties;
 use std::{hash, u32, usize};
+use crate::scratch_buffer::ScratchBuffer;
 use crate::util::Recycler;
 use crate::internal_types::{FastHashSet, LayoutPrimitiveInfo};
 use crate::visibility::PrimitiveVisibility;
@@ -944,6 +945,9 @@ pub type ImageInstanceIndex = storage::Index<ImageInstance>;
 /// and read during batching.
 #[cfg_attr(feature = "capture", derive(Serialize))]
 pub struct PrimitiveScratchBuffer {
+    /// Per-frame bump arena for heterogeneous prepare-to-batch data.
+    pub arena: ScratchBuffer,
+
     /// Contains a list of clip mask instance parameters
     /// per segment generated.
     pub clip_mask_instances: Vec<ClipMaskKind>,
@@ -987,6 +991,7 @@ pub struct PrimitiveScratchBuffer {
 impl Default for PrimitiveScratchBuffer {
     fn default() -> Self {
         PrimitiveScratchBuffer {
+            arena: ScratchBuffer::new(),
             clip_mask_instances: Vec::new(),
             glyph_keys: GlyphKeyStorage::new(0),
             border_cache_handles: BorderHandleStorage::new(0),
@@ -1005,6 +1010,7 @@ impl Default for PrimitiveScratchBuffer {
 
 impl PrimitiveScratchBuffer {
     pub fn recycle(&mut self, recycler: &mut Recycler) {
+        self.arena.recycle(recycler);
         recycler.recycle_vec(&mut self.clip_mask_instances);
         self.glyph_keys.recycle(recycler);
         self.border_cache_handles.recycle(recycler);
@@ -1017,6 +1023,8 @@ impl PrimitiveScratchBuffer {
     }
 
     pub fn begin_frame(&mut self) {
+        self.arena.clear();
+
         // Clear the clip mask tasks for the beginning of the frame. Append
         // a single kind representing no clip mask, at the ClipTaskIndex::INVALID
         // location.
