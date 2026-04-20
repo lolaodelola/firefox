@@ -218,12 +218,12 @@ nsis-3.07-win:
         add-prefix: nsis/
 
 upx:
-    description: upx 5.1.0 source
+    description: upx 5.1.1 source
     fetch:
         type: static-url
-        url: https://github.com/upx/upx/releases/download/v5.1.0/upx-5.1.0-src.tar.xz
-        sha256: 9f7a810b8a810b1ca2c5cb01ffcf23066e3fb8a51ddc406ea05bdd5d37d0b8bd
-        size: 1406744
+        url: https://github.com/upx/upx/releases/download/v5.1.1/upx-5.1.1-src.tar.xz
+        sha256: 8eb914115b306fd9fd2110bd3d27ddb8ae7c5a03bb965f7d10f046a3a4ff9dfe
+        size: 1435728
         artifact-name: upx-src.tar.zst
         strip-components: 1
         add-prefix: upx/
