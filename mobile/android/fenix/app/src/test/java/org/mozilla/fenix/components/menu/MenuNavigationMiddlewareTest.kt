@@ -18,6 +18,9 @@ import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
 import mozilla.appservices.places.BookmarkRoot
+import mozilla.components.browser.state.action.BrowserAction
+import mozilla.components.browser.state.action.EngineAction
+import mozilla.components.browser.state.engine.EngineMiddleware
 import mozilla.components.browser.state.state.BrowserState
 import mozilla.components.browser.state.state.ContentState
 import mozilla.components.browser.state.state.CustomTabConfig
@@ -31,9 +34,11 @@ import mozilla.components.concept.engine.EngineSession.LoadUrlFlags
 import mozilla.components.feature.addons.Addon
 import mozilla.components.feature.pwa.WebAppUseCases
 import mozilla.components.feature.session.SessionUseCases
+import mozilla.components.lib.state.Middleware
 import mozilla.components.service.fxa.manager.AccountState.Authenticated
 import mozilla.components.service.fxa.manager.AccountState.AuthenticationProblem
 import mozilla.components.service.fxa.manager.AccountState.NotAuthenticated
+import mozilla.components.support.test.middleware.CaptureActionsMiddleware
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -41,6 +46,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mozilla.fenix.NavGraphDirections
 import org.mozilla.fenix.R
 import org.mozilla.fenix.collections.SaveCollectionStep
 import org.mozilla.fenix.components.accounts.FenixFxAEntryPoint
@@ -53,6 +59,8 @@ import org.mozilla.fenix.components.menu.store.MenuStore
 import org.mozilla.fenix.components.share.ShareSheetLauncher
 import org.mozilla.fenix.settings.SupportUtils.AMO_HOMEPAGE_FOR_ANDROID
 import org.mozilla.fenix.utils.Settings
+import org.mozilla.fenix.utils.Stories.markAsOpenedFromHomeScreen
+import org.mozilla.fenix.utils.Stories.markAsOpenedFromStoriesScreen
 import org.mozilla.fenix.webcompat.WEB_COMPAT_REPORTER_URL
 import org.mozilla.fenix.webcompat.WebCompatReporterMoreInfoSender
 import org.mozilla.fenix.webcompat.fake.FakeWebCompatReporterMoreInfoSender
@@ -773,6 +781,154 @@ class MenuNavigationMiddlewareTest {
     }
 
     @Test
+    fun `GIVEN homepage as a new tab is enabled WHEN navigating back THEN go back in browser history`() = runTest {
+        every { settings.enableHomepageAsNewTab } returns true
+        val tab = createTab(url = "https://www.mozilla.org")
+        val engineMiddleware = EngineMiddleware.create(mockk())
+        val captorMiddleware = CaptureActionsMiddleware<BrowserState, BrowserAction>()
+        val browserStore = createBrowserStore(
+            middlewares = listOf(captorMiddleware) + engineMiddleware,
+        )
+        var dismissWasCalled = false
+        val store = createStore(
+            scope = this,
+            browserStore = browserStore,
+            customTab = null,
+            menuState = MenuState(
+                browserMenuState = BrowserMenuState(
+                    selectedTab = tab,
+                ),
+            ),
+            onDismiss = { dismissWasCalled = true },
+        )
+
+        store.dispatch(MenuAction.Navigate.Back(viewHistory = false))
+        testScheduler.advanceUntilIdle()
+
+        captorMiddleware.assertLastAction(EngineAction.GoBackAction::class) {
+            assertEquals(tab.id, it.tabId)
+        }
+        verify(exactly = 0) { sessionUseCases.goBack.invoke(any()) }
+        assertTrue(dismissWasCalled)
+    }
+
+    @Test
+    fun `GIVEN tab on a home screen story URL WHEN navigating back THEN navigate to home`() = runTest {
+        val tab = createTab(url = "https://story.test".markAsOpenedFromHomeScreen())
+        var dismissWasCalled = false
+        val store = createStore(
+            scope = this,
+            customTab = null,
+            menuState = MenuState(
+                browserMenuState = BrowserMenuState(
+                    selectedTab = tab,
+                ),
+            ),
+            onDismiss = { dismissWasCalled = true },
+        )
+
+        store.dispatch(MenuAction.Navigate.Back(viewHistory = false))
+        testScheduler.advanceUntilIdle()
+
+        verify {
+            navController.navigate(
+                directions = NavGraphDirections.actionGlobalHome(),
+                navOptions = null,
+            )
+        }
+        verify(exactly = 0) { sessionUseCases.goBack.invoke(any()) }
+        assertTrue(dismissWasCalled)
+    }
+
+    @Test
+    fun `GIVEN tab on a stories screen story URL WHEN navigating back THEN navigate to the stories fragment`() = runTest {
+        val tab = createTab(url = "https://story.test".markAsOpenedFromStoriesScreen())
+        var dismissWasCalled = false
+        val store = createStore(
+            scope = this,
+            customTab = null,
+            menuState = MenuState(
+                browserMenuState = BrowserMenuState(
+                    selectedTab = tab,
+                ),
+            ),
+            onDismiss = { dismissWasCalled = true },
+        )
+
+        store.dispatch(MenuAction.Navigate.Back(viewHistory = false))
+        testScheduler.advanceUntilIdle()
+
+        verify {
+            navController.navigate(
+                MenuDialogFragmentDirections.actionMenuDialogFragmentToStoriesFragment(),
+                null,
+            )
+        }
+        verify(exactly = 0) { sessionUseCases.goBack.invoke(any()) }
+        assertTrue(dismissWasCalled)
+    }
+
+    @Test
+    fun `GIVEN tab on a home screen story URL WHEN navigating back AND home is on the back stack THEN pop back to home`() = runTest {
+        val tab = createTab(url = "https://story.test".markAsOpenedFromHomeScreen())
+        every { navController.popBackStack(R.id.homeFragment, false) } returns true
+        var dismissWasCalled = false
+        val store = createStore(
+            scope = this,
+            customTab = null,
+            menuState = MenuState(
+                browserMenuState = BrowserMenuState(
+                    selectedTab = tab,
+                ),
+            ),
+            onDismiss = { dismissWasCalled = true },
+        )
+
+        store.dispatch(MenuAction.Navigate.Back(viewHistory = false))
+        testScheduler.advanceUntilIdle()
+
+        verify { navController.popBackStack(R.id.homeFragment, false) }
+        verify(exactly = 0) {
+            navController.navigate(
+                directions = NavGraphDirections.actionGlobalHome(),
+                navOptions = null,
+            )
+        }
+        verify(exactly = 0) { sessionUseCases.goBack.invoke(any()) }
+        assertTrue(dismissWasCalled)
+    }
+
+    @Test
+    fun `GIVEN tab on a stories screen story URL WHEN navigating back AND stories is on the back stack THEN pop back to stories`() = runTest {
+        val tab = createTab(url = "https://story.test".markAsOpenedFromStoriesScreen())
+        every { navController.popBackStack(R.id.storiesFragment, false) } returns true
+        var dismissWasCalled = false
+        val store = createStore(
+            scope = this,
+            customTab = null,
+            menuState = MenuState(
+                browserMenuState = BrowserMenuState(
+                    selectedTab = tab,
+                ),
+            ),
+            onDismiss = { dismissWasCalled = true },
+        )
+
+        store.dispatch(MenuAction.Navigate.Back(viewHistory = false))
+        testScheduler.advanceUntilIdle()
+
+        verify { navController.popBackStack(R.id.storiesFragment, false) }
+        verify(exactly = 0) {
+            navController.navigate(
+                MenuDialogFragmentDirections.actionMenuDialogFragmentToStoriesFragment(),
+                null,
+            )
+        }
+        verify(exactly = 0) { sessionUseCases.goBack.invoke(any()) }
+        assertTrue(dismissWasCalled)
+    }
+
+    @Test
     fun `GIVEN view history is true WHEN navigate forward action is dispatched THEN navigate to tab history dialog fragment`() = runTest {
         val store = createStore(
             scope = this,
@@ -985,7 +1141,9 @@ class MenuNavigationMiddlewareTest {
         ),
     )
 
-    private fun createBrowserStore(): BrowserStore {
+    private fun createBrowserStore(
+        middlewares: List<Middleware<BrowserState, BrowserAction>> = emptyList(),
+    ): BrowserStore {
         val tab = createTab(
             url = "https://www.mozilla.org",
             id = "test-tab",
@@ -996,6 +1154,7 @@ class MenuNavigationMiddlewareTest {
                 tabs = listOf(tab),
                 selectedTabId = tab.id,
             ),
+            middleware = middlewares,
         )
     }
 }

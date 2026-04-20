@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mozilla.appservices.places.BookmarkRoot
+import mozilla.components.browser.state.action.EngineAction
 import mozilla.components.browser.state.ext.getUrl
 import mozilla.components.browser.state.selector.selectedTab
 import mozilla.components.browser.state.state.CustomTabSessionState
@@ -24,6 +25,7 @@ import mozilla.components.service.fxa.manager.AccountState.Authenticated
 import mozilla.components.service.fxa.manager.AccountState.Authenticating
 import mozilla.components.service.fxa.manager.AccountState.AuthenticationProblem
 import mozilla.components.service.fxa.manager.AccountState.NotAuthenticated
+import org.mozilla.fenix.NavGraphDirections
 import org.mozilla.fenix.R
 import org.mozilla.fenix.browser.BrowserFragmentDirections
 import org.mozilla.fenix.collections.SaveCollectionStep
@@ -37,6 +39,8 @@ import org.mozilla.fenix.components.share.ShareSheetLauncher
 import org.mozilla.fenix.ext.nav
 import org.mozilla.fenix.settings.SupportUtils.AMO_HOMEPAGE_FOR_ANDROID
 import org.mozilla.fenix.utils.Settings
+import org.mozilla.fenix.utils.Stories.hasUrlOfAHomeScreenStory
+import org.mozilla.fenix.utils.Stories.hasUrlOfAStoriesScreenStory
 import org.mozilla.fenix.webcompat.WEB_COMPAT_REPORTER_URL
 import org.mozilla.fenix.webcompat.WebCompatReporterMoreInfoSender
 
@@ -293,12 +297,40 @@ class MenuNavigationMiddleware(
                                 .build(),
                         )
                     } else {
-                        val session = customTab ?: currentState.browserMenuState?.selectedTab
+                        val session = customTab ?: currentState.browserMenuState?.selectedTab ?: return@launch
 
-                        session?.let {
-                            sessionUseCases.goBack.invoke(it.id)
-                            onDismiss()
+                        when {
+                            settings.enableHomepageAsNewTab ->
+                                browserStore.dispatch(EngineAction.GoBackAction(session.id))
+                            customTab == null && session.hasUrlOfAHomeScreenStory() -> {
+                                // First attempting to go back to the existing home fragment
+                                // to preserve its scroll position.
+                                val popToExistingHomeFragment =
+                                    navController.popBackStack(R.id.homeFragment, false)
+                                if (!popToExistingHomeFragment) {
+                                    navController.nav(
+                                        id = R.id.menuDialogFragment,
+                                        directions = NavGraphDirections.actionGlobalHome(),
+                                    )
+                                }
+                            }
+                            customTab == null && session.hasUrlOfAStoriesScreenStory() -> {
+                                // First attempting to go back to the existing stories fragment
+                                // to preserve its scroll position.
+                                val popToExistingStoriesFragment =
+                                    navController.popBackStack(R.id.storiesFragment, false)
+                                if (!popToExistingStoriesFragment) {
+                                    navController.nav(
+                                        id = R.id.menuDialogFragment,
+                                        directions = MenuDialogFragmentDirections
+                                            .actionMenuDialogFragmentToStoriesFragment(),
+                                    )
+                                }
+                            }
+                            else -> sessionUseCases.goBack.invoke(session.id)
                         }
+
+                        onDismiss()
                     }
                 }
 

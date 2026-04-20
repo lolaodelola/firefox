@@ -27,6 +27,8 @@ import org.mozilla.fenix.home.pocket.PocketImpression
 import org.mozilla.fenix.home.pocket.PocketRecommendedStoriesCategory
 import org.mozilla.fenix.home.pocket.interactor.PocketStoriesInteractor
 import org.mozilla.fenix.utils.Settings
+import org.mozilla.fenix.utils.Stories.markAsOpenedFromHomeScreen
+import org.mozilla.fenix.utils.Stories.markAsOpenedFromStoriesScreen
 import java.lang.ref.WeakReference
 
 private const val POCKET_CATEGORIES_SELECTED_AT_A_TIME_COUNT = 8
@@ -196,9 +198,15 @@ internal class DefaultPocketStoriesController(
         storyClicked: PocketStory,
         storyPosition: Triple<Int, Int, Int>,
     ) {
+        val storyUrl = when (navController.currentDestination?.id) {
+            R.id.storiesFragment -> storyClicked.url.markAsOpenedFromStoriesScreen()
+            R.id.homeFragment -> storyClicked.url.markAsOpenedFromHomeScreen()
+            else -> storyClicked.url
+        }
+
         navController.navigate(R.id.browserFragment)
         fenixBrowserUseCases.loadUrlOrSearch(
-            searchTermOrURL = storyClicked.url,
+            searchTermOrURL = storyUrl,
             newTab = !settings.enableHomepageAsNewTab,
             private = false,
         )
