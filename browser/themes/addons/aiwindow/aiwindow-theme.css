@@ -14,7 +14,7 @@ body {
   background-image: var(--ai-gradient) !important;
 
   /* stylelint-disable-next-line media-query-no-invalid */
-  @media -moz-pref("browser.smartwindow.nova.enabled") {
+  @media -moz-pref("browser.nova.enabled") {
     --ai-gradient-nova-color: light-dark(#f5f4fe, #1d1f30);
     --ai-gradient: linear-gradient(0deg, var(--ai-gradient-nova-color) 89%, color-mix(in srgb, var(--color-violet-50) 60%, var(--ai-gradient-nova-color)) 102%);
   }

@@ -2258,9 +2258,6 @@ pref("browser.smartwindow.chatStore.loglevel", "Error");
 pref("browser.smartwindow.conversation.logLevel", "Error");
 pref("browser.smartwindow.smartbarMentions.loglevel", "Error");
 
-//Smart Window Nova
-pref("browser.smartwindow.nova.enabled", false);
-
 // Block insecure active content on https pages
 pref("security.mixed_content.block_active_content", true);
 

@@ -14,10 +14,9 @@
   --smartwindow-shadow: var(--box-shadow-level-2);
 
   /* stylelint-disable-next-line media-query-no-invalid */
-  @media -moz-pref("browser.smartwindow.nova.enabled") {
+  @media -moz-pref("browser.nova.enabled") {
     /* Smart Window Nova Tokens */
-    --focus-outline-color: light-dark(var(--color-violet-50), var(--color-violet-30));
-    --smartwindow-text-color-accent-primary: light-dark(var(--color-violet-70), var(--color-violet-30));
+    --smartwindow-text-color-accent-primary: light-dark(var(--color-violet-60), var(--color-violet-30));
     --smartwindow-icon-color-accent-primary-desaturated: light-dark(var(--color-purple-desaturated-50), var(--color-purple-desaturated-10));
   }
 }

@@ -40,7 +40,7 @@
 }
 
 /* stylelint-disable-next-line media-query-no-invalid */
-@media -moz-pref("browser.smartwindow.nova.enabled") {
+@media -moz-pref("browser.nova.enabled") {
   .message-assistant {
     a {
       --smartwindow-assistant-link-color-active: light-dark(var(--color-violet-80), var(--color-violet-50));
