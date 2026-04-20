@@ -9,9 +9,6 @@ with Files("**"):
 with Files("*TextInput*"):
     BUG_COMPONENT = ("Core", "DOM: UI Events & Focus Handling")
 
-with Files("nsMacPermissionMonitor*"):
-    BUG_COMPONENT = ("Core", "Permission Manager")
-
 EXPORTS += [
     "DesktopBackgroundImage.h",
     "MediaHardwareKeysEventSourceMac.h",
@@ -52,7 +49,6 @@ UNIFIED_SOURCES += [
     "nsLookAndFeel.mm",
     "nsMacDockSupport.mm",
     "nsMacFinderProgress.mm",
-    "nsMacPermissionMonitor.mm",
     "nsMacSharingService.mm",
     "nsMacUserActivityUpdater.mm",
     "nsMacWebAppUtils.mm",
