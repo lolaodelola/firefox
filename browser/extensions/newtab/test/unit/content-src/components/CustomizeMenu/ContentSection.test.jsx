@@ -12,7 +12,6 @@ const DEFAULT_PROPS = {
   mayHaveWeather: true,
   mayHaveTimerWidget: false,
   mayHaveListsWidget: false,
-  wallpapersSystemEnabled: false,
   wallpapersEnabled: false,
   activeWallpaper: null,
   exitEventFired: false,
@@ -411,7 +410,6 @@ describe("ContentSection", () => {
 
     const NOVA_PROPS = {
       novaEnabled: true,
-      wallpapersSystemEnabled: true,
       toggleWidgetsManagementPanel: sinon.stub(),
       showWidgetsManagementPanel: false,
       onSubpanelToggle: sinon.stub(),
@@ -419,7 +417,7 @@ describe("ContentSection", () => {
 
     it("renders the wallpaper toggle", () => {
       wrapper = mount(
-        <WrapWithProvider state={WALLPAPER_STATE}>
+        <WrapWithProvider>
           <ContentSection
             {...DEFAULT_PROPS}
             {...NOVA_PROPS}
@@ -430,20 +428,7 @@ describe("ContentSection", () => {
       assert.isTrue(wrapper.find("#wallpapers-toggle").exists());
     });
 
-    it("shows WallpaperCategories regardless of toggle state", () => {
-      wrapper = mount(
-        <WrapWithProvider state={WALLPAPER_STATE}>
-          <ContentSection
-            {...DEFAULT_PROPS}
-            {...NOVA_PROPS}
-            wallpapersEnabled={false}
-          />
-        </WrapWithProvider>
-      );
-      assert.isTrue(wrapper.find(".category-list").exists());
-    });
-
-    it("sets newtabWallpapers.enabled to false when the wallpaper toggle is turned off", () => {
+    it("shows WallpaperCategories when the wallpaper toggle is on", () => {
       wrapper = mount(
         <WrapWithProvider state={WALLPAPER_STATE}>
           <ContentSection
@@ -453,29 +438,12 @@ describe("ContentSection", () => {
           />
         </WrapWithProvider>
       );
-      wrapper
-        .find(ContentSection)
-        .instance()
-        .onPreferenceSelect({
-          target: {
-            nodeName: "MOZ-TOGGLE",
-            pressed: false,
-            dataset: {
-              preference: "newtabWallpapers.enabled",
-              eventSource: "WALLPAPERS",
-            },
-          },
-        });
-      assert.calledWith(
-        DEFAULT_PROPS.setPref,
-        "newtabWallpapers.enabled",
-        false
-      );
+      assert.isTrue(wrapper.find(".category-list").exists());
     });
 
-    it("sets newtabWallpapers.enabled to true when the wallpaper toggle is turned on", () => {
+    it("hides WallpaperCategories when the wallpaper toggle is off", () => {
       wrapper = mount(
-        <WrapWithProvider state={WALLPAPER_STATE}>
+        <WrapWithProvider>
           <ContentSection
             {...DEFAULT_PROPS}
             {...NOVA_PROPS}
@@ -483,30 +451,13 @@ describe("ContentSection", () => {
           />
         </WrapWithProvider>
       );
-      wrapper
-        .find(ContentSection)
-        .instance()
-        .onPreferenceSelect({
-          target: {
-            nodeName: "MOZ-TOGGLE",
-            pressed: true,
-            dataset: {
-              preference: "newtabWallpapers.enabled",
-              eventSource: "WALLPAPERS",
-            },
-          },
-        });
-      assert.calledWith(
-        DEFAULT_PROPS.setPref,
-        "newtabWallpapers.enabled",
-        true
-      );
+      assert.isFalse(wrapper.find(".category-list").exists());
     });
 
     // @nova-cleanup(remove-conditional): Remove the `.widgets-section` assertion once the novaEnabled condition is removed
     it("renders WidgetsManagementPanel instead of .widgets-section when novaEnabled and mayHaveWidgets are true", () => {
       wrapper = mount(
-        <WrapWithProvider state={WALLPAPER_STATE}>
+        <WrapWithProvider>
           <ContentSection
             {...DEFAULT_PROPS}
             {...NOVA_PROPS}
@@ -521,7 +472,7 @@ describe("ContentSection", () => {
     describe("widgets system toggle", () => {
       it("renders the widgets system toggle in ContentSection", () => {
         wrapper = mount(
-          <WrapWithProvider state={WALLPAPER_STATE}>
+          <WrapWithProvider>
             <ContentSection
               {...DEFAULT_PROPS}
               {...NOVA_PROPS}
@@ -535,7 +486,7 @@ describe("ContentSection", () => {
 
       it("sets widgets-system-toggle pressed when widgetsEnabled is true", () => {
         wrapper = mount(
-          <WrapWithProvider state={WALLPAPER_STATE}>
+          <WrapWithProvider>
             <ContentSection
               {...DEFAULT_PROPS}
               {...NOVA_PROPS}
@@ -549,7 +500,7 @@ describe("ContentSection", () => {
 
       it("sets widgets-system-toggle unpressed when widgetsEnabled is false", () => {
         wrapper = mount(
-          <WrapWithProvider state={WALLPAPER_STATE}>
+          <WrapWithProvider>
             <ContentSection
               {...DEFAULT_PROPS}
               {...NOVA_PROPS}

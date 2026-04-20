@@ -72,7 +72,7 @@ add_setup(async function () {
     ""
   );
   Services.prefs.setBoolPref(
-    "browser.newtabpage.activity-stream.newtabWallpapers.system.enabled",
+    "browser.newtabpage.activity-stream.newtabWallpapers.enabled",
     false
   );
 

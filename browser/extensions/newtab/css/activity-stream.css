@@ -2475,9 +2475,6 @@ main section {
 .nova-enabled .section #shortcuts-toggle #row-selector {
   width: 100%;
 }
-.nova-enabled #wallpapers-toggle {
-  margin-block-end: var(--space-large);
-}
 
 .category-list {
   border: none;

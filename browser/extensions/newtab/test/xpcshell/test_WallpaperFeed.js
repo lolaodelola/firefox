@@ -12,8 +12,8 @@ ChromeUtils.defineESModuleGetters(this, {
   WallpaperFeed: "resource://newtab/lib/Wallpapers/WallpaperFeed.sys.mjs",
 });
 
-const PREF_SYSTEM_WALLPAPERS_ENABLED =
-  "browser.newtabpage.activity-stream.newtabWallpapers.system.enabled";
+const PREF_WALLPAPERS_ENABLED =
+  "browser.newtabpage.activity-stream.newtabWallpapers.enabled";
 
 const PREF_WALLPAPERS_CUSTOM_WALLPAPER_UUID =
   "browser.newtabpage.activity-stream.newtabWallpapers.customWallpaper.uuid";
@@ -45,7 +45,7 @@ add_task(async function test_construction() {
 add_task(async function test_onAction_INIT() {
   let sandbox = sinon.createSandbox();
   let feed = new WallpaperFeed();
-  Services.prefs.setBoolPref(PREF_SYSTEM_WALLPAPERS_ENABLED, true);
+  Services.prefs.setBoolPref(PREF_WALLPAPERS_ENABLED, true);
   const attachment = {
     attachment: {
       location: "attachment",
@@ -95,27 +95,27 @@ add_task(async function test_onAction_INIT() {
     })
   );
 
-  Services.prefs.clearUserPref(PREF_SYSTEM_WALLPAPERS_ENABLED);
+  Services.prefs.clearUserPref(PREF_WALLPAPERS_ENABLED);
   sandbox.restore();
 });
 
 add_task(async function test_onAction_PREF_CHANGED() {
   let sandbox = sinon.createSandbox();
   let feed = new WallpaperFeed();
-  Services.prefs.setBoolPref(PREF_SYSTEM_WALLPAPERS_ENABLED, true);
+  Services.prefs.setBoolPref(PREF_WALLPAPERS_ENABLED, true);
   sandbox.stub(feed, "wallpaperSetup").returns();
 
   info("WallpaperFeed.onAction PREF_CHANGED should call wallpaperSetup");
 
   feed.onAction({
     type: actionTypes.PREF_CHANGED,
-    data: { name: "newtabWallpapers.system.enabled" },
+    data: { name: "newtabWallpapers.enabled" },
   });
 
   Assert.ok(feed.wallpaperSetup.calledOnce);
   Assert.ok(feed.wallpaperSetup.calledWith(false));
 
-  Services.prefs.clearUserPref(PREF_SYSTEM_WALLPAPERS_ENABLED);
+  Services.prefs.clearUserPref(PREF_WALLPAPERS_ENABLED);
   sandbox.restore();
 });
 
@@ -124,7 +124,7 @@ add_task(async function test_onAction_WALLPAPER_UPLOAD() {
   let feed = new WallpaperFeed();
   const fileData = {};
 
-  Services.prefs.setBoolPref(PREF_SYSTEM_WALLPAPERS_ENABLED, true);
+  Services.prefs.setBoolPref(PREF_WALLPAPERS_ENABLED, true);
   sandbox.stub(feed, "wallpaperUpload").returns();
 
   info("WallpaperFeed.onAction WALLPAPER_UPLOAD should call wallpaperUpload");
@@ -137,7 +137,7 @@ add_task(async function test_onAction_WALLPAPER_UPLOAD() {
   Assert.ok(feed.wallpaperUpload.calledOnce);
   Assert.ok(feed.wallpaperUpload.calledWith(fileData));
 
-  Services.prefs.clearUserPref(PREF_SYSTEM_WALLPAPERS_ENABLED);
+  Services.prefs.clearUserPref(PREF_WALLPAPERS_ENABLED);
 
   sandbox.restore();
 });
@@ -205,7 +205,7 @@ add_task(async function test_Wallpaper_Upload() {
 add_task(async function test_updateWallpapers_category_order() {
   let sandbox = sinon.createSandbox();
   let feed = new WallpaperFeed();
-  Services.prefs.setBoolPref(PREF_SYSTEM_WALLPAPERS_ENABLED, true);
+  Services.prefs.setBoolPref(PREF_WALLPAPERS_ENABLED, true);
   Services.prefs.setBoolPref(
     "browser.newtabpage.activity-stream.newtabWallpapers.customWallpaper.enabled",
     true
@@ -249,7 +249,7 @@ add_task(async function test_updateWallpapers_category_order() {
     "solid-colors",
   ]);
 
-  Services.prefs.clearUserPref(PREF_SYSTEM_WALLPAPERS_ENABLED);
+  Services.prefs.clearUserPref(PREF_WALLPAPERS_ENABLED);
   Services.prefs.clearUserPref(
     "browser.newtabpage.activity-stream.newtabWallpapers.customWallpaper.enabled"
   );
@@ -259,7 +259,7 @@ add_task(async function test_updateWallpapers_category_order() {
 add_task(async function test_onAction_PREF_CHANGED_customColor() {
   let sandbox = sinon.createSandbox();
   let feed = new WallpaperFeed();
-  Services.prefs.setBoolPref(PREF_SYSTEM_WALLPAPERS_ENABLED, true);
+  Services.prefs.setBoolPref(PREF_WALLPAPERS_ENABLED, true);
   sandbox.stub(feed, "wallpaperTeardown").returns();
   sandbox.stub(feed, "wallpaperSetup").returns();
 
@@ -286,7 +286,7 @@ add_task(async function test_onAction_PREF_CHANGED_customColor() {
     "wallpaperSetup should be called with isStartup=false"
   );
 
-  Services.prefs.clearUserPref(PREF_SYSTEM_WALLPAPERS_ENABLED);
+  Services.prefs.clearUserPref(PREF_WALLPAPERS_ENABLED);
   sandbox.restore();
 });
 

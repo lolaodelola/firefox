@@ -685,17 +685,9 @@ export const PREFS_CONFIG = new Map([
     },
   ],
   [
-    "newtabWallpapers.system.enabled",
-    {
-      title: "Boolean flag to turn wallpaper functionality on and off",
-      value: true,
-    },
-  ],
-  [
     "newtabWallpapers.enabled",
     {
-      title:
-        "Boolean flag controlling wallpaper visibility -- if true the user's selected wallpaper is shown, if false it is hidden",
+      title: "Boolean flag to turn wallpaper functionality on and off",
       value: false,
     },
   ],

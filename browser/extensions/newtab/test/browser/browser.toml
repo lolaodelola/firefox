@@ -20,7 +20,6 @@ prefs = [
   "browser.newtabpage.activity-stream.discoverystream.sections.region-content-config=",
   "messaging-system.log=all",
   "browser.newtabpage.activity-stream.activationWindow.log=true",
-  "browser.newtabpage.activity-stream.newtabWallpapers.system.enabled=false",
 ]
 tags = "newtab"
 

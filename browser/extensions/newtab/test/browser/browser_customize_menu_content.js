@@ -8,10 +8,6 @@ const { WeatherFeed } = ChromeUtils.importESModule(
   "resource://newtab/lib/WeatherFeed.sys.mjs"
 );
 
-const { WallpaperFeed } = ChromeUtils.importESModule(
-  "resource://newtab/lib/Wallpapers/WallpaperFeed.sys.mjs"
-);
-
 const { DiscoveryStreamFeed } = ChromeUtils.importESModule(
   "resource://newtab/lib/DiscoveryStreamFeed.sys.mjs"
 );
@@ -35,15 +31,6 @@ add_setup(async function () {
     .returns(
       "https://example.com/browser/browser/extensions/newtab/test/browser/topstories.json"
     );
-
-  const fakeWallpaperClient = {
-    on: () => {},
-    off: () => {},
-    get: async () => [],
-  };
-  sandbox
-    .stub(WallpaperFeed.prototype, "RemoteSettings")
-    .returns(fakeWallpaperClient);
 
   await SpecialPowers.pushPrefEnv({
     set: [
@@ -284,96 +271,6 @@ test_newtab({
     );
     Services.prefs.clearUserPref(
       "browser.newtabpage.activity-stream.widgets.weather.enabled"
-    );
-  },
-});
-
-test_newtab({
-  async before({ pushPrefs }) {
-    await pushPrefs(
-      ["browser.newtabpage.activity-stream.nova.enabled", true],
-      [
-        "browser.newtabpage.activity-stream.newtabWallpapers.system.enabled",
-        true,
-      ],
-      ["browser.newtabpage.activity-stream.newtabWallpapers.enabled", false],
-      // Use a solid color so we don't depend on remote settings wallpaper data
-      [
-        "browser.newtabpage.activity-stream.newtabWallpapers.wallpaper",
-        "solid-color-picker-#aabbcc",
-      ]
-    );
-  },
-  test: async function test_render_customizeMenuWallpaper() {
-    const WALLPAPERS_ENABLED_PREF =
-      "browser.newtabpage.activity-stream.newtabWallpapers.enabled";
-
-    function isWallpaperApplied() {
-      return (
-        content.document.body.classList.contains("lightWallpaper") ||
-        content.document.body.classList.contains("darkWallpaper")
-      );
-    }
-
-    await ContentTaskUtils.waitForCondition(
-      () => content.document.querySelector(".personalize-button"),
-      "Wait for prefs button to load on the newtab page"
-    );
-
-    Assert.ok(
-      !Services.prefs.getBoolPref(WALLPAPERS_ENABLED_PREF),
-      "Wallpapers pref defaults to off"
-    );
-    Assert.ok(
-      !isWallpaperApplied(),
-      "Wallpaper is not applied when pref is off"
-    );
-
-    let customizeButton = content.document.querySelector(".personalize-button");
-    customizeButton.click();
-
-    await ContentTaskUtils.waitForCondition(
-      () => content.document.querySelector("#wallpapers-toggle"),
-      "Wallpapers toggle should be present"
-    );
-
-    let wallpapersSwitch = Cu.waiveXrays(
-      content.document.querySelector("#wallpapers-toggle")
-    );
-    Assert.ok(
-      !Services.prefs.getBoolPref(WALLPAPERS_ENABLED_PREF),
-      "Wallpapers pref is still off before clicking toggle"
-    );
-    Assert.ok(!isWallpaperApplied(), "Wallpaper is still not applied");
-
-    let wallpaperAppliedPromise = ContentTaskUtils.waitForCondition(
-      () => isWallpaperApplied(),
-      "Wallpaper should be applied after toggle"
-    );
-    wallpapersSwitch.click();
-    await wallpaperAppliedPromise;
-
-    Assert.ok(
-      isWallpaperApplied(),
-      "Wallpaper is applied after enabling toggle"
-    );
-    Assert.ok(
-      Services.prefs.getBoolPref(WALLPAPERS_ENABLED_PREF),
-      "Wallpapers pref is on after enabling toggle"
-    );
-  },
-  async after() {
-    Services.prefs.clearUserPref(
-      "browser.newtabpage.activity-stream.nova.enabled"
-    );
-    Services.prefs.clearUserPref(
-      "browser.newtabpage.activity-stream.newtabWallpapers.system.enabled"
-    );
-    Services.prefs.clearUserPref(
-      "browser.newtabpage.activity-stream.newtabWallpapers.enabled"
-    );
-    Services.prefs.clearUserPref(
-      "browser.newtabpage.activity-stream.newtabWallpapers.wallpaper"
     );
   },
 });

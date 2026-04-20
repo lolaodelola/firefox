@@ -22,7 +22,6 @@ const DEFAULT_PROPS = {
     widgetsMaximized: false,
     widgetsMayBeMaximized: false,
   },
-  wallpapersSystemEnabled: false,
   wallpapersEnabled: false,
   activeWallpaper: null,
   pocketRegion: false,

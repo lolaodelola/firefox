@@ -14,8 +14,8 @@ import {
   actionCreators as ac,
 } from "resource://newtab/common/Actions.mjs";
 
-const PREF_SYSTEM_WALLPAPERS_ENABLED =
-  "browser.newtabpage.activity-stream.newtabWallpapers.system.enabled";
+const PREF_WALLPAPERS_ENABLED =
+  "browser.newtabpage.activity-stream.newtabWallpapers.enabled";
 
 const PREF_WALLPAPERS_HIGHLIGHT_SEEN_COUNTER =
   "browser.newtabpage.activity-stream.newtabWallpapers.highlightSeenCounter";
@@ -72,7 +72,7 @@ export class WallpaperFeed {
 
   async wallpaperSetup(isStartup = false) {
     const wallpapersEnabled = Services.prefs.getBoolPref(
-      PREF_SYSTEM_WALLPAPERS_ENABLED
+      PREF_WALLPAPERS_ENABLED
     );
 
     if (wallpapersEnabled) {
@@ -342,7 +342,7 @@ export class WallpaperFeed {
         if (
           action.data.name === "newtabWallpapers.customColor.enabled" ||
           action.data.name === "newtabWallpapers.customWallpaper.enabled" ||
-          action.data.name === "newtabWallpapers.system.enabled"
+          action.data.name === "newtabWallpapers.enabled"
         ) {
           this.wallpaperTeardown();
           await this.wallpaperSetup(false /* isStartup */);

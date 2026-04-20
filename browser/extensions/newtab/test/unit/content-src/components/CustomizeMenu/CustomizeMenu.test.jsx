@@ -127,7 +127,6 @@ describe("<CustomizeMenu>", () => {
       mayHaveWidgets: true,
       mayHaveTimerWidget: true,
       mayHaveListsWidget: true,
-      wallpapersSystemEnabled: true,
       wallpapersEnabled: true,
       enabledWidgets: { timerEnabled: true, listsEnabled: true },
     };
@@ -142,7 +141,6 @@ describe("<CustomizeMenu>", () => {
     assert.strictEqual(child.prop("mayHaveWidgets"), true);
     assert.strictEqual(child.prop("mayHaveTimerWidget"), true);
     assert.strictEqual(child.prop("mayHaveListsWidget"), true);
-    assert.strictEqual(child.prop("wallpapersSystemEnabled"), true);
     assert.strictEqual(child.prop("wallpapersEnabled"), true);
     assert.deepEqual(child.prop("enabledWidgets"), {
       timerEnabled: true,
