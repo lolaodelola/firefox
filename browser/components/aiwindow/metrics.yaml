@@ -324,6 +324,11 @@ smart_window:
         type: string
         description: >
           The location where the removal occurred (assistant, settings)
+      in_use:
+        type: quantity
+        unit: count
+        description: >
+          Number of memories still applied to the assistant message after the removal. Null when the trigger is "settings"
 
   memory_applied:
     type: event

@@ -1983,12 +1983,22 @@ export class AIWindow extends MozLitElement {
   async #removeAppliedMemory(messageId, memory) {
     try {
       const memoryId = memory.id;
+      const msg = this.#getMessageById(messageId);
+
+      const remaining = msg?.memoriesApplied.filter(m => m.id !== memoryId);
+      const inUse = remaining?.length ?? 0;
       const deleted = await lazy.MemoriesManager.hardDeleteMemoryById(
         memoryId,
-        "assistant"
+        "assistant",
+        inUse
       );
       if (!deleted) {
         console.warn("hardDeleteMemory returned false", memoryId);
+        return;
+      }
+
+      if (msg) {
+        msg.memoriesApplied = remaining;
       }
 
       const actor = this.#getAIChatContentActor();
