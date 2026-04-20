@@ -241,8 +241,7 @@ module.exports = function (config) {
                 branches: 0,
               },
             /**
-             * SectionFollowButton.jsx manages hover/focus state for the follow button UI.
-             * The follow/unfollow callbacks it invokes are covered by CardSections.test.jsx.
+             * SectionFollowButton.jsx is covered by Jest tests
              */
             "content-src/components/DiscoveryStreamComponents/SectionFollowButton/SectionFollowButton.jsx":
               {
