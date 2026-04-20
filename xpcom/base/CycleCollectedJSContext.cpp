@@ -100,6 +100,7 @@ CycleCollectedJSContext::~CycleCollectedJSContext() {
 
   mAboutToBeNotifiedRejectedPromises.Clear();
   mPendingUnhandledRejections.Clear();
+  mUncaughtRejectionObservers.Clear();
 
   mFinalizationRegistryCleanup.Destroy();
 
