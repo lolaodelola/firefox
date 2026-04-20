@@ -47,8 +47,6 @@ class nsPIDOMWindowOuter;
 
 namespace mozilla {
 
-enum class NativeKeyBindingsType : uint8_t;
-
 namespace a11y {
 class DocAccessibleParent;
 }
@@ -496,7 +494,7 @@ class BrowserParent final : public PBrowserParent,
   LayoutDeviceToCSSScale GetLayoutDeviceToCSSScale();
 
   MOZ_CAN_RUN_SCRIPT_BOUNDARY mozilla::ipc::IPCResult
-  RecvRequestNativeKeyBindings(const mozilla::NativeKeyBindingsType& aType,
+  RecvRequestNativeKeyBindings(const uint32_t& aType,
                                const mozilla::WidgetKeyboardEvent& aEvent,
                                nsTArray<mozilla::CommandInt>* aCommands);
 

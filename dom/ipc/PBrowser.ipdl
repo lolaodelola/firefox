@@ -459,8 +459,7 @@ parent:
      * @return            Array of edit commands which should be executed in
      *                    editor of native applications.
      */
-    sync RequestNativeKeyBindings(NativeKeyBindingsType aType,
-                                  WidgetKeyboardEvent aEvent)
+    sync RequestNativeKeyBindings(uint32_t aType, WidgetKeyboardEvent aEvent)
         returns (CommandInt[] commands);
 
     async SynthesizeNativeKeyEvent(int32_t aNativeKeyboardLayout,
