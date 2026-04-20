@@ -108,7 +108,7 @@ using mozilla::dom::CallerType from "mozilla/dom/BindingDeclarations.h";
 using mozilla::dom::EmbedderElementEventType from "mozilla/dom/TabMessageTypes.h";
 using mozilla::IntrinsicSize from "nsIFrame.h";
 using mozilla::AspectRatio from "mozilla/AspectRatio.h";
-using mozilla::NativeKeyBindingsType from "mozilla/NativeKeyBindingsType.h";
+using mozilla::NativeKeyBindingsType from "mozilla/widget/WidgetMessageUtils.h";
 using mozilla::StyleImageRendering from "mozilla/ServoStyleConsts.h";
 [MoveOnly] using class mozilla::ipc::BigBuffer from "mozilla/ipc/BigBuffer.h";
 using nsIFilePicker::Mode from "nsIFilePicker.h";
@@ -459,7 +459,8 @@ parent:
      * @return            Array of edit commands which should be executed in
      *                    editor of native applications.
      */
-    sync RequestNativeKeyBindings(uint32_t aType, WidgetKeyboardEvent aEvent)
+    sync RequestNativeKeyBindings(NativeKeyBindingsType aType,
+                                  WidgetKeyboardEvent aEvent)
         returns (CommandInt[] commands);
 
     async SynthesizeNativeKeyEvent(int32_t aNativeKeyboardLayout,

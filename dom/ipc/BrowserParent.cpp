@@ -1808,23 +1808,12 @@ mozilla::ipc::IPCResult BrowserParent::RecvDispatchTouchEvent(
 }
 
 mozilla::ipc::IPCResult BrowserParent::RecvRequestNativeKeyBindings(
-    const uint32_t& aType, const WidgetKeyboardEvent& aEvent,
+    const NativeKeyBindingsType& aType, const WidgetKeyboardEvent& aEvent,
     nsTArray<CommandInt>* aCommands) {
   MOZ_ASSERT(aCommands);
   MOZ_ASSERT(aCommands->IsEmpty());
 
   NS_ENSURE_TRUE(xpc::IsInAutomation(), IPC_FAIL(this, "Unexpected event"));
-
-  NativeKeyBindingsType keyBindingsType =
-      static_cast<NativeKeyBindingsType>(aType);
-  switch (keyBindingsType) {
-    case NativeKeyBindingsType::SingleLineEditor:
-    case NativeKeyBindingsType::MultiLineEditor:
-    case NativeKeyBindingsType::RichTextEditor:
-      break;
-    default:
-      return IPC_FAIL(this, "Invalid aType value");
-  }
 
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (!widget) {
@@ -1843,8 +1832,8 @@ mozilla::ipc::IPCResult BrowserParent::RecvRequestNativeKeyBindings(
           widget->GetTextEventDispatcher()) {
     writingMode = dispatcher->MaybeQueryWritingModeAtSelection();
   }
-  if (localEvent.InitEditCommandsFor(keyBindingsType, writingMode)) {
-    *aCommands = localEvent.EditCommandsConstRef(keyBindingsType).Clone();
+  if (localEvent.InitEditCommandsFor(aType, writingMode)) {
+    *aCommands = localEvent.EditCommandsConstRef(aType).Clone();
   }
 
   return IPC_OK();

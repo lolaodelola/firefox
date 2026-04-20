@@ -2396,8 +2396,7 @@ void BrowserChild::RequestEditCommands(NativeKeyBindingsType aType,
   // Don't send aEvent to the parent process directly because it'll be marked
   // as posted to remote process.
   WidgetKeyboardEvent localEvent(aEvent);
-  SendRequestNativeKeyBindings(static_cast<uint32_t>(aType), localEvent,
-                               &aCommands);
+  SendRequestNativeKeyBindings(aType, localEvent, &aCommands);
 }
 
 mozilla::ipc::IPCResult BrowserChild::RecvSynthesizedEventResponse(

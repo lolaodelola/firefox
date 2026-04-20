@@ -10,6 +10,7 @@
 #include "mozilla/DimensionRequest.h"
 #include "mozilla/GfxMessageUtils.h"
 #include "mozilla/LookAndFeel.h"
+#include "mozilla/NativeKeyBindingsType.h"
 #include "mozilla/widget/ThemeChangeKind.h"
 #include "nsIClipboard.h"
 #include "nsIWidget.h"
@@ -90,6 +91,13 @@ struct ParamTraits<nsIClipboard::ClipboardType>
     : public ContiguousEnumSerializerInclusive<
           nsIClipboard::ClipboardType, nsIClipboard::kSelectionClipboard,
           nsIClipboard::kSelectionCache> {};
+
+template <>
+struct ParamTraits<mozilla::NativeKeyBindingsType>
+    : public ContiguousEnumSerializerInclusive<
+          mozilla::NativeKeyBindingsType,
+          mozilla::NativeKeyBindingsType::SingleLineEditor,
+          mozilla::kHighestNativeKeyBindingsType> {};
 
 }  // namespace IPC
 
