@@ -168,7 +168,7 @@ void DocumentOrShadowRoot::OnSetAdoptedStyleSheets(StyleSheet& aSheet,
 void DocumentOrShadowRoot::OnDeleteAdoptedStyleSheets(StyleSheet& aSheet,
                                                       uint32_t aIndex,
                                                       ErrorResult&) {
-  if (mAdoptedStyleSheets.ElementAt(aIndex) != &aSheet) [[unlikely]] {
+  if (mAdoptedStyleSheets.SafeElementAt(aIndex) != &aSheet) [[unlikely]] {
     MOZ_ASSERT_UNREACHABLE("Out of sync proxy");
     return;
   }
@@ -751,7 +751,7 @@ void DocumentOrShadowRoot::Unlink(DocumentOrShadowRoot* tmp) {
     aSheet.RemoveAdopter(*tmp);
     tmp->RemoveSheetFromStylesIfApplicable(aSheet);
   });
-  NS_IMPL_CYCLE_COLLECTION_UNLINK(mAdoptedStyleSheets);
+  tmp->ClearAdoptedStyleSheets();
   tmp->mIdentifierMap.Clear();
 }
 
