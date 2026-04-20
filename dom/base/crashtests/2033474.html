@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<meta charset="utf-8">
+<title>adoptedStyleSheets adopt link tag</title>
+<iframe id="ifr" src="about:blank"></iframe>
+<script>
+onload = async () => {
+  console.log("Step 1: Create host element with ShadowRoot.");
+  let host = document.createElement("div");
+  document.body.appendChild(host);
+  let shadowRoot = host.attachShadow({ mode: "open" });
+
+  console.log("Step 2: Get the adoptedStyleSheets proxy (ObservableArray).");
+  // This creates a proxy with reserved slot holding raw void* to ShadowRoot
+  let proxy = shadowRoot.adoptedStyleSheets;
+
+  console.log("Step 3: Add a constructed stylesheet so we have something to operate on later.");
+  let sheet = new CSSStyleSheet();
+  sheet.replaceSync("body { color: red; }");
+  proxy.push(sheet);
+
+  console.log("Step 4: Remove the JS reference to ShadowRoot, but keep proxy alive.");
+  document.body.removeChild(host);
+  shadowRoot = null;
+  host = null;
+
+  console.log("Step 4: Forcing CC/GC to unlink ShadowRoot.");
+  SpecialPowers.forceCC();
+  SpecialPowers.forceShrinkingGC();
+  SpecialPowers.forceCC();
+
+  console.log("Step 5: Access proxy after ShadowRoot is unlinked.");
+  try {
+    let sheet2 = new CSSStyleSheet();
+    sheet2.replaceSync("div { color: blue; }");
+    proxy[0] = sheet2;
+    proxy.length = 0;
+  } catch(e) {}
+};
+</script>
+</html>
