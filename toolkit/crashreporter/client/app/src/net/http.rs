@@ -262,7 +262,6 @@ impl<'a> RequestBuilder<'a> {
         let mut cmd = crate::process::background_command("curl");
         let mut stdin: Option<Box<dyn Read + Send + 'static>> = None;
 
-        cmd.arg("--fail-with-body");
         cmd.args(["--user-agent", user_agent()]);
 
         match self {
