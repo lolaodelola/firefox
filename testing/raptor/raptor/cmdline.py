@@ -65,6 +65,8 @@ GECKO_PROFILER_APPS = (FIREFOX, GECKOVIEW, REFBROW, FENIX)
 
 TRACE_APPS = (CHROME, CHROMIUM_RELEASE)
 
+SIMPLEPERF_APPS = (FENIX, GECKOVIEW)
+
 APP_BINARIES = {
     "fenix": "org.mozilla.fenix",
     "focus": "org.mozilla.focus",
@@ -230,6 +232,12 @@ def create_parser(mach_interface=False):
         action="store_true",
         default=False,
         help="Run the tests again with profiler enabled after the main run.",
+    )
+    add_arg(
+        "--simpleperf",
+        action="store_true",
+        dest="simpleperf",
+        help="Enable Simpleperf profiling (Android only).",
     )
     add_arg(
         "--symbolsPath",
@@ -638,6 +646,9 @@ def verify_options(parser, args):
     if args.post_startup_delay:
         if args.post_startup_delay < 0:
             parser.error("--post-startup-delay must be a positive integer (in ms).")
+
+    if args.simpleperf and args.app not in SIMPLEPERF_APPS:
+        parser.error(f"--simpleperf is only available in: {', '.join(SIMPLEPERF_APPS)}")
 
 
 def parse_args(argv=None):
