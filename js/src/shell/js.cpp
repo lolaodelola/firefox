@@ -13019,8 +13019,6 @@ bool InitOptionParser(OptionParser& op) {
                           "Branch pruning (default: on, off to disable)") ||
       !op.addStringOption('\0', "ion-range-analysis", "on/off",
                           "Range analysis (default: on, off to disable)") ||
-      !op.addStringOption('\0', "ion-sink", "on/off",
-                          "Sink code motion (default: off, on to enable)") ||
       !op.addStringOption(
           '\0', "ion-instruction-reordering", "on/off",
           "Instruction reordering (default: off, on to enable)") ||
@@ -14011,16 +14009,6 @@ bool SetContextJITOptions(JSContext* cx, const OptionParser& op) {
       jit::JitOptions.disableRangeAnalysis = true;
     } else {
       return OptionFailure("ion-range-analysis", str);
-    }
-  }
-
-  if (const char* str = op.getStringOption("ion-sink")) {
-    if (strcmp(str, "on") == 0) {
-      jit::JitOptions.disableSink = false;
-    } else if (strcmp(str, "off") == 0) {
-      jit::JitOptions.disableSink = true;
-    } else {
-      return OptionFailure("ion-sink", str);
     }
   }
 
