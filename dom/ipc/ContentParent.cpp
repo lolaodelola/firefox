@@ -6132,11 +6132,12 @@ void ContentParent::TransmitBlobURLsForPrincipal(nsIPrincipal* aPrincipal) {
   }
 }
 
-void ContentParent::TransmitBlobDataIfBlobURL(nsIURI* aURI) {
+void ContentParent::TransmitBlobDataIfBlobURL(nsIURI* aURI,
+                                              const OriginAttributes& aAttrs) {
   MOZ_ASSERT(aURI);
 
   nsCOMPtr<nsIPrincipal> principal;
-  if (BlobURLProtocolHandler::GetBlobURLPrincipal(aURI,
+  if (BlobURLProtocolHandler::GetBlobURLPrincipal(aURI, aAttrs,
                                                   getter_AddRefs(principal))) {
     TransmitBlobURLsForPrincipal(principal);
   }

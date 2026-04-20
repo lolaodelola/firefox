@@ -677,7 +677,7 @@ class ContentParent final : public PContentParent,
   //
   // Should eventually be made obsolete by broader design changes that only
   // store BlobURLs in the parent process.
-  void TransmitBlobDataIfBlobURL(nsIURI* aURI);
+  void TransmitBlobDataIfBlobURL(nsIURI* aURI, const OriginAttributes& aAttrs);
 
   void OnCompositorDeviceReset() override;
 
