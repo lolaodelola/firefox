@@ -59,7 +59,7 @@ class CustomElementWatcher extends EventEmitter {
       return;
     }
 
-    const registry = nodeActor.rawNode.documentGlobal.customElements;
+    const registry = nodeActor.rawNode.ownerDocGlobal.customElements;
     const registryMap = this._getMapForRegistry(registry);
 
     const name = nodeActor.rawNode.localName;
@@ -76,7 +76,7 @@ class CustomElementWatcher extends EventEmitter {
     }
 
     try {
-      const win = nodeActor.rawNode.documentGlobal;
+      const win = nodeActor.rawNode.ownerDocGlobal;
       const registry = win.customElements;
       const registryMap = this._getMapForRegistry(registry);
       const name = nodeActor.rawNode.localName;

@@ -1023,8 +1023,8 @@ function WaitForTestEnd(
   CheckForLivenessOfContentRootElement();
   if (contentRootElement?.hasAttribute("class")) {
     attrModifiedObserver =
-      // documentGlobal doesn't exist in content windows.
-      // eslint-disable-next-line mozilla/use-documentGlobal
+      // ownerGlobal doesn't exist in content windows.
+      // eslint-disable-next-line mozilla/use-ownerGlobal
       new contentRootElement.ownerDocument.defaultView.MutationObserver(
         AttrModifiedListener
       );

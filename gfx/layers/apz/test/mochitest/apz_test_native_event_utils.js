@@ -1,5 +1,5 @@
-// documentGlobal isn't defined in content privileged windows.
-/* eslint-disable mozilla/use-documentGlobal */
+// ownerGlobal isn't defined in content privileged windows.
+/* eslint-disable mozilla/use-ownerGlobal */
 
 // Utilities for synthesizing of native events.
 

@@ -1490,7 +1490,7 @@ export class PictureInPictureToggleChild extends JSWindowActorChild {
    */
   isMouseOverToggle(toggle, event) {
     let toggleRect =
-      toggle.documentGlobal.windowUtils.getBoundsWithoutFlushing(toggle);
+      toggle.ownerDocGlobal.windowUtils.getBoundsWithoutFlushing(toggle);
 
     // The way the toggle is currently implemented with
     // absolute positioning, the root toggle element bounds don't actually
@@ -1503,7 +1503,7 @@ export class PictureInPictureToggleChild extends JSWindowActorChild {
     let clickableChildren = toggle.querySelectorAll(".clickable");
     for (let child of clickableChildren) {
       let childRect = lazy.Rect.fromRect(
-        child.documentGlobal.windowUtils.getBoundsWithoutFlushing(child)
+        child.ownerDocGlobal.windowUtils.getBoundsWithoutFlushing(child)
       );
       toggleRect.expandToContain(childRect);
     }
@@ -1543,7 +1543,7 @@ export class PictureInPictureToggleChild extends JSWindowActorChild {
 
     let toggle = this.getToggleElement(shadowRoot);
     if (this.isMouseOverToggle(toggle, event)) {
-      let devicePixelRatio = toggle.documentGlobal.devicePixelRatio;
+      let devicePixelRatio = toggle.ownerDocGlobal.devicePixelRatio;
       this.sendAsyncMessage("PictureInPicture:OpenToggleContextMenu", {
         screenXDevPx: event.screenX * devicePixelRatio,
         screenYDevPx: event.screenY * devicePixelRatio,
@@ -1744,7 +1744,7 @@ export class PictureInPictureChild extends JSWindowActorChild {
       isScrubberShowing,
     } = data;
     let textTracks = this.document.getElementById("texttracks");
-    const originatingWindow = this.getWeakVideo().documentGlobal;
+    const originatingWindow = this.getWeakVideo().ownerDocGlobal;
     const isReducedMotionEnabled = originatingWindow.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
@@ -1789,7 +1789,7 @@ export class PictureInPictureChild extends JSWindowActorChild {
   updateWebVTTTextTracksDisplay(textTrackCues) {
     let pipWindowTracksContainer = this.document.getElementById("texttracks");
     let playerVideo = this.document.getElementById("playervideo");
-    let playerVideoWindow = playerVideo.documentGlobal;
+    let playerVideoWindow = playerVideo.ownerDocGlobal;
 
     // To prevent overlap with previous cues, clear all text from the pip window
     pipWindowTracksContainer.replaceChildren();
@@ -2331,7 +2331,7 @@ export class PictureInPictureChild extends JSWindowActorChild {
       this.observerFunction
     );
 
-    let originatingWindow = originatingVideo.documentGlobal;
+    let originatingWindow = originatingVideo.ownerDocGlobal;
     if (originatingWindow) {
       originatingWindow.addEventListener("pagehide", this);
       originatingVideo.addEventListener("play", this);
@@ -2384,7 +2384,7 @@ export class PictureInPictureChild extends JSWindowActorChild {
       this.observerFunction
     );
 
-    let originatingWindow = originatingVideo.documentGlobal;
+    let originatingWindow = originatingVideo.ownerDocGlobal;
     if (originatingWindow) {
       originatingWindow.removeEventListener("pagehide", this);
       originatingVideo.removeEventListener("play", this);
@@ -2909,7 +2909,7 @@ class PictureInPictureChildVideoWrapper {
       "pictureinpicture@mozilla.org"
     );
     let wrapperScriptUrl = addonPolicy.getURL(videoWrapperScriptPath);
-    let originatingWin = video.documentGlobal;
+    let originatingWin = video.ownerDocGlobal;
     let originatingDoc = video.ownerDocument;
 
     let sandbox = Cu.Sandbox([originatingDoc.nodePrincipal], {

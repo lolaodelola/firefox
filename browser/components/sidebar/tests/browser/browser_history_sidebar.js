@@ -665,7 +665,7 @@ add_task(async function test_history_context_menu() {
   EventUtils.synthesizeMouseAtCenter(
     rows[0].mainEl,
     eventDetails,
-    // eslint-disable-next-line mozilla/use-documentGlobal
+    // eslint-disable-next-line mozilla/use-ownerGlobal
     rows[0].mainEl.ownerDocument.defaultView
   );
   await shown;

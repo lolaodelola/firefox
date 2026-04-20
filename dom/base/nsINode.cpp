@@ -1549,7 +1549,7 @@ EventListenerManager* nsINode::GetExistingListenerManager() const {
   return nsContentUtils::GetExistingListenerManagerForNode(this);
 }
 
-Nullable<WindowProxyHolder> nsINode::GetDocumentGlobalForBindings() {
+Nullable<WindowProxyHolder> nsINode::GetOwnerDocGlobalForBindings() {
   return OwnerDoc()->GetOwnerGlobalForBindings();
 }
 
@@ -1560,7 +1560,7 @@ nsPIDOMWindowOuter* nsINode::GetOwnerGlobalForBindingsInternal() {
   return window ? nsPIDOMWindowOuter::GetFromCurrentInner(window) : nullptr;
 }
 
-nsIGlobalObject* nsINode::GetDocumentGlobal() const {
+nsIGlobalObject* nsINode::GetOwnerDocGlobal() const {
   return OwnerDoc()->GetOwnerGlobal();
 }
 

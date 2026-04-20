@@ -123,7 +123,7 @@ export class FindBarChild extends JSWindowActorChild {
    */
   shouldFastFind(elt) {
     if (elt) {
-      let win = elt.documentGlobal;
+      let win = elt.ownerGlobal;
       if (win.HTMLInputElement.isInstance(elt) && elt.mozIsTextField(false)) {
         return false;
       }

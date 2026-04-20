@@ -149,7 +149,7 @@ accessibility.getAccessible = async function (element) {
   // doing its regular ticks and force two refresh driver ticks: the first to
   // let layout update and notify a11y, and the second to let a11y process
   // updates.
-  const windowUtils = element.documentGlobal.windowUtils;
+  const windowUtils = element.ownerGlobal.windowUtils;
   windowUtils.advanceTimeAndRefresh(0);
   windowUtils.advanceTimeAndRefresh(0);
   // Go back to normal refresh driver ticks.
@@ -523,7 +523,7 @@ accessibility.Checks = class {
       return;
     }
 
-    let win = element.documentGlobal;
+    let win = element.ownerGlobal;
     let disabledAccessibility = this.matchState(
       accessible,
       accessibility.State.Unavailable

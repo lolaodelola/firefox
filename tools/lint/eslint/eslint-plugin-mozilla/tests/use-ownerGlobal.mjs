@@ -5,7 +5,7 @@
 // Requirements
 // ------------------------------------------------------------------------------
 
-import rule from "../lib/rules/use-documentGlobal.mjs";
+import rule from "../lib/rules/use-ownerGlobal.mjs";
 import { RuleTester } from "eslint";
 
 const ruleTester = new RuleTester();
@@ -21,11 +21,11 @@ function invalidCode(code) {
   };
 }
 
-ruleTester.run("use-documentGlobal", rule, {
+ruleTester.run("use-ownerGlobal", rule, {
   valid: [
-    "aEvent.target.documentGlobal;",
-    "this.DOMPointNode.documentGlobal.getSelection();",
-    "windowToMessageManager(node.documentGlobal);",
+    "aEvent.target.ownerGlobal;",
+    "this.DOMPointNode.ownerGlobal.getSelection();",
+    "windowToMessageManager(node.ownerGlobal);",
   ],
   invalid: [
     invalidCode("aEvent.target.ownerDocument.defaultView;"),

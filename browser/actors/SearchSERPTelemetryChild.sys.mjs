@@ -190,7 +190,7 @@ class ListenerHelper {
       return;
     }
 
-    let document = elements[0].ownerDocument;
+    let document = elements[0].ownerGlobal.document;
     let callback = documentToEventCallbackMap.get(document);
     if (!callback) {
       return;
@@ -377,8 +377,8 @@ class SearchAdImpression {
     let componentToVisibilityMap = new Map();
     let hrefToComponentMap = new Map();
 
-    let innerWindowHeight = document.documentGlobal.innerHeight;
-    let scrollY = document.documentGlobal.scrollY;
+    let innerWindowHeight = document.ownerGlobal.innerHeight;
+    let scrollY = document.ownerGlobal.scrollY;
 
     // Iterate over the results:
     // - If it's searchbox add event listeners.
@@ -962,7 +962,7 @@ class SearchAdImpression {
     scrollY
   ) {
     let elementRect =
-      element.documentGlobal.windowUtils.getBoundsWithoutFlushing(element);
+      element.ownerGlobal.windowUtils.getBoundsWithoutFlushing(element);
 
     // If the parent element is not visible, assume all ads within are
     // also not visible.
@@ -1023,7 +1023,7 @@ class SearchAdImpression {
       }
 
       let itemRect =
-        child.documentGlobal.windowUtils.getBoundsWithoutFlushing(child);
+        child.ownerGlobal.windowUtils.getBoundsWithoutFlushing(child);
       // If the child element is to the right of the containing element and
       // can't be viewed, skip it. We do this check because some elements like
       // carousels can hide additional content horizontally. We don't apply the

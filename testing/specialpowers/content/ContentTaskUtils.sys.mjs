@@ -10,9 +10,9 @@
  * callback based.
  */
 
-// Disable documentGlobal use since that's not available on content-privileged elements.
+// Disable ownerGlobal use since that's not available on content-privileged elements.
 
-/* eslint-disable mozilla/use-documentGlobal */
+/* eslint-disable mozilla/use-ownerGlobal */
 
 import { setTimeout } from "resource://gre/modules/Timer.sys.mjs";
 
@@ -200,7 +200,7 @@ export var ContentTaskUtils = {
       return Promise.resolve();
     }
     return new Promise(resolve => {
-      let obs = new subject.documentGlobal.MutationObserver(function () {
+      let obs = new subject.ownerGlobal.MutationObserver(function () {
         if (checkFn && !checkFn()) {
           return;
         }

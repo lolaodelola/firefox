@@ -1364,7 +1364,7 @@ already_AddRefed<Promise> nsImageLoadingContent::RecognizeCurrentImageText(
                 textRecognitionResult.quads().Length());
             // XXX shouldn't this be GetOwnerGlobal? But it's privileged code so
             // seems probably fine.
-            nsIGlobalObject* global = el->GetDocumentGlobal();
+            nsIGlobalObject* global = el->GetOwnerDocGlobal();
 
             for (const auto& quad : textRecognitionResult.quads()) {
               NotNull<ImageText*> imageText = imageTexts.AppendElement();

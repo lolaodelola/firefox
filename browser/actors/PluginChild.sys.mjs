@@ -57,7 +57,7 @@ export class PluginChild extends JSWindowActorChild {
     if (fullScreenElement.contains(domElement)) {
       return true;
     }
-    let parentIframe = domElement.documentGlobal.frameElement;
+    let parentIframe = domElement.ownerGlobal.frameElement;
     if (parentIframe) {
       return this.isWithinFullScreenElement(fullScreenElement, parentIframe);
     }

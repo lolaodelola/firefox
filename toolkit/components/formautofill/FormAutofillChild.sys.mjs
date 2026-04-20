@@ -34,7 +34,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
 class FormFillFocusListener {
   handleFocus(element) {
     let actor =
-      element.documentGlobal.windowGlobalChild?.getActor("FormAutofill");
+      element.ownerGlobal?.windowGlobalChild?.getActor("FormAutofill");
     return actor?.handleFocus(element);
   }
 
@@ -852,7 +852,7 @@ export class FormAutofillChild extends JSWindowActorChild {
     }
 
     // The `domWin` truthiness test is used by unit tests to bypass this check.
-    const domWin = formElement.documentGlobal;
+    const domWin = formElement.ownerGlobal;
     if (!domWin) {
       return;
     }

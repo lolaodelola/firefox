@@ -32,7 +32,7 @@ export class AutoScrollChild extends JSWindowActorChild {
       "middlemouse.scrollbarPosition"
     );
     let node = event.originalTarget;
-    let content = node.documentGlobal;
+    let content = node.ownerGlobal;
 
     // If the node is in editable document or content, we don't want to start
     // autoscroll.
@@ -85,7 +85,7 @@ export class AutoScrollChild extends JSWindowActorChild {
   }
 
   isScrollableElement(aNode) {
-    let content = aNode.documentGlobal;
+    let content = aNode.ownerGlobal;
     if (content.HTMLElement.isInstance(aNode)) {
       return !content.HTMLSelectElement.isInstance(aNode) || aNode.multiple;
     }
@@ -111,7 +111,7 @@ export class AutoScrollChild extends JSWindowActorChild {
       return null;
     }
 
-    let global = node.documentGlobal;
+    let global = node.ownerGlobal;
 
     // this is a list of overflow property values that allow scrolling
     const scrollingAllowed = ["scroll", "auto"];
@@ -343,7 +343,7 @@ export class AutoScrollChild extends JSWindowActorChild {
       behavior: "instant",
     });
 
-    this._scrollable.documentGlobal.requestAnimationFrame(this.autoscrollLoop);
+    this._scrollable.ownerGlobal.requestAnimationFrame(this.autoscrollLoop);
   }
 
   canStartAutoScrollWith(event) {

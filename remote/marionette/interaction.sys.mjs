@@ -439,7 +439,7 @@ function clearResettableElement(el) {
  *     or a 500 ms timeout is reached.
  */
 interaction.flushEventLoop = async function (el) {
-  const win = el.documentGlobal;
+  const win = el.ownerGlobal;
   let unloadEv, clickEv;
 
   let spinEventLoop = resolve => {
@@ -813,6 +813,6 @@ interaction.isElementSelected = function (el, strict = false) {
 };
 
 function getWindow(el) {
-  // eslint-disable-next-line mozilla/use-documentGlobal
+  // eslint-disable-next-line mozilla/use-ownerGlobal
   return el.ownerDocument.defaultView;
 }

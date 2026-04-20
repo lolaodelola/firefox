@@ -263,7 +263,7 @@ class MainEventCollector {
       typeof node.nodeName !== "undefined" &&
       node.nodeName.toLowerCase() === "html"
     ) {
-      listenersTargets.push(node.documentGlobal, node, node.parentNode);
+      listenersTargets.push(node.ownerDocGlobal, node, node.parentNode);
     } else {
       listenersTargets.push(node);
     }
@@ -289,7 +289,7 @@ class MainEventCollector {
       return null;
     }
 
-    const global = this.unwrap(node.documentGlobal);
+    const global = this.unwrap(node.ownerDocGlobal);
     if (!global) {
       return null;
     }
@@ -528,7 +528,7 @@ class JQueryLiveEventCollector extends MainEventCollector {
       // Live events are added to the document and bubble up to all elements.
       // Any element matching the specified selector will trigger the live
       // event.
-      const win = this.unwrap(node.documentGlobal);
+      const win = this.unwrap(node.ownerDocGlobal);
       let events = null;
 
       try {
