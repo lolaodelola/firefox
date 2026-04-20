@@ -52,6 +52,11 @@ gecko_parameters_schema = {
         Optional("gecko-profile-features"): str,
         Optional("gecko-profile-threads"): str,
         Optional(
+            "native-profiling",
+            description="Use OS-native profilers (Simpleperf for Android and xperf for Windows)"
+            "when running tests. Only available in raptor-browsertime tests at the moment.",
+        ): bool,
+        Optional(
             "github",
             description="Github pull request triggering a code-review analysis",
         ): {
