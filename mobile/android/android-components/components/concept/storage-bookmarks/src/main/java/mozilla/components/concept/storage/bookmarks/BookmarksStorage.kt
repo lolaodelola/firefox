@@ -21,19 +21,25 @@ fun interface BookmarkInserter {
  * Represents a bookmark node that can be inserted into storage.
  */
 sealed interface InsertableBookmarkNode {
+    val position: UInt?
+
     /**
      * A bookmark item (e.g. a page).
      *
      * @property parentGuid The GUID of the parent folder.
      * @property title The title of the bookmark.
      * @property url The URL of the bookmark.
+     * @property dateAddedTimestamp The date added timestamp of the bookmark.
+     * @property lastModifiedTimestamp The last modified timestamp of the bookmark.
      * @property position The ordinal position within the parent.
      */
     data class Item(
         val parentGuid: String?,
         val title: String?,
         val url: String,
-        val position: UInt?,
+        val dateAddedTimestamp: Long,
+        val lastModifiedTimestamp: Long,
+        override val position: UInt?,
     ) : InsertableBookmarkNode
 
     /**
@@ -41,18 +47,26 @@ sealed interface InsertableBookmarkNode {
      *
      * @property parentGuid The GUID of the parent folder.
      * @property title The title of the folder.
+     * @property dateAddedTimestamp The date added timestamp of the folder.
+     * @property lastModifiedTimestamp The last modified timestamp of the folder.
      * @property position The ordinal position within the parent.
      * @property children The child nodes contained in this folder.
      */
     data class Folder(
         val parentGuid: String?,
         val title: String?,
-        val position: UInt?,
+        val dateAddedTimestamp: Long,
+        val lastModifiedTimestamp: Long,
+        override val position: UInt?,
         val children: List<InsertableBookmarkNode>,
     ) : InsertableBookmarkNode
 
     /**
      * A bookmark separator.
+     *
+     * @property position The ordinal position within the parent.
      */
-    object Separator : InsertableBookmarkNode
+    data class Separator(
+        override val position: UInt?,
+    ) : InsertableBookmarkNode
 }

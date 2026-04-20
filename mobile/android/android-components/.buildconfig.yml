@@ -454,6 +454,13 @@ projects:
     - components:support-base
     - components:support-test
     - components:tooling-lint
+  components:concept-bookmarks-parser:
+    description: An abstract definition of a bookmark-file-parser component.
+    path: components/concept/bookmarks-parser
+    publish: true
+    upstream_dependencies:
+    - components:concept-storage-bookmarks
+    - components:tooling-lint
   components:concept-engine:
     description: An abstract layer hiding the actual browser engine implementation.
     path: components/concept/engine

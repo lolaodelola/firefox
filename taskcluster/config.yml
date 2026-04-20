@@ -244,6 +244,7 @@ treeherder:
         'concept-awesomebar': 'concept-awesomebar'
         'concept-base': 'concept-base'
         'compose-base': 'compose-base'
+        'concept-bookmarks-parser': 'concept-bookmarks-parser'
         'compose-cfr': 'compose-cfr'
         'concept-engine': 'concept-engine'
         'concept-fetch': 'concept-fetch'
