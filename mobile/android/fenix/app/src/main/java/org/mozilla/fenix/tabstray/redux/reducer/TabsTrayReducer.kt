@@ -145,7 +145,7 @@ internal object TabsTrayReducer {
         return when (action) {
             is TabsTrayAction.UpdateNormalTabs -> state.copy(
                 normalTabsState = state.normalTabsState.copy(
-                    tabs = action.tabs,
+                    items = action.tabs,
                 ),
             )
             is TabsTrayAction.UpdatePrivateTabs -> state.copy(
@@ -155,8 +155,9 @@ internal object TabsTrayReducer {
             is TabsTrayAction.TabDataUpdateReceived -> state.copy(
                 selectedTabId = action.tabStorageUpdate.selectedTabId,
                 normalTabsState = state.normalTabsState.copy(
-                    tabs = action.tabStorageUpdate.normalTabs,
+                    items = action.tabStorageUpdate.normalItems,
                     selectedItemIndex = action.tabStorageUpdate.selectedNormalItemIndex,
+                    tabCount = action.tabStorageUpdate.normalTabCount,
                 ),
                 inactiveTabs = state.inactiveTabs.copy(tabs = action.tabStorageUpdate.inactiveTabs),
                 privateBrowsing = state.privateBrowsing.copy(

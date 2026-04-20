@@ -158,11 +158,12 @@ class TabStorageMiddleware(
         tabGroups: List<StoredTabGroup>,
         tabGroupAssignments: Map<TabItemId, String>,
     ): TabStorageUpdate {
-        val normalTabs: MutableList<TabsTrayItem> = mutableListOf()
+        val normalItems: MutableList<TabsTrayItem> = mutableListOf()
         val inactiveTabs: MutableList<TabsTrayItem.Tab> = mutableListOf()
         val privateTabs: MutableList<TabsTrayItem> = mutableListOf()
         val transformedTabGroups = constructTabGroupMaps(tabGroups = tabGroups)
         val groupsIncludedInNormalTabs = hashSetOf<TabItemId>()
+        var normalTabCount = 0
         var selectedNormalTabIndex = 0
         var selectedPrivateTabIndex = 0
 
@@ -178,13 +179,16 @@ class TabStorageMiddleware(
             )
 
             when {
-                assignedGroup != null -> addToTabGroup(
-                    tab = displayTab,
-                    assignedGroup = assignedGroup,
-                    groupsIncludedInNormalTabs = groupsIncludedInNormalTabs,
-                    normalTabs = normalTabs,
-                    updateSelectedTabIndex = { selectedNormalTabIndex = it },
-                )
+                assignedGroup != null -> {
+                    normalTabCount++
+                    addToTabGroup(
+                        tab = displayTab,
+                        assignedGroup = assignedGroup,
+                        groupsIncludedInNormalTabs = groupsIncludedInNormalTabs,
+                        normalTabs = normalItems,
+                        updateSelectedTabIndex = { selectedNormalTabIndex = it },
+                    )
+                }
 
                 displayTab.private -> addToPrivateTabs(
                     tab = displayTab,
@@ -192,19 +196,26 @@ class TabStorageMiddleware(
                     updateSelectedTabIndex = { selectedPrivateTabIndex = it },
                 )
 
-                inactiveTabsEnabled && displayTab.inactive -> inactiveTabs.add(displayTab)
+                inactiveTabsEnabled && displayTab.inactive -> {
+                    normalTabCount++
+                    inactiveTabs.add(displayTab)
+                }
 
-                else -> addToNormalTabs(
-                    tab = displayTab,
-                    normalTabs = normalTabs,
-                    updateSelectedTabIndex = { selectedNormalTabIndex = it },
-                )
+                else -> {
+                    normalTabCount++
+                    addToNormalTabs(
+                        tab = displayTab,
+                        normalTabs = normalItems,
+                        updateSelectedTabIndex = { selectedNormalTabIndex = it },
+                    )
+                }
             }
         }
 
         return TabStorageUpdate(
             selectedTabId = tabData.selectedTabId,
-            normalTabs = normalTabs,
+            normalItems = normalItems,
+            normalTabCount = normalTabCount,
             selectedNormalItemIndex = selectedNormalTabIndex,
             inactiveTabs = inactiveTabs,
             privateTabs = privateTabs,

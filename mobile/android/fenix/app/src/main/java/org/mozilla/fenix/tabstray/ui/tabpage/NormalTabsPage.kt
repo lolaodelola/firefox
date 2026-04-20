@@ -39,7 +39,7 @@ private val EmptyPageWidth = 170.dp
 /**
  * UI for displaying the Normal Tabs Page in the Tab Manager.
  *
- * @param normalTabs The list of active tabs to display.
+ * @param items The list of active tabs to display.
  * @param inactiveTabs The list of inactive tabs to display.
  * @param selectedItemIndex The index of the currently selected tab. This will be scrolled to on first-render.
  * @param selectionMode [TabsTrayState.Mode] indicating whether the Tab Manager is in single selection.
@@ -71,7 +71,7 @@ private val EmptyPageWidth = 170.dp
 @Composable
 @Suppress("LongParameterList")
 internal fun NormalTabsPage(
-    normalTabs: List<TabsTrayItem>,
+    items: List<TabsTrayItem>,
     inactiveTabs: List<TabsTrayItem.Tab>,
     selectedItemIndex: Int,
     selectionMode: TabsTrayState.Mode,
@@ -97,7 +97,7 @@ internal fun NormalTabsPage(
     onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
     editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
-    if (normalTabs.isNotEmpty() || inactiveTabs.isNotEmpty()) {
+    if (items.isNotEmpty() || inactiveTabs.isNotEmpty()) {
         var showAutoCloseDialog by remember { mutableStateOf(shouldShowInactiveTabsAutoCloseDialog) }
 
         val optionalInactiveTabsHeader: (@Composable () -> Unit)? = if (inactiveTabs.isEmpty()) {
@@ -133,7 +133,7 @@ internal fun NormalTabsPage(
         }
 
         TabLayout(
-            tabs = normalTabs,
+            tabs = items,
             displayTabsInGrid = displayTabsInGrid,
             selectedItemIndex = selectedItemIndex,
             selectionMode = selectionMode,

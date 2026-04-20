@@ -55,7 +55,8 @@ class TabStorageMiddlewareTest {
         val expectedState = TabsTrayState(
             selectedTabId = expectedTabId,
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = listOf(TabsTrayItem.Tab(tab = createTab(id = expectedTabId, url = ""), isFocused = true)),
+                items = listOf(TabsTrayItem.Tab(tab = createTab(id = expectedTabId, url = ""), isFocused = true)),
+                tabCount = initialState.tabs.size,
             ),
         )
         val tabFlow = MutableStateFlow(initialState)
@@ -86,7 +87,8 @@ class TabStorageMiddlewareTest {
             selectedTabId = expectedTabId,
             normalTabsState = TabsTrayState.NormalTabsState(
                 selectedItemIndex = tabs.size - 1,
-                tabs = expectedTabsList,
+                items = expectedTabsList,
+                tabCount = tabs.size,
             ),
         )
         val tabFlow = MutableStateFlow(initialState)
@@ -122,7 +124,8 @@ class TabStorageMiddlewareTest {
             selectedTabId = expectedTabId,
             normalTabsState = TabsTrayState.NormalTabsState(
                 selectedItemIndex = 1,
-                tabs = expectedTabs,
+                items = expectedTabs,
+                tabCount = expectedTabs.size,
             ),
         )
         val tabFlow = MutableStateFlow(initialState)
@@ -170,7 +173,8 @@ class TabStorageMiddlewareTest {
             selectedTabId = expectedTabId,
             normalTabsState = TabsTrayState.NormalTabsState(
                 selectedItemIndex = 1,
-                tabs = expectedTabList,
+                items = expectedTabList,
+                tabCount = expectedGroup.tabs.size + 1,
             ),
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = listOf(expectedGroup),
@@ -219,7 +223,8 @@ class TabStorageMiddlewareTest {
             selectedTabId = expectedTabId,
             normalTabsState = TabsTrayState.NormalTabsState(
                 selectedItemIndex = 1,
-                tabs = expectedTabList,
+                items = expectedTabList,
+                tabCount = expectedTabList.size,
             ),
         )
         val tabFlow = MutableStateFlow(initialState)
@@ -287,7 +292,8 @@ class TabStorageMiddlewareTest {
         val expectedState = TabsTrayState(
             selectedTabId = expectedTab.id,
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = listOf(TabsTrayItem.Tab(tab = expectedTab, isFocused = true)),
+                items = listOf(TabsTrayItem.Tab(tab = expectedTab, isFocused = true)),
+                tabCount = 1,
             ),
         )
         val tabFlow = MutableStateFlow(initialState)
@@ -305,25 +311,27 @@ class TabStorageMiddlewareTest {
     }
 
     @Test
-    fun `WHEN inactive tabs has updated THEN transform the data and dispatch an update`() =
-        runTest {
-            val expectedTab = createTab("test1", lastAccess = 0L, createdAt = 0L)
-            val initialState = TabData()
-            val expectedState = TabsTrayState(
-                inactiveTabs = TabsTrayState.InactiveTabsState(
-                    tabs = listOf(
-                        TabsTrayItem.Tab(
-                            expectedTab,
-                        ),
+    fun `WHEN inactive tabs has updated THEN transform the data and dispatch an update`() = runTest {
+        val expectedTab = createTab("test1", lastAccess = 0L, createdAt = 0L)
+        val initialState = TabData()
+        val expectedState = TabsTrayState(
+            normalTabsState = TabsTrayState.NormalTabsState(
+                tabCount = 1,
+            ),
+            inactiveTabs = TabsTrayState.InactiveTabsState(
+                tabs = listOf(
+                    TabsTrayItem.Tab(
+                        expectedTab,
                     ),
                 ),
-            )
-            val tabFlow = MutableStateFlow(initialState)
-            val store = createStore(
-                inactiveTabsEnabled = true,
-                tabDataFlow = tabFlow,
-                scope = backgroundScope,
-            )
+            ),
+        )
+        val tabFlow = MutableStateFlow(initialState)
+        val store = createStore(
+            inactiveTabsEnabled = true,
+            tabDataFlow = tabFlow,
+            scope = backgroundScope,
+        )
 
         tabFlow.emit(initialState.copy(tabs = initialState.tabs + expectedTab))
 
@@ -377,7 +385,8 @@ class TabStorageMiddlewareTest {
         )
         val expectedState = TabsTrayState(
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = listOf(expectedTabGroup),
+                items = listOf(expectedTabGroup),
+                tabCount = 1,
             ),
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = listOf(expectedTabGroup),
@@ -703,7 +712,8 @@ class TabStorageMiddlewareTest {
         )
         val expectedState = TabsTrayState(
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = listOf(TabsTrayItem.Tab(expectedTab)),
+                items = listOf(TabsTrayItem.Tab(expectedTab)),
+                tabCount = initialState.tabs.size,
             ),
         )
         val tabFlow = MutableStateFlow(initialState)
@@ -755,7 +765,8 @@ class TabStorageMiddlewareTest {
         val expectedState = TabsTrayState(
             mode = Mode.Normal,
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = expectedTabGroupList,
+                items = expectedTabGroupList,
+                tabCount = selectedTabs.size,
             ),
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = expectedTabGroupList,
@@ -832,7 +843,8 @@ class TabStorageMiddlewareTest {
         val expectedState = TabsTrayState(
             mode = Mode.Normal,
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = expectedTabGroupList,
+                items = expectedTabGroupList,
+                tabCount = tabs.size,
             ),
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = expectedTabGroupList,
@@ -872,7 +884,8 @@ class TabStorageMiddlewareTest {
         )
         val expectedState = TabsTrayState(
             normalTabsState = TabsTrayState.NormalTabsState(
-                tabs = expectedTabGroupList,
+                items = expectedTabGroupList,
+                tabCount = 1,
             ),
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = expectedTabGroupList,
@@ -917,7 +930,8 @@ class TabStorageMiddlewareTest {
             selectedTabId = expectedTabId,
             normalTabsState = TabsTrayState.NormalTabsState(
                 selectedItemIndex = 0,
-                tabs = expectedTabList,
+                items = expectedTabList,
+                tabCount = tabs.size - 1,
             ),
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = listOf(expectedGroup),

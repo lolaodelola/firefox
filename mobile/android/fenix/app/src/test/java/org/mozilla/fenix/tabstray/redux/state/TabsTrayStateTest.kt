@@ -98,13 +98,13 @@ class TabsTrayStateTest {
 
     @Test
     fun `GIVEN the user is on the Normal tabs page without tabs WHEN in the Tab Manager THEN the search icon is disabled`() {
-        val state = TabsTrayState(selectedPage = Page.NormalTabs, normalTabsState = TabsTrayState.NormalTabsState(tabs = emptyList()))
+        val state = TabsTrayState(selectedPage = Page.NormalTabs, normalTabsState = TabsTrayState.NormalTabsState(items = emptyList()))
         assertFalse(state.searchIconEnabled)
     }
 
     @Test
     fun `GIVEN the user is on the Normal tabs page with tabs WHEN in the Tab Manager THEN the search icon is enabled`() {
-        val state = TabsTrayState(selectedPage = Page.NormalTabs, normalTabsState = TabsTrayState.NormalTabsState(tabs = listOf(createTab(url = ""))))
+        val state = TabsTrayState(selectedPage = Page.NormalTabs, normalTabsState = TabsTrayState.NormalTabsState(items = listOf(createTab(url = ""))))
         assertTrue(state.searchIconEnabled)
     }
 

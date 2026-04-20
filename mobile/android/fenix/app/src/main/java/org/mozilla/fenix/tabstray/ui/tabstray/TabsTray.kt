@@ -209,7 +209,7 @@ fun TabsTray(
         topBar = {
             TabsTrayBanner(
                 selectedPage = tabsTrayState.selectedPage,
-                normalTabCount = tabsTrayState.normalTabsState.tabs.size + tabsTrayState.inactiveTabs.tabs.size,
+                normalTabCount = tabsTrayState.normalTabsState.tabCount,
                 privateTabCount = tabsTrayState.privateBrowsing.tabs.size,
                 shouldShowTabGroupsPage = shouldShowTabGroupsPage,
                 tabGroupCount = tabsTrayState.tabGroupState.groups.size,
@@ -267,7 +267,7 @@ fun TabsTray(
                 when (Page.positionToPage(position, shouldShowTabGroupsPage)) {
                     Page.NormalTabs -> {
                         NormalTabsPage(
-                            normalTabs = tabsTrayState.normalTabsState.tabs,
+                            items = tabsTrayState.normalTabsState.items,
                             inactiveTabs = tabsTrayState.inactiveTabs.tabs,
                             selectedItemIndex = tabsTrayState.normalTabsState.selectedItemIndex,
                             selectionMode = tabsTrayState.mode,
@@ -370,7 +370,7 @@ private fun TabsTrayPreview(
                 mode = tabTrayState.mode,
                 selectedTabId = tabTrayState.selectedTabId,
                 normalTabsState = TabsTrayState.NormalTabsState(
-                    tabs = tabTrayState.normalTabs,
+                    items = tabTrayState.normalTabs,
                 ),
                 inactiveTabs = TabsTrayState.InactiveTabsState(
                     tabs = tabTrayState.inactiveTabs,
@@ -411,7 +411,7 @@ private fun TabsTrayPreview(
                     val newTabs = tabsTrayStore.state.privateBrowsing.tabs - tab
                     tabsTrayStore.dispatch(TabsTrayAction.UpdatePrivateTabs(newTabs))
                 } else {
-                    val newTabs = tabsTrayStore.state.normalTabsState.tabs - tab
+                    val newTabs = tabsTrayStore.state.normalTabsState.items - tab
                     tabsTrayStore.dispatch(TabsTrayAction.UpdateNormalTabs(newTabs))
                 }
 
@@ -509,7 +509,7 @@ private fun TabsTrayPreview(
                     url = "www.mozilla.com",
                     private = false,
                 )
-                val allTabs = tabsTrayStore.state.normalTabsState.tabs + newTab
+                val allTabs = tabsTrayStore.state.normalTabsState.items + newTab
                 tabsTrayStore.dispatch(TabsTrayAction.UpdateNormalTabs(allTabs))
             },
             onOpenNewPrivateTabClicked = {

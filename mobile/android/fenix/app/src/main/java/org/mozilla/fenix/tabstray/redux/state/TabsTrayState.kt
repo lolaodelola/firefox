@@ -101,12 +101,14 @@ data class TabsTrayState(
     /**
      * State specific to normal browsing mode.
      *
-     * @property tabs The list of open normal tabs.
-     * @property selectedItemIndex The index of the selected normal tab.
+     * @property items The list of open [TabsTrayItem]s on the Normal page.
+     * @property selectedItemIndex The index of the selected normal item.
+     * @property tabCount The total number of open Normal tabs, including inactive tabs and the tabs within tab groups.
      */
     data class NormalTabsState(
-        val tabs: List<TabsTrayItem> = emptyList(),
+        val items: List<TabsTrayItem> = emptyList(),
         val selectedItemIndex: Int = 0,
+        val tabCount: Int = 0,
     )
 
     /**
@@ -193,7 +195,7 @@ data class TabsTrayState(
      */
     val searchIconEnabled: Boolean
         get() = when {
-            selectedPage == Page.NormalTabs && normalTabsState.tabs.isNotEmpty() -> true
+            selectedPage == Page.NormalTabs && normalTabsState.items.isNotEmpty() -> true
             selectedPage == Page.PrivateTabs && privateBrowsing.tabs.isNotEmpty() -> true
             else -> false
         }

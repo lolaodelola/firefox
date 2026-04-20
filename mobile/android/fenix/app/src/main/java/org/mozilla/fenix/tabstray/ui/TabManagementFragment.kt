@@ -558,7 +558,7 @@ class TabManagementFragment : DialogFragment() {
      */
     private fun performTabClick(tab: TabsTrayItem) {
         if (tab is TabsTrayItem.Tab && shouldConsiderShowingTabSwipeCFR()) {
-            val normalTabs = tabsTrayStore.state.normalTabsState.tabs
+            val normalTabs = tabsTrayStore.state.normalTabsState.items
             val currentTabId = tabsTrayStore.state.selectedTabId
 
             if (normalTabs.size >= 2 && currentTabId != null) {
