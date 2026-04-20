@@ -26,11 +26,7 @@ function run_test() {
   Assert.equal(imgData.width, 58);
   Assert.equal(imgData.height, 58);
   Assert.equal(imgData.matrix, undefined, "matrix omitted by default");
-  Assert.equal(
-    imgData.moduleCount,
-    undefined,
-    "moduleCount omitted by default"
-  );
+  Assert.equal(imgData.dotCount, undefined, "dotCount omitted by default");
 
   const justMatrix = QR.encodeToMatrix("HELLO", "L");
   Assert.equal(

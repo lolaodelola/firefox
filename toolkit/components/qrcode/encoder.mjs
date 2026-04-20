@@ -99,10 +99,10 @@ function createEncoder(message, errorCorrectionLevelChar, version) {
 function encodeToDataURI(message, errorCorrectionLevelChar, version) {
   const encoder = createEncoder(message, errorCorrectionLevelChar, version);
   const dataURI = encoder.createDataURL();
-  const moduleCount = encoder.getModuleCount();
+  const dotCount = encoder.getModuleCount();
   const cellSize = 2;
   const margin = cellSize * 4;
-  const size = moduleCount * cellSize + margin * 2;
+  const size = dotCount * cellSize + margin * 2;
   return { src: dataURI, width: size, height: size };
 }
 
