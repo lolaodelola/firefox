@@ -50,6 +50,7 @@ class FeatureSettingsHelperDelegate : FeatureSettingsHelper {
         hasSeenBrowserToolbarCFR = settings.hasSeenBrowserToolbarCFR,
         hasSeenShakeToSummarizeToolbarCfr = settings.shakeToSummarizeToolbarCfrShown,
         isPrivateModeAndStoriesEntryPointEnabled = settings.privateModeAndStoriesEntryPointEnabled,
+        shouldUseExpandedToolbar = settings.shouldUseExpandedToolbar,
     )
 
     /**
@@ -78,6 +79,7 @@ class FeatureSettingsHelperDelegate : FeatureSettingsHelper {
     override var hasSeenBrowserToolbarCFR: Boolean by updatedFeatureFlags::hasSeenBrowserToolbarCFR
     override var hasSeenShakeToSummarizeToolbarCfr: Boolean by updatedFeatureFlags::hasSeenShakeToSummarizeToolbarCfr
     override var isPrivateModeAndStoriesEntryPointEnabled: Boolean by updatedFeatureFlags::isPrivateModeAndStoriesEntryPointEnabled
+    override var shouldUseExpandedToolbar: Boolean by updatedFeatureFlags::shouldUseExpandedToolbar
 
     override fun applyFlagUpdates() {
         Log.i(TAG, "applyFlagUpdates: Trying to apply the updated feature flags: $updatedFeatureFlags")
@@ -116,6 +118,7 @@ class FeatureSettingsHelperDelegate : FeatureSettingsHelper {
         settings.hasSeenBrowserToolbarCFR = featureFlags.hasSeenBrowserToolbarCFR
         settings.shakeToSummarizeToolbarCfrShown = featureFlags.hasSeenShakeToSummarizeToolbarCfr
         settings.privateModeAndStoriesEntryPointEnabled = featureFlags.isPrivateModeAndStoriesEntryPointEnabled
+        settings.shouldUseExpandedToolbar = featureFlags.shouldUseExpandedToolbar
     }
 }
 
@@ -142,6 +145,7 @@ private data class FeatureFlags(
     var hasSeenBrowserToolbarCFR: Boolean,
     var hasSeenShakeToSummarizeToolbarCfr: Boolean,
     var isPrivateModeAndStoriesEntryPointEnabled: Boolean,
+    var shouldUseExpandedToolbar: Boolean,
 )
 
 internal fun getETPPolicy(settings: Settings): ETPPolicy {

@@ -7,7 +7,6 @@
 package org.mozilla.fenix.ui
 
 import android.content.Context
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.hardware.camera2.CameraManager
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
@@ -26,7 +25,6 @@ import org.mozilla.fenix.customannotations.SmokeTest
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.helpers.AppAndSystemHelper.enableOrDisableBackGestureNavigationOnDevice
 import org.mozilla.fenix.helpers.AppAndSystemHelper.grantSystemPermission
-import org.mozilla.fenix.helpers.AppAndSystemHelper.setScreenOrientation
 import org.mozilla.fenix.helpers.AppAndSystemHelper.verifyKeyboardVisibility
 import org.mozilla.fenix.helpers.DataGenerationHelper.createCustomTabIntent
 import org.mozilla.fenix.helpers.DataGenerationHelper.getStringResource
@@ -48,7 +46,6 @@ import org.mozilla.fenix.helpers.TestHelper.verifyDarkThemeApplied
 import org.mozilla.fenix.helpers.TestHelper.verifyLightThemeApplied
 import org.mozilla.fenix.helpers.perf.DetectMemoryLeaksRule
 import org.mozilla.fenix.nimbus.FxNimbus
-import org.mozilla.fenix.ui.robots.browserScreen
 import org.mozilla.fenix.ui.robots.clickContextMenuItem
 import org.mozilla.fenix.ui.robots.customTabScreen
 import org.mozilla.fenix.ui.robots.homeScreen
@@ -848,193 +845,5 @@ class NavigationToolbarTest {
         }.submitQuery(secondPage.url.toString()) {
             verifyTabCounter("2", isPrivateBrowsingEnabled = true)
         }
-    }
-
-    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3333206
-    @SmokeTest
-    @Test
-    fun verifyHomepageItemsWithTabStripTest() {
-        homeScreen(composeTestRule) {
-        }.openThreeDotMenu {
-        }.clickSettingsButton {
-        }.openCustomizeSubMenu {
-            clickShowTabBarToggle()
-            scrollToExpandedToolbarOption()
-            selectExpandedToolbarLayout()
-        }.goBack {
-        }.goBack(composeTestRule) {
-            verifyToolbarPosition(bottomPosition = false)
-        }
-
-        navigationToolbar(composeTestRule) {
-            verifyNavBarPositionWithTabStripEnabled(true)
-            verifyTheNavigationBarAddBookmarkButton()
-            verifyTheNavigationBarShareButton()
-            verifyTheNewTabButton()
-            verifyTheTabCounter("0")
-            verifyTheMainMenuButton()
-        }
-    }
-
-    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3333193
-    @SmokeTest
-    @Test
-    fun verifyTheTabStripUITest() {
-        val defaultWebPage = mockWebServer.getGenericAsset(1)
-
-        homeScreen(composeTestRule) {
-        }.openThreeDotMenu {
-        }.clickSettingsButton {
-        }.openCustomizeSubMenu {
-            clickShowTabBarToggle()
-            scrollToExpandedToolbarOption()
-            selectExpandedToolbarLayout()
-        }.goBack {
-        }.goBack(composeTestRule) {
-        }
-
-        navigationToolbar(composeTestRule) {
-        }.enterURLAndEnterToBrowser(defaultWebPage.url) {
-            verifyPageContent(defaultWebPage.content)
-            verifyUrl(defaultWebPage.url.toString())
-            verifyETPShieldIconIsDisplayed(composeTestRule)
-        }
-
-        homeScreen(composeTestRule) {
-            verifyToolbarPosition(bottomPosition = false)
-        }
-
-        navigationToolbar(composeTestRule) {
-            verifyTheTabStripOpenTab("Test_Page_1")
-            verifyTheTabStripCloseTabButton("Test_Page_1")
-            verifyNavBarPositionWithTabStripEnabled(true)
-            verifyTheNavigationBarAddBookmarkButton()
-            verifyTheNavigationBarShareButton()
-            verifyTheNewTabButton(false)
-            verifyTheTabCounter("1")
-            verifyTheMainMenuButton()
-        }
-    }
-
-    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3333195
-    @SmokeTest
-    @Test
-    fun verifyTheNewTabButtonWithTabStripEnabledTest() {
-        val defaultWebPage = mockWebServer.getGenericAsset(1)
-
-        homeScreen(composeTestRule) {
-        }.openThreeDotMenu {
-        }.clickSettingsButton {
-        }.openCustomizeSubMenu {
-            clickShowTabBarToggle()
-            scrollToExpandedToolbarOption()
-            selectExpandedToolbarLayout()
-        }.goBack {
-        }.goBack(composeTestRule) {
-        }
-
-        navigationToolbar(composeTestRule) {
-        }.enterURLAndEnterToBrowser(defaultWebPage.url) {
-            verifyTabCounter("1")
-        }
-        navigationToolbar(composeTestRule) {
-            verifyTheNewTabButton(false)
-        }.clickTheNewTabButton(false) {
-            verifySearchBarPlaceholder("Search or enter address")
-        }
-    }
-
-    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3333195
-    @SmokeTest
-    @Test
-    fun verifyTabsTrayWithTabStripEnabledTest() {
-        val defaultWebPage = mockWebServer.getGenericAsset(1)
-
-        homeScreen(composeTestRule) {
-        }.openThreeDotMenu {
-        }.clickSettingsButton {
-        }.openCustomizeSubMenu {
-            clickShowTabBarToggle()
-            scrollToExpandedToolbarOption()
-            selectExpandedToolbarLayout()
-        }.goBack {
-        }.goBack(composeTestRule) {
-            navigationToolbar(composeTestRule) {
-            }.enterURLAndEnterToBrowser(defaultWebPage.url) {
-            }.openTabDrawer(composeTestRule) {
-                verifyExistingOpenTabs(defaultWebPage.title)
-            }
-        }
-    }
-
-    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3333173
-    @Test
-    fun verifyHomepageItemsWithTabStripLandscapeTest() {
-        homeScreen(composeTestRule) {
-        }.openThreeDotMenu {
-        }.clickSettingsButton {
-        }.openCustomizeSubMenu {
-            clickShowTabBarToggle()
-            scrollToExpandedToolbarOption()
-            selectExpandedToolbarLayout()
-        }.goBack {
-        }.goBack(composeTestRule) {
-            verifyToolbarPosition(bottomPosition = false)
-        }
-
-        setScreenOrientation(composeTestRule, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
-
-        homeScreen(composeTestRule) {
-            verifyToolbarPosition(bottomPosition = false)
-        }
-        navigationToolbar(composeTestRule) {
-            verifyDefaultSearchEngine("Google")
-            verifySearchBarPlaceholder("Search or enter address")
-            verifyTheTabCounter("0")
-            verifyTheMainMenuButton()
-        }
-        setScreenOrientation(composeTestRule, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-    }
-
-    // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/3333201
-    @Test
-    fun verifyTheTabStripUILandscapeTest() {
-        val defaultWebPage = mockWebServer.getGenericAsset(1)
-
-        homeScreen(composeTestRule) {
-        }.openThreeDotMenu {
-        }.clickSettingsButton {
-        }.openCustomizeSubMenu {
-            clickShowTabBarToggle()
-            scrollToExpandedToolbarOption()
-            selectExpandedToolbarLayout()
-        }.goBack {
-        }.goBack(composeTestRule) {
-        }
-
-        navigationToolbar(composeTestRule) {
-        }.enterURLAndEnterToBrowser(defaultWebPage.url) {
-            verifyPageContent(defaultWebPage.content)
-        }
-
-        setScreenOrientation(composeTestRule, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
-        browserScreen(composeTestRule) {
-            verifyUrl(defaultWebPage.url.toString())
-            verifyETPShieldIconIsDisplayed(composeTestRule)
-        }
-        homeScreen(composeTestRule) {
-            verifyToolbarPosition(bottomPosition = false)
-        }
-        navigationToolbar(composeTestRule) {
-            verifyTheTabStripOpenTab("Test_Page_1")
-            verifyTheTabStripCloseTabButton("Test_Page_1")
-            verifyTheBackButton()
-            verifyTheForwardButton()
-            verifyTheRefreshButton()
-            verifyTheNewTabButton(false)
-            verifyTheTabCounter("1")
-            verifyTheMainMenuButton()
-        }
-        setScreenOrientation(composeTestRule, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     }
 }

@@ -17,11 +17,11 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers
@@ -188,7 +188,7 @@ class ThreeDotMenuMainRobot(private val composeTestRule: ComposeTestRule) {
         composeTestRule.shareButton().assertIsDisplayed()
         Log.i(TAG, "verifyPageMainMenuItems: Verified that the \"Share\" button exists.")
         Log.i(TAG, "verifyPageMainMenuItems: Trying to verify that the \"Bookmark page\" button exists.")
-        composeTestRule.bookmarkPageButton().assertIsDisplayed()
+        assertUIObjectExists(itemWithDescription(getStringResource(R.string.browser_menu_bookmark_this_page_2)))
         Log.i(TAG, "verifyPageMainMenuItems: Verified that the \"Bookmark page\" button exists.")
         Log.i(TAG, "verifyPageMainMenuItems: Trying to verify that the \"Find in page\" button exists.")
         composeTestRule.findInPageButton().assertIsDisplayed()
@@ -221,6 +221,56 @@ class ThreeDotMenuMainRobot(private val composeTestRule: ComposeTestRule) {
         composeTestRule.settingsButton().assertIsDisplayed()
         Log.i(TAG, "verifyPageMainMenuItems: Verified that the \"Settings\" button exists.")
         Log.i(TAG, "verifyPageMainMenuItems: Verified the main menu items on the web page.")
+    }
+
+    fun verifyPageMainMenuItemsInLandscapeMode() {
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify the main menu items on the web page in landscape mode.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Back\" button exists.")
+        composeTestRule.backButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Back\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Forward\" button exists.")
+        composeTestRule.forwardButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Forward\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Refresh\" button exists.")
+        composeTestRule.refreshButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Refresh\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Share\" button exists.")
+        composeTestRule.shareButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Share\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Bookmark page\" button exists.")
+        assertUIObjectExists(itemWithDescription(getStringResource(R.string.browser_menu_bookmark_this_page_2)))
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Bookmark page\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Find in page\" button exists.")
+        composeTestRule.findInPageButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Find in page\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Desktop site\" button exists.")
+        composeTestRule.desktopSiteButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Desktop site\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"Extensions\" button exists.")
+        composeTestRule.extensionsButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Extensions\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to verify that the \"More\" button exists.")
+        composeTestRule.moreButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"More\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to scroll to and verify that the \"History\" button exists.")
+        composeTestRule.historyButton().performScrollTo().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"History\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to scroll to and verify that the \"Bookmarks\" button exists.")
+        composeTestRule.bookmarksButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Bookmarks\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to scroll to and verify that the \"Downloads\" button exists.")
+        composeTestRule.downloadsButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Downloads\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to scroll to and verify that the \"Passwords\" button exists.")
+        composeTestRule.passwordsButton().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Passwords\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to scroll to and verify that the \"Sign in\" button exists.")
+        composeTestRule.signInButton().performScrollTo().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Sign in\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Trying to scroll to and verify that the \"Settings\" button exists.")
+        composeTestRule.settingsButton().performScrollTo().assertIsDisplayed()
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified that the \"Settings\" button exists.")
+        Log.i(TAG, "verifyPageMainMenuItemsInLandscapeMode: Verified the main menu items on the web page in landscape mode.")
     }
 
     fun verifyHomeMainMenuItems() {

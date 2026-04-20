@@ -72,6 +72,7 @@ class HomeActivityTestRule(
         hasSeenBrowserToolbarCFR: Boolean = true,
         hasSeenShakeToSummarizeToolbarCfr: Boolean = true,
         isPrivateModeAndStoriesEntryPointEnabled: Boolean = false,
+        shouldUseExpandedToolbar: Boolean = false,
     ) : this(initialTouchMode, launchActivity, skipOnboarding) {
         this.isPocketEnabled = isPocketEnabled
         this.isRecentTabsFeatureEnabled = isRecentTabsFeatureEnabled
@@ -94,6 +95,7 @@ class HomeActivityTestRule(
         this.hasSeenBrowserToolbarCFR = hasSeenBrowserToolbarCFR
         this.hasSeenShakeToSummarizeToolbarCfr = hasSeenShakeToSummarizeToolbarCfr
         this.isPrivateModeAndStoriesEntryPointEnabled = isPrivateModeAndStoriesEntryPointEnabled
+        this.shouldUseExpandedToolbar = shouldUseExpandedToolbar
     }
 
     /**
@@ -206,6 +208,7 @@ class HomeActivityIntentTestRule internal constructor(
         hasSeenBrowserToolbarCFR: Boolean = true,
         hasSeenShakeToSummarizeToolbarCfr: Boolean = true,
         isPrivateModeAndStoriesEntryPointEnabled: Boolean = false,
+        shouldUseExpandedToolbar: Boolean = false,
     ) : this(initialTouchMode, launchActivity, skipOnboarding) {
         this.isPocketEnabled = isPocketEnabled
         this.isRecentTabsFeatureEnabled = isRecentTabsFeatureEnabled
@@ -229,6 +232,7 @@ class HomeActivityIntentTestRule internal constructor(
         this.hasSeenBrowserToolbarCFR = hasSeenBrowserToolbarCFR
         this.hasSeenShakeToSummarizeToolbarCfr = hasSeenShakeToSummarizeToolbarCfr
         this.isPrivateModeAndStoriesEntryPointEnabled = isPrivateModeAndStoriesEntryPointEnabled
+        this.shouldUseExpandedToolbar = shouldUseExpandedToolbar
     }
 
     private val longTapUserPreference = getLongPressTimeout()

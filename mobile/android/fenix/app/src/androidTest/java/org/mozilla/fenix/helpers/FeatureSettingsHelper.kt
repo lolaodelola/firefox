@@ -130,6 +130,11 @@ interface FeatureSettingsHelper {
     var hasSeenShakeToSummarizeToolbarCfr: Boolean
 
     /**
+     * Enable or disable expanded toolbar layout.
+     */
+    var shouldUseExpandedToolbar: Boolean
+
+    /**
      * Enable or disable the translations prompt after a page that can be translated is loaded.
      */
     fun enableOrDisablePageLoadTranslationsPrompt(enableTranslationsPrompt: Boolean) {

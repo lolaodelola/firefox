@@ -10,7 +10,6 @@ import android.net.Uri
 import android.util.Log
 import android.view.KeyEvent
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertAny
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -308,8 +307,8 @@ class NavigationToolbarRobot(private val composeTestRule: ComposeTestRule) {
         Log.i(TAG, "verifyNavBarBarPosition: Verified the toolbar navbar position is at the bottom: $isAtBottom.")
     }
 
-    fun verifyNavBarPositionWithTabStripEnabled(isAtBottom: Boolean) {
-        Log.i(TAG, "verifyNavBarPositionWithTabStripEnabled: Trying to verify the toolbar navbar position is at the bottom: $isAtBottom.")
+    fun verifyNavBarPosition(isAtBottom: Boolean) {
+        Log.i(TAG, "verifyNavBarPosition: Trying to verify the toolbar navbar position is at the bottom: $isAtBottom.")
         onView(allOf(withId(R.id.navigation_bar), isCompletelyDisplayed())).check(
             if (isAtBottom) {
                 isCompletelyBelow(withId(R.id.composable_toolbar))
@@ -317,7 +316,7 @@ class NavigationToolbarRobot(private val composeTestRule: ComposeTestRule) {
                 isCompletelyAbove(withId(R.id.composable_toolbar))
             },
         )
-        Log.i(TAG, "verifyNavBarPositionWithTabStripEnabled: Verified the toolbar navbar position is at the bottom: $isAtBottom.")
+        Log.i(TAG, "verifyNavBarPosition: Verified the toolbar navbar position is at the bottom: $isAtBottom.")
     }
 
     fun verifyTheTabCounter(numberOfOpenTabs: String, isPrivateBrowsingEnabled: Boolean = false) {
@@ -409,6 +408,18 @@ class NavigationToolbarRobot(private val composeTestRule: ComposeTestRule) {
         Log.i(TAG, "verifyTheNavigationBarHomepageButton: Trying to verify that the homepage button is displayed in the navigation bar")
         composeTestRule.onNodeWithContentDescription("Homepage").assertIsDisplayed()
         Log.i(TAG, "verifyTheNavigationBarHomepageButton: Verified that the homepage button is displayed in the navigation bar")
+    }
+
+    fun clickTheNavigationBarEditBookmarkButton() {
+        Log.i(TAG, "clickTheNavigationBarEditBookmarkButton: Trying to click the \"Edit bookmark\" button in the navigation bar.")
+        composeTestRule.onNodeWithContentDescription("Edit bookmark").performClick()
+        Log.i(TAG, "clickTheNavigationBarEditBookmarkButton: Clicked the \"Edit bookmark\" button in the navigation bar.")
+    }
+
+    fun clickTheNavigationBarRefreshButton() {
+        Log.i(TAG, "clickTheNavigationBarRefreshButton: Trying to click the \"Refresh\" button in the navigation bar.")
+        composeTestRule.onNodeWithContentDescription("Refresh").performClick()
+        Log.i(TAG, "clickTheNavigationBarRefreshButton: Clicked the \"Refresh\" button in the navigation bar.")
     }
 
     class Transition(private val composeTestRule: ComposeTestRule) {

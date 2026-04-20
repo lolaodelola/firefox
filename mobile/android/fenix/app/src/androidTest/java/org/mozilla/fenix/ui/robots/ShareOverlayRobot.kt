@@ -37,7 +37,6 @@ import org.mozilla.fenix.helpers.MatcherHelper.itemWithText
 import org.mozilla.fenix.helpers.TestAssetHelper.waitingTime
 import org.mozilla.fenix.helpers.TestHelper.mDevice
 import org.mozilla.fenix.helpers.TestHelper.packageName
-import org.mozilla.fenix.helpers.TestHelper.waitForAppWindowToBeUpdated
 import org.mozilla.fenix.helpers.ext.waitNotNull
 
 class ShareOverlayRobot {
@@ -79,6 +78,32 @@ class ShareOverlayRobot {
                 "$packageName:id/accountHeaderText",
                 getStringResource(R.string.share_device_subheader),
             ),
+            // Recently used header
+            itemWithResIdContainingText(
+                "$packageName:id/recent_apps_link_header",
+                getStringResource(R.string.share_link_recent_apps_subheader),
+            ),
+            // All actions header
+            itemWithResIdContainingText(
+                "$packageName:id/apps_link_header",
+                getStringResource(R.string.share_link_all_apps_subheader),
+            ),
+            // Save as PDF button
+            itemContainingText(getStringResource(R.string.share_save_to_pdf)),
+        )
+    }
+
+    // This function verifies the share layout in Landscape mode when a single tab is shared - no tab info shown
+    // Send to device section is not shown in landscape mode
+
+    fun verifyShareTabLayoutInLandscapeMode() {
+        assertUIObjectExists(
+            // Share layout
+            itemWithResId("$packageName:id/sharingLayout"),
+            // Recently used section
+            itemWithResId("$packageName:id/recentAppsContainer"),
+            // All actions sections
+            itemWithResId("$packageName:id/appsList"),
             // Recently used header
             itemWithResIdContainingText(
                 "$packageName:id/recent_apps_link_header",
