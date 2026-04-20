@@ -845,11 +845,6 @@ ccache = check_prog(
     allow_missing=True,
 )
 
-option(env="CCACHE_PREFIX", nargs=1, help="Compiler prefix to use when using ccache")
-
-ccache_prefix = depends_if("CCACHE_PREFIX")(lambda prefix: prefix[0])
-set_config("CCACHE_PREFIX", ccache_prefix)
-
 # Distinguish ccache from sccache and buildcache.
 
 
@@ -1639,21 +1634,6 @@ building_with_gcc = depends(c_compiler)(lambda info: info.type == "gcc")
 building_with_gnu_compatible_cc = depends(c_compiler)(
     lambda info: info.type != "clang-cl"
 )
-
-
-@depends(cxx_compiler, ccache_prefix)
-@imports("os")
-def cxx_is_icecream(info, ccache_prefix):
-    if (
-        os.path.islink(info.compiler)
-        and os.path.basename(os.readlink(info.compiler)) == "icecc"
-    ):
-        return True
-    if ccache_prefix and os.path.basename(ccache_prefix) == "icecc":
-        return True
-
-
-set_config("CXX_IS_ICECREAM", cxx_is_icecream)
 
 
 # Libstdc++ compatibility hacks

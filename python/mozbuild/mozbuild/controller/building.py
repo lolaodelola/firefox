@@ -1434,7 +1434,6 @@ class BuildDriver(MozbuildObject):
             mozbuild_metrics.ccache.set(get_substs_flag("CCACHE"))
             using_sccache = get_substs_flag("MOZ_USING_SCCACHE")
             mozbuild_metrics.sccache.set(using_sccache)
-            mozbuild_metrics.icecream.set(get_substs_flag("CXX_IS_ICECREAM"))
             mozbuild_metrics.project.set(substs.get("MOZ_BUILD_APP", ""))
             mozbuild_metrics.target.set(target)
 
