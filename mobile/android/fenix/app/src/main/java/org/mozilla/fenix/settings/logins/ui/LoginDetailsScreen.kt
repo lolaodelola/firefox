@@ -283,19 +283,13 @@ private fun LoginDetailsPassword(
     val coroutineScope = rememberCoroutineScope()
     val passwordSnackbarText = stringResource(R.string.logins_password_copied)
 
-    Text(
-        text = stringResource(R.string.preferences_passwords_saved_logins_password),
-        modifier = Modifier
-            .padding(horizontal = FirefoxTheme.layout.space.static200)
-            .width(FirefoxTheme.layout.size.containerMaxWidth),
-    )
-
     TextField(
         value = password,
         onValueChange = {},
         isEnabled = false,
         placeholder = "",
         errorText = "",
+        label = stringResource(R.string.preferences_passwords_saved_logins_password),
         modifier = Modifier
             .padding(horizontal = FirefoxTheme.layout.space.static200)
             .wrapContentHeight()
