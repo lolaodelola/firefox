@@ -52,6 +52,7 @@ EXPORTS += [
     "nsContentList.h",
     "nsContentListDeclarations.h",
     "nsContentPermissionHelper.h",
+    "nsContentPolicyType.h",
     "nsContentPolicyUtils.h",
     "nsContentSink.h",
     "nsContentTypeParser.h",

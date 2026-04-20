@@ -71,6 +71,41 @@ describe("ASRouterStorage", () => {
         event: "INDEXEDDB_DELETE_FAILED",
       });
     });
+
+    it("should register onversionchange handler on the database", async () => {
+      const dbObj = { close: sandbox.stub() };
+      indexedDB.open.resolves(dbObj);
+
+      await storage.db;
+      assert.isFunction(dbObj.onversionchange);
+    });
+
+    it("should close db and clear cache on versionchange", async () => {
+      const dbObj = { close: sandbox.stub() };
+      indexedDB.open.resolves(dbObj);
+
+      await storage.db;
+      dbObj.onversionchange();
+
+      assert.calledOnce(dbObj.close);
+      assert.isNull(storage._db);
+    });
+
+    it("should clear db cache on close event and allow re-open", async () => {
+      const dbObj1 = { close: sandbox.stub() };
+      const dbObj2 = {};
+      indexedDB.open.onFirstCall().resolves(dbObj1);
+      indexedDB.open.onSecondCall().resolves(dbObj2);
+
+      await storage.db;
+      dbObj1.onclose();
+
+      assert.isNull(storage._db);
+
+      const db = await storage.db;
+      assert.equal(db, dbObj2);
+      assert.calledTwice(indexedDB.open);
+    });
   });
   describe("#getDbTable", () => {
     let testStorage;

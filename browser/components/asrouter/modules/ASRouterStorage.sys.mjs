@@ -117,7 +117,7 @@ export class ASRouterStorage {
   async createOrOpenDb() {
     try {
       const db = await this._openDatabase();
-      return db;
+      return this._registerLifecycleHandlers(db);
     } catch (e) {
       if (this.telemetry) {
         this.telemetry.handleUndesiredEvent({ event: "INDEXEDDB_OPEN_FAILED" });
@@ -131,8 +131,24 @@ export class ASRouterStorage {
           });
         }
       }
-      return this._openDatabase();
+      const db = await this._openDatabase();
+      return this._registerLifecycleHandlers(db);
     }
+  }
+
+  // Register event handlers on a newly opened database connection so that
+  // external lifecycle events (version upgrades from other connections, or
+  // the backend closing the connection due to storage pressure/corruption)
+  // clear the cached _db promise and allow the next access to re-open.
+  _registerLifecycleHandlers(db) {
+    db.onversionchange = () => {
+      db.close();
+      this._db = null;
+    };
+    db.onclose = () => {
+      this._db = null;
+    };
+    return db;
   }
 
   async _requestWrapper(request) {

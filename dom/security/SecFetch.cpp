@@ -117,7 +117,6 @@ nsCString MapInternalContentPolicyTypeToDest(nsContentPolicyType aType) {
       return "webtransport"_ns;
     case nsIContentPolicy::TYPE_INTERNAL_EXTERNAL_RESOURCE:
       return "image"_ns;
-    case nsIContentPolicy::TYPE_END:
     case nsIContentPolicy::TYPE_INVALID:
       break;
       // Do not add default: so that compilers can catch the missing case.

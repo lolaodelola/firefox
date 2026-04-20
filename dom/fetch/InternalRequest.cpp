@@ -359,7 +359,6 @@ RequestDestination InternalRequest::MapContentPolicyTypeToRequestDestination(
     case nsIContentPolicy::TYPE_INTERNAL_JSON_PRELOAD:
       return RequestDestination::Json;
     case nsIContentPolicy::TYPE_INVALID:
-    case nsIContentPolicy::TYPE_END:
       break;
       // Do not add default: so that compilers can catch the missing case.
   }
