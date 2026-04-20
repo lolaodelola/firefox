@@ -6264,6 +6264,10 @@ bool EditorBase::CanKeepHandlingFocusEvent(
   if (!focusedElement) {
     return false;
   }
+  // If focused element is not editable, don't focus the HTML editor.
+  if (IsHTMLEditor() && !focusedElement->IsEditable()) {
+    return false;
+  }
 
   // If there's an HTMLEditor registered in the target document and we
   // are not that HTMLEditor (for cases like nested documents), let
