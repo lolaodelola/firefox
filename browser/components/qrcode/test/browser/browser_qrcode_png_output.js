@@ -17,6 +17,9 @@ const MIN_LOGO_MODULE_SPAN = 6;
 const TEST_URL = "https://mozilla.org";
 const LONG_TEST_URL =
   "https://www.cnet.com/home/kitchen-and-household/keep-these-7-devices-far-away-from-extension-cords-or-power-strips/?utm_source=firefox-newtab-en-us";
+// Exceeds H-level error correction capacity (~1273 bytes at version 40),
+// forcing a fallback to a lower EC level that cannot support logo overlay.
+const TOO_LONG_FOR_H_LEVEL_URL = "https://example.com/?" + "a".repeat(1400);
 
 async function renderToSamplingCanvas(url) {
   const dataURI = await QRCodeGenerator.generateQRCode(url);
@@ -373,6 +376,23 @@ add_task(async function test_qrcode_png_decodability() {
       `url="${url}" changed ${(suppressedFraction * 100).toFixed(1)}% of data dots; must be under 30% for H-level error correction`
     );
   }
+});
+
+add_task(async function test_qrcode_png_long_url_omits_logo() {
+  // URLs too long for H-level fall back to a lower EC level and the logo is
+  // omitted. Verify the full rendered output matches the reference image, which
+  // was generated with automatic EC fallback (no logo overlay).
+  const dataURI = await QRCodeGenerator.generateQRCode(
+    TOO_LONG_FOR_H_LEVEL_URL
+  );
+  const refDataURI = await loadReferenceDataURI(
+    "reference-long-url-no-logo.png"
+  );
+  await assertImagesMatch(
+    dataURI,
+    refDataURI,
+    "Long URL QR code should match reference image (no logo overlay)"
+  );
 });
 
 add_task(async function test_qrcode_png_save_bytes() {

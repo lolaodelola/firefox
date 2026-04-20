@@ -502,17 +502,33 @@ class QRCodeWorkerImpl {
    * Generate a complete QR code PNG with the Firefox logo composited in the
    * worker. Returns a data URI ready for display or saving.
    *
+   * Tries H-level error correction first. If the URL is too long to fit,
+   * falls back through Q, M, L. The logo is only shown at H-level, which
+   * has enough redundancy to survive the logo overlay without making the
+   * code undecodable.
+   *
    * @param {string} url
-   * @param {string} errorCorrectionLevel
+   * @param {boolean} [showLogo=true]
    * @returns {Promise<string>} data:image/png;base64,... URI
    */
-  async generateFullQRCode(url, errorCorrectionLevel = "H") {
-    const { matrix, dotCount } = this.generateQRMatrix(
-      url,
-      errorCorrectionLevel
-    );
+  async generateFullQRCode(url, showLogo = true) {
+    let matrix, dotCount, ecLevel;
+    for (const level of ["H", "Q", "M", "L"]) {
+      try {
+        ({ matrix, dotCount } = this.generateQRMatrix(url, level));
+        ecLevel = level;
+        break;
+      } catch (e) {
+        if (level === "L") {
+          throw e;
+        }
+      }
+    }
     const margin = this.#getMargin();
     const placement = this.getLogoPlacement(dotCount, margin);
+    if (ecLevel !== "H" || !showLogo) {
+      placement.showLogo = false;
+    }
     const size = this.#getCanvasSize(dotCount, margin);
 
     const canvas = new OffscreenCanvas(size, size);
