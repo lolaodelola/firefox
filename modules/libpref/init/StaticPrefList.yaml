@@ -9360,7 +9360,7 @@
   # Capture stack traces for OOM
 - name: javascript.options.experimental.capture_oom_stack_trace
   type: bool
-  value: @IS_NIGHTLY_BUILD@
+  value: true
   mirror: always
   set_spidermonkey_pref: startup
 
