@@ -1,10 +1,4 @@
-# HG changeset patch
-# User Jonathan Kew <jkew@mozilla.com>
-# Date 1713889662 -3600
-#      Tue Apr 23 17:27:42 2024 +0100
-# Node ID fd010d43c6a9aabbffd9cba9d0f290996c052c65
-# Parent  cf33e155ac6207c3903408de7341e0ac68be7474
-Bug 1892913 - patch 12 - Update and apply 09-quartz-surface-additions.patch
+Add cairo_quartz_surface_get_image.
 
 diff --git a/gfx/cairo/cairo/src/cairo-quartz-surface.c b/gfx/cairo/cairo/src/cairo-quartz-surface.c
 --- a/gfx/cairo/cairo/src/cairo-quartz-surface.c

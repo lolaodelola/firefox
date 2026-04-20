@@ -28,31 +28,41 @@ VERSIONS:
 
 07-ft-variations-runtime-check.patch: runtime check for FreeType variation support
 
-09-quartz-surface-additions.patch: add cairo_quartz_surface_get_image
+08-quartz-surface-additions.patch: add cairo_quartz_surface_get_image
 
-11-quartz-surface-tags.patch: support for LINK tags in the quartz-surface backend
+09-quartz-surface-tags.patch: support for LINK tags in the quartz-surface backend
 
-12-quartz-named-destination.patch: support for named destinations in quartz-surface
+10-quartz-named-destination.patch: support for named destinations in quartz-surface
 
-17-active-edges-crash.patch: avoid potential crash in active_edges
+11-quartz-prefer-named-dest-over-uri.patch: prefer named destinations over URI links in quartz-surface
 
-18-quartz-granular-ifdefs.patch: build fixes for iOS
+12-active-edges-crash.patch: avoid potential crash in active_edges
 
-19-ft-color-ifdef.patch: FT_COLOR build fix
+13-quartz-granular-ifdefs.patch: build fixes for iOS
 
-20-ios-colorspace.patch: iOS doesn't support per-display color spaces
+14-ft-color-ifdef.patch: guard FT_COLOR_H and related FreeType/fontconfig symbols for builds targeting older FreeType
 
-21-quartz-surface-leak.patch: fix DataSourceSurfaceRawData leak on quartz surface
+15-ios-colorspace.patch: iOS doesn't support per-display color spaces
 
-22-windows-build-fix.patch: build fix for Windows/non-mingw
+16-quartz-surface-leak.patch: fix DataSourceSurfaceRawData leak on quartz surface
 
-23-win32-api-additions.patch: Windows API additions for gecko
+17-windows-build-fix.patch: build fix for Windows/non-mingw
 
-cff-font-creation.patch: make cairo_cff_font_t allocation consistent
+18-win32-api-additions.patch: Windows API additions for gecko
 
-27-windows-sdk-26100.patch: fix build bustage with Windows SDK 26100
+19-quartz-surface-mask.patch: don't apply clip to CGContext for quartz surface mask
 
-28-win32-vertical-glyph-advance-direction.patch: fix sign of glyph y-advance for ExtTextOut
+20-windows-sdk-26100.patch: fix build bustage with Windows SDK 26100
+
+21-win32-vertical-glyph-advance-direction.patch: fix sign of glyph y-advance for ExtTextOut
+
+22-tor-scan-converter-polygon.patch: protect add_polygon with setjmp to avoid crash on jmp_buf corruption
+
+23-cff-subroutine-offset.patch: add bounds check in cff_index_read to avoid out-of-bounds read
+
+24-cff-fdselect-range-check.patch: add bounds check in cff_fdselect_read to avoid out-of-bounds read
+
+25-quartz-revert-to-pre-1.18.0.patch: revert cairo-quartz-*.[ch] to the pre-1.18.0 Mozilla state (Bug 1901043 + Bug 1908587 + Bug 1970983); applies on top of the Mozilla-local quartz patches (08, 09, 10, 11, 13, 15, 16, 19)
 
 ==== pixman patches ====
 

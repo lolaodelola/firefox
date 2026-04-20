@@ -1,10 +1,4 @@
-# HG changeset patch
-# User Jonathan Kew <jkew@mozilla.com>
-# Date 1713891373 -3600
-#      Tue Apr 23 17:56:13 2024 +0100
-# Node ID a7bd4153d6421d17cb2991435ceb5a5fff06dba6
-# Parent  c0c2246d28b91b5e933f42d903b06d575d943e6e
-Bug 1892913 - patch 16 - Apply 18-quartz-granular-ifdefs.patch
+Build fixes for iOS.
 
 diff --git a/gfx/cairo/cairo/src/cairo-quartz-font.c b/gfx/cairo/cairo/src/cairo-quartz-font.c
 --- a/gfx/cairo/cairo/src/cairo-quartz-font.c

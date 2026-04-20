@@ -1,0 +1,22 @@
+diff --git a/gfx/cairo/cairo/src/cairo-tor-scan-converter.c b/gfx/cairo/cairo/src/cairo-tor-scan-converter.c
+index 901303f3e428..26ec5581d8df 100644
+--- a/gfx/cairo/cairo/src/cairo-tor-scan-converter.c
++++ b/gfx/cairo/cairo/src/cairo-tor-scan-converter.c
+@@ -1829,6 +1829,7 @@ _cairo_tor_scan_converter_add_polygon (void		*converter,
+ 				       const cairo_polygon_t *polygon)
+ {
+     cairo_tor_scan_converter_t *self = converter;
++    cairo_status_t status;
+     int i;
+ 
+ #if 0
+@@ -1837,6 +1838,9 @@ _cairo_tor_scan_converter_add_polygon (void		*converter,
+     fclose (file);
+ #endif
+ 
++    if ((status = setjmp (self->jmp)))
++	return _cairo_scan_converter_set_error (self, _cairo_error (status));
++
+     for (i = 0; i < polygon->num_edges; i++)
+ 	 glitter_scan_converter_add_edge (self->converter, &polygon->edges[i]);
+ 
