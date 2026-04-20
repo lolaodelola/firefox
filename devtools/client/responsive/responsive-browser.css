@@ -56,8 +56,6 @@
 }
 
 .browserContainer.responsive-mode > .browserStack {
-  --rdm-zoomed-width: calc(var(--rdm-width) * var(--rdm-zoom));
-  --rdm-zoomed-height: calc(var(--rdm-height) * var(--rdm-zoom));
   min-height: 0;
   min-width: 0;
   overflow: auto;
@@ -65,27 +63,29 @@
 
   /**
    * The grid areas provide a reference box for the browser. The browser
-   * will fill the grid box exactly at rdm-zoom 1. If rdm-zoom is different
-   * from 1, the grid areas do not change; instead, we use a transform on the
-   * browser to make it grow beyond the grid area, and we use left/top on the
-   * resizer handles to move them in the correct spot.
+   * (and the .rdm-screen-box element) will fill the grid box exactly at
+   * rdm-zoom 1. If rdm-zoom is different from 1, the grid areas do not
+   * change; instead, we use a transform on the browser and on the
+   * .rdm-screen-box to make it grow beyond the grid area.
+   * Resizer handles etc are children of .rdm-screen-box, so they will be
+   * placed correctly as a result of .rdm-screen-box's transform.
    */
   grid-template-columns: 15px 1fr [center-align] var(--rdm-width) 1fr;
   grid-template-rows: 65px [margin-top-offset] var(--rdm-height);
 }
 
-.browserContainer.responsive-mode > .browserStack > .rdm-dynamic-toolbar {
+.rdm-dynamic-toolbar {
   align-self: end;
   background: lightslategray;
   opacity: 0.5;
 }
 
-.browserContainer.responsive-mode > .browserStack > :is(browser, .rdm-viewport-resize-handle, .rdm-dynamic-toolbar) {
+.browserContainer.responsive-mode > .browserStack > :is(browser, .rdm-screen-box) {
   grid-column: center-align;
   grid-row: margin-top-offset;
 }
 
-.browserContainer.responsive-mode.left-aligned > .browserStack > :is(browser, .rdm-viewport-resize-handle) {
+.browserContainer.responsive-mode.left-aligned > .browserStack > :is(browser, .rdm-screen-box) {
   grid-column: left-align;
 }
 
@@ -97,12 +97,7 @@ html[dir="rtl"] .browserContainer.responsive-mode.left-aligned > .browserStack {
   grid-template-columns: 1fr [left-align] var(--rdm-width) 15px;
 }
 
-.browserContainer.responsive-mode > .browserStack > browser {
-  /* We use outline instead of border so that we don't affect the position
-  or size of the browser content. */
-  outline: 1px solid var(--devtools-splitter-color);
-  box-shadow: 0 4px 4px var(--rdm-shadow-color);
-
+.browserContainer.responsive-mode > .browserStack > :is(browser, .rdm-screen-box) {
   transform-origin: 50% 0;
   transform: scale(var(--rdm-zoom), var(--rdm-zoom));
   box-sizing: content-box; /* This is important to ensure that the pane has the
@@ -112,59 +107,58 @@ html[dir="rtl"] .browserContainer.responsive-mode.left-aligned > .browserStack {
   width: var(--rdm-width);
 }
 
-.browserContainer.responsive-mode.left-aligned > .browserStack > browser {
+.browserContainer.responsive-mode.left-aligned > .browserStack > :is(browser, .rdm-screen-box) {
   transform-origin: 0 0;
+}
+
+.rdm-screen-box {
+  --side-handle-thickness: 5px;
+  --corner-handle-size: 16px;
+
+  /* We use outline instead of border so that we don't affect the position
+  or size of the browser content. */
+  outline: 1px solid var(--devtools-splitter-color);
+  box-shadow: 0 4px 4px var(--rdm-shadow-color);
+  position: relative;
+  display: grid;
+
+  /* Don't block mouse events from reaching the underlying browser. */
+  pointer-events: none;
+
+  & > * {
+    /* But do allow mouse interactions with resizers etc */
+    pointer-events: all;
+  }
 }
 
 /* Resize handles */
 
-.browserContainer.responsive-mode > .browserStack > .viewport-resize-handle {
-  width: 16px;
-  height: 16px;
+.rdm-screen-box > .viewport-resize-handle {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: var(--corner-handle-size);
+  height: var(--corner-handle-size);
   background-image: url("./images/grippers.svg");
-  margin-inline-end: 1px;
-  margin-block-end: 1px;
   background-repeat: no-repeat;
   background-origin: content-box;
   cursor: nwse-resize;
-  align-self: end;
-  justify-self: right;
-  position: relative;
-  left: calc((var(--rdm-zoomed-width) - var(--rdm-width)) / 2);
-  top: calc(var(--rdm-zoomed-height) - var(--rdm-height));
 }
 
-.browserContainer.responsive-mode.left-aligned > .browserStack > .viewport-resize-handle {
-  left: calc(var(--rdm-zoomed-width) - var(--rdm-width));
-}
-
-.browserContainer.responsive-mode > .browserStack > .viewport-horizontal-resize-handle {
-  --resize-handle-thickness: 5px;
-  width: var(--resize-handle-thickness);
-  margin: 0 calc(var(--resize-handle-thickness) / -2);
-  height: calc(var(--rdm-zoomed-height) - 16px);
+.rdm-screen-box > .viewport-horizontal-resize-handle {
+  position: absolute;
+  top: 0;
+  left: calc(100% - var(--side-handle-thickness) / 2);
+  width: var(--side-handle-thickness);
+  bottom: var(--corner-handle-size);
   cursor: ew-resize;
-  justify-self: right;
-  position: relative;
-  left: calc((var(--rdm-zoomed-width) - var(--rdm-width)) / 2);
 }
 
-.browserContainer.responsive-mode.left-aligned > .browserStack > .viewport-horizontal-resize-handle {
-  left: calc(var(--rdm-zoomed-width) - var(--rdm-width));
-}
-
-.browserContainer.responsive-mode > .browserStack > .viewport-vertical-resize-handle {
-  --resize-handle-thickness: 5px;
-  width: calc(var(--rdm-zoomed-width) - 16px);
-  height: var(--resize-handle-thickness);
-  margin: calc(var(--resize-handle-thickness) / -2) 0;
-  cursor: ns-resize;
-  align-self: end;
-  position: relative;
-  top: calc(var(--rdm-zoomed-height) - var(--rdm-height));
-  left: calc((-1 * (var(--rdm-zoomed-width) - var(--rdm-width)) / 2));
-}
-
-.browserContainer.responsive-mode.left-aligned > .browserStack > .viewport-vertical-resize-handle {
+.rdm-screen-box > .viewport-vertical-resize-handle {
+  position: absolute;
   left: 0;
+  top: calc(100% - var(--side-handle-thickness) / 2);
+  height: var(--side-handle-thickness);
+  right: var(--corner-handle-size);
+  cursor: ns-resize;
 }
