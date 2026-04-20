@@ -8,8 +8,12 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,15 +25,15 @@ import mozilla.components.lib.state.ext.flowScoped
 import mozilla.components.support.base.feature.LifecycleAwareFeature
 import mozilla.components.support.base.feature.ViewBoundFeatureWrapper
 import org.mozilla.fenix.components.appstate.AppAction.LensAction
-import org.mozilla.fenix.components.lens.LensCameraActivity
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.settings
+import java.io.File
 import java.io.IOException
 
 /**
  * Handles Google Lens image search requests and results.
  * - Observes Lens requests from the AppStore.
- * - Launches the Lens camera screen and uploads the selected image.
+ * - Launches an image chooser (gallery + camera) and uploads the selected image.
  * - Dispatches the resulting Lens URL back to AppStore.
  */
 class LensFeature(
@@ -41,6 +45,8 @@ class LensFeature(
 ) : LifecycleAwareFeature {
 
     private var scope: CoroutineScope? = null
+    private var pendingCameraUri: Uri? = null
+    private var pendingCameraFile: File? = null
 
     override fun start() {
         observeLensRequests()
@@ -49,6 +55,7 @@ class LensFeature(
     override fun stop() {
         scope?.cancel()
         scope = null
+        cleanupPendingFile()
     }
 
     private fun observeLensRequests() {
@@ -58,39 +65,62 @@ class LensFeature(
                 .collect { lensState ->
                     if (lensState.isRequesting) {
                         appStore.dispatch(LensAction.LensRequestConsumed)
-                        launchCamera()
+                        launchImageChooser()
                     }
                 }
         }
     }
 
-    private fun launchCamera() {
-        val intent = LensCameraActivity.newIntent(context)
+    private fun launchImageChooser() {
+        val galleryIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "image/*"
+        }
+
+        val imageDir = File(context.cacheDir, LENS_IMAGES_DIR)
+        imageDir.mkdirs()
+        val imageFile = File(imageDir, "lens_capture_${System.currentTimeMillis()}.jpg")
+        val cameraUri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.lens.fileprovider",
+            imageFile,
+        )
+        pendingCameraUri = cameraUri
+        pendingCameraFile = imageFile
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, cameraUri)
+        }
+        val chooserIntent = Intent.createChooser(galleryIntent, null).apply {
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cameraIntent))
+        }
         try {
-            lensLauncher.launch(intent)
+            lensLauncher.launch(chooserIntent)
         } catch (e: ActivityNotFoundException) {
+            pendingCameraUri = null
+            pendingCameraFile = null
             appStore.dispatch(LensAction.LensDismissed)
         }
     }
 
     /**
-     * Handles the result of the Lens camera activity.
+     * Handles the result of the image chooser activity.
      */
     fun handleImageResult(resultCode: Int, data: Intent?) {
         if (resultCode != Activity.RESULT_OK) {
-            appStore.dispatch(LensAction.LensDismissed)
+            handleFailureDismiss()
             return
         }
 
-        val imageUri = data?.data
+        val imageUri = data?.data ?: pendingCameraUri
+        pendingCameraUri = null
         if (imageUri == null) {
-            appStore.dispatch(LensAction.LensDismissed)
+            handleFailureDismiss()
             return
         }
 
         val currentScope = scope
         if (currentScope == null) {
-            appStore.dispatch(LensAction.LensDismissed)
+            handleFailureDismiss()
             return
         }
 
@@ -104,11 +134,25 @@ class LensFeature(
                 }
             } catch (e: IOException) {
                 appStore.dispatch(LensAction.LensDismissed)
+            } finally {
+                cleanupPendingFile()
             }
         }
     }
 
+    private fun handleFailureDismiss() {
+        appStore.dispatch(LensAction.LensDismissed)
+        cleanupPendingFile()
+    }
+
+    private fun cleanupPendingFile() {
+        pendingCameraFile?.delete()
+        pendingCameraFile = null
+    }
+
     companion object {
+        private const val LENS_IMAGES_DIR = "lens_images"
+
         /**
          * Registers [LensFeature] with a [Fragment].
          * Returns null if the Google Lens integration is disabled.
@@ -121,9 +165,9 @@ class LensFeature(
                 return null
             }
 
-            val lensBinding = ViewBoundFeatureWrapper<LensFeature>()
+            var lensBinding: ViewBoundFeatureWrapper<LensFeature>? = ViewBoundFeatureWrapper()
 
-            lensBinding.set(
+            lensBinding?.set(
                 feature = LensFeature(
                     context = fragment.requireContext(),
                     appStore = fragment.requireContext().components.appStore,
@@ -136,6 +180,14 @@ class LensFeature(
                 ),
                 owner = fragment.viewLifecycleOwner,
                 view = fragment.requireView(),
+            )
+
+            fragment.viewLifecycleOwner.lifecycle.addObserver(
+                object : androidx.lifecycle.DefaultLifecycleObserver {
+                    override fun onDestroy(owner: LifecycleOwner) {
+                        lensBinding = null
+                    }
+                },
             )
 
             return lensBinding

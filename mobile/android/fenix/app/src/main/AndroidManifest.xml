@@ -662,12 +662,6 @@
             android:taskAffinity=""
             />
 
-        <activity android:name=".components.lens.LensCameraActivity"
-            android:theme="@style/Theme.LensCamera"
-            android:exported="false"
-            android:taskAffinity=""
-            />
-
         <activity
             android:name=".settings.account.AuthCustomTabActivity"
             android:autoRemoveFromRecents="false"
