@@ -314,11 +314,13 @@ class Tab extends TabBase {
   }
 
   get attention() {
+    // Always false because the concept is not implemented on Android.
     return false;
   }
 
   get audible() {
-    return this.nativeTab.playingAudio;
+    // TODO bug 2032751: Implement tabs.audible on Android.
+    return undefined;
   }
 
   get browser() {
@@ -326,11 +328,17 @@ class Tab extends TabBase {
   }
 
   get discarded() {
-    return this.browser.getAttribute("pending") === "true";
+    // TODO bug 1402338: Implement tabs.discard on Android.
+    return false;
   }
 
   get cookieStoreId() {
     return getCookieStoreIdForTab(this, this.nativeTab);
+  }
+
+  get openerTabId() {
+    // TODO bug 1817806: Implement openerTabId on Android.
+    return undefined;
   }
 
   get height() {
@@ -342,6 +350,7 @@ class Tab extends TabBase {
   }
 
   get index() {
+    // TODO bug 1812854: Support more than one tab per window.
     return 0;
   }
 
@@ -350,10 +359,12 @@ class Tab extends TabBase {
   }
 
   get lastAccessed() {
-    return this.nativeTab.lastTouchedAt;
+    // TODO bug 2032927: lastAccessed is not implemented on Android.
+    return undefined;
   }
 
   get pinned() {
+    // Always false because the concept is not implemented on Android.
     return false;
   }
 
@@ -377,10 +388,12 @@ class Tab extends TabBase {
   }
 
   get groupId() {
+    // Always TAB_GROUP_ID_NONE because tab groups are not implemented.
     return -1;
   }
 
   get splitViewId() {
+    // Always SPLIT_VIEW_ID_NONE because split views are not implemented.
     return -1;
   }
 
@@ -396,17 +409,18 @@ class Tab extends TabBase {
     return windowTracker.getId(this.window);
   }
 
-  // TODO: Just return false for these until properly implemented on Android.
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1402924
   get isArticle() {
+    // TODO bug 1402924: implement isArticle with toggleReaderMode.
     return false;
   }
 
   get isInReaderMode() {
+    // TODO bug 1402924: implement isInReaderMode with toggleReaderMode.
     return false;
   }
 
   get hidden() {
+    // tabs.hide() / tabs.show() not implemented on Android.
     return false;
   }
 
@@ -417,6 +431,9 @@ class Tab extends TabBase {
   }
 
   get sharingState() {
+    // sharingState is undocumented on MDN but has been around forever since it
+    // landed in bug 1423725. This return value is a dummy value that does not
+    // reflect the true sharing state.
     return {
       screen: undefined,
       microphone: false,

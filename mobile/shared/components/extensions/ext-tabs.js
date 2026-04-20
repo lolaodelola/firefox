@@ -139,6 +139,7 @@ this.tabs = class extends ExtensionAPIPersistent {
       },
     }),
     onUpdated({ fire }) {
+      // TODO bug 1713819: Support filters in tabs.onUpdated.
       const { tabManager } = this.extension;
       const restricted = ["url", "favIconUrl", "title"];
 
@@ -175,14 +176,6 @@ this.tabs = class extends ExtensionAPIPersistent {
             needed.push("title");
             break;
           }
-
-          case "DOMAudioPlaybackStarted":
-          case "DOMAudioPlaybackStopped": {
-            const window = event.target.ownerGlobal;
-            nativeTab = window.tab;
-            needed.push("audible");
-            break;
-          }
         }
 
         if (!nativeTab) {
@@ -210,6 +203,9 @@ this.tabs = class extends ExtensionAPIPersistent {
         }
       };
 
+      // The current implementation only supports: status,url,title changes.
+      // When more fields are implemented in the Tab class (ext-android.js),
+      // we should also add support here.
       windowTracker.addListener("status", statusListener);
       windowTracker.addListener("pagetitlechanged", listener);
 
