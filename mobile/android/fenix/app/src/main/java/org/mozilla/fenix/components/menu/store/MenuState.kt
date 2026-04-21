@@ -220,8 +220,10 @@ enum class IPProtectionMenuStatus {
  * Represents the state of the IP protection menu item.
  *
  * @property status The current [IPProtectionMenuStatus] shown in the badge.
+ * @property dataLimitGb The total monthly data allowance in GB.
  */
 @Immutable
 data class IPProtectionMenuState(
     val status: IPProtectionMenuStatus = IPProtectionMenuStatus.Off,
+    val dataLimitGb: Int = -1,
 )

@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.annotation.FlexibleWindowLightDarkPreview
@@ -81,13 +83,25 @@ internal fun IPProtectionMenuItem(
                 tint = MaterialTheme.colorScheme.onSurface,
             )
 
-            Text(
-                text = stringResource(R.string.ip_protection_toggle_label),
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface,
-                style = FirefoxTheme.typography.subtitle1,
-                maxLines = 1,
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.ip_protection_toggle_label),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = FirefoxTheme.typography.subtitle1,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+
+                if (state.status == IPProtectionMenuStatus.Paused) {
+                    Text(
+                        text = stringResource(R.string.ip_protection_menu_limit_reached, state.dataLimitGb),
+                        color = MaterialTheme.colorScheme.error,
+                        style = FirefoxTheme.typography.caption,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                }
+            }
 
             Badge(
                 badgeText = badgeText(state.status),
@@ -124,7 +138,8 @@ private fun badgeText(status: IPProtectionMenuStatus): String = when (status) {
 
 private fun badgeState(status: IPProtectionMenuStatus): MenuItemState = when (status) {
     IPProtectionMenuStatus.On -> MenuItemState.ACTIVE
-    IPProtectionMenuStatus.Paused, IPProtectionMenuStatus.Error -> MenuItemState.WARNING
+    IPProtectionMenuStatus.Error -> MenuItemState.WARNING
+    IPProtectionMenuStatus.Paused -> MenuItemState.DISABLED
     IPProtectionMenuStatus.Off,
     IPProtectionMenuStatus.Activating,
     IPProtectionMenuStatus.NeedsAuthentication,
@@ -172,6 +187,25 @@ private fun IPProtectionMenuItemConnectingPreview(
         MenuGroup {
             IPProtectionMenuItem(
                 state = IPProtectionMenuState(status = IPProtectionMenuStatus.Activating),
+                onToggle = {},
+                onNavigate = {},
+            )
+        }
+    }
+}
+
+@FlexibleWindowLightDarkPreview
+@Composable
+private fun IPProtectionMenuItemPausedPreview(
+    @PreviewParameter(PreviewThemeProvider::class) theme: Theme,
+) {
+    FirefoxTheme(theme = theme) {
+        MenuGroup {
+            IPProtectionMenuItem(
+                state = IPProtectionMenuState(
+                    status = IPProtectionMenuStatus.Paused,
+                    dataLimitGb = 50,
+                ),
                 onToggle = {},
                 onNavigate = {},
             )

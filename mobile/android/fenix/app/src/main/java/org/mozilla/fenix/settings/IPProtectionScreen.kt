@@ -110,7 +110,7 @@ fun IPProtectionScreen(
             HorizontalDivider()
 
             if (!state.isEnrollmentNeeded) {
-                VpnDataSection(state = state, onLearnMoreClick = onLearnMoreClick)
+                DataLimitSection(state = state, onLearnMoreClick = onLearnMoreClick)
 
                 HorizontalDivider()
 
@@ -133,14 +133,46 @@ fun IPProtectionScreen(
 }
 
 @Composable
-private fun VpnDataSection(state: IPProtectionHandler.StateInfo, onLearnMoreClick: () -> Unit) {
-    TextListItem(
-        label = stringResource(R.string.ip_protection_data_limit_label),
-        description = dataLimitDescription(state, stringResource(R.string.ip_protection_data_limit_value)),
-    )
+private fun DataLimitSection(
+    state: IPProtectionHandler.StateInfo,
+    onLearnMoreClick: () -> Unit,
+) {
+    val isDataLimitReached = state.proxyState == PROXY_STATE_PAUSED
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = FirefoxTheme.layout.space.dynamic200,
+                vertical = FirefoxTheme.layout.space.static150,
+            ),
+    ) {
+        Text(
+            text = stringResource(R.string.ip_protection_data_limit_label),
+            style = FirefoxTheme.typography.subtitle1,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+
+        if (!isDataLimitReached) {
+            Text(
+                text = dataLimitDescription(state, stringResource(R.string.ip_protection_data_limit_value)),
+                style = FirefoxTheme.typography.body2,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Text(
+                text = stringResource(
+                    R.string.ip_protection_data_limit_reached_description,
+                    state.max / BYTES_PER_GIB,
+                ),
+                style = FirefoxTheme.typography.body2,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
 
     LinearProgressIndicator(
-        progress = { dataProgress(state) },
+        progress = { if (isDataLimitReached) 1f else dataProgress(state) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = FirefoxTheme.layout.space.dynamic200)
@@ -289,9 +321,8 @@ private fun VpnPromoCard(
     }
 }
 
-private fun dataLimitDescription(state: IPProtectionHandler.StateInfo, format: String): String? {
+private fun dataLimitDescription(state: IPProtectionHandler.StateInfo, format: String): String {
     with(state) {
-        if (max <= 0L || remaining < 0L) return null
         val remainingGib = remaining / BYTES_PER_GIB
         val maxGib = max / BYTES_PER_GIB
         return format.format(remainingGib, maxGib)
