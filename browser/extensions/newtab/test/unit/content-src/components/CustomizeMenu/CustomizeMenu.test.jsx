@@ -48,6 +48,7 @@ describe("<CustomizeMenu>", () => {
       },
       enabledWidgets: { timerEnabled: false, listsEnabled: false },
       wallpapersEnabled: false,
+      wallpapersUserEnabled: false,
       activeWallpaper: null,
       pocketRegion: "US",
       mayHaveTopicSections: false,
@@ -128,6 +129,7 @@ describe("<CustomizeMenu>", () => {
       mayHaveTimerWidget: true,
       mayHaveListsWidget: true,
       wallpapersEnabled: true,
+      wallpapersUserEnabled: true,
       enabledWidgets: { timerEnabled: true, listsEnabled: true },
     };
 
@@ -142,6 +144,7 @@ describe("<CustomizeMenu>", () => {
     assert.strictEqual(child.prop("mayHaveTimerWidget"), true);
     assert.strictEqual(child.prop("mayHaveListsWidget"), true);
     assert.strictEqual(child.prop("wallpapersEnabled"), true);
+    assert.strictEqual(child.prop("wallpapersUserEnabled"), true);
     assert.deepEqual(child.prop("enabledWidgets"), {
       timerEnabled: true,
       listsEnabled: true,

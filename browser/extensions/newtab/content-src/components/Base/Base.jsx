@@ -209,7 +209,9 @@ export class BaseContent extends React.PureComponent {
     this.applyBodyClasses();
     global.addEventListener("scroll", this.onWindowScroll);
     const prefs = this.props.Prefs.values;
+    const novaEnabled = prefs[PREF_NOVA_ENABLED];
     const wallpapersEnabled = prefs["newtabWallpapers.enabled"];
+    const wallpapersUserEnabled = prefs["newtabWallpapers.user.enabled"];
 
     if (this.props.document.visibilityState === VISIBLE) {
       this.onVisible();
@@ -239,7 +241,10 @@ export class BaseContent extends React.PureComponent {
       this.handleColorModeChange
     );
     this.handleColorModeChange();
-    if (wallpapersEnabled) {
+    const isWallpaperVisible = novaEnabled
+      ? wallpapersEnabled && wallpapersUserEnabled
+      : wallpapersEnabled;
+    if (isWallpaperVisible) {
       this.updateWallpaper();
     }
 
@@ -285,8 +290,27 @@ export class BaseContent extends React.PureComponent {
       this.props.dispatch(ac.SetPref("weather.optInDisplayed", true));
     }
 
+    const novaEnabled = prefs[PREF_NOVA_ENABLED];
     const wallpapersEnabled = prefs["newtabWallpapers.enabled"];
-    if (wallpapersEnabled) {
+    const wallpapersUserEnabled = prefs["newtabWallpapers.user.enabled"];
+    // Previous values of the wallpaper prefs, used to compare against the
+    // current values and detect what changed since the last render.
+    const prevNovaEnabled = prevProps.Prefs.values[PREF_NOVA_ENABLED];
+    const prevWallpapersEnabled =
+      prevProps.Prefs.values["newtabWallpapers.enabled"];
+    const prevWallpapersUserEnabled =
+      prevProps.Prefs.values["newtabWallpapers.user.enabled"];
+
+    const isWallpaperActive = novaEnabled
+      ? wallpapersEnabled && wallpapersUserEnabled
+      : wallpapersEnabled;
+    // This checks if the wallpaper was active before this update so that we can
+    // detect when it just turned off and clear it from the background.
+    const wasWallpaperActive = prevNovaEnabled
+      ? prevWallpapersEnabled && prevWallpapersUserEnabled
+      : prevWallpapersEnabled;
+
+    if (isWallpaperActive) {
       // destructure current and previous props with fallbacks
       // (preventing undefined errors)
       const {
@@ -313,6 +337,7 @@ export class BaseContent extends React.PureComponent {
 
       // don't update wallpaper unless the wallpaper is being changed.
       if (
+        !wasWallpaperActive || // the wallpaper wasn't active last render but is now, meaning it was just enabled, force an apply even if nothing else changed
         selectedWallpaper !== prevSelectedWallpaper || // selecting a new wallpaper
         initialWallpaper !== prevInitialWallpaper || // experiment sets initial wallpaper
         uploadedWallpaper !== prevUploadedWallpaper || // uploading a new wallpaper
@@ -323,6 +348,9 @@ export class BaseContent extends React.PureComponent {
       ) {
         this.updateWallpaper();
       }
+    } else if (wasWallpaperActive) {
+      // The wallpaper was active last render but isn't anymore, meaning it was just turned off — clear it from the background
+      this.updateWallpaper();
     }
 
     this.spocsOnDemandUpdated();
@@ -525,9 +553,16 @@ export class BaseContent extends React.PureComponent {
 
   async updateWallpaper() {
     const prefs = this.props.Prefs.values;
-    const selectedWallpaper =
-      prefs["newtabWallpapers.wallpaper"] ||
-      prefs["newtabWallpapers.initialWallpaper"];
+    const novaEnabled = prefs[PREF_NOVA_ENABLED];
+    const wallpapersEnabled = prefs["newtabWallpapers.enabled"];
+    const wallpapersUserEnabled = prefs["newtabWallpapers.user.enabled"];
+    const isWallpaperVisible = novaEnabled
+      ? wallpapersEnabled && wallpapersUserEnabled
+      : wallpapersEnabled;
+    const selectedWallpaper = isWallpaperVisible
+      ? prefs["newtabWallpapers.wallpaper"] ||
+        prefs["newtabWallpapers.initialWallpaper"]
+      : null;
     const { wallpaperList, uploadedWallpaper: uploadedWallpaperUrl } =
       this.props.Wallpapers;
     const uploadedWallpaperTheme =
@@ -716,6 +751,7 @@ export class BaseContent extends React.PureComponent {
       prefs[`newtabWallpapers.wallpaper`] ||
       prefs[`newtabWallpapers.initialWallpaper`];
     const wallpapersEnabled = prefs["newtabWallpapers.enabled"];
+    const wallpapersUserEnabled = prefs["newtabWallpapers.user.enabled"];
     const weatherEnabled = prefs.showWeather;
     const { showTopicSelection } = DiscoveryStream;
     const mayShowTopicSelection =
@@ -1019,6 +1055,7 @@ export class BaseContent extends React.PureComponent {
               enabledSections={enabledSections}
               enabledWidgets={enabledWidgets}
               wallpapersEnabled={wallpapersEnabled}
+              wallpapersUserEnabled={wallpapersUserEnabled}
               activeWallpaper={activeWallpaper}
               pocketRegion={pocketRegion}
               mayHaveTopicSections={mayHavePersonalizedTopicSections}
@@ -1165,6 +1202,7 @@ export class BaseContent extends React.PureComponent {
             enabledSections={enabledSections}
             enabledWidgets={enabledWidgets}
             wallpapersEnabled={wallpapersEnabled}
+            wallpapersUserEnabled={wallpapersUserEnabled}
             activeWallpaper={activeWallpaper}
             pocketRegion={pocketRegion}
             mayHaveTopicSections={mayHavePersonalizedTopicSections}
