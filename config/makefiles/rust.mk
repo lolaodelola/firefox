@@ -144,6 +144,14 @@ endif
 
 rustflags_override = $(MOZ_RUST_DEFAULT_FLAGS) $(rustflags_neon)
 
+# Allow tools such as clippy to inject extra driver flags (e.g. -W/-D) via an
+# environment variable. These are folded into RUSTFLAGS here (rather than
+# passed on the cargo CLI), which sidesteps any ordering issue with the `--`
+# separator and applies to both target and host recipes.
+ifdef extra_rustflags
+rustflags_override += $(extra_rustflags)
+endif
+
 ifdef DEVELOPER_OPTIONS
 # By default the Rust compiler will perform a limited kind of ThinLTO on each
 # crate. For local builds this additional optimization is not worth the
