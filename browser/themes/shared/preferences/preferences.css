@@ -401,6 +401,13 @@ setting-group:has(> moz-card).spotlight {
 }
 /** SRD applications section END **/
 
+/* Override overflow-wrap: anywhere from moz-card
+ TODO: Eventually we should update to make this
+ section more responsive to screen width */
+moz-fieldset#applicationsGroup {
+  overflow-wrap: normal;
+}
+
 #handlersView {
   height: 25em;
   margin-inline-end: 0;
