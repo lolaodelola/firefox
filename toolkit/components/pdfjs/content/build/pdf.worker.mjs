@@ -21,8 +21,8 @@
  */
 
 /**
- * pdfjsVersion = 5.7.185
- * pdfjsBuild = 302b4cb00
+ * pdfjsVersion = 5.7.204
+ * pdfjsBuild = ab85b7f0f
  */
 /******/ // The require scope
 /******/ var __webpack_require__ = {};
@@ -9465,7 +9465,9 @@ addState(InitialState, [OPS.save, OPS.transform, OPS.constructPath, OPS.restore]
   const transform = argsArray[iFirstTransform];
   const [, [buffer], minMax] = args;
   if (minMax) {
-    Util.scaleMinMax(transform, minMax);
+    const newBBox = F32_BBOX_INIT.slice();
+    Util.axialAlignedBoundingBox(minMax, transform, newBBox);
+    minMax.set(newBBox);
     for (let k = 0, kk = buffer.length; k < kk;) {
       switch (buffer[k++]) {
         case DrawOPS.moveTo:
@@ -27983,8 +27985,7 @@ class Type1Parser {
     const stream = this.stream;
     const subrs = [],
       charstrings = [];
-    const privateData = Object.create(null);
-    privateData.lenIV = 4;
+    const privateData = new Map([["lenIV", 4]]);
     const program = {
       subrs: [],
       charstrings: [],
@@ -28016,7 +28017,7 @@ class Type1Parser {
             length = this.readInt();
             this.getToken();
             data = length > 0 ? stream.getBytes(length) : new Uint8Array(0);
-            lenIV = program.properties.privateData.lenIV;
+            lenIV = privateData.get("lenIV");
             const encoded = this.readCharStrings(data, lenIV);
             this.nextChar();
             token = this.getToken();
@@ -28039,7 +28040,7 @@ class Type1Parser {
             length = this.readInt();
             this.getToken();
             data = length > 0 ? stream.getBytes(length) : new Uint8Array(0);
-            lenIV = program.properties.privateData.lenIV;
+            lenIV = privateData.get("lenIV");
             const encoded = this.readCharStrings(data, lenIV);
             this.nextChar();
             token = this.getToken();
@@ -28055,29 +28056,29 @@ class Type1Parser {
         case "FamilyOtherBlues":
           const blueArray = this.readNumberArray();
           if (blueArray.length > 0 && blueArray.length % 2 === 0 && HINTING_ENABLED) {
-            program.properties.privateData[token] = blueArray;
+            privateData.set(token, blueArray);
           }
           break;
         case "StemSnapH":
         case "StemSnapV":
-          program.properties.privateData[token] = this.readNumberArray();
+          privateData.set(token, this.readNumberArray());
           break;
         case "StdHW":
         case "StdVW":
-          program.properties.privateData[token] = this.readNumberArray()[0];
+          privateData.set(token, this.readNumberArray()[0]);
           break;
         case "BlueShift":
         case "lenIV":
         case "BlueFuzz":
         case "BlueScale":
         case "LanguageGroup":
-          program.properties.privateData[token] = this.readNumber();
+          privateData.set(token, this.readNumber());
           break;
         case "ExpansionFactor":
-          program.properties.privateData[token] = this.readNumber() || 0.06;
+          privateData.set(token, this.readNumber() || 0.06);
           break;
         case "ForceBold":
-          program.properties.privateData[token] = this.readBoolean();
+          privateData.set(token, this.readBoolean());
           break;
       }
     }
@@ -28399,9 +28400,10 @@ class Type1Font {
     cff.globalSubrIndex = new CFFIndex();
     const count = glyphs.length;
     const charsetArray = [".notdef"];
-    let i, ii;
-    for (i = 0; i < count; i++) {
-      const glyphName = charstrings[i].glyphName;
+    for (let i = 0; i < count; i++) {
+      const {
+        glyphName
+      } = charstrings[i];
       const index = CFFStandardStrings.indexOf(glyphName);
       if (index === -1) {
         strings.add(glyphName);
@@ -28411,19 +28413,18 @@ class Type1Font {
     cff.charset = new CFFCharset(false, 0, charsetArray);
     const charStringsIndex = new CFFIndex();
     charStringsIndex.add([0x8b, 0x0e]);
-    for (i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       charStringsIndex.add(glyphs[i]);
     }
     cff.charStrings = charStringsIndex;
     const privateDict = new CFFPrivateDict();
     privateDict.setByName("Subrs", null);
     const fields = ["BlueValues", "OtherBlues", "FamilyBlues", "FamilyOtherBlues", "StemSnapH", "StemSnapV", "BlueShift", "BlueFuzz", "BlueScale", "LanguageGroup", "ExpansionFactor", "ForceBold", "StdHW", "StdVW"];
-    for (i = 0, ii = fields.length; i < ii; i++) {
-      const field = fields[i];
-      if (!(field in properties.privateData)) {
+    for (const field of fields) {
+      if (!properties.privateData.has(field)) {
         continue;
       }
-      const value = properties.privateData[field];
+      const value = properties.privateData.get(field);
       if (Array.isArray(value)) {
         for (let j = value.length - 1; j > 0; j--) {
           value[j] -= value[j - 1];
@@ -28433,8 +28434,8 @@ class Type1Font {
     }
     cff.topDict.privateDict = privateDict;
     const subrIndex = new CFFIndex();
-    for (i = 0, ii = subrs.length; i < ii; i++) {
-      subrIndex.add(subrs[i]);
+    for (const subr of subrs) {
+      subrIndex.add(subr);
     }
     privateDict.subrsIndex = subrIndex;
     const compiler = new CFFCompiler(cff);
@@ -64944,7 +64945,7 @@ class WorkerMessageHandler {
       docId,
       apiVersion
     } = docParams;
-    const workerVersion = "5.7.185";
+    const workerVersion = "5.7.204";
     if (apiVersion !== workerVersion) {
       throw new Error(`The API version "${apiVersion}" does not match ` + `the Worker version "${workerVersion}".`);
     }

@@ -21,8 +21,8 @@
  */
 
 /**
- * pdfjsVersion = 5.7.185
- * pdfjsBuild = 302b4cb00
+ * pdfjsVersion = 5.7.204
+ * pdfjsBuild = ab85b7f0f
  */
 /******/ // The require scope
 /******/ var __webpack_require__ = {};
@@ -1146,11 +1146,18 @@ class PDFLinkService {
     }
     const target = newWindow ? LinkTarget.BLANK : this.externalLinkTarget,
       rel = this.externalLinkRel;
+    let displayUrl = url;
+    const parsedUrl = URL.parse(url);
+    if (parsedUrl?.username || parsedUrl?.password) {
+      parsedUrl.username = parsedUrl.password = "";
+      displayUrl = parsedUrl.href;
+    }
     if (this.externalLinkEnabled) {
-      link.href = link.title = url;
+      link.href = url;
+      link.title = displayUrl;
     } else {
       link.href = "";
-      link.title = `Disabled: ${url}`;
+      link.title = `Disabled: ${displayUrl}`;
       link.onclick = () => false;
     }
     let targetStr = "";
@@ -12857,7 +12864,7 @@ class PDFViewer {
   #savedPageViews = null;
   #deletedPageNumbers = null;
   constructor(options) {
-    const viewerVersion = "5.7.185";
+    const viewerVersion = "5.7.204";
     if (version !== viewerVersion) {
       throw new Error(`The API version "${version}" does not match the Viewer version "${viewerVersion}".`);
     }
