@@ -9,33 +9,35 @@ import android.os.RemoteException
 import androidx.annotation.VisibleForTesting
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import mozilla.components.support.base.log.logger.Logger
-import org.mozilla.fenix.distributions.DistributionIdManager
-import org.mozilla.fenix.ext.components
-import org.mozilla.fenix.ext.settings
-
-const val GCLID_PREFIX = "gclid="
-const val ADJUST_REFTAG_PREFIX = "adjust_reftag="
 
 /**
- * A service to determine if marketing onboarding is needed. This will need to be started before
- * onboarding to quickly check install referrer and see if GLICD or Adjust reference tag is present.
+ * A service that fetches the install referrer information and delegates [handlers]
+ * for acting upon this.
  *
  * This should be only used when user has not gone through the onboarding flow.
+ *
+ * @param context The application context.
+ * @param handlers The list of handlers that will process the install referrer response.
  */
-class InstallReferrerHandlingService(private val context: Context) {
-    private val logger = Logger("MarketingAttributionService")
-    private var referrerClient: InstallReferrerClient? = null
+class InstallReferrerHandlingService(
+    private val context: Context,
+    private val handlers: List<InstallReferrerHandler> = emptyList(),
+) {
+    private val logger = Logger("InstallReferrerHandlingService")
+
+    @VisibleForTesting
+    internal var referrerClient: InstallReferrerClientWrapper? = null
+        private set
+
+    @VisibleForTesting
+    internal var clientFactory: (Context) -> InstallReferrerClientWrapper = ::DefaultInstallReferrerClient
 
     /**
-     * Starts the connection with the install referrer and handle the response.
+     * Starts the connection with the install referrer and dispatches the response to all handlers.
      */
-    @Suppress("CognitiveComplexMethod")
     fun start() {
-        val client = InstallReferrerClient.newBuilder(context).build()
+        val client = clientFactory(context)
         referrerClient = client
 
         client.startConnection(
@@ -45,7 +47,7 @@ class InstallReferrerHandlingService(private val context: Context) {
                         InstallReferrerClient.InstallReferrerResponse.OK -> {
                             // Connection established.
                             val installReferrerResponse = try {
-                                client.installReferrer.installReferrer
+                                client.getInstallReferrer()
                             } catch (e: RemoteException) {
                                 // We can't do anything about this.
                                 logger.error("Failed to retrieve install referrer response", e)
@@ -56,28 +58,8 @@ class InstallReferrerHandlingService(private val context: Context) {
                                 null
                             }
 
-                            val distributionIdManager = context.components.distributionIdManager
-
-                            if (!installReferrerResponse.isNullOrBlank()) {
-                                response = installReferrerResponse
-                                val utmParams =
-                                    UTMParams.parseUTMParameters(installReferrerResponse)
-
-                                context.settings().isUserMetaAttributed = isMetaAttribution(installReferrerResponse)
-
-                                distributionIdManager.updateDistributionIdFromUtmParams(utmParams)
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    distributionIdManager.startAdjustIfSkippingConsentScreen()
-                                }
-                            }
-
-                            CoroutineScope(Dispatchers.IO).launch {
-                                context.settings().shouldShowMarketingOnboarding =
-                                    shouldShowMarketingOnboarding(
-                                        installReferrerResponse,
-                                        distributionIdManager,
-                                    )
-                            }
+                            response = installReferrerResponse
+                            handlers.forEach { it.handleReferrer(installReferrerResponse) }
 
                             return
                         }
@@ -87,7 +69,7 @@ class InstallReferrerHandlingService(private val context: Context) {
                         InstallReferrerClient.InstallReferrerResponse.PERMISSION_ERROR,
                         InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE,
                         -> {
-                            context.settings().shouldShowMarketingOnboarding = false
+                            handlers.forEach { it.handleReferrer(null) }
                             return
                         }
                     }
@@ -97,6 +79,7 @@ class InstallReferrerHandlingService(private val context: Context) {
                 }
 
                 override fun onInstallReferrerServiceDisconnected() {
+                    handlers.forEach { it.handleReferrer(null) }
                     referrerClient = null
                 }
             },
@@ -111,38 +94,7 @@ class InstallReferrerHandlingService(private val context: Context) {
         referrerClient = null
     }
 
-    /**
-     * Companion object responsible for determine if a install referrer response should result in
-     * showing the marketing onboarding flow.
-     */
     companion object {
-        private val marketingPrefixes = listOf(GCLID_PREFIX, ADJUST_REFTAG_PREFIX)
         var response: String? = null
-
-        @VisibleForTesting
-        internal fun isMetaAttribution(installReferrerResponse: String?): Boolean {
-            if (installReferrerResponse.isNullOrBlank()) {
-                return false
-            }
-
-            val utmParams = UTMParams.parseUTMParameters(installReferrerResponse)
-            return MetaParams.extractMetaAttribution(utmParams.content) != null
-        }
-
-        @VisibleForTesting
-        internal suspend fun shouldShowMarketingOnboarding(
-            installReferrerResponse: String?,
-            distributionIdManager: DistributionIdManager,
-        ): Boolean {
-            if (distributionIdManager.isPartnershipDistribution()) {
-                return !distributionIdManager.shouldSkipMarketingConsentScreen()
-            }
-
-            if (installReferrerResponse.isNullOrBlank()) {
-                return false
-            }
-
-            return marketingPrefixes.any { installReferrerResponse.startsWith(it, ignoreCase = true) }
-        }
     }
 }

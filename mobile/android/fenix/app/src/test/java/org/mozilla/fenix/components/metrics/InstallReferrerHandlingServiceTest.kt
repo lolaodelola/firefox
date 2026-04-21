@@ -4,138 +4,198 @@
 
 package org.mozilla.fenix.components.metrics
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import kotlinx.coroutines.runBlocking
+import com.android.installreferrer.api.InstallReferrerClient
+import com.android.installreferrer.api.InstallReferrerStateListener
 import mozilla.components.support.test.robolectric.testContext
-import mozilla.components.support.utils.ext.packageManagerWrapper
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mozilla.fenix.components.fake.FakeMetricController
-import org.mozilla.fenix.distributions.DistributionBrowserStoreProvider
-import org.mozilla.fenix.distributions.DistributionIdManager
-import org.mozilla.fenix.distributions.DistributionProviderChecker
-import org.mozilla.fenix.distributions.DistributionSettings
+import org.robolectric.RobolectricTestRunner
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 internal class InstallReferrerHandlingServiceTest {
 
-    private var providerValue: String? = null
-    private var storedId: String? = null
-    private var savedId: String = ""
+    private val handler = RecordingInstallReferrerHandler()
 
-    private val testDistributionProviderChecker = object : DistributionProviderChecker {
-        override suspend fun queryProvider(): String? = providerValue
-    }
-
-    private val testBrowserStoreProvider = object : DistributionBrowserStoreProvider {
-        override fun getDistributionId(): String? = storedId
-
-        override fun updateDistributionId(id: String) {
-            storedId = id
-        }
-    }
-
-    private val testDistributionSettings = object : DistributionSettings {
-        override fun getDistributionId(): String = savedId
-
-        override fun saveDistributionId(id: String) {
-            savedId = id
-        }
-
-        override fun setMarketingTelemetryPreferences() = Unit
-    }
-
-    val distributionIdManager = DistributionIdManager(
-        packageManager = testContext.packageManagerWrapper,
-        testBrowserStoreProvider,
-        distributionProviderChecker = testDistributionProviderChecker,
-        distributionSettings = testDistributionSettings,
-        metricController = FakeMetricController(),
-        appPreinstalledOnVivoDevice = { true },
-    )
-
-    @Test
-    fun `WHEN installReferrerResponse is empty or null THEN we should not show marketing onboarding`() =
-        runBlocking {
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(" ", distributionIdManager))
-        }
-
-    @Test
-    fun `WHEN installReferrerResponse is in the marketing prefixes THEN we should show marketing onboarding`() =
-        runBlocking {
-            assertTrue(InstallReferrerHandlingService.shouldShowMarketingOnboarding("gclid=", distributionIdManager))
-            assertTrue(InstallReferrerHandlingService.shouldShowMarketingOnboarding("gclid=12345", distributionIdManager))
-            assertTrue(InstallReferrerHandlingService.shouldShowMarketingOnboarding("adjust_reftag=", distributionIdManager))
-            assertTrue(InstallReferrerHandlingService.shouldShowMarketingOnboarding("adjust_reftag=test", distributionIdManager))
-        }
-
-    @Test
-    fun `WHEN installReferrerResponse is not in the marketing prefixes THEN we should show marketing onboarding`() =
-        runBlocking {
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(" gclid=12345", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("utm_source=google-play&utm_medium=organic", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("utm_source=(not%20set)&utm_medium=(not%20set)", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("utm_source=eea-browser-choice&utm_medium=preload", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("gclida=", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("adjust_reftag_test", distributionIdManager))
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding("test", distributionIdManager))
-        }
-
-    @Test
-    fun `GIVEN a partnership distribution WHEN we should skip the marketing screen THEN we skip it`() =
-        runBlocking {
-            distributionIdManager.setDistribution(DistributionIdManager.Distribution.VIVO_001)
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-
-            distributionIdManager.setDistribution(DistributionIdManager.Distribution.DT_001)
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-
-            distributionIdManager.setDistribution(DistributionIdManager.Distribution.DT_002)
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-
-            distributionIdManager.setDistribution(DistributionIdManager.Distribution.DT_003)
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-
-            distributionIdManager.setDistribution(DistributionIdManager.Distribution.XIAOMI_001)
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-
-            distributionIdManager.setDistribution(DistributionIdManager.Distribution.AURA_001)
-            assertFalse(InstallReferrerHandlingService.shouldShowMarketingOnboarding(null, distributionIdManager))
-        }
-
-    @Test
-    fun `WHEN installReferrerResponse is null or blank or malformed THEN isMetaAttribution returns false`() {
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution(null))
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution(""))
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution(" "))
-
-        val malformedReferrer = """utm_content={"app":12345,"t":1234567890,"source":{"data":"DATA","nonce":"NONCE"}"""
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution(malformedReferrer))
+    @Before
+    fun setUp() {
+        InstallReferrerHandlingService.response = null
     }
 
     @Test
-    fun `WHEN installReferrerResponse contains Meta utm_content params THEN isMetaAttribution returns true`() {
-        val metaReferrer = """utm_content={"app":12345,"t":1234567890,"source":{"data":"DATA","nonce":"NONCE"}}"""
-        assertTrue(InstallReferrerHandlingService.isMetaAttribution(metaReferrer))
+    fun `GIVEN a successful referrer response WHEN start is called THEN handlers receive the referrer`() {
+        val referrer = "utm_source=google&utm_medium=cpc&utm_campaign=brand&utm_content=ad1&utm_term=firefox"
+        val service = fakeInstallReferrerService(
+            responseCode = InstallReferrerClient.InstallReferrerResponse.OK,
+            referrerResponse = referrer,
+        )
+
+        service.start()
+
+        assertEquals(referrer, handler.receivedResponse)
+        assertEquals(referrer, InstallReferrerHandlingService.response)
     }
 
     @Test
-    fun `WHEN installReferrerResponse missing Meta data or nonce THEN isMetaAttribution returns false`() {
-        var metaReferrer = """utm_content={"app":12345,"t":1234567890,"source":{"nonce":"NONCE"}}"""
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution(metaReferrer))
+    fun `GIVEN a successful response but with unknown referrer WHEN start is called THEN handlers receive null referrer data`() {
+        val service = fakeInstallReferrerService(
+            responseCode = InstallReferrerClient.InstallReferrerResponse.OK,
+            referrerResponse = null,
+        )
 
-        metaReferrer = """utm_content={"app":12345,"t":1234567890,"source":{"data":"DATA"}}"""
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution(metaReferrer))
+        service.start()
+
+        assertNull(handler.receivedResponse)
+        assertTrue(handler.wasCalled)
+        assertNull(InstallReferrerHandlingService.response)
     }
 
     @Test
-    fun `WHEN installReferrerResponse does not contain Meta params THEN isMetaAttribution returns false`() {
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution("utm_source=google&utm_medium=cpc"))
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution("gclid=12345"))
-        assertFalse(InstallReferrerHandlingService.isMetaAttribution("adjust_reftag=test"))
+    fun `GIVEN FEATURE_NOT_SUPPORTED WHEN start is called THEN handlers receive null referrer data`() {
+        val service = fakeInstallReferrerService(
+            responseCode = InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED,
+        )
+
+        service.start()
+
+        assertNull(handler.receivedResponse)
+        assertTrue(handler.wasCalled)
+        assertNull(InstallReferrerHandlingService.response)
+    }
+
+    @Test
+    fun `GIVEN DEVELOPER_ERROR WHEN start is called THEN handlers receive null referrer data`() {
+        val service = fakeInstallReferrerService(
+            responseCode = InstallReferrerClient.InstallReferrerResponse.DEVELOPER_ERROR,
+        )
+
+        service.start()
+
+        assertNull(handler.receivedResponse)
+        assertTrue(handler.wasCalled)
+    }
+
+    @Test
+    fun `GIVEN SERVICE_UNAVAILABLE WHEN start is called THEN handlers receive null referrer data`() {
+        val service = fakeInstallReferrerService(
+            responseCode = InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE,
+        )
+
+        service.start()
+
+        assertNull(handler.receivedResponse)
+        assertTrue(handler.wasCalled)
+    }
+
+    @Test
+    fun `GIVEN a service disconnect WHEN start is called THEN handlers receive null referrer data`() {
+        val service = fakeInstallReferrerService(simulateDisconnect = true)
+
+        service.start()
+
+        assertNull(handler.receivedResponse)
+        assertTrue(handler.wasCalled)
+    }
+
+    @Test
+    fun `GIVEN multiple handlers WHEN start is called THEN all handlers receive the response`() {
+        val handler2 = RecordingInstallReferrerHandler()
+        val referrer = "utm_source=addons.mozilla.org&utm_medium=referral&utm_campaign=amo-fx-cta-123"
+        val service = fakeInstallReferrerService(
+            handlers = listOf(handler, handler2),
+            referrerResponse = referrer,
+        )
+
+        service.start()
+
+        assertEquals(referrer, handler.receivedResponse)
+        assertEquals(referrer, handler2.receivedResponse)
+    }
+
+    @Test
+    fun `GIVEN no handlers WHEN start is called THEN service completes without error`() {
+        val service = fakeInstallReferrerService(
+            handlers = emptyList(),
+            referrerResponse = "utm_source=test",
+        )
+
+        service.start()
+
+        assertEquals("utm_source=test", InstallReferrerHandlingService.response)
+    }
+
+    @Test
+    fun `WHEN stop is called THEN the install referrer service is stopped`() {
+        val service = fakeInstallReferrerService(
+            handlers = emptyList(),
+            referrerResponse = "utm_source=test",
+        )
+
+        service.start()
+        val referrerClient = service.referrerClient as FakeReferrerClient
+        assertTrue(referrerClient.isActive)
+
+        service.stop()
+        assertFalse(referrerClient.isActive)
+        assertNull(service.referrerClient)
+    }
+
+    private fun fakeInstallReferrerService(
+        handlers: List<InstallReferrerHandler> = listOf(handler),
+        responseCode: Int = InstallReferrerClient.InstallReferrerResponse.OK,
+        referrerResponse: String? = null,
+        simulateDisconnect: Boolean = false,
+    ) = InstallReferrerHandlingService(
+        context = testContext,
+        handlers = handlers,
+    ).apply {
+        clientFactory = {
+            FakeReferrerClient(
+                responseCode = responseCode,
+                referrerResponse = referrerResponse,
+                simulateDisconnect = simulateDisconnect,
+            )
+        }
+    }
+}
+
+private class RecordingInstallReferrerHandler : InstallReferrerHandler {
+    var receivedResponse: String? = null
+        private set
+    var wasCalled = false
+        private set
+
+    override fun handleReferrer(installReferrerResponse: String?) {
+        wasCalled = true
+        receivedResponse = installReferrerResponse
+    }
+}
+
+private class FakeReferrerClient(
+    private val responseCode: Int = InstallReferrerClient.InstallReferrerResponse.OK,
+    private val referrerResponse: String? = null,
+    private val simulateDisconnect: Boolean = false,
+) : InstallReferrerClientWrapper {
+    var isActive = false
+        private set
+
+    override fun startConnection(listener: InstallReferrerStateListener) {
+        isActive = true
+
+        if (simulateDisconnect) {
+            listener.onInstallReferrerServiceDisconnected()
+        } else {
+            listener.onInstallReferrerSetupFinished(responseCode)
+        }
+    }
+
+    override fun getInstallReferrer(): String? = referrerResponse
+
+    override fun endConnection() {
+        isActive = false
     }
 }

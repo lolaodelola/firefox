@@ -106,6 +106,7 @@ import org.mozilla.fenix.components.menu.share.QRCodeDialogFragment
 import org.mozilla.fenix.components.metrics.BreadcrumbsRecorder
 import org.mozilla.fenix.components.metrics.GrowthDataWorker
 import org.mozilla.fenix.components.metrics.InstallReferrerHandlingService
+import org.mozilla.fenix.components.metrics.MarketingAttributionHandler
 import org.mozilla.fenix.components.metrics.fonts.FontEnumerationWorker
 import org.mozilla.fenix.components.share.QR_CODE_URI_KEY
 import org.mozilla.fenix.components.share.SEND_TO_DEVICES_ACTION
@@ -231,6 +232,8 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity, Crash
             },
         )
     }
+
+    private var installReferrerHandlingService: InstallReferrerHandlingService? = null
 
     private val translationsAIControllableFeatureRegistrar by lazy {
         with(components) {
@@ -435,7 +438,17 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity, Crash
         // This is a temporary solution to determine if we should show the marketing onboarding card.
         if (shouldShowOnboarding) {
             lifecycleScope.launch(IO) {
-                InstallReferrerHandlingService(applicationContext).start()
+                installReferrerHandlingService = InstallReferrerHandlingService(
+                    context = applicationContext,
+                    handlers = listOf(
+                        MarketingAttributionHandler(
+                            settings = settings(),
+                            distributionIdManager = components.distributionIdManager,
+                        ),
+                    ),
+                ).also {
+                    it.start()
+                }
             }
         }
 
@@ -888,7 +901,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity, Crash
         components.core.pocketStoriesService.stopPeriodicSponsoredContentsRefresh()
         privateNotificationObserver?.stop()
         components.notificationsDelegate.unBindActivity(this)
-        InstallReferrerHandlingService(applicationContext).stop()
+        installReferrerHandlingService?.stop()
 
         // clear hierarchy change listener set by AndroidX SplashScreen
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1950295
