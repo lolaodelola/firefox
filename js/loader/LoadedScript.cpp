@@ -422,16 +422,20 @@ NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN_INHERITED(ModuleScript, LoadedScript)
 NS_IMPL_CYCLE_COLLECTION_TRACE_END
 
 ModuleScript::ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                           ScriptFetchOptions* aFetchOptions, nsIURI* aURI)
-    : LoadedScript(ScriptKind::eModule, aReferrerPolicy, aFetchOptions, aURI) {
+                           ScriptFetchOptions* aFetchOptions, nsIURI* aURI,
+                           ScriptFetchInfo* aFetchInfo)
+    : LoadedScript(ScriptKind::eModule, aReferrerPolicy, aFetchOptions, aURI),
+      mFetchInfoForUpdatingPreload(aFetchInfo) {
   MOZ_ASSERT(!ModuleRecord());
   MOZ_ASSERT(!HasParseError());
   MOZ_ASSERT(!HasErrorToRethrow());
 }
 
 ModuleScript::ModuleScript(const LoadedScript& aOther,
-                           ScriptFetchOptions* aFetchOptions)
-    : LoadedScript(aOther, aFetchOptions) {
+                           ScriptFetchOptions* aFetchOptions,
+                           ScriptFetchInfo* aFetchInfo)
+    : LoadedScript(aOther, aFetchOptions),
+      mFetchInfoForUpdatingPreload(aFetchInfo) {
   MOZ_ASSERT(!ModuleRecord());
   MOZ_ASSERT(!HasParseError());
   MOZ_ASSERT(!HasErrorToRethrow());
@@ -439,11 +443,13 @@ ModuleScript::ModuleScript(const LoadedScript& aOther,
 
 /* static */
 already_AddRefed<ModuleScript> ModuleScript::FromCache(
-    const LoadedScript& aScript, ScriptFetchOptions* aFetchOptions) {
+    const LoadedScript& aScript, ScriptFetchOptions* aFetchOptions,
+    ScriptFetchInfo* aFetchInfo) {
   MOZ_DIAGNOSTIC_ASSERT(aScript.IsModuleScript());
   MOZ_DIAGNOSTIC_ASSERT(aScript.IsCachedStencil());
 
-  return mozilla::MakeRefPtr<ModuleScript>(aScript, aFetchOptions).forget();
+  return mozilla::MakeRefPtr<ModuleScript>(aScript, aFetchOptions, aFetchInfo)
+      .forget();
 }
 
 already_AddRefed<LoadedScript> ModuleScript::ToCache() {
@@ -533,6 +539,7 @@ void ModuleScript::SetErrorToRethrow(const Value& aError) {
 
 void ModuleScript::SetForPreload(bool aValue) {
   mForPreload = aValue;
+  mFetchInfoForUpdatingPreload->SetForModulePreload(aValue);
 #ifdef DEBUG
   if (ModuleRecord()) {
     SetModulePreload(ModuleRecord(), aValue);

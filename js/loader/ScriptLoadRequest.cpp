@@ -212,7 +212,8 @@ void ScriptLoadRequest::SetCacheEntry(LoadedScript* aLoadedScript,
       //       instance, given ModuleScript has GC pointers.
       MOZ_ASSERT(aLoadedScript->IsModuleScript());
 
-      mLoadedScript = ModuleScript::FromCache(*aLoadedScript, aFetchOptions);
+      mLoadedScript =
+          ModuleScript::FromCache(*aLoadedScript, aFetchOptions, mFetchInfo);
 
       // Modules need to wait for fetching dependencies before setting to
       // Ready.
@@ -244,7 +245,8 @@ void ScriptLoadRequest::NoCacheEntryFound(
       mLoadedScript = new ImportMapScript(aReferrerPolicy, aFetchOptions, aURI);
       break;
     case ScriptKind::eModule:
-      mLoadedScript = new ModuleScript(aReferrerPolicy, aFetchOptions, aURI);
+      mLoadedScript =
+          new ModuleScript(aReferrerPolicy, aFetchOptions, aURI, mFetchInfo);
       break;
     case ScriptKind::eEvent:
       MOZ_ASSERT_UNREACHABLE("EventScripts are not using ScriptLoadRequest");
