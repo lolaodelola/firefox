@@ -10,7 +10,10 @@ export default [
       globals: {
         ...globals.jquery,
         apply: true,
-        tasks: true,
+        largePushMultiplier: false,
+        largePushSuppressed: false,
+        largePushThreshold: false,
+        tasks: false,
       },
     },
   },

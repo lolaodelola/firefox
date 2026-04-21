@@ -26,6 +26,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 class ChooserConfig:
     use_artifact: bool = False
     pernosco_active: bool = False
+    rebuild_multiplier: int = 1
+    priority_preset: bool = False
 
 
 class ChooserParser(BaseTryParser):
@@ -89,9 +91,12 @@ def run(
 
     try_config_params = try_config_params or {}
     try_task_config = try_config_params.setdefault("try_task_config", {})
+    rebuild_multiplier, priority_preset = resolve_large_push_context(try_task_config)
     config = ChooserConfig(
         use_artifact=bool(try_task_config.get("use-artifact-builds")),
         pernosco_active=bool(try_task_config.get("pernosco")),
+        rebuild_multiplier=rebuild_multiplier,
+        priority_preset=priority_preset,
     )
 
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
@@ -139,6 +144,19 @@ def run(
         closed_tree=closed_tree,
         push_to_vcs=push_to_vcs,
     )
+
+
+def resolve_large_push_context(try_task_config):
+    """Match push.generate_try_task_config's math for the chooser warning.
+
+    Returns (rebuild_multiplier, priority_preset). rebuild_multiplier is the
+    per-label rebuild count, defaulting to 1 when ``rebuild`` is absent,
+    mirroring push.py. priority_preset is True when an explicit priority was
+    passed in, since push.py skips the deprioritization prompt in that case.
+    """
+    rebuild_multiplier = try_task_config.get("rebuild", 1)
+    priority_preset = "priority" in try_task_config
+    return rebuild_multiplier, priority_preset
 
 
 def resolve_artifact_state(try_task_config, initial_use_artifact, use_artifact):

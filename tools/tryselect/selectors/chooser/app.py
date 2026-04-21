@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from flask import Flask, render_template, request
 
+from tryselect.push import LARGE_PUSH_THRESHOLD
 from tryselect.selectors.chooser import ChooserConfig
 
 SECTIONS = []
@@ -177,6 +178,9 @@ def create_application(tg, queue: multiprocessing.Queue, config=None):
         "sections": sections,
         "use_artifact": config.use_artifact,
         "pernosco_active": config.pernosco_active,
+        "large_push_threshold": LARGE_PUSH_THRESHOLD,
+        "large_push_multiplier": config.rebuild_multiplier,
+        "large_push_suppressed": config.priority_preset,
     }
 
     app = Flask(__name__)

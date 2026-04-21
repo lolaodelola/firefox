@@ -6,6 +6,8 @@ const selection = $("#selection")[0];
 const selectedTasksInput = $("#selected-tasks")[0];
 const count = $("#selection-count")[0];
 const excludeFilter = $("#exclude-filter")[0];
+const largePushWarning = $("#large-push-warning")[0];
+const largePushCount = $("#large-push-count")[0];
 const pluralize = (count, noun, suffix = "s") =>
   `${count} ${noun}${count !== 1 ? suffix : ""}`;
 
@@ -177,4 +179,8 @@ var applyFilters = () => {
 
   renderSelection(visible);
   count.textContent = pluralize(visible.length, "task") + " selected";
+  let effective = visible.length * largePushMultiplier;
+  largePushCount.textContent = effective;
+  largePushWarning.hidden =
+    largePushSuppressed || effective <= largePushThreshold;
 };

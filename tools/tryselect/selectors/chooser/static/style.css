@@ -114,6 +114,11 @@ body {
   margin-right: 0;
 }
 
+#large-push-warning {
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
 #buttons {
   display: flex;
   justify-content: space-between;
