@@ -5,6 +5,10 @@
 
 "use strict";
 
+const { TelemetryTestUtils } = ChromeUtils.importESModule(
+  "resource://testing-common/TelemetryTestUtils.sys.mjs"
+);
+
 const URL1 = "data:text/plain,tab1";
 const URL2 = "data:text/plain,tab2";
 const URL3 = "data:text/plain,tab3";
@@ -245,7 +249,7 @@ function assertGroupedTab(row, tabGroup) {
 
 add_task(async function test_reorder() {
   await testWithNewWindow(async function (newWindow) {
-    Services.fog.testResetFOG();
+    Services.telemetry.clearScalars();
 
     const tabsListNode = newWindow.document.getElementById(
       "allTabsMenu-allTabsView-tabs"
@@ -285,8 +289,10 @@ add_task(async function test_reorder() {
       "after moving up again"
     );
 
-    Assert.equal(
-      Glean.browserUiInteraction.allTabsPanelDragstartTabEventCount.testGetValue(),
+    let scalars = TelemetryTestUtils.getProcessScalars("parent", false, true);
+    TelemetryTestUtils.assertScalar(
+      scalars,
+      "browser.ui.interaction.all_tabs_panel_dragstart_tab_event_count",
       3
     );
   });
@@ -294,7 +300,7 @@ add_task(async function test_reorder() {
 
 add_task(async function test_move_to_tab_bar() {
   await testWithNewWindow(async function (newWindow) {
-    Services.fog.testResetFOG();
+    Services.telemetry.clearScalars();
 
     const tabsListNode = newWindow.document.getElementById(
       "allTabsMenu-allTabsView-tabs"
@@ -342,8 +348,10 @@ add_task(async function test_move_to_tab_bar() {
       "after moving down with tab bar"
     );
 
-    Assert.equal(
-      Glean.browserUiInteraction.allTabsPanelDragstartTabEventCount.testGetValue(),
+    let scalars = TelemetryTestUtils.getProcessScalars("parent", false, true);
+    TelemetryTestUtils.assertScalar(
+      scalars,
+      "browser.ui.interaction.all_tabs_panel_dragstart_tab_event_count",
       2
     );
   });
@@ -353,7 +361,7 @@ add_task(async function test_move_to_different_tab_bar() {
   const newWindow2 = await BrowserTestUtils.openNewBrowserWindow();
 
   await testWithNewWindow(async function (newWindow) {
-    Services.fog.testResetFOG();
+    Services.telemetry.clearScalars();
 
     const tabsListNode = newWindow.document.getElementById(
       "allTabsMenu-allTabsView-tabs"
@@ -395,8 +403,10 @@ add_task(async function test_move_to_different_tab_bar() {
       "after moving to other window in newWindow2"
     );
 
-    Assert.equal(
-      Glean.browserUiInteraction.allTabsPanelDragstartTabEventCount.testGetValue(),
+    let scalars = TelemetryTestUtils.getProcessScalars("parent", false, true);
+    TelemetryTestUtils.assertScalar(
+      scalars,
+      "browser.ui.interaction.all_tabs_panel_dragstart_tab_event_count",
       1
     );
   });
