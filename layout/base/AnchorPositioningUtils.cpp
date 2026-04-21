@@ -566,12 +566,7 @@ Maybe<nsRect> AnchorPositioningUtils::GetAnchorPosRect(
     bool aCBRectIsvalid) {
   auto rect = [&]() -> Maybe<nsRect> {
     if (aCBRectIsvalid) {
-      const nsRect result =
-          nsLayoutUtils::GetCombinedFragmentRects(aAnchor).mRect;
-      const auto offset =
-          aAnchor->GetOffsetToIgnoringScrolling(aAbsoluteContainingBlock);
-      // Easy, just use the existing function.
-      return Some(result + offset);
+      return Some(ReassembleAnchorRect(aAnchor, aAbsoluteContainingBlock));
     }
 
     // Ok, containing block doesn't have its rect fully resolved. Figure out
