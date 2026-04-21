@@ -988,11 +988,13 @@ class TestResolver(MozbuildObject):
 
         self._reset_state()
 
-        test_path = os.path.join(
-            self.topsrcdir, "mobile", "android", "fenix", "app", "src", "test", "java"
+        app_dir = os.path.join(self.topsrcdir, "mobile", "android", "fenix", "app")
+        test_subdirs = (
+            os.path.join("src", "test", "java"),
+            os.path.join("src", "test", "kotlin"),
         )
-        for root, dirs, paths in os.walk(test_path):
-            if "test" in root:
+        for root, dirs, paths in os.walk(app_dir):
+            if any(sd in root for sd in test_subdirs):
                 for filename in fnmatch.filter(paths, "*.kt"):
                     path = os.path.join(root, filename)
                     relpath = mozpath.relpath(mozpath.normpath(path), self.topsrcdir)
@@ -1009,6 +1011,7 @@ class TestResolver(MozbuildObject):
                         "dir_relpath": mozpath.dirname(relpath),
                         "srcdir_relpath": relpath,
                     })
+            dirs[:] = [d for d in dirs if d != "build"]
 
         self._fenix_loaded = True
 
