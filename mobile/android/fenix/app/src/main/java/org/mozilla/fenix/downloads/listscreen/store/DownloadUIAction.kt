@@ -108,7 +108,7 @@ sealed interface DownloadUIAction : Action {
     /**
      * [DownloadUIAction] to show the dialog to change the file extension of a [FileItem].
      */
-    data object ShowChangeFileExtensionDialog : DownloadUIAction
+    data class ShowChangeFileExtensionDialog(val item: FileItem) : DownloadUIAction
 
     /**
      * [DownloadUIAction] to close the dialog to change the file extension of a [FileItem].

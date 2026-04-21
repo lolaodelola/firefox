@@ -1585,6 +1585,49 @@ class DownloadUIStoreTest {
     }
 
     @Test
+    fun `GIVEN itemToChangeExtension is already set WHEN FileExtensionChangedByUser THEN change file extension dialog is not shown`() = runTest(testDispatcher) {
+        val browserStore = BrowserStore(
+            initialState = BrowserState(
+                downloads = mapOf(
+                    "1" to downloadState1.copy(
+                        fileName = "original.pdf",
+                    ),
+                ),
+            ),
+        )
+
+        val store = DownloadUIStore(
+            initialState = DownloadUIState(
+                items = listOf(fileItem1),
+                mode = DownloadUIState.Mode.Normal,
+                pendingDeletionIds = emptySet(),
+                fileToRename = fileItem1.copy(fileName = "original.pdf"),
+                isChangeFileExtensionDialogVisible = false,
+                itemToChangeExtension = fileItem1,
+            ),
+            middleware = listOf(
+                DownloadUIRenameMiddleware(
+                    browserStore = browserStore,
+                    scope = testScope,
+                    downloadFileUtils = FakeDownloadFileUtils(),
+                    mainDispatcher = testDispatcher,
+                ),
+            ),
+        )
+
+        store.dispatch(
+            DownloadUIAction.FileExtensionChangedByUser(
+                item = store.state.fileToRename!!,
+                newName = "original.doc",
+            ),
+        )
+
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(store.state.isChangeFileExtensionDialogVisible)
+    }
+
+    @Test
     fun `GIVEN rename dialog shown WHEN proposed extension changes letter case THEN change file extension dialog is not shown`() = runTest(testDispatcher) {
         val browserStore = BrowserStore(
             initialState = BrowserState(
