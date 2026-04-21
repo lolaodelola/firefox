@@ -62,7 +62,7 @@
   --urlbarView-tail150-overlay-color: var(--color-gray-05);
   --urlbarView-tail150-canvas-background: var(--color-violet-110);
 
-  --urlbarView-separator-char: "•";
+  --urlbarView-separator-char: "•" / "—";
   --urlbarView-separator-margin-inline: 0.6em;
 
   &:-moz-locale-dir(rtl) {
