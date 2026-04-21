@@ -23154,7 +23154,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-amazon**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -23539,7 +23539,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-bing-search**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -24132,7 +24132,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-cnn**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -25769,7 +25769,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-fandom**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -27056,7 +27056,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-google-slides**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -28020,7 +28020,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-instagram**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -32170,7 +32170,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-twitter**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -32971,7 +32971,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-wikipedia**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 
@@ -33341,7 +33341,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
         - mozilla-beta
       * - **browsertime-tp6-essential-firefox-yahoo-mail**
         - ✅
-        - ❌
+        - ✅
         - ❌
         - ❌
 

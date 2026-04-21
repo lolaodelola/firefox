@@ -259,8 +259,7 @@ browsertime-tp6-essential:
             by-app:
                 firefox:
                     by-test-platform:
-                        macosx1500.*shippable.*: [mozilla-central]
-                        (?!macosx1500).*64(?!.*nightlyasrelease).*shippable.*: [trunk]
+                        .*64(?!.*nightlyasrelease).*shippable.*: [trunk]
                         default: []
                 default: []
         tier:
