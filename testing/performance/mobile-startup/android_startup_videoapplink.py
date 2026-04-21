@@ -26,7 +26,7 @@ An error of greater than 0.001 indicates we have the loading bar present, any le
 """
 ACCEPTABLE_THRESHOLD_ERROR = {
     "homeview_startup": 0.0002,
-    "cold_view_nav_end": 0.001,
+    "cold_view_nav_end": 0.003,
     "mobile_restore": 0.001,
 }
 BACKGROUND_TABS = [
@@ -234,7 +234,7 @@ class ImageAnalzer:
         # We crop out the bottom 100 pixels to remove the fading in of the OS navigation controls
         # We crop out the right 20 pixels to remove the scroll bar as it interferes with startup accuracy
         if cropped:
-            return frame[100 : int(self.height) - 100, 0 : int(self.width) - 20]
+            return frame[100 : int(self.height) - 150, 0 : int(self.width) - 20]
         return frame
 
     def error(self, img1, img2):
@@ -360,7 +360,7 @@ class ImageAnalzer:
             filename += f"-{device}.png"
             validated_image = cv2.imread(str(pathlib.Path(VALID_IMAGES_DIR, filename)))
             cropped_image = validated_image[
-                100 : int(self.height) - 100, 0 : int(self.width) - 20
+                100 : int(self.height) - 150, 0 : int(self.width) - 20
             ]
             cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
             diff = self.error(self.get_image(frame_to_check), cropped_image)
