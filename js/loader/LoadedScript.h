@@ -724,11 +724,10 @@ class ModuleScript final : public LoadedScript {
   Heap<Value> mParseError;
   Heap<Value> mErrorToRethrow;
 
-  // A copy of ScriptLoadRequest::mFetchInfo, to update the
+  // A copy of ScriptLoadRequest::mFetchInfo, to read and update the
   // ScriptFetchInfo::mIsForModulePreload field.
-  RefPtr<ScriptFetchInfo> mFetchInfoForUpdatingPreload;
+  RefPtr<ScriptFetchInfo> mFetchInfoForAccessingPreloadFlag;
 
-  bool mForPreload = false;
   bool mHadImportMap = false;
 
   mozilla::UniquePtr<JS::loader::ResolvedModuleSet> mPreloadedResolvedSet;
@@ -770,7 +769,9 @@ class ModuleScript final : public LoadedScript {
   Value ErrorToRethrow() const { return mErrorToRethrow; }
   bool HasParseError() const { return !mParseError.isUndefined(); }
   bool HasErrorToRethrow() const { return !mErrorToRethrow.isUndefined(); }
-  bool ForPreload() const { return mForPreload; }
+  bool ForPreload() const {
+    return mFetchInfoForAccessingPreloadFlag->IsForModulePreload();
+  }
   bool HadImportMap() const { return mHadImportMap; }
 
   // This is used to reset the module graph information which happened during
