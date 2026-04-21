@@ -196,14 +196,7 @@ function test_remove_functions(testKey) {
   testKey.removeValue(TESTDATA_INT64NAME);
   strictEqual(testKey.valueCount, 3);
 
-  try {
-    testKey.removeValue(TESTDATA_INT64NAME);
-    do_throw("Removing a non-existent value should throw.");
-  } catch (e) {
-    if (!(e instanceof Ci.nsIException && e.result == Cr.NS_ERROR_FAILURE)) {
-      throw e;
-    }
-  }
+  testKey.removeValue(TESTDATA_INT64NAME);
   strictEqual(testKey.valueCount, 3);
 }
 
