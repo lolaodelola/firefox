@@ -985,6 +985,12 @@ export let ProfileDataUpgrader = {
       Services.prefs.setBoolPref("signon.rustMirror.migrationNeeded", true);
     }
 
+    if (existingDataVersion < 169) {
+      // Clear prefs removed by bug 2018089 and bug 2018516.
+      Services.prefs.clearUserPref("widget.macos.native-anchored-menulists");
+      Services.prefs.clearUserPref("widget.macos.native-anchored-select");
+    }
+
     // Update the migration version.
     Services.prefs.setIntPref("browser.migration.version", newVersion);
   },
