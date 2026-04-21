@@ -44,6 +44,7 @@ import mozilla.components.compose.base.RadioCheckmarkColors
 import mozilla.components.compose.base.menu.DropdownMenu
 import mozilla.components.compose.base.menu.MenuItem
 import mozilla.components.compose.base.text.Text
+import mozilla.components.compose.base.theme.AcornCorners
 import mozilla.components.support.utils.ext.isLandscape
 import mozilla.components.ui.colors.PhotonColors
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
@@ -70,6 +71,19 @@ val ThumbnailShape = RoundedCornerShape(
 
 // The touch target size of a tab's header icon
 val TabHeaderIconTouchTargetSize = 40.dp
+
+val TabListFirstItemShape = RoundedCornerShape(
+    topStart = AcornCorners.medium,
+    topEnd = AcornCorners.medium,
+)
+
+val TabListLastItemShape = RoundedCornerShape(
+    bottomStart = AcornCorners.medium,
+    bottomEnd = AcornCorners.medium,
+)
+
+val TabListSingleItemShape = RoundedCornerShape(AcornCorners.medium)
+val TabListBorderMiddleItemShape = RoundedCornerShape(0.dp)
 
 //region placeholder strings
 private const val PLACEHOLDER_EDIT = "Edit"

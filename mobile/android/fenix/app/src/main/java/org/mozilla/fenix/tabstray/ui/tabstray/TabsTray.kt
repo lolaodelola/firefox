@@ -331,7 +331,15 @@ fun TabsTray(
                     }
 
                     Page.TabGroups -> {
-                        TabGroupsPage()
+                        TabGroupsPage(
+                            groups = tabsTrayState.tabGroupState.groups,
+                            onDeleteTabGroup = { group ->
+                                tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(group))
+                            },
+                            editTabGroupClick = { group ->
+                                tabsTrayStore.dispatch(TabGroupAction.EditTabGroupClicked(group = group))
+                            },
+                        )
                     }
                 }
             }

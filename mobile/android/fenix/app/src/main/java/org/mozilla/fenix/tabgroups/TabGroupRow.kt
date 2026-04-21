@@ -8,9 +8,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,12 +51,14 @@ private val THUMBNAIL_HEIGHT = 68.dp
  * @param tabGroup The tab group to display.
  * @param onClick The action to be performed when the tab group item is clicked.
  * @param modifier The Modifier
+ * @param trailingContent Optional trailing content.
  */
 @Composable
 fun TabGroupRow(
     tabGroup: TabsTrayItem.TabGroup,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     val tabGroupRowContentDescription = pluralStringResource(
         id = R.plurals.add_to_exiting_tab_group_content_description,
@@ -65,7 +70,23 @@ fun TabGroupRow(
 
     Row(
         modifier = modifier
+            .fillMaxWidth()
             .clickable(onClick = onClick)
+            .padding(
+                if (trailingContent == null) {
+                    PaddingValues(
+                        horizontal = FirefoxTheme.layout.space.dynamic200,
+                        vertical = FirefoxTheme.layout.space.static100,
+                    )
+                } else {
+                    PaddingValues(
+                        start = FirefoxTheme.layout.space.dynamic200,
+                        top = FirefoxTheme.layout.space.static100,
+                        end = 0.dp,
+                        bottom = FirefoxTheme.layout.space.static100,
+                    )
+                },
+            )
             .semantics(mergeDescendants = true) {
                 contentDescription = tabGroupRowContentDescription
                 role = Role.Button
@@ -93,6 +114,7 @@ fun TabGroupRow(
                 Text(
                     text = tabGroup.title,
                     modifier = Modifier.clearAndSetSemantics { },
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = FirefoxTheme.typography.body1,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -108,11 +130,14 @@ fun TabGroupRow(
                     tabGroup.tabs.size,
                 ),
                 modifier = Modifier.clearAndSetSemantics { },
+                color = MaterialTheme.colorScheme.secondary,
                 style = FirefoxTheme.typography.caption,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
+
+        trailingContent?.invoke()
     }
 }
 

@@ -418,6 +418,59 @@ class TabStorageMiddlewareTest {
     }
 
     @Test
+    fun `WHEN tab groups have updated THEN preserve last modified on transformed tab groups`() = runTest {
+        val newerGroup = StoredTabGroup(
+            title = "Travel 2025",
+            theme = "Red",
+            lastModified = 123L,
+        )
+        val olderGroup = StoredTabGroup(
+            title = "Travel 2020",
+            theme = "Blue",
+            lastModified = 10L,
+        )
+        val expectedTabGroupState = TabsTrayState.TabGroupState(
+            groups = listOf(
+                TabsTrayItem.TabGroup(
+                    id = newerGroup.id,
+                    title = newerGroup.title,
+                    theme = TabGroupTheme.valueOf(newerGroup.theme),
+                    tabs = mutableListOf(),
+                    lastModified = newerGroup.lastModified,
+                ),
+                TabsTrayItem.TabGroup(
+                    id = olderGroup.id,
+                    title = olderGroup.title,
+                    theme = TabGroupTheme.valueOf(olderGroup.theme),
+                    tabs = mutableListOf(),
+                    lastModified = olderGroup.lastModified,
+                ),
+            ),
+        )
+        val expectedState = TabsTrayState(
+            tabGroupState = expectedTabGroupState,
+            config = TabsTrayState.TabsTrayConfig(tabGroupsEnabled = false),
+        )
+        val tabFlow = MutableStateFlow(TabData())
+        val tabGroupFlow = MutableStateFlow(emptyList<StoredTabGroup>())
+        val store = createStore(
+            tabGroupsEnabled = true,
+            tabDataFlow = tabFlow,
+            tabGroupRepository = createRepository(
+                tabGroupFlow = tabGroupFlow,
+            ),
+            scope = backgroundScope,
+        )
+
+        tabGroupFlow.emit(listOf(olderGroup, newerGroup))
+
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals(expectedState, store.state)
+    }
+
+    @Test
     fun `GIVEN the theme from the database is valid WHEN transforming tab group data THEN return the mapped tab group theme`() {
         val expectedTabGroupTheme = TabGroupTheme.Blue
         val middleware = TabStorageMiddleware(

@@ -4,7 +4,6 @@
 
 package org.mozilla.fenix.tabstray.ui.tabpage
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -20,10 +19,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.annotation.FlexibleWindowLightDarkPreview
 import org.mozilla.fenix.R
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
+import org.mozilla.fenix.tabstray.data.TabGroupTheme
+import org.mozilla.fenix.tabstray.data.TabsTrayItem
+import org.mozilla.fenix.tabstray.data.createTab
 import org.mozilla.fenix.theme.FirefoxTheme
 import mozilla.components.ui.icons.R as iconsR
 
@@ -33,8 +37,20 @@ private val EmptyPageWidth = 225.dp
  * UI for displaying the Tab Groups Page in the Tab Manager.
  */
 @Composable
-internal fun TabGroupsPage() {
-    EmptyTabGroupsPage()
+internal fun TabGroupsPage(
+    groups: List<TabsTrayItem.TabGroup>,
+    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
+    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+) {
+    if (groups.isNotEmpty()) {
+        TabGroupList(
+            groups,
+            onDeleteTabGroup = onDeleteTabGroup,
+            editTabGroupClick = editTabGroupClick,
+        )
+    } else {
+        EmptyTabGroupsPage()
+    }
 }
 
 /**
@@ -79,10 +95,55 @@ private fun EmptyTabGroupsPage(
     }
 }
 
+private class TabGroupsPagePreviewParameterProvider :
+    PreviewParameterProvider<List<TabsTrayItem.TabGroup>> {
+    val data = listOf(
+        Pair(
+            "Empty",
+            emptyList(),
+        ),
+        Pair(
+            "2 Tab Groups",
+            listOf(
+                TabsTrayItem.TabGroup(
+                    title = "Work",
+                    theme = TabGroupTheme.Blue,
+                    tabs = mutableListOf(
+                        createTab(url = "https://www.mozilla.org"),
+                        createTab(url = "https://www.firefox.com"),
+                    ),
+                ),
+                TabsTrayItem.TabGroup(
+                    title = "Other Work",
+                    theme = TabGroupTheme.Purple,
+                    tabs = mutableListOf(
+                        createTab(url = "https://www.mozilla.org"),
+                        createTab(url = "https://www.firefox.com"),
+                        createTab(url = "https://www.mozilla.org/about"),
+                    ),
+                ),
+            ),
+        ),
+    )
+    override val values: Sequence<List<TabsTrayItem.TabGroup>>
+        get() = data.map { it.second }.asSequence()
+
+    override fun getDisplayName(index: Int): String {
+        return data[index].first
+    }
+}
+
 @FlexibleWindowLightDarkPreview
 @Composable
-private fun EmptyTabGroupsPagePreview() {
+private fun TabGroupsPagePreview(
+    @PreviewParameter(TabGroupsPagePreviewParameterProvider::class)
+    groups: List<TabsTrayItem.TabGroup>,
+) {
     FirefoxTheme {
-        EmptyTabGroupsPage(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface))
+        TabGroupsPage(
+            groups = groups,
+            onDeleteTabGroup = {},
+            editTabGroupClick = {},
+        )
     }
 }

@@ -262,7 +262,7 @@ class TabStorageMiddleware(
             inactiveTabs = inactiveTabs,
             privateTabs = privateTabs,
             selectedPrivateItemIndex = selectedPrivateTabIndex,
-            tabGroups = transformedTabGroups.values.toList(),
+            tabGroups = transformedTabGroups.values.toList().sortedByDescending { it.lastModified },
         )
     }
 
@@ -335,6 +335,7 @@ class TabStorageMiddleware(
                 title = tabGroup.title,
                 tabs = mutableListOf(),
                 closed = tabGroup.closed,
+                lastModified = tabGroup.lastModified,
             )
         }
 

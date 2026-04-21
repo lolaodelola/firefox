@@ -86,6 +86,7 @@ sealed class TabsTrayItem(
      * @property tabs The set of [Tab]s within the group.
      * @property closed Whether the group is closed and does not appear in the main tab item list.
      * @property isFocused Whether the tab is focused.
+     * @property lastModified Timestamp indicating the last time this group was updated.
      */
     data class TabGroup(
         override val id: String = UUID.randomUUID().toString(),
@@ -94,6 +95,7 @@ sealed class TabsTrayItem(
         val tabs: MutableList<Tab>,
         val closed: Boolean = false,
         override var isFocused: Boolean = false,
+        val lastModified: Long = 0L,
     ) : TabsTrayItem(
         id = id,
         isHomepageItem = false,
@@ -149,6 +151,7 @@ internal fun createTabGroup(
     tabs: MutableList<TabsTrayItem.Tab> = mutableListOf(),
     closed: Boolean = false,
     isFocused: Boolean = false,
+    lastModified: Long = 0L,
 ): TabsTrayItem.TabGroup = TabsTrayItem.TabGroup(
     id = id,
     title = title,
@@ -156,4 +159,5 @@ internal fun createTabGroup(
     tabs = tabs,
     closed = closed,
     isFocused = isFocused,
+    lastModified = lastModified,
 )

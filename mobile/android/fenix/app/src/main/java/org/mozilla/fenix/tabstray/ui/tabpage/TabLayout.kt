@@ -76,6 +76,10 @@ import org.mozilla.fenix.tabstray.data.createTab
 import org.mozilla.fenix.tabstray.data.createTabGroup
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.ui.tabitems.TabGridTabItem
+import org.mozilla.fenix.tabstray.ui.tabitems.TabListBorderMiddleItemShape
+import org.mozilla.fenix.tabstray.ui.tabitems.TabListFirstItemShape
+import org.mozilla.fenix.tabstray.ui.tabitems.TabListLastItemShape
+import org.mozilla.fenix.tabstray.ui.tabitems.TabListSingleItemShape
 import org.mozilla.fenix.tabstray.ui.tabitems.TabListTabItem
 import org.mozilla.fenix.tabstray.ui.tabitems.TabsTrayItemClickHandler
 import org.mozilla.fenix.tabstray.ui.tabitems.TabsTrayItemSelectionState
@@ -107,19 +111,6 @@ private const val NUM_COLUMNS_TAB_GRID_LANDSCAPE_THRESHOLD_1 = 4
 private const val NUM_COLUMNS_TAB_GRID_LANDSCAPE_THRESHOLD_2 = 5
 
 private val TabListPadding = 16.dp
-private val TabListItemCornerRadius = 12.dp
-private val TabListLastItemShape = RoundedCornerShape(
-    bottomStart = TabListItemCornerRadius,
-    bottomEnd = TabListItemCornerRadius,
-)
-
-private val TabListFirstItemShape = RoundedCornerShape(
-    topStart = TabListItemCornerRadius,
-    topEnd = TabListItemCornerRadius,
-)
-
-private val TabListSingleItemShape = RoundedCornerShape(TabListItemCornerRadius)
-private val TabListBorderMiddleItemShape = RoundedCornerShape(4.dp)
 
 /**
  * Top-level UI for displaying a list of tabs.
