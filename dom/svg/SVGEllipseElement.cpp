@@ -156,7 +156,11 @@ already_AddRefed<Path> SVGEllipseElement::BuildPath(PathBuilder* aBuilder) {
     return nullptr;
   }
 
-  EllipseToBezier(aBuilder, Point(x, y), Size(rx, ry));
+  if (rx == ry) {
+    aBuilder->Arc(Point(x, y), rx, 0, Float(2 * M_PI));
+  } else {
+    EllipseToBezier(aBuilder, Point(x, y), Size(rx, ry));
+  }
 
   return aBuilder->Finish();
 }
