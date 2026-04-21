@@ -210,6 +210,7 @@ internal fun Homepage(
                             if (showPrivacyReport) {
                                 TrackersBlockedCard(
                                     trackersBlockedCount = trackersBlockedCount,
+                                    interactor = interactor,
                                     modifier = Modifier.padding(top = 16.dp),
                                 )
                             }

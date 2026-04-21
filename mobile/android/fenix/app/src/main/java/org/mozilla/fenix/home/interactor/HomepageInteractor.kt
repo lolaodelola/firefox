@@ -16,6 +16,7 @@ import org.mozilla.fenix.home.sessioncontrol.CollectionInteractor
 import org.mozilla.fenix.home.sessioncontrol.MessageCardInteractor
 import org.mozilla.fenix.home.sessioncontrol.SetupChecklistInteractor
 import org.mozilla.fenix.home.sessioncontrol.TabSessionInteractor
+import org.mozilla.fenix.home.sessioncontrol.TrackingProtectionInteractor
 import org.mozilla.fenix.home.sessioncontrol.WallpaperInteractor
 import org.mozilla.fenix.home.sports.SportsInteractor
 import org.mozilla.fenix.home.termsofuse.PrivacyNoticeBannerInteractor
@@ -43,5 +44,6 @@ interface HomepageInteractor :
     SearchSelectorInteractor,
     WallpaperInteractor,
     SetupChecklistInteractor,
+    TrackingProtectionInteractor,
     LogoInteractor,
     SportsInteractor

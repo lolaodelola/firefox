@@ -5,6 +5,7 @@
 package org.mozilla.fenix.trackingprotection
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import org.mozilla.fenix.R
+import org.mozilla.fenix.home.sessioncontrol.TrackingProtectionInteractor
 import org.mozilla.fenix.theme.FirefoxTheme
 import mozilla.components.ui.icons.R as iconsR
 
@@ -35,11 +37,13 @@ import mozilla.components.ui.icons.R as iconsR
  * A card that displays the number of trackers blocked.
  *
  * @param trackersBlockedCount The number of trackers blocked to display.
+ * @param interactor [TrackingProtectionInteractor] for handling interactions.
  * @param modifier Modifier to be applied to the card.
  */
 @Composable
 fun TrackersBlockedCard(
     trackersBlockedCount: Int,
+    interactor: TrackingProtectionInteractor,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -48,6 +52,7 @@ fun TrackersBlockedCard(
                 color = FirefoxTheme.colors.layer2,
                 shape = RoundedCornerShape(24.dp),
             )
+            .clickable { interactor.onPrivacyReportTapped() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -93,7 +98,12 @@ fun TrackersBlockedCard(
 @Composable
 private fun TrackersBlockedCardPreview() {
     FirefoxTheme {
-        TrackersBlockedCard(trackersBlockedCount = 754)
+        TrackersBlockedCard(
+            trackersBlockedCount = 754,
+            interactor = object : TrackingProtectionInteractor {
+                override fun onPrivacyReportTapped() = Unit
+            },
+        )
     }
 }
 
@@ -101,6 +111,11 @@ private fun TrackersBlockedCardPreview() {
 @Composable
 private fun TrackersBlockedCardEmptyPreview() {
     FirefoxTheme {
-        TrackersBlockedCard(trackersBlockedCount = 0)
+        TrackersBlockedCard(
+            trackersBlockedCount = 0,
+            interactor = object : TrackingProtectionInteractor {
+                override fun onPrivacyReportTapped() = Unit
+            },
+        )
     }
 }

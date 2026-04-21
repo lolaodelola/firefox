@@ -9,6 +9,8 @@ import mozilla.components.feature.tab.collections.TabCollection
 import mozilla.components.feature.top.sites.TopSite
 import mozilla.components.service.nimbus.messaging.Message
 import mozilla.components.service.pocket.PocketStory
+import mozilla.telemetry.glean.private.NoExtras
+import org.mozilla.fenix.GleanMetrics.Homepage
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.components.appstate.AppState
 import org.mozilla.fenix.components.appstate.setup.checklist.ChecklistItem
@@ -167,6 +169,16 @@ interface SetupChecklistInteractor {
      * Invoked when the remove button is clicked.
      */
     fun onRemoveChecklistButtonClicked()
+}
+
+/**
+ * Interface for tracking protection related actions on the homepage.
+ */
+interface TrackingProtectionInteractor {
+    /**
+     * Invoked when the privacy report card is tapped.
+     */
+    fun onPrivacyReportTapped()
 }
 
 /**
@@ -421,5 +433,9 @@ class SessionControlInteractor(
 
     override fun onCountriesSelected(countryCodes: Set<String>) {
         sportsController.handleCountriesSelected(countryCodes = countryCodes)
+    }
+
+    override fun onPrivacyReportTapped() {
+        Homepage.privacyReportTapped.record(NoExtras())
     }
 }
