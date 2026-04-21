@@ -885,7 +885,7 @@ nsBrowserContentHandler.prototype = {
                     "www.firefox.com",
                   ].includes(uri.host)
                 ) {
-                  nimbusWNP = uri.spec;
+                  nimbusWNP = nimbusOverrideUrl;
                 } else {
                   throw new Error("Bad URL");
                 }
