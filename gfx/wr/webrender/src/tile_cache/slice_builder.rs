@@ -560,11 +560,10 @@ fn create_tile_cache(
 
         let node_valid = if is_rcs {
             match clip_node_data.key.kind {
-                ClipItemKeyKind::BoxShadow(..) |
                 ClipItemKeyKind::ImageMask(..) |
                 ClipItemKeyKind::Rectangle(_, ClipMode::ClipOut) |
                 ClipItemKeyKind::RoundedRectangle(_, _, ClipMode::ClipOut) => {
-                    // Has a box-shadow / image-mask, we can't handle this as a shared clip
+                    // Has an image-mask or clip-out clip, we can't handle this as a shared clip
                     false
                 }
                 ClipItemKeyKind::RoundedRectangle(size, radius, ClipMode::Clip) => {

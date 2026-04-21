@@ -15,8 +15,8 @@ use crate::gpu_types::{BrushFlags, BrushInstance, ImageSource, PrimitiveHeaders,
 use crate::gpu_types::SplitCompositeInstance;
 use crate::gpu_types::{PrimitiveInstanceData, RasterizationSpace, GlyphInstance};
 use crate::gpu_types::{PrimitiveHeader, PrimitiveHeaderIndex};
-use crate::gpu_types::{ImageBrushUserData, get_shader_opacity, BoxShadowData, MaskInstance};
-use crate::gpu_types::{ClipMaskInstanceCommon, ClipMaskInstanceRect, ClipMaskInstanceBoxShadow};
+use crate::gpu_types::{ImageBrushUserData, get_shader_opacity, MaskInstance};
+use crate::gpu_types::{ClipMaskInstanceCommon, ClipMaskInstanceRect};
 use crate::internal_types::{FastHashMap, Filter, FrameAllocator, FrameMemory, FrameVec, Swizzle, TextureSource};
 use crate::picture::{Picture3DContext, PictureCompositeMode, calculate_screen_uv};
 use crate::prim_store::{PrimitiveInstanceKind, ClipData};
@@ -2782,7 +2782,6 @@ pub struct ClipBatchList {
     /// Rectangle draws fill up the rectangles with rounded corners.
     pub slow_rectangles: FrameVec<ClipMaskInstanceRect>,
     pub fast_rectangles: FrameVec<ClipMaskInstanceRect>,
-    pub box_shadows: FastHashMap<TextureSource, FrameVec<ClipMaskInstanceBoxShadow>>,
 }
 
 impl ClipBatchList {
@@ -2790,14 +2789,12 @@ impl ClipBatchList {
         ClipBatchList {
             slow_rectangles: memory.new_vec(),
             fast_rectangles: memory.new_vec(),
-            box_shadows: FastHashMap::default(),
         }
     }
 
     pub fn is_empty(&self) -> bool {
         self.slow_rectangles.is_empty()
           && self.fast_rectangles.is_empty()
-          && self.box_shadows.is_empty()
     }
 }
 
@@ -2960,7 +2957,6 @@ impl ClipBatcher {
         &mut self,
         clip_node_range: ClipNodeRange,
         root_spatial_node_index: SpatialNodeIndex,
-        render_tasks: &RenderTaskGraph,
         clip_store: &ClipStore,
         transforms: &mut TransformPalette,
         actual_rect: DeviceRect,
@@ -3000,31 +2996,6 @@ impl ClipBatcher {
             let added_clip = match clip_node.item.kind {
                 ClipItemKind::Image { .. } => {
                     unreachable!();
-                }
-                ClipItemKind::BoxShadow { ref source }  => {
-                    // Only reachable when use_quad_box_shadow is not set.
-                    let task_id = source
-                        .render_task
-                        .expect("bug: render task handle not allocated");
-                    let (uv_rect_address, texture) = render_tasks.resolve_location(task_id).unwrap();
-
-                    self.get_batch_list(is_first_clip)
-                        .box_shadows
-                        .entry(texture)
-                        .or_insert_with(|| ctx.frame_memory.new_vec())
-                        .push(ClipMaskInstanceBoxShadow {
-                            common,
-                            resource_address: uv_rect_address.as_int(),
-                            shadow_data: BoxShadowData {
-                                src_rect_size: source.original_alloc_size,
-                                clip_mode: source.clip_mode as i32,
-                                stretch_mode_x: source.stretch_mode_x as i32,
-                                stretch_mode_y: source.stretch_mode_y as i32,
-                                dest_rect: source.prim_shadow_rect,
-                            },
-                        });
-
-                    true
                 }
                 ClipItemKind::Rectangle { size, mode: ClipMode::ClipOut } => {
                     let rect = LayoutRect::from_origin_and_size(clip_instance.clip_rect_origin, size);

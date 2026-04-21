@@ -7,7 +7,7 @@
 //! TODO: document this!
 
 use api::{ColorF, DebugFlags};
-use api::{BoxShadowClipMode, ClipMode};
+use api::ClipMode;
 use crate::util::clamp_to_scale_factor;
 use crate::box_shadow::{BoxShadowCacheKey, BLUR_SAMPLE_SCALE};
 use crate::pattern::box_shadow::BoxShadowPatternData;
@@ -21,7 +21,7 @@ use crate::clip::{ClipStore, ClipNodeRange};
 use crate::render_task_graph::RenderTaskId;
 use crate::renderer::{GpuBufferAddress, GpuBufferWriterF};
 use crate::spatial_tree::SpatialNodeIndex;
-use crate::clip::{ClipDataStore, ClipNodeFlags, ClipChainInstance, ClipItemKind};
+use crate::clip::{ClipNodeFlags, ClipChainInstance, ClipItemKind};
 use crate::frame_builder::{FrameBuildingContext, FrameBuildingState, PictureContext, PictureState};
 use crate::gpu_types::{BrushFlags, BlurEdgeMode};
 use crate::render_target::RenderTargetKind;
@@ -192,10 +192,6 @@ fn can_use_clip_chain_for_quad_path(
 
         match clip_node.item.kind {
             ClipItemKind::RoundedRectangle { .. } | ClipItemKind::Rectangle { .. } => {}
-            ClipItemKind::BoxShadow { .. } => {
-                // Only reachable when use_quad_box_shadow is not set.
-                return false;
-            }
             ClipItemKind::Image { .. } => {
                 panic!("bug: image-masks not expected on rect/quads");
             }
@@ -1414,7 +1410,6 @@ fn update_clip_task_for_brush(
             pic_context.surface_index,
             frame_context,
             frame_state,
-            &mut data_stores.clip,
             device_pixel_scale,
         );
         clip_mask_instances.push(clip_mask_kind);
@@ -1441,7 +1436,6 @@ fn update_clip_task_for_brush(
                     &frame_context.spatial_tree,
                     &mut frame_state.frame_gpu_data.f32,
                     frame_state.resource_cache,
-                    device_pixel_scale,
                     &dirty_rect,
                     &mut data_stores.clip,
                     frame_state.rg_builder,
@@ -1455,7 +1449,6 @@ fn update_clip_task_for_brush(
                 pic_context.surface_index,
                 frame_context,
                 frame_state,
-                &mut data_stores.clip,
                 device_pixel_scale,
             );
             clip_mask_instances.push(clip_mask_kind);
@@ -1535,14 +1528,9 @@ pub fn update_clip_task(
             device_rect,
             instance.vis.clip_chain.clips_range,
             root_spatial_node_index,
-            frame_state.clip_store,
-            &mut frame_state.frame_gpu_data.f32,
-            frame_state.resource_cache,
             frame_state.rg_builder,
-            &mut data_stores.clip,
             device_pixel_scale,
             frame_context.fb_config,
-            &mut frame_state.surface_builder,
         );
         // Set the global clip mask instance for this primitive.
         let clip_task_index = ClipTaskIndex(scratch.clip_mask_instances.len() as _);
@@ -1569,7 +1557,6 @@ pub fn update_brush_segment_clip_task(
     surface_index: SurfaceIndex,
     frame_context: &FrameBuildingContext,
     frame_state: &mut FrameBuildingState,
-    clip_data_store: &mut ClipDataStore,
     device_pixel_scale: DevicePixelScale,
 ) -> ClipMaskKind {
     let clip_chain = match clip_chain {
@@ -1600,14 +1587,9 @@ pub fn update_brush_segment_clip_task(
         device_rect,
         clip_chain.clips_range,
         root_spatial_node_index,
-        frame_state.clip_store,
-        &mut frame_state.frame_gpu_data.f32,
-        frame_state.resource_cache,
         frame_state.rg_builder,
-        clip_data_store,
         device_pixel_scale,
         frame_context.fb_config,
-        &mut frame_state.surface_builder,
     );
 
     frame_state.surface_builder.add_child_render_task(
@@ -1668,32 +1650,6 @@ fn write_brush_segment_description(
             ClipItemKind::Rectangle { size, mode } => {
                 let rect = LayoutRect::from_origin_and_size(clip_instance.clip_rect_origin, size);
                 (rect, None, mode)
-            }
-            ClipItemKind::BoxShadow { ref source } => {
-                // Only reachable when use_quad_box_shadow is not set.
-                // For inset box shadows, we can clip out any
-                // pixels that are inside the shadow region
-                // and are beyond the inner rect, as they can't
-                // be affected by the blur radius.
-                let inner_clip_mode = match source.clip_mode {
-                    BoxShadowClipMode::Outset => None,
-                    BoxShadowClipMode::Inset => Some(ClipMode::ClipOut),
-                };
-
-                // Push a region into the segment builder where the
-                // box-shadow can have an effect on the result. This
-                // ensures clip-mask tasks get allocated for these
-                // pixel regions, even if no other clips affect them.
-                segment_builder.push_mask_region(
-                    source.prim_shadow_rect,
-                    source.prim_shadow_rect.inflate(
-                        -0.5 * source.original_alloc_size.width,
-                        -0.5 * source.original_alloc_size.height,
-                    ),
-                    inner_clip_mode,
-                );
-
-                continue;
             }
             ClipItemKind::Image { .. } => {
                 panic!("bug: masks not supported on old segment path");

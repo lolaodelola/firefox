@@ -1094,7 +1094,6 @@ impl TileCacheInstance {
                 frame_context.spatial_tree,
                 &mut frame_state.frame_gpu_data.f32,
                 frame_state.resource_cache,
-                frame_context.global_device_pixel_scale,
                 &surface.culling_rect,
                 &mut frame_state.data_stores.clip,
                 frame_state.rg_builder,
@@ -2781,7 +2780,6 @@ impl TileCacheInstance {
                 ClipItemKind::Image { size, .. } => {
                     Some(LayoutRect::from_origin_and_size(clip_instance.clip_rect_origin, size))
                 }
-                ClipItemKind::BoxShadow { .. } => None,
             };
             let clip_scratch = match clip_local_rect {
                 Some(rect) => self.corners_cache.compute_to_scratch(

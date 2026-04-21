@@ -1201,9 +1201,6 @@ fn prepare_tiles(
                     }
                 }
             }
-            ClipItemKind::BoxShadow { .. } => {
-                panic!("bug: old box-shadow clips unexpected in this path");
-            }
             ClipItemKind::Image { .. } => {
                 panic!("bug: image clips unexpected in this path");
             }
@@ -1763,9 +1760,6 @@ pub fn prepare_clip_task(
             let clip_address = writer.finish();
 
             (clip_address, true)
-        }
-        ClipItemKind::BoxShadow { .. } => {
-            panic!("bug: box-shadow clips not expected on non-legacy rect/quads");
         }
         ClipItemKind::Image { .. } => {
             let transform_id = transforms.gpu.get_id_with_post_scale(

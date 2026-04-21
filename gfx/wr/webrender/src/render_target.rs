@@ -453,7 +453,6 @@ impl RenderTarget {
                 let clear_to_one = self.clip_batcher.add(
                     task_info.clip_node_range,
                     task_info.root_spatial_node_index,
-                    render_tasks,
                     clip_store,
                     transforms,
                     task_info.actual_rect,

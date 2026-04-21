@@ -210,7 +210,6 @@ pub fn update_prim_visibility(
     let surface = &frame_state.surfaces[surface_index.0 as usize];
     let surface_culling_rect = surface.culling_rect;
 
-    let device_pixel_scale = surface.device_pixel_scale;
     let mut map_local_to_picture = surface.map_local_to_picture.clone();
 
     let map_surface_to_vis = SpaceMapper::new_with_target(
@@ -325,7 +324,6 @@ pub fn update_prim_visibility(
                     &frame_context.spatial_tree,
                     &mut frame_state.frame_gpu_data.f32,
                     frame_state.resource_cache,
-                    device_pixel_scale,
                     &surface_culling_rect,
                     &mut frame_state.data_stores.clip,
                     frame_state.rg_builder,

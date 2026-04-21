@@ -102,7 +102,6 @@ impl HitTestClipNode {
                     HitTestRegion::Rectangle(rect, ClipMode::Clip)
                 }
             }
-            ClipItemKeyKind::BoxShadow(..) => HitTestRegion::Invalid,
         };
 
         HitTestClipNode {
@@ -258,7 +257,6 @@ impl HitTestingScene {
 
 #[derive(MallocSizeOf)]
 enum HitTestRegion {
-    Invalid,
     Rectangle(LayoutRect, ClipMode),
     RoundedRectangle(LayoutRect, BorderRadius, ClipMode),
     Polygon(LayoutRect, PolygonKey),
@@ -277,7 +275,6 @@ impl HitTestRegion {
                 !rounded_rectangle_contains_point(point, &rect, &radii),
             HitTestRegion::Polygon(rect, polygon) =>
                 polygon_contains_point(point, &rect, &polygon),
-            HitTestRegion::Invalid => true,
         }
     }
 }
