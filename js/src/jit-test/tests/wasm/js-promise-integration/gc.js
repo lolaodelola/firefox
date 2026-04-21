@@ -1,5 +1,3 @@
-// |jit-test| skip-if: !wasmJSPromiseIntegrationEnabled()
-
 // Test if we can trace roots on the alternative stack.
 
 let i = 0;

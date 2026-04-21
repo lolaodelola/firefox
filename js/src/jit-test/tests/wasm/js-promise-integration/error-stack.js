@@ -1,5 +1,3 @@
-// |jit-test| skip-if: !wasmJSPromiseIntegrationEnabled()
-
 const { assertStackTrace } = WasmHelpers;
 
 let e;

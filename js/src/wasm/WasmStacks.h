@@ -152,7 +152,7 @@ class ContStack {
 
   // The initial resume target and callee for the base frame to use.
   SwitchTarget initialResumeTarget_{};
-  HeapPtr<JSFunction*> initialResumeCallee_;
+  GCPtr<JSFunction*> initialResumeCallee_;
 
   // A target useable when switching to this stack.
   StackTarget target_{};

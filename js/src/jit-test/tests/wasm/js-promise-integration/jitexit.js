@@ -1,5 +1,3 @@
-// |jit-test| skip-if: !wasmJSPromiseIntegrationEnabled()
-
 // Copy of wasm/import-export.js test with WebAssembly.promising
 
 (async function testImportJitExit() {
