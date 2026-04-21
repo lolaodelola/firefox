@@ -77,6 +77,18 @@ def test_try_chooser_renders_filters(app):
     assert b"console.log" not in response.data
 
 
+def test_try_chooser_buildtype_radio_is_scalar(app):
+    # filter.js apply() compares task.build_type !== buildTypeFilter as
+    # strings. The radio values must stay scalar JSON; moving them to
+    # arrays (like section checkbox values) would silently break the
+    # comparison without a corresponding filter.js change.
+    client = app.test_client()
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"""value='{"build_type": "opt"}'""" in response.data
+    assert b"""value='{"build_type": "debug"}'""" in response.data
+
+
 def test_try_chooser_artifact_default_unchecked(app):
     client = app.test_client()
     response = client.get("/")
