@@ -179,8 +179,9 @@ void ScriptLoadRequest::CacheEntryRevived(LoadedScript* aLoadedScript) {
 
 void ScriptLoadRequest::SetCacheEntry(LoadedScript* aLoadedScript,
                                       ScriptFetchOptions* aFetchOptions) {
-  mFetchInfo = new ScriptFetchInfo(mKind, aLoadedScript->ReferrerPolicy(),
-                                   aFetchOptions, aLoadedScript->BaseURL());
+  mFetchInfo =
+      new ScriptFetchInfo(mKind, aLoadedScript->ReferrerPolicy(), aFetchOptions,
+                          aLoadedScript->CachedBaseURL());
 
   switch (mKind) {
     case ScriptKind::eClassic:

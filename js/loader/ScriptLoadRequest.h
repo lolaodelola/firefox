@@ -156,15 +156,10 @@ class ScriptLoadRequest : public nsISupports,
     return getLoadedScript()->ReferrerPolicy();
   }
 
-  nsIURI* BaseURL() const { return getLoadedScript()->BaseURL(); }
-  void SetBaseURL(nsIURI* aBaseURL) {
-    getLoadedScript()->SetBaseURL(aBaseURL);
-    FetchInfo()->SetBaseURL(aBaseURL);
-  }
+  nsIURI* BaseURL() const { return FetchInfo()->BaseURL(); }
+  void SetBaseURL(nsIURI* aBaseURL) { FetchInfo()->SetBaseURL(aBaseURL); }
   void SetBaseURLFromChannelAndOriginalURI(nsIChannel* aChannel,
                                            nsIURI* aOriginalURI) {
-    getLoadedScript()->SetBaseURLFromChannelAndOriginalURI(aChannel,
-                                                           aOriginalURI);
     FetchInfo()->SetBaseURLFromChannelAndOriginalURI(aChannel, aOriginalURI);
   }
 

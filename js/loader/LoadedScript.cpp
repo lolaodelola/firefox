@@ -169,7 +169,6 @@ LoadedScript::LoadedScript(const LoadedScript& aOther)
       mTookLongInPreviousRuns(aOther.mTookLongInPreviousRuns),
       mIsEverHitFromMemoryCache(aOther.mIsEverHitFromMemoryCache),
       mURI(aOther.mURI),
-      mBaseURL(aOther.mBaseURL),
       mReceivedScriptTextLength(0),
       mStencil(aOther.mStencil) {
   MOZ_ASSERT(mURI);
@@ -312,17 +311,6 @@ nsresult LoadedScript::GetScriptSource(JSContext* aCx,
   return NS_OK;
 }
 
-void LoadedScript::SetBaseURLFromChannelAndOriginalURI(nsIChannel* aChannel,
-                                                       nsIURI* aOriginalURI) {
-  // Fixup moz-extension: and resource: URIs, because the channel URI will
-  // point to file:, which won't be allowed to load.
-  if (aOriginalURI && IsInternalURIScheme(aOriginalURI)) {
-    mBaseURL = aOriginalURI;
-  } else {
-    aChannel->GetURI(getter_AddRefs(mBaseURL));
-  }
-}
-
 void LoadedScript::SetSRIMetadata(
     const mozilla::dom::SRIMetadata& aSRIMetadata) {
   if (aSRIMetadata.IsEmpty()) {
@@ -351,14 +339,7 @@ bool LoadedScript::IsSRIMetadataReusableBy(
 
 EventScript::EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
                          nsIURI* aURI)
-    : LoadedScript(ScriptKind::eEvent, aReferrerPolicy, aURI) {
-  // EventScripts are not using ScriptLoadRequest, and mBaseURL and mURI are
-  // the same thing.
-  SetBaseURL(aURI);
-  // TODO: Remove the above once LoadedScript::mBaseURL is removed.
-  // NOTE: The equivalent is already done when creating the
-  //       ScriptFetchInfo instance in the caller.
-}
+    : LoadedScript(ScriptKind::eEvent, aReferrerPolicy, aURI) {}
 
 //////////////////////////////////////////////////////////////
 // ClassicScript

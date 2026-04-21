@@ -3516,7 +3516,7 @@ void ScriptLoader::TryCacheRequest(ScriptLoadRequest* aRequest) {
   if (cacheBehavior == CacheBehavior::Insert) {
     loadedScript->SetSRIMetadata(aRequest->mIntegrity);
     auto loadData = MakeRefPtr<ScriptLoadData>(this, aRequest, loadedScript);
-    loadedScript->ConvertToCachedStencil();
+    loadedScript->ConvertToCachedStencil(aRequest->BaseURL());
     if (loadedScript->mFetchCount == 0) {
       loadedScript->mFetchCount = 1;
     }

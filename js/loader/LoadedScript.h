@@ -180,8 +180,8 @@ class LoadedScript : public nsIMemoryReporter {
   }
 
   nsIURI* GetURI() const { return mURI; }
-  void SetBaseURL(nsIURI* aBaseURL) { mBaseURL = aBaseURL; }
-  nsIURI* BaseURL() const { return mBaseURL; }
+
+  nsIURI* CachedBaseURL() const { return mCachedBaseURL; }
 
  public:
   // ===========================================================================
@@ -259,10 +259,11 @@ class LoadedScript : public nsIMemoryReporter {
     mDataType = DataType::eSerializedStencil;
   }
 
-  void ConvertToCachedStencil() {
+  void ConvertToCachedStencil(nsIURI* aBaseURL) {
     MOZ_ASSERT(HasStencil());
     SetUnknownDataType();
     mDataType = DataType::eCachedStencil;
+    mCachedBaseURL = aBaseURL;
   }
 
   void SetWasmBytes() {
@@ -424,13 +425,6 @@ class LoadedScript : public nsIMemoryReporter {
   void SetIsEverHitFromMemoryCache() { mIsEverHitFromMemoryCache = true; }
   bool IsEverHitFromMemoryCache() const { return mIsEverHitFromMemoryCache; }
 
-  /*
-   * Set the mBaseURL, based on aChannel.
-   * aOriginalURI is the result of aChannel->GetOriginalURI.
-   */
-  void SetBaseURLFromChannelAndOriginalURI(nsIChannel* aChannel,
-                                           nsIURI* aOriginalURI);
-
   bool IsDirty() const { return mIsDirty; }
   void SetDirty() {
     MOZ_ASSERT(HasCacheEntryId());
@@ -533,8 +527,12 @@ class LoadedScript : public nsIMemoryReporter {
 
   nsCOMPtr<nsIURI> mURI;
 
-  // The base URL used for resolving relative module imports.
-  nsCOMPtr<nsIURI> mBaseURL;
+  // The final ScriptFetchInfo::mBaseURL value of the
+  // initial request.
+  // This field is set before this LoadedScript is stored into the
+  // SharedScriptCache, and then propagated to the ScriptFetchInfo
+  // for the request that uses this cache.
+  nsCOMPtr<nsIURI> mCachedBaseURL;
 
   // An optional field to store the SRI metadata used by the request that
   // first creates this instance.
