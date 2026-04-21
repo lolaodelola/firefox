@@ -154,6 +154,8 @@ clippy:
         - toolkit/components/bitsdownload/bits_client/bits/
         # mac and windows only
         - security/manager/ssl/osclientcerts/
+    warn:
+        - needless_return
     extensions:
         - rs
     support-files:
