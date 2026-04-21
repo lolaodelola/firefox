@@ -19,6 +19,7 @@ import mozilla.components.support.test.robolectric.testContext
 import mozilla.components.support.test.whenever
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -678,6 +679,73 @@ class AMOAddonsProviderTest {
         assertEquals(
             "https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/",
             addon.detailUrl,
+        )
+    }
+
+    @Test
+    fun `GIVEN an addon's GUID WHEN its configuration was successfully downloaded THEN return the addon`() = runTest(dispatcher) {
+        val mockedClient = prepareClient(loadResourceAsString("/amo_search_single_result.json"))
+        val provider = AMOAddonsProvider(testContext, client = mockedClient, ioDispatcher = dispatcher)
+
+        val addon = provider.getAddonByID("{58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66}")
+
+        assertNotNull(addon)
+        assertEquals("uBlock0@raymondhill.net", addon!!.id)
+        assertEquals(
+            "https://addons.mozilla.org/firefox/downloads/file/4141256/ublock_origin-1.51.0.xpi",
+            addon.downloadUrl,
+        )
+    }
+
+    @Test
+    fun `GIVEN a bare addon UUID WHEN its configuration was successfully downloaded THEN return the addon`() = runTest(dispatcher) {
+        val mockedClient = prepareClient(loadResourceAsString("/amo_search_single_result.json"))
+        val provider = AMOAddonsProvider(testContext, client = mockedClient, ioDispatcher = dispatcher)
+
+        val addon = provider.getAddonByID("58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66")
+
+        assertNotNull(addon)
+        assertEquals("uBlock0@raymondhill.net", addon!!.id)
+    }
+
+    @Test
+    fun `GIVEN an addon's GUID WHEN its configuration could not be downloaded THEN return null`() = runTest(dispatcher) {
+        val mockedClient = prepareClient(status = 500)
+        val provider = AMOAddonsProvider(testContext, client = mockedClient, ioDispatcher = dispatcher)
+
+        assertNull(provider.getAddonByID("{58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66}"))
+    }
+
+    @Test
+    fun `GIVEN an addon's GUID WHEN its downloaded configuration is invalid THEN return null`() = runTest(dispatcher) {
+        val mockedClient = prepareClient(jsonResponse = "{invalid json")
+        val provider = AMOAddonsProvider(testContext, client = mockedClient, ioDispatcher = dispatcher)
+
+        assertNull(provider.getAddonByID("{58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66}"))
+    }
+
+    @Test
+    fun `GIVEN an addon's GUID WHEN its downloaded configuration is empty THEN return`() = runTest(dispatcher) {
+        val emptyResults = """{"page_size":25,"page_count":1,"count":0,"results":[]}"""
+        val mockedClient = prepareClient(jsonResponse = emptyResults)
+        val provider = AMOAddonsProvider(testContext, client = mockedClient, ioDispatcher = dispatcher)
+
+        assertNull(provider.getAddonByID("{58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66}"))
+    }
+
+    @Test
+    fun `GIVEN an addon's GUID and a language parameter WHEN downloading addon's configuration THEN the language is included in the request`() = runTest(dispatcher) {
+        val mockedClient = prepareClient(loadResourceAsString("/amo_search_single_result.json"))
+        val provider = AMOAddonsProvider(testContext, client = mockedClient, ioDispatcher = dispatcher)
+
+        provider.getAddonByID("{58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66}", language = "en")
+
+        verify(mockedClient).fetch(
+            Request(
+                url = "$DEFAULT_SERVER_URL/$API_VERSION/addons/search/" +
+                    "?guid={58c32ac4-0d6c-4d6f-ae2c-96aaf8ffcb66}&lang=en",
+                readTimeout = Pair(DEFAULT_READ_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS),
+            ),
         )
     }
 
