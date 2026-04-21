@@ -168,6 +168,10 @@ class ScriptLoadRequest : public nsISupports,
     FetchInfo()->SetBaseURLFromChannelAndOriginalURI(aChannel, aOriginalURI);
   }
 
+  ScriptFetchOptions* FetchOptions() const {
+    return FetchInfo()->FetchOptions();
+  }
+
   mozilla::dom::RequestPriority FetchPriority() const {
     return FetchOptions()->mFetchPriority;
   }

@@ -1145,10 +1145,9 @@ void ScriptLoader::NotifyObserversForCachedScript(
     return;
   }
 
-  ScriptHashKey key(this, aRequest,
-                    aRequest->getLoadedScript()->ReferrerPolicy(),
-                    aRequest->getLoadedScript()->GetFetchOptions(),
-                    aRequest->getLoadedScript()->GetURI());
+  ScriptHashKey key(
+      this, aRequest, aRequest->getLoadedScript()->ReferrerPolicy(),
+      aRequest->FetchOptions(), aRequest->getLoadedScript()->GetURI());
   nsAutoCString keyStr;
   key.ToStringForLookup(keyStr);
 
@@ -1217,8 +1216,9 @@ void ScriptLoader::TryUseCache(ReferrerPolicy aReferrerPolicy,
 
   // NOTE: Some ScriptLoadRequest fields aren't yet accessible until
   //       either NoCacheEntryFound or CacheEntryFound is called,
-  //       which constructs LoadedScript.
-  //       aRequest->FetchOptions() and aRequest->URI() are backed by
+  //       which constructs ScriptFetchInfo and LoadedScript.
+  //       aRequest->FetchOptions() and aRequest->ReferrerPolicy() are
+  //       backed by ScriptFetchInfo, and aRequest->URI() is backed by
   //       LoadedScript, and we cannot use them here.
   ScriptHashKey key(this, aRequest, aReferrerPolicy, aFetchOptions, aURI);
   auto cacheResult = mCache->Lookup(*this, key, /* aSyncLoad = */ true);
@@ -3462,10 +3462,9 @@ ScriptLoader::CacheBehavior ScriptLoader::GetCacheBehavior(
     return CacheBehavior::Insert;
   }
 
-  ScriptHashKey key(this, aRequest,
-                    aRequest->getLoadedScript()->ReferrerPolicy(),
-                    aRequest->getLoadedScript()->GetFetchOptions(),
-                    aRequest->getLoadedScript()->GetURI());
+  ScriptHashKey key(
+      this, aRequest, aRequest->getLoadedScript()->ReferrerPolicy(),
+      aRequest->FetchOptions(), aRequest->getLoadedScript()->GetURI());
   auto cacheResult = mCache->Lookup(*this, key,
                                     /* aSyncLoad = */ true);
   if (cacheResult.mState == CachedSubResourceState::Complete) {
@@ -3529,7 +3528,7 @@ void ScriptLoader::TryCacheRequest(ScriptLoadRequest* aRequest) {
   } else {
     MOZ_ASSERT(cacheBehavior == CacheBehavior::Evict);
     ScriptHashKey key(this, aRequest, loadedScript->ReferrerPolicy(),
-                      loadedScript->GetFetchOptions(), loadedScript->GetURI());
+                      aRequest->FetchOptions(), loadedScript->GetURI());
     mCache->Evict(key);
     LOG(("ScriptLoader (%p): Evicting in-memory cache for %s.", this,
          aRequest->URI()->GetSpecOrDefault().get()));

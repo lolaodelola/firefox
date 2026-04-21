@@ -145,7 +145,7 @@ NS_IMPL_CYCLE_COLLECTING_RELEASE(LoadedScript)
 
 LoadedScript::LoadedScript(ScriptKind aKind,
                            mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                           ScriptFetchOptions* aFetchOptions, nsIURI* aURI)
+                           nsIURI* aURI)
     : mDataType(DataType::eUnknown),
       mKind(aKind),
       mReferrerPolicy(aReferrerPolicy),
@@ -154,15 +154,12 @@ LoadedScript::LoadedScript(ScriptKind aKind,
       mIsDirty(false),
       mTookLongInPreviousRuns(false),
       mIsEverHitFromMemoryCache(false),
-      mFetchOptions(aFetchOptions),
       mURI(aURI),
       mReceivedScriptTextLength(0) {
-  MOZ_ASSERT(mFetchOptions);
   MOZ_ASSERT(mURI);
 }
 
-LoadedScript::LoadedScript(const LoadedScript& aOther,
-                           ScriptFetchOptions* aFetchOptions)
+LoadedScript::LoadedScript(const LoadedScript& aOther)
     : mDataType(DataType::eCachedStencil),
       mKind(aOther.mKind),
       mReferrerPolicy(aOther.mReferrerPolicy),
@@ -171,12 +168,10 @@ LoadedScript::LoadedScript(const LoadedScript& aOther,
       mIsDirty(aOther.mIsDirty),
       mTookLongInPreviousRuns(aOther.mTookLongInPreviousRuns),
       mIsEverHitFromMemoryCache(aOther.mIsEverHitFromMemoryCache),
-      mFetchOptions(aFetchOptions),
       mURI(aOther.mURI),
       mBaseURL(aOther.mBaseURL),
       mReceivedScriptTextLength(0),
       mStencil(aOther.mStencil) {
-  MOZ_ASSERT(mFetchOptions);
   MOZ_ASSERT(mURI);
   // NOTE: This is only for the cached stencil case.
   //       The script text and the serialized stencil are not reflected.
@@ -184,7 +179,6 @@ LoadedScript::LoadedScript(const LoadedScript& aOther,
   MOZ_DIAGNOSTIC_ASSERT(mStencil);
   MOZ_ASSERT(!mScriptData);
   MOZ_ASSERT(mSRIAndSerializedStencil.empty());
-  MOZ_ASSERT(mFetchOptions->IsCompatibleExcludingNonce(aOther.mFetchOptions));
 
   if (aOther.mSRIMetadata) {
     mSRIMetadata =
@@ -195,14 +189,6 @@ LoadedScript::LoadedScript(const LoadedScript& aOther,
 LoadedScript::~LoadedScript() {
   mozilla::UnregisterWeakMemoryReporter(this);
   mozilla::DropJSObjects(this);
-}
-
-/* static */
-already_AddRefed<LoadedScript> LoadedScript::FromCache(
-    const LoadedScript& aScript, ScriptFetchOptions* aFetchOptions) {
-  MOZ_DIAGNOSTIC_ASSERT(aScript.IsCachedStencil());
-
-  return mozilla::MakeRefPtr<LoadedScript>(aScript, aFetchOptions).forget();
 }
 
 void LoadedScript::RegisterMemoryReport() {
@@ -241,10 +227,6 @@ LoadedScript::CollectReports(nsIHandleReportCallback* aHandleReport,
 size_t LoadedScript::SizeOfIncludingThis(
     mozilla::MallocSizeOf aMallocSizeOf) const {
   size_t bytes = aMallocSizeOf(this);
-
-  if (mFetchOptions) {
-    bytes += mFetchOptions->SizeOfIncludingThis(aMallocSizeOf);
-  }
 
   if (mSRIMetadata) {
     bytes += mSRIMetadata->SizeOfIncludingThis(aMallocSizeOf);
@@ -368,8 +350,8 @@ bool LoadedScript::IsSRIMetadataReusableBy(
 //////////////////////////////////////////////////////////////
 
 EventScript::EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                         ScriptFetchOptions* aFetchOptions, nsIURI* aURI)
-    : LoadedScript(ScriptKind::eEvent, aReferrerPolicy, aFetchOptions, aURI) {
+                         nsIURI* aURI)
+    : LoadedScript(ScriptKind::eEvent, aReferrerPolicy, aURI) {
   // EventScripts are not using ScriptLoadRequest, and mBaseURL and mURI are
   // the same thing.
   SetBaseURL(aURI);
@@ -383,19 +365,16 @@ EventScript::EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
 //////////////////////////////////////////////////////////////
 
 ClassicScript::ClassicScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                             ScriptFetchOptions* aFetchOptions, nsIURI* aURI)
-    : LoadedScript(ScriptKind::eClassic, aReferrerPolicy, aFetchOptions, aURI) {
-}
+                             nsIURI* aURI)
+    : LoadedScript(ScriptKind::eClassic, aReferrerPolicy, aURI) {}
 
 //////////////////////////////////////////////////////////////
 // ImportMapScript
 //////////////////////////////////////////////////////////////
 
 ImportMapScript::ImportMapScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                                 ScriptFetchOptions* aFetchOptions,
                                  nsIURI* aURI)
-    : LoadedScript(ScriptKind::eImportMap, aReferrerPolicy, aFetchOptions,
-                   aURI) {}
+    : LoadedScript(ScriptKind::eImportMap, aReferrerPolicy, aURI) {}
 
 //////////////////////////////////////////////////////////////
 // ModuleScript
@@ -422,9 +401,8 @@ NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN_INHERITED(ModuleScript, LoadedScript)
 NS_IMPL_CYCLE_COLLECTION_TRACE_END
 
 ModuleScript::ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                           ScriptFetchOptions* aFetchOptions, nsIURI* aURI,
-                           ScriptFetchInfo* aFetchInfo)
-    : LoadedScript(ScriptKind::eModule, aReferrerPolicy, aFetchOptions, aURI),
+                           nsIURI* aURI, ScriptFetchInfo* aFetchInfo)
+    : LoadedScript(ScriptKind::eModule, aReferrerPolicy, aURI),
       mFetchInfoForUpdatingPreload(aFetchInfo) {
   MOZ_ASSERT(!ModuleRecord());
   MOZ_ASSERT(!HasParseError());
@@ -432,10 +410,8 @@ ModuleScript::ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
 }
 
 ModuleScript::ModuleScript(const LoadedScript& aOther,
-                           ScriptFetchOptions* aFetchOptions,
                            ScriptFetchInfo* aFetchInfo)
-    : LoadedScript(aOther, aFetchOptions),
-      mFetchInfoForUpdatingPreload(aFetchInfo) {
+    : LoadedScript(aOther), mFetchInfoForUpdatingPreload(aFetchInfo) {
   MOZ_ASSERT(!ModuleRecord());
   MOZ_ASSERT(!HasParseError());
   MOZ_ASSERT(!HasErrorToRethrow());
@@ -443,13 +419,11 @@ ModuleScript::ModuleScript(const LoadedScript& aOther,
 
 /* static */
 already_AddRefed<ModuleScript> ModuleScript::FromCache(
-    const LoadedScript& aScript, ScriptFetchOptions* aFetchOptions,
-    ScriptFetchInfo* aFetchInfo) {
+    const LoadedScript& aScript, ScriptFetchInfo* aFetchInfo) {
   MOZ_DIAGNOSTIC_ASSERT(aScript.IsModuleScript());
   MOZ_DIAGNOSTIC_ASSERT(aScript.IsCachedStencil());
 
-  return mozilla::MakeRefPtr<ModuleScript>(aScript, aFetchOptions, aFetchInfo)
-      .forget();
+  return mozilla::MakeRefPtr<ModuleScript>(aScript, aFetchInfo).forget();
 }
 
 already_AddRefed<LoadedScript> ModuleScript::ToCache() {
@@ -457,7 +431,7 @@ already_AddRefed<LoadedScript> ModuleScript::ToCache() {
   MOZ_DIAGNOSTIC_ASSERT(!HasParseError());
   MOZ_DIAGNOSTIC_ASSERT(!HasErrorToRethrow());
 
-  return mozilla::MakeRefPtr<LoadedScript>(*this, GetFetchOptions()).forget();
+  return mozilla::MakeRefPtr<LoadedScript>(*this).forget();
 }
 
 void ModuleScript::Shutdown() {

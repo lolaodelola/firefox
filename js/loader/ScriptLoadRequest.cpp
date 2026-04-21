@@ -170,7 +170,7 @@ void ScriptLoadRequest::CacheEntryFound(LoadedScript* aLoadedScript,
 void ScriptLoadRequest::CacheEntryRevived(LoadedScript* aLoadedScript) {
   MOZ_ASSERT(IsFetching());
 
-  SetCacheEntry(aLoadedScript, mLoadedScript->GetFetchOptions());
+  SetCacheEntry(aLoadedScript, FetchOptions());
 
   // NOTE: The caller should keep using the "fetching" path, with the
   //       cached stencil, and skip the compilation.
@@ -180,18 +180,13 @@ void ScriptLoadRequest::CacheEntryRevived(LoadedScript* aLoadedScript) {
 void ScriptLoadRequest::SetCacheEntry(LoadedScript* aLoadedScript,
                                       ScriptFetchOptions* aFetchOptions) {
   mFetchInfo = new ScriptFetchInfo(mKind, aLoadedScript->ReferrerPolicy(),
-                                   aLoadedScript->GetFetchOptions(),
-                                   aLoadedScript->BaseURL());
+                                   aFetchOptions, aLoadedScript->BaseURL());
 
   switch (mKind) {
     case ScriptKind::eClassic:
       MOZ_ASSERT(aLoadedScript->IsClassicScript());
 
-      if (aLoadedScript->GetFetchOptions()->mNonce != aFetchOptions->mNonce) {
-        mLoadedScript = LoadedScript::FromCache(*aLoadedScript, aFetchOptions);
-      } else {
-        mLoadedScript = aLoadedScript;
-      }
+      mLoadedScript = aLoadedScript;
 
       // Classic scripts can be set ready once the script itself is ready.
       mState = State::Ready;
@@ -199,11 +194,7 @@ void ScriptLoadRequest::SetCacheEntry(LoadedScript* aLoadedScript,
     case ScriptKind::eImportMap:
       MOZ_ASSERT(aLoadedScript->IsImportMapScript());
 
-      if (aLoadedScript->GetFetchOptions()->mNonce != aFetchOptions->mNonce) {
-        mLoadedScript = LoadedScript::FromCache(*aLoadedScript, aFetchOptions);
-      } else {
-        mLoadedScript = aLoadedScript;
-      }
+      mLoadedScript = aLoadedScript;
 
       mState = State::Ready;
       break;
@@ -212,8 +203,7 @@ void ScriptLoadRequest::SetCacheEntry(LoadedScript* aLoadedScript,
       //       instance, given ModuleScript has GC pointers.
       MOZ_ASSERT(aLoadedScript->IsModuleScript());
 
-      mLoadedScript =
-          ModuleScript::FromCache(*aLoadedScript, aFetchOptions, mFetchInfo);
+      mLoadedScript = ModuleScript::FromCache(*aLoadedScript, mFetchInfo);
 
       // Modules need to wait for fetching dependencies before setting to
       // Ready.
@@ -239,14 +229,13 @@ void ScriptLoadRequest::NoCacheEntryFound(
   // provide.
   switch (mKind) {
     case ScriptKind::eClassic:
-      mLoadedScript = new ClassicScript(aReferrerPolicy, aFetchOptions, aURI);
+      mLoadedScript = new ClassicScript(aReferrerPolicy, aURI);
       break;
     case ScriptKind::eImportMap:
-      mLoadedScript = new ImportMapScript(aReferrerPolicy, aFetchOptions, aURI);
+      mLoadedScript = new ImportMapScript(aReferrerPolicy, aURI);
       break;
     case ScriptKind::eModule:
-      mLoadedScript =
-          new ModuleScript(aReferrerPolicy, aFetchOptions, aURI, mFetchInfo);
+      mLoadedScript = new ModuleScript(aReferrerPolicy, aURI, mFetchInfo);
       break;
     case ScriptKind::eEvent:
       MOZ_ASSERT_UNREACHABLE("EventScripts are not using ScriptLoadRequest");

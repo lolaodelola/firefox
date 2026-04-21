@@ -241,7 +241,7 @@ ScriptLoadData::ScriptLoadData(ScriptLoader* aLoader,
     : mExpirationTime(aRequest->ExpirationTime()),
       mLoader(aLoader),
       mKey(aLoader, aRequest, aLoadedScript->ReferrerPolicy(),
-           aLoadedScript->GetFetchOptions(), aLoadedScript->GetURI()),
+           aRequest->FetchOptions(), aLoadedScript->GetURI()),
       mLoadedScript(aLoadedScript),
       mNetworkMetadata(aRequest->mNetworkMetadata) {}
 

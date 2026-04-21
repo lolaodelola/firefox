@@ -136,9 +136,9 @@ class ScriptFetchInfo : public nsISupports {
 class LoadedScript : public nsIMemoryReporter {
  protected:
   LoadedScript(ScriptKind aKind, mozilla::dom::ReferrerPolicy aReferrerPolicy,
-               ScriptFetchOptions* aFetchOptions, nsIURI* aURI);
+               nsIURI* aURI);
 
-  LoadedScript(const LoadedScript& aOther, ScriptFetchOptions* aFetchOptions);
+  LoadedScript(const LoadedScript& aOther);
 
   template <typename T, typename... Args>
   friend RefPtr<T> mozilla::MakeRefPtr(Args&&... aArgs);
@@ -159,10 +159,6 @@ class LoadedScript : public nsIMemoryReporter {
   NS_DECL_NSIMEMORYREPORTER;
   NS_DECL_CYCLE_COLLECTION_CLASS(LoadedScript)
 
-  // Create a new instance from a cache, with a different aFetchOptions.
-  static already_AddRefed<LoadedScript> FromCache(
-      const LoadedScript& aScript, ScriptFetchOptions* aFetchOptions);
-
   uint16_t ClampedRefCountForTelemetry() const {
     uintptr_t count = mRefCnt.get();
     if (count > 100) {
@@ -178,9 +174,6 @@ class LoadedScript : public nsIMemoryReporter {
 
   inline ClassicScript* AsClassicScript();
   inline ModuleScript* AsModuleScript();
-
-  // Used to propagate Fetch Options to child modules
-  ScriptFetchOptions* GetFetchOptions() const { return mFetchOptions; }
 
   mozilla::dom::ReferrerPolicy ReferrerPolicy() const {
     return mReferrerPolicy;
@@ -538,7 +531,6 @@ class LoadedScript : public nsIMemoryReporter {
   // Set to true if this entry is ever used in the current process.
   uint64_t mIsEverHitFromMemoryCache : 1;
 
-  RefPtr<ScriptFetchOptions> mFetchOptions;
   nsCOMPtr<nsIURI> mURI;
 
   // The base URL used for resolving relative module imports.
@@ -600,10 +592,6 @@ class LoadedScriptDelegate {
   template <typename Unit>
   using ScriptTextBuffer = LoadedScript::ScriptTextBuffer<Unit>;
   using MaybeSourceText = LoadedScript::MaybeSourceText;
-
-  ScriptFetchOptions* FetchOptions() const {
-    return GetLoadedScript()->GetFetchOptions();
-  }
 
   nsIURI* URI() const { return GetLoadedScript()->GetURI(); }
 
@@ -708,8 +696,7 @@ class ClassicScript final : public LoadedScript {
 
  private:
   // Scripts can be created only by ScriptLoadRequest::NoCacheEntryFound.
-  ClassicScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                ScriptFetchOptions* aFetchOptions, nsIURI* aURI);
+  ClassicScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI);
 
   friend class ScriptLoadRequest;
 };
@@ -718,16 +705,14 @@ class EventScript final : public LoadedScript {
   ~EventScript() = default;
 
  public:
-  EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-              ScriptFetchOptions* aFetchOptions, nsIURI* aURI);
+  EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI);
 };
 
 class ImportMapScript final : public LoadedScript {
   ~ImportMapScript() = default;
 
  public:
-  ImportMapScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                  ScriptFetchOptions* aFetchOptions, nsIURI* aURI);
+  ImportMapScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI);
 };
 
 // A single module script. May be used to satisfy multiple load requests.
@@ -757,12 +742,10 @@ class ModuleScript final : public LoadedScript {
 
  private:
   // Scripts can be created only by ScriptLoadRequest::NoCacheEntryFound.
-  ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-               ScriptFetchOptions* aFetchOptions, nsIURI* aURI,
+  ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI,
                ScriptFetchInfo* aFetchInfo);
 
-  ModuleScript(const LoadedScript& other, ScriptFetchOptions* aFetchOptions,
-               ScriptFetchInfo* aFetchInfo);
+  ModuleScript(const LoadedScript& other, ScriptFetchInfo* aFetchInfo);
 
   template <typename T, typename... Args>
   friend RefPtr<T> mozilla::MakeRefPtr(Args&&... aArgs);
@@ -772,9 +755,8 @@ class ModuleScript final : public LoadedScript {
  public:
   // Convert between cacheable LoadedScript instance, which is used by
   // mozilla::dom::SharedScriptCache.
-  static already_AddRefed<ModuleScript> FromCache(
-      const LoadedScript& aScript, ScriptFetchOptions* aFetchOptions,
-      ScriptFetchInfo* aFetchInfo);
+  static already_AddRefed<ModuleScript> FromCache(const LoadedScript& aScript,
+                                                  ScriptFetchInfo* aFetchInfo);
   already_AddRefed<LoadedScript> ToCache();
 
   void SetModuleRecord(Handle<JSObject*> aModuleRecord);
