@@ -35,6 +35,18 @@ Configuration
 To enable clippy on new directory, add the path to the include
 section in the `clippy.yml <https://searchfox.org/mozilla-central/source/tools/lint/clippy.yml>`_ file.
 
+To enable additional clippy rules beyond the defaults, add them to the
+``warn`` or ``deny`` lists in `clippy.yml <https://searchfox.org/mozilla-central/source/tools/lint/clippy.yml>`_:
+
+.. code-block:: yaml
+
+    warn:
+        - needless_return
+    deny:
+        - some_critical_lint
+
+The full list of available lints is at https://rust-lang.github.io/rust-clippy/master/.
+
 
 Sources
 -------
