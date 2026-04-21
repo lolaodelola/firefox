@@ -3192,11 +3192,12 @@ void ContentChild::ShutdownInternal() {
           "*Profile from pid %u bigger (%zu) than IPC max (%zu)",
           unsigned(profiler_current_process_id().ToNumber()), len,
           size_t(IPC::Channel::kMaximumMessageSize));
+      shutdownProfileAndAdditionalInformation.mAdditionalInformation.reset();
     }
     // Send the shutdown profile to the parent process through our own
     // message channel, which we know will survive for long enough.
     bool sent =
-        SendShutdownProfile(shutdownProfileAndAdditionalInformation.mProfile);
+        SendShutdownProfile(std::move(shutdownProfileAndAdditionalInformation));
     CrashReporter::RecordAnnotationCString(
         CrashReporter::Annotation::ProfilerChildShutdownPhase,
         sent ? (isProfiling ? "Profiling - SendShutdownProfile (sent)"

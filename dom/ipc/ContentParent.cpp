@@ -5644,8 +5644,9 @@ mozilla::ipc::IPCResult ContentParent::RecvCreateWindowInDifferentProcess(
 }
 
 mozilla::ipc::IPCResult ContentParent::RecvShutdownProfile(
-    const nsACString& aProfile) {
-  profiler_received_exit_profile(aProfile);
+    mozilla::ProfileAndAdditionalInformation&&
+        aProfileAndAdditionalInformation) {
+  profiler_received_exit_profile(std::move(aProfileAndAdditionalInformation));
   return IPC_OK();
 }
 

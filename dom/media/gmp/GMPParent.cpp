@@ -667,16 +667,19 @@ void GMPParent::DeleteProcess() {
       // it is easy to miss the recordings during profiling.
       SendShutdown()->Then(
           gmpEventTarget, __func__,
-          [self](nsCString&& aProfile) {
+          [self](ProfileAndAdditionalInformation&& aProfileAndAdditionalInfo) {
             GMP_LOG_DEBUG(
                 "GMPParent[%p|childPid=%d] DeleteProcess: Shutdown handshake "
                 "success, profileLen=%zu.",
-                self.get(), self->mChildPid, aProfile.Length());
-            if (!aProfile.IsEmpty()) {
+                self.get(), self->mChildPid,
+                aProfileAndAdditionalInfo.mProfile.Length());
+            if (!aProfileAndAdditionalInfo.mProfile.IsEmpty()) {
               NS_DispatchToMainThread(NS_NewRunnableFunction(
                   "GMPParent::DeleteProcess",
-                  [profile = std::move(aProfile)]() {
-                    profiler_received_exit_profile(profile);
+                  [profileAndAdditionalInfo =
+                       std::move(aProfileAndAdditionalInfo)]() mutable {
+                    profiler_received_exit_profile(
+                        std::move(profileAndAdditionalInfo));
                   }));
             }
             self->mState = GMPState::Closed;

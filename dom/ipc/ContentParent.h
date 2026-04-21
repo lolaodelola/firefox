@@ -8,6 +8,7 @@
 #include "DriverCrashGuard.h"
 #include "MainThreadUtils.h"
 #include "PermissionMessageUtils.h"
+#include "ProfileAdditionalInformation.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/DataMutex.h"
 #include "mozilla/HalTypes.h"
@@ -1123,7 +1124,9 @@ class ContentParent final : public PContentParent,
   bool DeallocPWebrtcGlobalParent(PWebrtcGlobalParent* aActor);
 #endif
 
-  mozilla::ipc::IPCResult RecvShutdownProfile(const nsACString& aProfile);
+  mozilla::ipc::IPCResult RecvShutdownProfile(
+      mozilla::ProfileAndAdditionalInformation&&
+          aProfileAndAdditionalInformation);
 
   mozilla::ipc::IPCResult RecvShutdownPerfStats(const nsACString& aPerfStats);
 

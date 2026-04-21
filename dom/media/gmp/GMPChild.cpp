@@ -730,7 +730,7 @@ mozilla::ipc::IPCResult GMPChild::RecvPreferenceUpdate(const Pref& aPref) {
 
 mozilla::ipc::IPCResult GMPChild::RecvShutdown(ShutdownResolver&& aResolver) {
   if (!mProfilerController) {
-    aResolver(""_ns);
+    aResolver(ProfileAndAdditionalInformation{});
     return IPC_OK();
   }
 
@@ -756,10 +756,11 @@ mozilla::ipc::IPCResult GMPChild::RecvShutdown(ShutdownResolver&& aResolver) {
         nsPrintfCString("*Profile from pid %u bigger (%zu) than IPC max (%zu)",
                         unsigned(profiler_current_process_id().ToNumber()), len,
                         size_t(IPC::Channel::kMaximumMessageSize));
+    shutdownProfileAndAdditionalInformation.mAdditionalInformation.reset();
   }
   // Send the shutdown profile to the parent process through our own
   // message channel, which we know will survive for long enough.
-  aResolver(shutdownProfileAndAdditionalInformation.mProfile);
+  aResolver(std::move(shutdownProfileAndAdditionalInformation));
   CrashReporter::RecordAnnotationCString(
       CrashReporter::Annotation::ProfilerChildShutdownPhase,
       isProfiling ? "Profiling - SendShutdownProfile (resolved)"

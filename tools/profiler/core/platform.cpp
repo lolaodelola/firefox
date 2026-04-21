@@ -1815,25 +1815,30 @@ class ActivePS {
     return std::move(sInstance->mBaseProfileThreads);
   }
 
-  static void AddExitProfile(PSLockRef aLock, const nsACString& aExitProfile) {
+  static void AddExitProfile(
+      PSLockRef aLock,
+      ProfileAndAdditionalInformation&& aExitProfileAndAdditionalInfo) {
     MOZ_ASSERT(sInstance);
 
     ClearExpiredExitProfiles(aLock);
 
-    MOZ_RELEASE_ASSERT(sInstance->mExitProfiles.append(ExitProfile{
-        nsCString(aExitProfile), sInstance->mProfileBuffer.BufferRangeEnd()}));
+    MOZ_RELEASE_ASSERT(sInstance->mExitProfiles.append(
+        ExitProfile{std::move(aExitProfileAndAdditionalInfo),
+                    sInstance->mProfileBuffer.BufferRangeEnd()}));
   }
 
-  static Vector<nsCString> MoveExitProfiles(PSLockRef aLock) {
+  static Vector<ProfileAndAdditionalInformation> MoveExitProfiles(
+      PSLockRef aLock) {
     MOZ_ASSERT(sInstance);
 
     ClearExpiredExitProfiles(aLock);
 
-    Vector<nsCString> profiles;
+    Vector<ProfileAndAdditionalInformation> profiles;
     MOZ_RELEASE_ASSERT(
         profiles.initCapacity(sInstance->mExitProfiles.length()));
     for (auto& profile : sInstance->mExitProfiles) {
-      MOZ_RELEASE_ASSERT(profiles.append(std::move(profile.mJSON)));
+      MOZ_RELEASE_ASSERT(
+          profiles.append(std::move(profile.mProfileAndAdditionalInformation)));
     }
     sInstance->mExitProfiles.clear();
     return profiles;
@@ -1948,7 +1953,7 @@ class ActivePS {
   ProfileBufferBlockIndex mGeckoIndexWhenBaseProfileAdded;
 
   struct ExitProfile {
-    nsCString mJSON;
+    ProfileAndAdditionalInformation mProfileAndAdditionalInformation;
     uint64_t mBufferPositionAtGatherTime;
   };
   Vector<ExitProfile> mExitProfiles;
@@ -6532,20 +6537,21 @@ void GetProfilerEnvVarsForChildProcess(
 
 }  // namespace mozilla
 
-void profiler_received_exit_profile(const nsACString& aExitProfile) {
+void profiler_received_exit_profile(
+    ProfileAndAdditionalInformation&& aExitProfileAndAdditionalInfo) {
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
   MOZ_RELEASE_ASSERT(CorePS::Exists());
   PSAutoLock lock;
   if (!ActivePS::Exists(lock)) {
     return;
   }
-  ActivePS::AddExitProfile(lock, aExitProfile);
+  ActivePS::AddExitProfile(lock, std::move(aExitProfileAndAdditionalInfo));
 }
 
-Vector<nsCString> profiler_move_exit_profiles() {
+Vector<ProfileAndAdditionalInformation> profiler_move_exit_profiles() {
   MOZ_RELEASE_ASSERT(CorePS::Exists());
   PSAutoLock lock;
-  Vector<nsCString> profiles;
+  Vector<ProfileAndAdditionalInformation> profiles;
   if (ActivePS::Exists(lock)) {
     profiles = ActivePS::MoveExitProfiles(lock);
   }
@@ -6583,10 +6589,11 @@ static void locked_profiler_save_profile_to_file(
           aIsShuttingDown, nullptr, ProgressLogger{});
 
       w.StartArrayProperty("processes");
-      Vector<nsCString> exitProfiles = ActivePS::MoveExitProfiles(aLock);
+      Vector<ProfileAndAdditionalInformation> exitProfiles =
+          ActivePS::MoveExitProfiles(aLock);
       for (auto& exitProfile : exitProfiles) {
-        if (!exitProfile.IsEmpty() && exitProfile[0] != '*') {
-          w.Splice(exitProfile);
+        if (!exitProfile.mProfile.IsEmpty() && exitProfile.mProfile[0] != '*') {
+          w.Splice(exitProfile.mProfile);
         }
       }
       w.EndArray();
