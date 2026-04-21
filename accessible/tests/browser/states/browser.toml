@@ -13,6 +13,9 @@ prefs = [
 
 ["browser_test_APZ.js"]
 
+["browser_test_dialog_modal.js"]
+https_first_disabled = true
+
 ["browser_test_link.js"]
 https_first_disabled = true
 

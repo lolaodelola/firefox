@@ -369,6 +369,10 @@ uint64_t LocalAccessible::NativeState() const {
       state |= states::REQUIRED;
     }
 
+    if (elementState.HasState(dom::ElementState::MODAL)) {
+      state |= states::MODAL;
+    }
+
     state |= NativeInteractiveState();
   }
 

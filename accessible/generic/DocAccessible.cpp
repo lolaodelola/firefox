@@ -1155,6 +1155,13 @@ void DocAccessible::ElementStateChanged(dom::Document* aDocument,
     FireDelayedEvent(event);
   }
 
+  if (aStateMask.HasState(dom::ElementState::MODAL)) {
+    const bool isModal = aElement->State().HasState(dom::ElementState::MODAL);
+    RefPtr<AccEvent> event =
+        new AccStateChangeEvent(accessible, states::MODAL, isModal);
+    FireDelayedEvent(event);
+  }
+
   if (aStateMask.HasState(dom::ElementState::VISITED)) {
     RefPtr<AccEvent> event =
         new AccStateChangeEvent(accessible, states::TRAVERSED, true);
