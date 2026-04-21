@@ -180,8 +180,8 @@ void ScriptLoadRequest::CacheEntryRevived(LoadedScript* aLoadedScript) {
 void ScriptLoadRequest::SetCacheEntry(LoadedScript* aLoadedScript,
                                       ScriptFetchOptions* aFetchOptions) {
   mFetchInfo =
-      new ScriptFetchInfo(mKind, aLoadedScript->ReferrerPolicy(), aFetchOptions,
-                          aLoadedScript->CachedBaseURL());
+      new ScriptFetchInfo(mKind, aLoadedScript->CachedReferrerPolicy(),
+                          aFetchOptions, aLoadedScript->CachedBaseURL());
 
   switch (mKind) {
     case ScriptKind::eClassic:
@@ -230,13 +230,13 @@ void ScriptLoadRequest::NoCacheEntryFound(
   // provide.
   switch (mKind) {
     case ScriptKind::eClassic:
-      mLoadedScript = new ClassicScript(aReferrerPolicy, aURI);
+      mLoadedScript = new ClassicScript(aURI);
       break;
     case ScriptKind::eImportMap:
-      mLoadedScript = new ImportMapScript(aReferrerPolicy, aURI);
+      mLoadedScript = new ImportMapScript(aURI);
       break;
     case ScriptKind::eModule:
-      mLoadedScript = new ModuleScript(aReferrerPolicy, aURI, mFetchInfo);
+      mLoadedScript = new ModuleScript(aURI, mFetchInfo);
       break;
     case ScriptKind::eEvent:
       MOZ_ASSERT_UNREACHABLE("EventScripts are not using ScriptLoadRequest");

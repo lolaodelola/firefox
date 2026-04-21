@@ -143,12 +143,9 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 NS_IMPL_CYCLE_COLLECTING_ADDREF(LoadedScript)
 NS_IMPL_CYCLE_COLLECTING_RELEASE(LoadedScript)
 
-LoadedScript::LoadedScript(ScriptKind aKind,
-                           mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                           nsIURI* aURI)
+LoadedScript::LoadedScript(ScriptKind aKind, nsIURI* aURI)
     : mDataType(DataType::eUnknown),
       mKind(aKind),
-      mReferrerPolicy(aReferrerPolicy),
       mSerializedStencilOffset(0),
       mCacheEntryId(InvalidCacheEntryId),
       mIsDirty(false),
@@ -162,7 +159,6 @@ LoadedScript::LoadedScript(ScriptKind aKind,
 LoadedScript::LoadedScript(const LoadedScript& aOther)
     : mDataType(DataType::eCachedStencil),
       mKind(aOther.mKind),
-      mReferrerPolicy(aOther.mReferrerPolicy),
       mSerializedStencilOffset(0),
       mCacheEntryId(aOther.mCacheEntryId),
       mIsDirty(aOther.mIsDirty),
@@ -337,25 +333,22 @@ bool LoadedScript::IsSRIMetadataReusableBy(
 // EventScript
 //////////////////////////////////////////////////////////////
 
-EventScript::EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                         nsIURI* aURI)
-    : LoadedScript(ScriptKind::eEvent, aReferrerPolicy, aURI) {}
+EventScript::EventScript(nsIURI* aURI)
+    : LoadedScript(ScriptKind::eEvent, aURI) {}
 
 //////////////////////////////////////////////////////////////
 // ClassicScript
 //////////////////////////////////////////////////////////////
 
-ClassicScript::ClassicScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                             nsIURI* aURI)
-    : LoadedScript(ScriptKind::eClassic, aReferrerPolicy, aURI) {}
+ClassicScript::ClassicScript(nsIURI* aURI)
+    : LoadedScript(ScriptKind::eClassic, aURI) {}
 
 //////////////////////////////////////////////////////////////
 // ImportMapScript
 //////////////////////////////////////////////////////////////
 
-ImportMapScript::ImportMapScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                                 nsIURI* aURI)
-    : LoadedScript(ScriptKind::eImportMap, aReferrerPolicy, aURI) {}
+ImportMapScript::ImportMapScript(nsIURI* aURI)
+    : LoadedScript(ScriptKind::eImportMap, aURI) {}
 
 //////////////////////////////////////////////////////////////
 // ModuleScript
@@ -381,9 +374,8 @@ NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN_INHERITED(ModuleScript, LoadedScript)
   NS_IMPL_CYCLE_COLLECTION_TRACE_JS_MEMBER_CALLBACK(mErrorToRethrow)
 NS_IMPL_CYCLE_COLLECTION_TRACE_END
 
-ModuleScript::ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy,
-                           nsIURI* aURI, ScriptFetchInfo* aFetchInfo)
-    : LoadedScript(ScriptKind::eModule, aReferrerPolicy, aURI),
+ModuleScript::ModuleScript(nsIURI* aURI, ScriptFetchInfo* aFetchInfo)
+    : LoadedScript(ScriptKind::eModule, aURI),
       mFetchInfoForUpdatingPreload(aFetchInfo) {
   MOZ_ASSERT(!ModuleRecord());
   MOZ_ASSERT(!HasParseError());

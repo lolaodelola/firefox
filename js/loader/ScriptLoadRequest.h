@@ -153,7 +153,7 @@ class ScriptLoadRequest : public nsISupports,
   }
 
   mozilla::dom::ReferrerPolicy ReferrerPolicy() const {
-    return getLoadedScript()->ReferrerPolicy();
+    return FetchInfo()->ReferrerPolicy();
   }
 
   nsIURI* BaseURL() const { return FetchInfo()->BaseURL(); }

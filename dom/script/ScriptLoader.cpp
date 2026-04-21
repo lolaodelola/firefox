@@ -1145,9 +1145,9 @@ void ScriptLoader::NotifyObserversForCachedScript(
     return;
   }
 
-  ScriptHashKey key(
-      this, aRequest, aRequest->getLoadedScript()->ReferrerPolicy(),
-      aRequest->FetchOptions(), aRequest->getLoadedScript()->GetURI());
+  ScriptHashKey key(this, aRequest, aRequest->ReferrerPolicy(),
+                    aRequest->FetchOptions(),
+                    aRequest->getLoadedScript()->GetURI());
   nsAutoCString keyStr;
   key.ToStringForLookup(keyStr);
 
@@ -1275,7 +1275,8 @@ void ScriptLoader::TryUseCache(ReferrerPolicy aReferrerPolicy,
 
   aRequest->mNetworkMetadata = cacheResult.mNetworkMetadata;
 
-  MOZ_ASSERT(cacheResult.mCompleteValue->ReferrerPolicy() == aReferrerPolicy);
+  MOZ_ASSERT(cacheResult.mCompleteValue->CachedReferrerPolicy() ==
+             aReferrerPolicy);
 
   mMemoryCacheUsed++;
   if (!cacheResult.mCompleteValue->IsEverHitFromMemoryCache()) {
@@ -3462,9 +3463,9 @@ ScriptLoader::CacheBehavior ScriptLoader::GetCacheBehavior(
     return CacheBehavior::Insert;
   }
 
-  ScriptHashKey key(
-      this, aRequest, aRequest->getLoadedScript()->ReferrerPolicy(),
-      aRequest->FetchOptions(), aRequest->getLoadedScript()->GetURI());
+  ScriptHashKey key(this, aRequest, aRequest->ReferrerPolicy(),
+                    aRequest->FetchOptions(),
+                    aRequest->getLoadedScript()->GetURI());
   auto cacheResult = mCache->Lookup(*this, key,
                                     /* aSyncLoad = */ true);
   if (cacheResult.mState == CachedSubResourceState::Complete) {
@@ -3516,7 +3517,8 @@ void ScriptLoader::TryCacheRequest(ScriptLoadRequest* aRequest) {
   if (cacheBehavior == CacheBehavior::Insert) {
     loadedScript->SetSRIMetadata(aRequest->mIntegrity);
     auto loadData = MakeRefPtr<ScriptLoadData>(this, aRequest, loadedScript);
-    loadedScript->ConvertToCachedStencil(aRequest->BaseURL());
+    loadedScript->ConvertToCachedStencil(aRequest->ReferrerPolicy(),
+                                         aRequest->BaseURL());
     if (loadedScript->mFetchCount == 0) {
       loadedScript->mFetchCount = 1;
     }
@@ -3527,7 +3529,7 @@ void ScriptLoader::TryCacheRequest(ScriptLoadRequest* aRequest) {
     TRACE_FOR_TEST(aRequest, "memorycache:saved");
   } else {
     MOZ_ASSERT(cacheBehavior == CacheBehavior::Evict);
-    ScriptHashKey key(this, aRequest, loadedScript->ReferrerPolicy(),
+    ScriptHashKey key(this, aRequest, aRequest->ReferrerPolicy(),
                       aRequest->FetchOptions(), loadedScript->GetURI());
     mCache->Evict(key);
     LOG(("ScriptLoader (%p): Evicting in-memory cache for %s.", this,

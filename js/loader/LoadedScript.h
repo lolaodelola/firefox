@@ -135,8 +135,7 @@ class ScriptFetchInfo : public nsISupports {
 // properly.
 class LoadedScript : public nsIMemoryReporter {
  protected:
-  LoadedScript(ScriptKind aKind, mozilla::dom::ReferrerPolicy aReferrerPolicy,
-               nsIURI* aURI);
+  LoadedScript(ScriptKind aKind, nsIURI* aURI);
 
   LoadedScript(const LoadedScript& aOther);
 
@@ -175,13 +174,12 @@ class LoadedScript : public nsIMemoryReporter {
   inline ClassicScript* AsClassicScript();
   inline ModuleScript* AsModuleScript();
 
-  mozilla::dom::ReferrerPolicy ReferrerPolicy() const {
-    return mReferrerPolicy;
-  }
-
   nsIURI* GetURI() const { return mURI; }
 
   nsIURI* CachedBaseURL() const { return mCachedBaseURL; }
+  mozilla::dom::ReferrerPolicy CachedReferrerPolicy() const {
+    return mCachedReferrerPolicy;
+  }
 
  public:
   // ===========================================================================
@@ -259,10 +257,12 @@ class LoadedScript : public nsIMemoryReporter {
     mDataType = DataType::eSerializedStencil;
   }
 
-  void ConvertToCachedStencil(nsIURI* aBaseURL) {
+  void ConvertToCachedStencil(mozilla::dom::ReferrerPolicy aReferrerPolicy,
+                              nsIURI* aBaseURL) {
     MOZ_ASSERT(HasStencil());
     SetUnknownDataType();
     mDataType = DataType::eCachedStencil;
+    mCachedReferrerPolicy = aReferrerPolicy;
     mCachedBaseURL = aBaseURL;
   }
 
@@ -475,10 +475,12 @@ class LoadedScript : public nsIMemoryReporter {
  private:
   const ScriptKind mKind;
 
- protected:
-  // The referrer policy used for the initial fetch and for fetching any
-  // imported modules
-  mozilla::dom::ReferrerPolicy mReferrerPolicy;
+  // The final ScriptFetchInfo::mReferrerPolicy value o the
+  // initial request.
+  // This field is set before this LoadedScript is stored into the
+  // SharedScriptCache, and then propagated to the ScriptFetchInfo
+  // for the request that uses this cache.
+  mozilla::dom::ReferrerPolicy mCachedReferrerPolicy;
 
  public:
   // Offset of the serialized Stencil in mSRIAndSerializedStencil.
@@ -694,7 +696,7 @@ class ClassicScript final : public LoadedScript {
 
  private:
   // Scripts can be created only by ScriptLoadRequest::NoCacheEntryFound.
-  ClassicScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI);
+  explicit ClassicScript(nsIURI* aURI);
 
   friend class ScriptLoadRequest;
 };
@@ -703,14 +705,14 @@ class EventScript final : public LoadedScript {
   ~EventScript() = default;
 
  public:
-  EventScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI);
+  explicit EventScript(nsIURI* aURI);
 };
 
 class ImportMapScript final : public LoadedScript {
   ~ImportMapScript() = default;
 
  public:
-  ImportMapScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI);
+  explicit ImportMapScript(nsIURI* aURI);
 };
 
 // A single module script. May be used to satisfy multiple load requests.
@@ -740,8 +742,7 @@ class ModuleScript final : public LoadedScript {
 
  private:
   // Scripts can be created only by ScriptLoadRequest::NoCacheEntryFound.
-  ModuleScript(mozilla::dom::ReferrerPolicy aReferrerPolicy, nsIURI* aURI,
-               ScriptFetchInfo* aFetchInfo);
+  ModuleScript(nsIURI* aURI, ScriptFetchInfo* aFetchInfo);
 
   ModuleScript(const LoadedScript& other, ScriptFetchInfo* aFetchInfo);
 
@@ -778,10 +779,6 @@ class ModuleScript final : public LoadedScript {
   void Shutdown();
 
   friend void CheckModuleScriptPrivate(LoadedScript*, const Value&);
-
-  void UpdateReferrerPolicy(mozilla::dom::ReferrerPolicy aReferrerPolicy) {
-    mReferrerPolicy = aReferrerPolicy;
-  }
 
   bool HasPreloadedResolvedSet() { return !!mPreloadedResolvedSet; }
   ResolvedModuleSet* GetPreloadedResolvedSet();
