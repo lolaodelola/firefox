@@ -123,43 +123,30 @@ The sub-command {subcommand} is not currently configured to be used with ./mach 
 To do so, add the corresponding file in <mozilla-root-dir>/build/cargo, following other examples in this directory"""
 
 
+import msgspec
+
+
+class CargoConfigSchema(msgspec.Struct, kw_only=True, forbid_unknown_fields=True):
+    # The name of the command (not checked for now, but maybe later)
+    command: str
+    # Whether `make` should stop immediately in case of error returned by the command.
+    continue_on_error: bool
+    # Whether this command requires pre_export and export build targets to have run.
+    requires_export: bool
+    # Build flags to use. If not defined, flags are generated automatically.
+    # Available substitutions: {arch}, {crate}, {directory}, {features},
+    # {manifest}, {target}, {topsrcdir}
+    cargo_build_flags: list[str]
+    # Extra build flags appended after cargo_build_flags.
+    cargo_extra_flags: list[str]
+
+    def __post_init__(self):
+        if not self.command.startswith("cargo-"):
+            raise ValueError(f"command must start with 'cargo-', got {self.command!r}")
+
+
 def _cargo_config_yaml_schema():
-    from voluptuous import All, Boolean, Required, Schema
-
-    def starts_with_cargo(s):
-        if s.startswith("cargo-"):
-            return s
-        else:
-            raise ValueError
-
-    return Schema({
-        # The name of the command (not checked for now, but maybe
-        #  later)
-        Required("command"): All(str, starts_with_cargo),
-        # Whether `make` should stop immediately in case
-        # of error returned by the command. Default: False
-        "continue_on_error": Boolean,
-        # Whether this command requires pre_export and export build
-        # targets to have run. Defaults to bool(cargo_build_flags).
-        "requires_export": Boolean,
-        # Build flags to use.  If this variable is not
-        # defined here, the build flags are generated automatically and are
-        # the same as for `cargo build`. See available substitutions at the
-        # end.
-        "cargo_build_flags": [str],
-        # Extra build flags to use. These flags are added
-        # after the cargo_build_flags both when they are provided or
-        # automatically generated. See available substitutions at the end.
-        "cargo_extra_flags": [str],
-        # Available substitutions for `cargo_*_flags`:
-        # * {arch}: architecture target
-        # * {crate}: current crate name
-        # * {directory}: Directory of the current crate within the source tree
-        # * {features}: Rust features (for `--features`)
-        # * {manifest}: full path of `Cargo.toml` file
-        # * {target}: `--lib` for library, `--bin CRATE` for executables
-        # * {topsrcdir}: Top directory of sources
-    })
+    return CargoConfigSchema
 
 
 @Command(
@@ -232,7 +219,7 @@ def cargo(
         with open(cargo_command_fullname) as fh:
             yaml_config = yaml.load(fh, Loader=yaml.FullLoader)
             schema = _cargo_config_yaml_schema()
-            schema(yaml_config)
+            msgspec.convert(yaml_config, schema)
         if not yaml_config:
             yaml_config = {}
     else:
