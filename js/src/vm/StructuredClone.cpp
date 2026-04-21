@@ -4055,8 +4055,8 @@ bool JSStructuredCloneReader::readObjectField(HandleObject obj,
   // corrupt or malicious data.
   if (id.isString() && obj->is<PlainObject>() &&
       MOZ_LIKELY(!obj->as<PlainObject>().contains(context(), id))) {
-    return AddDataPropertyToPlainObject(context(), obj.as<PlainObject>(), id,
-                                        val);
+    return AddDataPropertyToNativeObjectNoHooks(context(),
+                                                obj.as<PlainObject>(), id, val);
   }
 
   // Fast path for adding an array element. The index shouldn't exceed the

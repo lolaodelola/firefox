@@ -2276,13 +2276,13 @@ bool HasNativeElementPure(JSContext* cx, NativeObject* obj, int32_t index,
   return true;
 }
 
-// Fast path for setting/adding a plain object property. This is the common case
-// for megamorphic SetProp/SetElem.
+// Fast path for setting/adding a native object property. This is the common
+// case for megamorphic SetProp/SetElem.
 template <bool UseCache>
-static bool TryAddOrSetPlainObjectProperty(JSContext* cx,
-                                           Handle<PlainObject*> obj,
-                                           PropertyKey key, HandleValue value,
-                                           bool* optimized) {
+static bool TryAddOrSetNativeObjectProperty(JSContext* cx,
+                                            Handle<NativeObject*> obj,
+                                            PropertyKey key, HandleValue value,
+                                            bool* optimized) {
   MOZ_ASSERT(!*optimized);
 
   Shape* receiverShape = obj->shape();
@@ -2351,13 +2351,19 @@ static bool TryAddOrSetPlainObjectProperty(JSContext* cx,
   // properties).
   JSObject* proto = obj->staticPrototype();
   while (proto) {
-    if (!proto->is<PlainObject>()) {
+    if (!proto->is<NativeObject>()) {
       return true;
     }
-    PlainObject* plainProto = &proto->as<PlainObject>();
-    if (plainProto->hasNonWritableOrAccessorPropExclProto()) {
+    NativeObject* nativeProto = &proto->as<NativeObject>();
+    if (nativeProto->is<TypedArrayObject>() ||
+        nativeProto->getClass()->getResolve() ||
+        nativeProto->getClass()->getOpsLookupProperty()) {
+      return true;
+    }
+
+    if (nativeProto->hasNonWritableOrAccessorPropExclProto()) {
       uint32_t index;
-      if (PropMap* map = plainProto->shape()->lookup(cx, key, &index)) {
+      if (PropMap* map = nativeProto->shape()->lookup(cx, key, &index)) {
         PropertyInfo prop = map->getPropertyInfo(index);
         if (!prop.isDataProperty() || !prop.writable()) {
           return true;
@@ -2365,7 +2371,7 @@ static bool TryAddOrSetPlainObjectProperty(JSContext* cx,
         break;
       }
     }
-    proto = plainProto->staticPrototype();
+    proto = nativeProto->staticPrototype();
   }
 
 #ifdef DEBUG
@@ -2387,7 +2393,8 @@ static bool TryAddOrSetPlainObjectProperty(JSContext* cx,
   Rooted<Shape*> receiverShapeRoot(cx, receiverShape);
   uint32_t resultSlot = 0;
   size_t numDynamic = obj->numDynamicSlots();
-  bool res = AddDataPropertyToPlainObject(cx, obj, keyRoot, value, &resultSlot);
+  bool res = AddDataPropertyToNativeObjectNoHooks(cx, obj, keyRoot, value,
+                                                  &resultSlot);
 
   if constexpr (UseCache) {
     if (res && obj->shape()->isShared() &&
@@ -2409,12 +2416,13 @@ static bool TryAddOrSetPlainObjectProperty(JSContext* cx,
 template <bool Cached>
 bool SetElementMegamorphic(JSContext* cx, HandleObject obj, HandleValue index,
                            HandleValue value, bool strict) {
-  if (obj->is<PlainObject>()) {
+  if (obj->is<NativeObject>() &&
+      obj.as<NativeObject>()->canDoSetPropertyFastpath()) {
     PropertyKey key;
     if (ValueToAtomOrSymbolPure(cx, index, &key)) {
       bool optimized = false;
-      if (!TryAddOrSetPlainObjectProperty<Cached>(cx, obj.as<PlainObject>(),
-                                                  key, value, &optimized)) {
+      if (!TryAddOrSetNativeObjectProperty<Cached>(cx, obj.as<NativeObject>(),
+                                                   key, value, &optimized)) {
         return false;
       }
       if (optimized) {
@@ -2436,10 +2444,11 @@ template bool SetElementMegamorphic<true>(JSContext* cx, HandleObject obj,
 template <bool Cached>
 bool SetPropertyMegamorphic(JSContext* cx, HandleObject obj, HandleId id,
                             HandleValue value, bool strict) {
-  if (obj->is<PlainObject>()) {
+  if (obj->is<NativeObject>() &&
+      obj.as<NativeObject>()->canDoSetPropertyFastpath()) {
     bool optimized = false;
-    if (!TryAddOrSetPlainObjectProperty<Cached>(cx, obj.as<PlainObject>(), id,
-                                                value, &optimized)) {
+    if (!TryAddOrSetNativeObjectProperty<Cached>(cx, obj.as<NativeObject>(), id,
+                                                 value, &optimized)) {
       return false;
     }
     if (optimized) {

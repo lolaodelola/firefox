@@ -1019,7 +1019,8 @@ void PlainObjectAssignCache::assertValid() const {
 
     MOZ_ASSERT(!toPlain->containsPure(nextKey));
 
-    if (!AddDataPropertyToPlainObject(cx, toPlain, nextKey, propValue)) {
+    if (!AddDataPropertyToNativeObjectNoHooks(cx, toPlain, nextKey,
+                                              propValue)) {
       return false;
     }
   }

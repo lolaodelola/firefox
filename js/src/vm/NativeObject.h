@@ -750,6 +750,8 @@ class NativeObject : public JSObject {
   void setShapeAndRemoveLastSlot(JSContext* cx, SharedShape* newShape,
                                  uint32_t slot);
 
+  bool canDoSetPropertyFastpath() const;
+
   MOZ_ALWAYS_INLINE CanReuseShape
   canReuseShapeForNewProperties(NativeShape* newShape) const {
     NativeShape* oldShape = shape();
@@ -851,6 +853,10 @@ class NativeObject : public JSObject {
     MOZ_ASSERT(slotInRange(end, SENTINEL_ALLOWED));
     forEachSlotRangeUnchecked(start, end, fun);
   }
+
+#ifdef DEBUG
+  void assertHasNoNonWritableOrAccessorPropExclProto() const;
+#endif
 
  protected:
   friend class DictionaryPropMap;
@@ -996,6 +1002,16 @@ class NativeObject : public JSObject {
 
   bool hasEnumerableProperty() const {
     return hasFlag(ObjectFlag::HasEnumerable);
+  }
+
+  bool hasNonWritableOrAccessorPropExclProto() const {
+    if (hasFlag(ObjectFlag::HasNonWritableOrAccessorPropExclProto)) {
+      return true;
+    }
+#ifdef DEBUG
+    assertHasNoNonWritableOrAccessorPropExclProto();
+#endif
+    return false;
   }
 
   static bool setHadGetterSetterChange(JSContext* cx,

@@ -4328,7 +4328,10 @@ JSObject* StringObject::createPrototype(JSContext* cx, JSProtoKey key) {
   Rooted<StringObject*> proto(
       cx, GlobalObject::createBlankPrototype<StringObject>(
               cx, cx->global(),
-              ObjectFlags({ObjectFlag::NeedsProxyGetSetResultValidation})));
+              ObjectFlags({
+                  ObjectFlag::NeedsProxyGetSetResultValidation,
+                  ObjectFlag::HasNonWritableOrAccessorPropExclProto,
+              })));
   if (!proto) {
     return nullptr;
   }

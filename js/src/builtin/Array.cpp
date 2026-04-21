@@ -5325,8 +5325,12 @@ static SharedShape* GetArrayShapeWithProto(JSContext* cx, HandleObject proto) {
   // Get a shape with zero fixed slots, because arrays store the ObjectElements
   // header inline.
   Rooted<SharedShape*> shape(
-      cx, SharedShape::getInitialShape(cx, &ArrayObject::class_, cx->realm(),
-                                       TaggedProto(proto), /* nfixed = */ 0));
+      cx, SharedShape::getInitialShape(
+              cx, &ArrayObject::class_, cx->realm(), TaggedProto(proto),
+              /* nfixed = */ 0,
+              ObjectFlags({
+                  ObjectFlag::HasNonWritableOrAccessorPropExclProto,
+              })));
   if (!shape) {
     return nullptr;
   }

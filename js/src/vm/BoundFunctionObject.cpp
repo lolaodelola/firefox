@@ -353,7 +353,9 @@ BoundFunctionObject* BoundFunctionObject::functionBindImpl(
         return nullptr;
       }
     } else {
-      bound = NewObjectWithGivenProto<BoundFunctionObject>(cx, proto);
+      bound = NewObjectWithGivenProto<BoundFunctionObject>(
+          cx, proto,
+          ObjectFlags({ObjectFlag::HasNonWritableOrAccessorPropExclProto}));
       if (!bound) {
         return nullptr;
       }
@@ -467,7 +469,10 @@ BoundFunctionObject* BoundFunctionObject::functionBindSpecializedBaseline(
 BoundFunctionObject* BoundFunctionObject::createTemplateObject(JSContext* cx) {
   Rooted<JSObject*> proto(cx, &cx->global()->getFunctionPrototype());
   Rooted<BoundFunctionObject*> bound(
-      cx, NewTenuredObjectWithGivenProto<BoundFunctionObject>(cx, proto));
+      cx,
+      NewTenuredObjectWithGivenProto<BoundFunctionObject>(
+          cx, proto,
+          ObjectFlags({ObjectFlag::HasNonWritableOrAccessorPropExclProto})));
   if (!bound) {
     return nullptr;
   }
