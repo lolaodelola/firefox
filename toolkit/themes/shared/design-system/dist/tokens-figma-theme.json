@@ -684,6 +684,46 @@
     "dark": "{Theme$text/color}",
     "forcedColors": "{Theme$text/color}"
   },
+  "promo/background/color": {
+    "light": "color-mix(in lch, currentColor 8%, transparent)",
+    "dark": "color-mix(in lch, currentColor 8%, transparent)",
+    "forcedColors": "{Theme$background/color/canvas}"
+  },
+  "promo/background/color/vibrant": {
+    "light": "{Colors$color/violet/0}",
+    "dark": "{Colors$color/violet/90}",
+    "forcedColors": "transparent"
+  },
+  "promo/border": {
+    "light": "{Primitives$promo/border/width} solid {Theme$promo/border/color}",
+    "dark": "{Primitives$promo/border/width} solid {Theme$promo/border/color}",
+    "forcedColors": "{Primitives$promo/border/width} solid {Theme$promo/border/color}"
+  },
+  "promo/border/color": {
+    "light": "color-mix(in lch, currentColor 8%, transparent)",
+    "dark": "color-mix(in lch, currentColor 8%, transparent)",
+    "forcedColors": "{Theme$border/color}"
+  },
+  "promo/heading/text/color": {
+    "light": "{Theme$promo/message/text/color}",
+    "dark": "{Theme$promo/message/text/color}",
+    "forcedColors": "{Theme$promo/message/text/color}"
+  },
+  "promo/heading/text/color/vibrant": {
+    "light": "{Theme$promo/message/text/color}",
+    "dark": "{Theme$promo/message/text/color}",
+    "forcedColors": "{Theme$promo/message/text/color}"
+  },
+  "promo/message/text/color": {
+    "light": "{Theme$text/color}",
+    "dark": "{Theme$text/color}",
+    "forcedColors": "{Theme$text/color}"
+  },
+  "promo/message/text/color/vibrant": {
+    "light": "{Colors$color/violet/80}",
+    "dark": "{Colors$color/violet/0}",
+    "forcedColors": "transparent"
+  },
   "toggle/background/color": {
     "light": "{Theme$button/background/color}",
     "dark": "{Theme$button/background/color}",

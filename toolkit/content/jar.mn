@@ -152,6 +152,7 @@ toolkit.jar:
    content/global/elements/moz-message-bar.tokens.css    (widgets/moz-message-bar/moz-message-bar.tokens.css)
    content/global/elements/moz-message-bar.css    (widgets/moz-message-bar/moz-message-bar.css)
    content/global/elements/moz-message-bar.mjs    (widgets/moz-message-bar/moz-message-bar.mjs)
+   content/global/elements/moz-promo.tokens.css    (widgets/moz-promo/moz-promo.tokens.css)
    content/global/elements/moz-promo.css    (widgets/moz-promo/moz-promo.css)
    content/global/elements/moz-promo.mjs    (widgets/moz-promo/moz-promo.mjs)
    content/global/elements/moz-radio-group.mjs    (widgets/moz-radio-group/moz-radio-group.mjs)

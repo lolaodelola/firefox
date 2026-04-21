@@ -283,6 +283,21 @@ export const tokensTable = {
       name: "--message-bar-background-color",
     },
     {
+      value: {
+        default: "color-mix(in lch, currentColor 8%, transparent)",
+        prefersContrast: "var(--background-color-canvas)",
+      },
+      name: "--promo-background-color",
+    },
+    {
+      value: {
+        light: "var(--color-violet-0)",
+        dark: "var(--color-violet-90)",
+        default: "light-dark(var(--color-violet-0), var(--color-violet-90))",
+      },
+      name: "--promo-background-color-vibrant",
+    },
+    {
       value: "var(--button-background-color)",
       name: "--toggle-background-color",
     },
@@ -580,6 +595,14 @@ export const tokensTable = {
       },
       name: "--message-bar-border-color",
     },
+    {
+      value: {
+        default: "color-mix(in lch, currentColor 8%, transparent)",
+        prefersContrast: "var(--border-color)",
+      },
+      name: "--promo-border-color",
+    },
+    { value: "var(--color-violet-30)", name: "--promo-border-color-vibrant" },
     { value: "var(--border-color-interactive)", name: "--toggle-border-color" },
     {
       value: {
@@ -610,6 +633,7 @@ export const tokensTable = {
       value: "var(--border-radius-medium)",
       name: "--message-bar-border-radius",
     },
+    { value: "var(--border-radius-medium)", name: "--promo-border-radius" },
     { value: "var(--border-radius-circle)", name: "--toggle-border-radius" },
     { value: "var(--border-radius-medium)", name: "--box-border-radius" },
     {
@@ -625,6 +649,7 @@ export const tokensTable = {
     { value: "1px", name: "--border-width" },
     { value: "1px", name: "--badge-border-width" },
     { value: "var(--border-width)", name: "--message-bar-border-width" },
+    { value: "var(--border-width)", name: "--promo-border-width" },
     { value: "var(--border-width)", name: "--toggle-border-width" },
     { value: "var(--border-width)", name: "--box-border-width" },
   ],
@@ -1066,6 +1091,11 @@ export const tokensTable = {
       value: "var(--size-item-large)",
       name: "--message-bar-container-min-height",
     },
+    { value: "var(--size-image-xlarge)", name: "--promo-image-size" },
+    {
+      value: "calc(2 * var(--size-image-xlarge))",
+      name: "--promo-image-size-large",
+    },
     { value: "var(--size-item-small)", name: "--toggle-height" },
     { value: "var(--size-item-large)", name: "--toggle-width" },
     {
@@ -1100,6 +1130,7 @@ export const tokensTable = {
     { value: 0, name: "--button-padding-icon" },
     { value: "var(--space-small)", name: "--checkbox-margin-inline" },
     { value: "var(--space-small)", name: "--breadcrumb-gap" },
+    { value: "var(--space-medium)", name: "--promo-padding" },
     { value: "1px", name: "--toggle-dot-margin" },
     { value: "calc(-1 * var(--dimension-2))", name: "--toggle-inset" },
     { value: "var(--space-large)", name: "--box-padding" },
@@ -1399,6 +1430,23 @@ export const tokensTable = {
       name: "--breadcrumb-link-color-visited",
     },
     { value: "var(--text-color)", name: "--message-bar-text-color" },
+    {
+      value: "var(--promo-message-text-color)",
+      name: "--promo-heading-text-color",
+    },
+    {
+      value: "var(--promo-message-text-color)",
+      name: "--promo-heading-text-color-vibrant",
+    },
+    { value: "var(--text-color)", name: "--promo-message-text-color" },
+    {
+      value: {
+        light: "var(--color-violet-80)",
+        dark: "var(--color-violet-0)",
+        default: "light-dark(var(--color-violet-80), var(--color-violet-0))",
+      },
+      name: "--promo-message-text-color-vibrant",
+    },
     { value: "var(--button-text-color-menu)", name: "--box-button-text-color" },
     {
       value: "var(--button-text-color-menu-hover)",
@@ -1417,6 +1465,10 @@ export const tokensTable = {
     {
       value: "var(--border-width) solid var(--button-border-color)",
       name: "--button-border",
+    },
+    {
+      value: "var(--promo-border-width) solid var(--promo-border-color)",
+      name: "--promo-border",
     },
     {
       value: "var(--box-border-width) solid var(--box-border-color)",
@@ -2423,6 +2475,34 @@ export const variableLookupTable = {
   "message-bar-icon-color": "var(--icon-color-information)",
   "message-bar-icon-size": "var(--icon-size)",
   "message-bar-text-color": "var(--text-color)",
+  "promo-background-color": {
+    default: "color-mix(in lch, currentColor 8%, transparent)",
+    prefersContrast: "var(--background-color-canvas)",
+  },
+  "promo-background-color-vibrant": {
+    light: "var(--color-violet-0)",
+    dark: "var(--color-violet-90)",
+    default: "light-dark(var(--color-violet-0), var(--color-violet-90))",
+  },
+  "promo-border": "var(--promo-border-width) solid var(--promo-border-color)",
+  "promo-border-color": {
+    default: "color-mix(in lch, currentColor 8%, transparent)",
+    prefersContrast: "var(--border-color)",
+  },
+  "promo-border-color-vibrant": "var(--color-violet-30)",
+  "promo-border-width": "var(--border-width)",
+  "promo-border-radius": "var(--border-radius-medium)",
+  "promo-heading-text-color": "var(--promo-message-text-color)",
+  "promo-heading-text-color-vibrant": "var(--promo-message-text-color)",
+  "promo-image-size": "var(--size-image-xlarge)",
+  "promo-image-size-large": "calc(2 * var(--size-image-xlarge))",
+  "promo-message-text-color": "var(--text-color)",
+  "promo-message-text-color-vibrant": {
+    light: "var(--color-violet-80)",
+    dark: "var(--color-violet-0)",
+    default: "light-dark(var(--color-violet-80), var(--color-violet-0))",
+  },
+  "promo-padding": "var(--space-medium)",
   "toggle-background-color": "var(--button-background-color)",
   "toggle-background-color-hover": "var(--button-background-color-hover)",
   "toggle-background-color-active": "var(--button-background-color-active)",
