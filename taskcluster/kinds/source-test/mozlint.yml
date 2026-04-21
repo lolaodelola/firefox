@@ -799,6 +799,20 @@ ignorefile-test:
             - '.gitignore'
             - '.hgignore'
 
+agent-skills-sync:
+    description: Keep .claude/skills and .agents/skills in sync
+    platform: lint/opt
+    treeherder:
+        symbol: agent-skills-sync
+    run:
+        mach: lint -v -l agent-skills-sync -f treeherder -f json:/builds/worker/mozlint.json .claude/skills .agents/skills
+    when:
+        files-changed:
+            - '.claude/skills/**'
+            - '.agents/skills/**'
+            - 'tools/lint/agent-skills-sync.yml'
+            - 'tools/lint/agent-skills-sync/**'
+
 
 c-includes:
     description: Remove unused mfbt includes from the codebase
