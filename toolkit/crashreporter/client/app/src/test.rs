@@ -1400,7 +1400,6 @@ fn curl_binary() {
             };
 
             let expected_args: Vec<OsString> = [
-                "--fail-with-body",
                 "--user-agent",
                 net::http::user_agent(),
                 "--form",
@@ -1540,7 +1539,6 @@ fn background_task_curl_fallback() {
                 };
 
                 let expected_args: Vec<OsString> = [
-                    "--fail-with-body",
                     "--user-agent",
                     net::http::user_agent(),
                     "--form",
