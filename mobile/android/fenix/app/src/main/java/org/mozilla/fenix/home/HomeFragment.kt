@@ -1073,6 +1073,16 @@ class HomeFragment : Fragment(), SystemInsetsPaddedFragment {
                             WallpaperBackground(
                                 wallpaper = appState.value.wallpaperState.currentWallpaper,
                                 loadBitmap = components.useCases.wallpaperUseCases.loadBitmap::invoke,
+                                onLoadFailed = {
+                                    requireContext().settings().currentWallpaperTextColor = 0L
+                                    showComposeSnackbar(
+                                        SnackbarState(
+                                            message = resources.getString(
+                                                R.string.wallpaper_select_error_snackbar_message,
+                                            ),
+                                        ),
+                                    )
+                                },
                             )
                         }
 
