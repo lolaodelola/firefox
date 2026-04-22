@@ -1,3 +1,41 @@
+commit 65ee3a6a5a2172ec607841fb5f156e364e5eec3d
+Merge: 7bcb53c527 d0b02a9865
+Author: Ashley Hale <ahale@mozilla.com>
+Date:   Wed Apr 15 07:03:46 2026 -0700
+
+    Merge pull request #30 from teoxoy/cherrypick
+    
+    add a cherry-pick
+
+commit d0b02a9865a90ba7a3c404fa73a0c09b8ee17da0
+Author: Stephen White <senorblanco@chromium.org>
+Date:   Wed Mar 4 15:44:30 2026 -0500
+
+    M146: D3D11: fix overflow in line loop and triangle fan
+    
+    If an index buffer is created of element type less than 32bit (e.g.,
+    GL_UNSIGNED_BYTE) and used in a line loop or triangle fan, D3D11 must
+    widen it to 32-bit. This can cause an overflow if the widened size in
+    bytes is greater than INT_MAX. The fix is to detect the overflow and
+    abort.
+    
+    Bug: chromium:487977696
+    Change-Id: I57b1dcc9b3d968da88282164a5f92386500c6205
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/7637780
+    Reviewed-by: Geoff Lang <geofflang@chromium.org>
+    Commit-Queue: Stephen White <senorblanco@chromium.org>
+    (cherry picked from commit 4b7aace914924f634c4148c41e6fc87198867fa5)
+    Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/7657185
+
+commit 7bcb53c527fb15e27c68173e1793b89b12ab820a
+Merge: 7918168436 b0098a1ebd
+Author: Ashley Hale <ahale@mozilla.com>
+Date:   Fri Apr 10 18:26:42 2026 -0700
+
+    Merge pull request #28 from emilio/translator-cherry-picks
+    
+    Translator cherry picks
+
 commit b0098a1ebdb0400b515ff7a662685bda111e9e87
 Author: Emilio Cobos Álvarez <emilio@crisal.io>
 Date:   Thu Apr 9 15:03:30 2026 +0200
