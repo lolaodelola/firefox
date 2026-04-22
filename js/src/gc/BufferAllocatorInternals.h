@@ -215,17 +215,21 @@ struct AllocSpace {
   using AtomicPerAllocBitmap =
       mozilla::BitSet<MaxAllocCount, mozilla::Atomic<size_t, mozilla::Relaxed>>;
 
-  // Mark bitmap: one bit minimum per allocation, no gray bits.
+  // Mark bitmap: one bit minimum per allocation, no gray bits. This is atomic
+  // because parallel marking may try and mark the same allocation on different
+  // threads at the same time.
   MainThreadOrGCTaskData<AtomicBitmap<MaxAllocCount>> markBits;
 
   // Allocation start and end bitmaps: for every allocation these have a bit set
   // corresponding to the start of the allocation and to the last byte of the
-  // allocation.
+  // allocation. |allocEndBitmap| is atomic so we can get allocation sizes for
+  // resize while sweeping is happening.
   MainThreadOrGCTaskData<PerAllocBitmap> allocStartBitmap;
   MainThreadOrGCTaskData<AtomicPerAllocBitmap> allocEndBitmap;
 
   // A bitmap indicating whether an allocation is owned by a nursery or a
-  // tenured GC thing.
+  // tenured GC thing. This is atomic because we read it for major GC tracing,
+  // which can happen at the same time as the chunk is being swept for minor GC.
   MainThreadOrGCTaskData<AtomicPerAllocBitmap> nurseryOwnedBitmap;
 
   static constexpr uintptr_t firstAllocOffset() {
@@ -377,6 +381,9 @@ struct BufferChunk
   using PerPageBitmap = mozilla::BitSet<PagesPerChunk, uint32_t>;
   MainThreadOrGCTaskData<PerPageBitmap> decommittedPages;
 
+  // A bitmap indicating which areas of the chunk are used to hold
+  // SmallBufferRegions. This is atomic because it can be read to determine the
+  // kind of an allocation while the chunk is being swept.
   static constexpr size_t SmallRegionsPerChunk = ChunkSize / SmallRegionSize;
   using SmallRegionBitmap = AtomicBitmap<SmallRegionsPerChunk>;
   MainThreadOrGCTaskData<SmallRegionBitmap> smallRegionBitmap;
