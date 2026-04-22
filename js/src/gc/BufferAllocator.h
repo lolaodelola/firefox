@@ -420,9 +420,9 @@ class BufferAllocator : public SlimLinkedListElement<BufferAllocator> {
   // cleanup will be deferred to the end of the minor sweeping.
   MainThreadOrGCTaskData<bool> majorFinishedWhileMinorSweeping;
 
-#ifdef DEBUG
+  // A mutex that must be held to call public APIs if the allocator is being
+  // used by multiple threads. This is checked in debug builds.
   Mutex* multiThreadedMutex = nullptr;
-#endif
 
  public:
   explicit BufferAllocator(JS::Zone* zone);
@@ -506,6 +506,7 @@ class BufferAllocator : public SlimLinkedListElement<BufferAllocator> {
  private:
   void checkAccess() const;
   void checkMainThread() const;
+  bool isUsedByMainThread() const;
 
   void markNurseryOwnedAlloc(void* alloc, bool nurseryOwned);
   friend class js::Nursery;
