@@ -952,6 +952,11 @@ export class UrlbarView {
         queryContext.deferUserSelectionProviders.delete(r.providerName);
       });
     }
+
+    if (lazy.UrlbarPrefs.get("unifiedSearchButton.always")) {
+      // Update the search mode switcher icon to reflect what pressing Enter will do after new results show.
+      this.input.searchModeSwitcher?.updateSearchIcon();
+    }
   }
 
   /**
