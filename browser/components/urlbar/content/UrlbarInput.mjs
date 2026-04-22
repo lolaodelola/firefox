@@ -1104,11 +1104,6 @@ ${
       }
     }
 
-    if (lazy.UrlbarPrefs.get("unifiedSearchButton.always")) {
-      // When user presses enter after any search, udpate icon to be its default (magnifying glass)
-      this.searchModeSwitcher?.updateSearchIcon();
-    }
-
     this.handleNavigation({ event });
   }
 

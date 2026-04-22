@@ -389,43 +389,6 @@ export class SearchModeSwitcher {
     }
 
     this.#button.setAttribute("iconsrc", icon);
-    // Use default icon set in CSS
-    icon = null;
-
-    // If the pref is enabled, then update urlbar icons as user types.
-    if (lazy.UrlbarPrefs.get("unifiedSearchButton.always")) {
-      if (!this.#input.focused || !this.#input.value.length) {
-        // The magnifying glass is shown by default, when the urlbar is unfocus and initially focus.
-        icon = null;
-      } else {
-        // When the user has typed something, we detect whether what they typed will visit a url or open a search.
-        // Check top result to decide which icon to show.
-        let result = this.#input.view?.getResultAtIndex(0);
-        if (result?.type == lazy.UrlbarUtils.RESULT_TYPE.SEARCH) {
-          // Show the engine icon for a search.
-          let engineName = result.payload.engine;
-          let engine = lazy.UrlbarSearchUtils.getEngineByName(engineName);
-          icon =
-            (await engine?.getIconURL()) ?? SearchModeSwitcher.DEFAULT_ICON;
-        } else if (
-          result &&
-          (result.type == lazy.UrlbarUtils.RESULT_TYPE.URL ||
-            result.type == lazy.UrlbarUtils.RESULT_TYPE.TAB_SWITCH)
-        ) {
-          // URL or autofilled result, show globe icon.
-          icon = SearchModeSwitcher.DEFAULT_ICON_KEYWORD_DISABLED;
-        } else {
-          icon = SearchModeSwitcher.DEFAULT_ICON;
-        }
-      }
-    }
-    let iconUrl = icon ? `url(${icon})` : null;
-    // Bug 1984069 - This uses an intermediate variable to keep documentation
-    // generation happy.
-    let element = /** @type {HTMLImageElement} */ (
-      this.#input.querySelector(".searchmode-switcher-icon")
-    );
-    element.style.listStyleImage = iconUrl;
 
     if (label) {
       this.#input.document.l10n.setAttributes(

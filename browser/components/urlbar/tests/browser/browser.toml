@@ -491,8 +491,6 @@ support-files = ["moz.png"]
 
 ["browser_tabToSearch.js"]
 
-["browser_testUrlbarIcons.js"]
-
 ["browser_text_dont_shift_on_mousedown.js"]
 
 ["browser_textruns.js"]
