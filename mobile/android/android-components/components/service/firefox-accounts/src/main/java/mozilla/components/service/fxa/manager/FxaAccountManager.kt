@@ -248,16 +248,6 @@ open class FxaAccountManager(
     fun isSyncActive() = syncManager?.isSyncActive() ?: false
 
     /**
-     * Sets the enabled state of a sync engine and triggers a sync with [SyncReason.EngineChange].
-     *
-     * @param engine The [SyncEngine] to enable or disable.
-     * @param enabled Whether the engine should be enabled or disabled.
-     */
-    suspend fun setEngineEnabled(engine: SyncEngine, enabled: Boolean) = withContext(coroutineContext) {
-        syncManager?.setEngineEnabled(engine, enabled)
-    }
-
-    /**
      * Call this after registering your observers, and before interacting with this class.
      */
     suspend fun start() = withContext(coroutineContext) {

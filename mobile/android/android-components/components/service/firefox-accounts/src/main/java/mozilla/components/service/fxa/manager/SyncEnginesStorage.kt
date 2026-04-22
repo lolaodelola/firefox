@@ -13,7 +13,7 @@ import mozilla.components.service.fxa.sync.toSyncEngine
  * Storage layer for the enabled/disabled state of [SyncEngine].
  */
 class SyncEnginesStorage(private val context: Context) {
-    internal companion object {
+    companion object {
         const val SYNC_ENGINES_KEY = "syncEngines"
     }
 
@@ -43,7 +43,7 @@ class SyncEnginesStorage(private val context: Context) {
      * @param engine A [SyncEngine] for which to update state.
      * @param status New state.
      */
-    internal fun setStatus(engine: SyncEngine, status: Boolean) {
+    fun setStatus(engine: SyncEngine, status: Boolean) {
         storage().edit { putBoolean(engine.nativeName, status) }
     }
 
