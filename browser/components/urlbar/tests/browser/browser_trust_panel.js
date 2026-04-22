@@ -45,8 +45,6 @@ add_setup(async function setup() {
   await db.importChanges({}, Date.now());
   await SpecialPowers.pushPrefEnv({
     set: [
-      ["browser.urlbar.scotchBonnet.enableOverride", true],
-      ["browser.urlbar.trustPanel.featureGate", true],
       ["browser.urlbar.trustPanel.breachAlerts", true],
       // Hover previews can block opening the trustpanel.
       ["browser.tabs.hoverPreview.enabled", false],

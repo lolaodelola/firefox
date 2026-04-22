@@ -12,7 +12,6 @@ ChromeUtils.defineLazyGetter(this, "UrlbarTestUtils", () => {
 add_setup(async function setup() {
   await SpecialPowers.pushPrefEnv({
     set: [
-      ["browser.urlbar.trustPanel.featureGate", true],
       ["security.qwacs.enabled", true],
       ["security.qwacs.enable_test_trust_anchors", true],
     ],

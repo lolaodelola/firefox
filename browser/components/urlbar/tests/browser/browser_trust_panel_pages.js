@@ -57,10 +57,6 @@ let fetchIconUrl = (doc, id) => {
 };
 
 add_task(async function () {
-  await SpecialPowers.pushPrefEnv({
-    set: [["browser.urlbar.trustPanel.featureGate", true]],
-  });
-
   let extension = ExtensionTestUtils.loadExtension({
     manifest: {
       web_accessible_resources: ["test_page.html"],

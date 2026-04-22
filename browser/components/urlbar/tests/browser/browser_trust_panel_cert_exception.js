@@ -49,12 +49,6 @@ function fetchIconUrl(doc, id) {
   return icon.match(/url\("([^"]+)"\)/)?.[1] ?? null;
 }
 
-add_setup(async function setup() {
-  await SpecialPowers.pushPrefEnv({
-    set: [["browser.urlbar.trustPanel.featureGate", true]],
-  });
-});
-
 add_task(async () => {
   registerCleanupFunction(() => {
     // Remove Exception
