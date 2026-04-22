@@ -226,7 +226,6 @@ class Auth0Config:
                 options={"verify_signature": False},
             )
         )
-        print("Auth0 token validated.")
         return user_token
 
     def device_authorization_flow(self) -> dict:
@@ -271,7 +270,8 @@ class Auth0Config:
             response_data = response.json()
 
             if response.status_code == 200:
-                print("\nLogin successful.")
+                # Terminate the in-progress "Waiting......" line.
+                print()
                 return response_data
 
             if response_data["error"] not in ("authorization_pending", "slow_down"):
@@ -515,17 +515,13 @@ def push_to_lando_try(
     duration = time.perf_counter() - push_start_time
 
     job_id = response_json["id"]
-    lando_api_status_url = lando_api.lando_try_status_api_url(job_id)
-    success_msg = (
-        f"Lando try submission success in {duration:.1f}s: {lando_api_status_url}"
-    )
-    print(success_msg)
 
     # Send a notification only if the push took an unexpectedly long time
     if duration > 30:
-        build.notify(success_msg)
+        build.notify(f"try submission success in {duration:.1f}s")
 
     return {
         "lando_instance": lando_api.instance_id,
         "lando_job_id": job_id,
+        "duration": duration,
     }

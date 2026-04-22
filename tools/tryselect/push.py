@@ -264,8 +264,12 @@ def push_to_try(
             lando_instance = push_data["lando_instance"]
             job_id = push_data["lando_job_id"]
             if lando_instance and job_id:
+                treeherder_url = TREEHERDER_LANDO_TRY_RUN_URL.format(
+                    lando_instance=lando_instance, job_id=job_id
+                )
                 print(
-                    f"CI run: {TREEHERDER_LANDO_TRY_RUN_URL.format(lando_instance=lando_instance, job_id=job_id)}"
+                    f"try submission success in {push_data['duration']:.1f}s:\n"
+                    f" {treeherder_url}"
                 )
 
             return push_data
