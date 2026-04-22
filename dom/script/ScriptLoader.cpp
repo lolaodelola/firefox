@@ -3069,17 +3069,12 @@ class MOZ_RAII AutoSetProcessingScriptTag {
   ~AutoSetProcessingScriptTag() { mContext->SetProcessingScriptTag(mOldTag); }
 };
 
-static void ExecuteCompiledScript(JSContext* aCx, ClassicScript* aLoaderScript,
-                                  JS::Handle<JSScript*> aScript,
+static void ExecuteCompiledScript(JSContext* aCx, JS::Handle<JSScript*> aScript,
                                   ErrorResult& aRv) {
   if (!aScript) {
     // Compilation succeeds without producing a script if scripting is
     // disabled for the global.
     return;
-  }
-
-  if (JS::GetScriptPrivate(aScript).isUndefined()) {
-    aLoaderScript->AssociateWithScript(aScript);
   }
 
   if (!JS_ExecuteScript(aCx, aScript)) {
@@ -3258,8 +3253,9 @@ static void InstantiateStencil(
   aScript.set(script);
 
   if (instantiateOptions.deferDebugMetadata) {
-    // The private value is updated by the AssociateWithScript call,
-    // which is performed immediately after instantiating.
+    // The private value is updated by the
+    // ScriptFetchInfo::AssociateWithScript call done after
+    // InstantiateClassicScriptFromAny in ScriptLoader::EvaluateScript.
     JS::Rooted<JS::Value> unused(aCx);
     if (!JS::UpdateDebugMetadata(aCx, aScript, instantiateOptions, unused,
                                  nullptr, aDebuggerIntroductionScript,
@@ -3637,9 +3633,6 @@ nsresult ScriptLoader::EvaluateScript(nsIGlobalObject* aGlobalObject,
   // Create a ClassicScript object and associate it with the JSScript.
   MOZ_ASSERT(aRequest->mLoadedScript->IsClassicScript());
 
-  RefPtr<ClassicScript> classicScript =
-      aRequest->mLoadedScript->AsClassicScript();
-
   JS::CompileOptions options(cx);
   JS::Rooted<JSScript*> introductionScript(cx);
   nsresult rv =
@@ -3688,7 +3681,11 @@ nsresult ScriptLoader::EvaluateScript(nsIGlobalObject* aGlobalObject,
     MOZ_ASSERT(options.noScriptRval);
     TRACE_FOR_TEST(aRequest, "evaluate:classic");
 
-    ExecuteCompiledScript(cx, classicScript, script, erv);
+    if (script && JS::GetScriptPrivate(script).isUndefined()) {
+      aRequest->FetchInfo()->AssociateWithScript(script);
+    }
+
+    ExecuteCompiledScript(cx, script, erv);
   }
   rv = EvaluationExceptionToNSResult(erv);
 
@@ -3711,13 +3708,13 @@ nsresult ScriptLoader::EvaluateScript(nsIGlobalObject* aGlobalObject,
 }
 
 /* static */
-LoadedScript* ScriptLoader::GetActiveScript(JSContext* aCx) {
+ScriptFetchInfo* ScriptLoader::GetActiveScriptFetchInfo(JSContext* aCx) {
   JS::Value value = JS::GetScriptedCallerPrivate(aCx);
   if (value.isUndefined()) {
     return nullptr;
   }
 
-  return static_cast<LoadedScript*>(value.toPrivate());
+  return static_cast<ScriptFetchInfo*>(value.toPrivate());
 }
 
 void ScriptLoader::RegisterForDiskCache(ScriptLoadRequest* aRequest) {

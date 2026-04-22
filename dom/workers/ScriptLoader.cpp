@@ -454,16 +454,6 @@ class ScriptExecutorRunnable final : public MainThreadWorkerSyncRunnable {
   nsresult Cancel() override;
 };
 
-static bool EvaluateSourceBuffer(JSContext* aCx, JS::Handle<JSScript*> aScript,
-                                 JS::loader::ClassicScript* aClassicScript) {
-  if (aClassicScript) {
-    aClassicScript->AssociateWithScript(aScript);
-  }
-
-  JS::Rooted<JS::Value> unused(aCx);
-  return JS_ExecuteScript(aCx, aScript, &unused);
-}
-
 WorkerScriptLoader::WorkerScriptLoader(
     UniquePtr<SerializedStackHolder> aOriginStack,
     nsISerialEventTarget* aSyncLoopTarget, WorkerScriptType aWorkerScriptType,
@@ -1244,7 +1234,6 @@ bool WorkerScriptLoader::EvaluateScript(JSContext* aCx,
     return false;
   }
 
-  RefPtr<JS::loader::ClassicScript> classicScript = nullptr;
   if (!mWorkerRef->Private()->IsServiceWorker()) {
     // We need a LoadedScript to be associated with the JSScript in order to
     // correctly resolve the referencing private for dynamic imports. In turn
@@ -1263,7 +1252,6 @@ bool WorkerScriptLoader::EvaluateScript(JSContext* aCx,
     }
     MOZ_ASSERT(aRequest->mLoadedScript->IsClassicScript());
     aRequest->SetBaseURL(requestBaseURI);
-    classicScript = aRequest->mLoadedScript->AsClassicScript();
   }
 
   JS::Rooted<JSScript*> script(aCx);
@@ -1297,7 +1285,12 @@ bool WorkerScriptLoader::EvaluateScript(JSContext* aCx,
     return false;
   }
 
-  bool successfullyEvaluated = EvaluateSourceBuffer(aCx, script, classicScript);
+  if (!mWorkerRef->Private()->IsServiceWorker()) {
+    aRequest->FetchInfo()->AssociateWithScript(script);
+  }
+
+  JS::Rooted<JS::Value> unused(aCx);
+  bool successfullyEvaluated = JS_ExecuteScript(aCx, script, &unused);
   if (aRequest->IsCanceled()) {
     return false;
   }

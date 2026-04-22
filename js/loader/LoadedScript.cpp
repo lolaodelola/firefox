@@ -55,6 +55,48 @@ void ScriptFetchInfo::SetBaseURLFromChannelAndOriginalURI(
   }
 }
 
+void ScriptFetchInfo::AssociateWithScript(JSScript* aScript) {
+  // Verify that the rewritten URL is available when manipulating the referrer.
+  MOZ_ASSERT(mBaseURL);
+
+  // Set a JSScript's private value to point to this object. The JS engine will
+  // increment our reference count by calling
+  // HostAddRefScriptFetchInfo(). This is decremented by
+  // HostReleaseScriptFetchInfo() below when the JSScript dies.
+
+  MOZ_ASSERT(GetScriptPrivate(aScript).isUndefined());
+  SetScriptPrivate(aScript, PrivateValue(this));
+}
+
+void ScriptFetchInfo::AssociateWithModule(JSObject* aModuleRecord) {
+  MOZ_ASSERT(mBaseURL);
+
+  // Make module's host defined field point to this object. The JS engine
+  // will increment our reference count by calling
+  // HostAddRefScriptFetchInfo(). This is decremented when the
+  // module record dies.
+  MOZ_ASSERT(GetModulePrivate(aModuleRecord).isUndefined());
+  SetModulePrivate(aModuleRecord, PrivateValue(this));
+}
+
+void HostAddRefScriptFetchInfo(const Value& aPrivate) {
+  // Increment the reference count of a ScriptFetchInfo object that is
+  // now pointed to by a JSScript. The reference count is decremented by
+  // HostReleaseScriptFetchInfo() below.
+
+  auto fetchInfo = static_cast<ScriptFetchInfo*>(aPrivate.toPrivate());
+  fetchInfo->AddRef();
+}
+
+void HostReleaseScriptFetchInfo(const Value& aPrivate) {
+  // Decrement the reference count of a ScriptFetchInfo object that was
+  // pointed to by a JSScript. The reference count was originally incremented by
+  // HostAddRefScriptFetchInfo() above.
+
+  auto fetchInfo = static_cast<ScriptFetchInfo*>(aPrivate.toPrivate());
+  fetchInfo->Release();
+}
+
 //////////////////////////////////////////////////////////////
 // LoadedScript
 //////////////////////////////////////////////////////////////
@@ -225,18 +267,6 @@ size_t LoadedScript::SizeOfIncludingThis(
   return bytes;
 }
 
-void LoadedScript::AssociateWithScript(JSScript* aScript) {
-  // Verify that the rewritten URL is available when manipulating LoadedScript.
-  MOZ_ASSERT(mBaseURL);
-
-  // Set a JSScript's private value to point to this object. The JS engine will
-  // increment our reference count by calling HostAddRefTopLevelScript(). This
-  // is decremented by HostReleaseTopLevelScript() below when the JSScript dies.
-
-  MOZ_ASSERT(GetScriptPrivate(aScript).isUndefined());
-  SetScriptPrivate(aScript, PrivateValue(this));
-}
-
 nsresult LoadedScript::GetScriptSource(JSContext* aCx,
                                        MaybeSourceText* aMaybeSource,
                                        LoadContextBase* aMaybeLoadContext) {
@@ -333,36 +363,6 @@ bool LoadedScript::IsSRIMetadataReusableBy(
   return aSRIMetadata.CanTrustBeDelegatedTo(*mSRIMetadata);
 }
 
-inline void CheckModuleScriptPrivate(LoadedScript* script,
-                                     const Value& aPrivate) {
-#ifdef DEBUG
-  if (script->IsModuleScript()) {
-    JSObject* module = script->AsModuleScript()->mModuleRecord.unbarrieredGet();
-    MOZ_ASSERT_IF(module, GetModulePrivate(module) == aPrivate);
-  }
-#endif
-}
-
-void HostAddRefTopLevelScript(const Value& aPrivate) {
-  // Increment the reference count of a LoadedScript object that is now pointed
-  // to by a JSScript. The reference count is decremented by
-  // HostReleaseTopLevelScript() below.
-
-  auto script = static_cast<LoadedScript*>(aPrivate.toPrivate());
-  CheckModuleScriptPrivate(script, aPrivate);
-  script->AddRef();
-}
-
-void HostReleaseTopLevelScript(const Value& aPrivate) {
-  // Decrement the reference count of a LoadedScript object that was pointed to
-  // by a JSScript. The reference count was originally incremented by
-  // HostAddRefTopLevelScript() above.
-
-  auto script = static_cast<LoadedScript*>(aPrivate.toPrivate());
-  CheckModuleScriptPrivate(script, aPrivate);
-  script->Release();
-}
-
 //////////////////////////////////////////////////////////////
 // EventScript
 //////////////////////////////////////////////////////////////
@@ -406,7 +406,7 @@ NS_IMPL_ISUPPORTS_CYCLE_COLLECTION_INHERITED_0(ModuleScript, LoadedScript)
 NS_IMPL_CYCLE_COLLECTION_CLASS(ModuleScript)
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(ModuleScript, LoadedScript)
-  tmp->UnlinkModuleRecord();
+  tmp->mModuleRecord = nullptr;
   tmp->mParseError.setUndefined();
   tmp->mErrorToRethrow.setUndefined();
   tmp->DropDiskCacheReference();
@@ -465,30 +465,12 @@ void ModuleScript::Shutdown() {
     ClearModuleEnvironment(mModuleRecord);
   }
 
-  UnlinkModuleRecord();
-}
-
-void ModuleScript::UnlinkModuleRecord() {
-  // Remove the module record's pointer to this object if present and decrement
-  // our reference count. The reference is added by SetModuleRecord() below.
-  //
-  if (mModuleRecord) {
-    // Take care not to trigger gray unmarking because this takes a lot of time
-    // when we're tearing down the entire page. This is safe because we are only
-    // writing undefined into the module private, so it won't create any
-    // black-gray edges.
-    JSObject* module = mModuleRecord.unbarrieredGet();
-    if (IsCyclicModule(module)) {
-      MOZ_ASSERT(GetModulePrivate(module).toPrivate() == this);
-      ClearModulePrivate(module);
-    }
-    mModuleRecord = nullptr;
-  }
+  mModuleRecord = nullptr;
 }
 
 ModuleScript::~ModuleScript() {
   // The object may be destroyed without being unlinked first.
-  UnlinkModuleRecord();
+  mModuleRecord = nullptr;
 }
 
 void ModuleScript::SetModuleRecord(Handle<JSObject*> aModuleRecord) {
@@ -497,15 +479,6 @@ void ModuleScript::SetModuleRecord(Handle<JSObject*> aModuleRecord) {
   MOZ_ASSERT_IF(IsModuleScript(), !AsModuleScript()->HasErrorToRethrow());
 
   mModuleRecord = aModuleRecord;
-
-  if (IsCyclicModule(mModuleRecord)) {
-    // Make module's host defined field point to this object. The JS engine will
-    // increment our reference count by calling HostAddRefTopLevelScript(). This
-    // is decremented when the field is cleared in UnlinkModuleRecord() above or
-    // when the module record dies.
-    MOZ_ASSERT(GetModulePrivate(mModuleRecord).isUndefined());
-    SetModulePrivate(mModuleRecord, PrivateValue(this));
-  }
 
 #ifdef DEBUG
   // Sync the [[PreloadSlot]] in ModuleObject.
@@ -522,7 +495,7 @@ void ModuleScript::SetParseError(const Value& aError) {
   MOZ_ASSERT(!HasParseError());
   MOZ_ASSERT(!HasErrorToRethrow());
 
-  UnlinkModuleRecord();
+  mModuleRecord = nullptr;
   mParseError = aError;
   mozilla::HoldJSObjects(this);
 }

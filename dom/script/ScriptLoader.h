@@ -461,10 +461,12 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
   void Destroy();
 
   /*
-   * Get the currently active script. This is used as the initiating script when
-   * executing timeout handler scripts.
+   * Get the currently active script's ScriptFetchInfo.
+   *
+   * This is used as the ScriptFetchInfo of the initiating script when executing
+   * timeout handler scripts.
    */
-  static JS::loader::LoadedScript* GetActiveScript(JSContext* aCx);
+  static JS::loader::ScriptFetchInfo* GetActiveScriptFetchInfo(JSContext* aCx);
 
   Document* GetDocument() const { return mDocument; }
 

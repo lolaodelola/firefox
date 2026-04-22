@@ -38,8 +38,8 @@ class ScriptLoadRequest;
 
 using Utf8Unit = mozilla::Utf8Unit;
 
-void HostAddRefTopLevelScript(const Value& aPrivate);
-void HostReleaseTopLevelScript(const Value& aPrivate);
+void HostAddRefScriptFetchInfo(const Value& aPrivate);
+void HostReleaseScriptFetchInfo(const Value& aPrivate);
 
 class ClassicScript;
 class ModuleScript;
@@ -88,6 +88,9 @@ class ScriptFetchInfo : public nsISupports {
    */
   void SetBaseURLFromChannelAndOriginalURI(nsIChannel* aChannel,
                                            nsIURI* aOriginalURI);
+
+  void AssociateWithScript(JSScript* aScript);
+  void AssociateWithModule(JSObject* aModuleRecord);
 
  protected:
   virtual ~ScriptFetchInfo() = default;
@@ -186,8 +189,6 @@ class LoadedScript : public nsIMemoryReporter {
   nsIURI* GetURI() const { return mURI; }
   void SetBaseURL(nsIURI* aBaseURL) { mBaseURL = aBaseURL; }
   nsIURI* BaseURL() const { return mBaseURL; }
-
-  void AssociateWithScript(JSScript* aScript);
 
  public:
   // ===========================================================================
@@ -795,8 +796,6 @@ class ModuleScript final : public LoadedScript {
   // preload.
   void ResetPreload();
   void Shutdown();
-
-  void UnlinkModuleRecord();
 
   friend void CheckModuleScriptPrivate(LoadedScript*, const Value&);
 
