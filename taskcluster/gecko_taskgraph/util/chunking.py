@@ -149,7 +149,10 @@ def guess_mozinfo_from_task(task, repo="", app_version="", test_tags=[]):
 
 
 def _strip_job_name(job_name):
-    # Strip chunk numbers and geckoview- infix from job names before matching.
+    # Implicit parts of job names that are always present for certain
+    # platforms but not included in the suite name by the task graph.
+    # Strip these (along with chunk numbers) from job names before matching.
+
     name = _CHUNK_SUFFIX_RE.sub("", job_name)
     return name.replace("-geckoview-", "-")
 
@@ -161,15 +164,31 @@ def _load_manifest_runtimes_data():
 
 
 @functools.cache
+def _stripped_job_name_map():
+    job_names = _load_manifest_runtimes_data().get("jobNames", [])
+    result = {}
+    for j in job_names:
+        result.setdefault(_strip_job_name(j), []).append(j)
+    return result
+
+
+@functools.cache
+def _manifest_runtimes_by_job_name():
+    data = _load_manifest_runtimes_data()
+    job_names = data.get("jobNames", [])
+    by_job = {}
+    for manifest_name, info in data.get("manifests", {}).items():
+        for jidx, runtimes in zip(info["jobs"], info["runtimes"]):
+            by_job.setdefault(job_names[jidx], []).append((manifest_name, runtimes))
+    return by_job
+
+
+@functools.cache
 def get_runtimes(platform, suite_name):
     if not suite_name or not platform:
         raise TypeError("suite_name and platform cannot be empty.")
 
-    data = _load_manifest_runtimes_data()
-
     manifest_runtimes = {}
-    job_names = data.get("jobNames", [])
-    manifests_data = data.get("manifests", {})
 
     # Helper to insert -shippable before suffixes like -qr, -lite
     def add_shippable(platform_str):
@@ -212,7 +231,7 @@ def get_runtimes(platform, suite_name):
     # Try each platform candidate until we find jobs
     for candidate in platform_candidates:
         expected = f"test-{candidate}-{suite_name}"
-        matching = [j for j in job_names if _strip_job_name(j) == expected]
+        matching = _stripped_job_name_map().get(expected, [])
         if matching:
             matched_jobs = matching
             used_platform = candidate
@@ -224,27 +243,21 @@ def get_runtimes(platform, suite_name):
         )
         return {}
 
-    # Collect runtimes from matched jobs
-    for manifest_name, manifest_info in manifests_data.items():
-        jobs = manifest_info.get("jobs", [])
-        runtimes_arrays = manifest_info.get("runtimes", [])
+    by_job = _manifest_runtimes_by_job_name()
+    per_manifest = {}
+    for job_name in matched_jobs:
+        for manifest_name, runtimes in by_job.get(job_name, ()):
+            per_manifest.setdefault(manifest_name, []).extend(runtimes)
 
-        all_runtimes = []
-        for job_idx, job_runtimes in enumerate(runtimes_arrays):
-            job_name = job_names[jobs[job_idx]]
-            if job_name in matched_jobs:
-                all_runtimes.extend(job_runtimes)
-
-        # Calculate median runtime
-        if all_runtimes:
-            all_runtimes.sort()
-            mid = len(all_runtimes) // 2
-            if len(all_runtimes) % 2 == 0:
-                median = (all_runtimes[mid - 1] + all_runtimes[mid]) / 2
-            else:
-                median = all_runtimes[mid]
-            # Convert from milliseconds to seconds
-            manifest_runtimes[manifest_name] = median / 1000
+    for manifest_name, all_runtimes in per_manifest.items():
+        all_runtimes.sort()
+        mid = len(all_runtimes) // 2
+        if len(all_runtimes) % 2 == 0:
+            median = (all_runtimes[mid - 1] + all_runtimes[mid]) / 2
+        else:
+            median = all_runtimes[mid]
+        # Convert from milliseconds to seconds
+        manifest_runtimes[manifest_name] = median / 1000
 
     # Log if we used a fallback
     if used_platform != platform:
