@@ -454,6 +454,14 @@ projects:
     - components:support-base
     - components:support-test
     - components:tooling-lint
+  components:concept-bookmarks-file:
+    description: An abstract definition of a component for importing bookmarks from
+      a file.
+    path: components/concept/bookmarks-file
+    publish: true
+    upstream_dependencies:
+    - components:concept-storage-bookmarks
+    - components:tooling-lint
   components:concept-bookmarks-parser:
     description: An abstract definition of a bookmark-file-parser component.
     path: components/concept/bookmarks-parser
