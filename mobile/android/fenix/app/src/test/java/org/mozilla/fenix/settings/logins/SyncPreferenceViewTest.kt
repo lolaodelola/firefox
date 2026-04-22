@@ -11,6 +11,8 @@ import androidx.preference.Preference
 import io.mockk.CapturingSlot
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -20,14 +22,17 @@ import io.mockk.mockkConstructor
 import io.mockk.slot
 import io.mockk.unmockkConstructor
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mozilla.components.concept.sync.AccountObserver
 import mozilla.components.service.fxa.SyncEngine
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.service.fxa.manager.SyncEnginesStorage
+import mozilla.components.support.test.rule.MainCoroutineRule
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mozilla.fenix.R
 import org.mozilla.fenix.components.accounts.FenixFxAEntryPoint
@@ -35,7 +40,11 @@ import org.mozilla.fenix.settings.SyncPreference
 import org.mozilla.fenix.settings.SyncPreferenceView
 import org.mozilla.fenix.settings.logins.fragment.SavedLoginsAuthFragmentDirections
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SyncPreferenceViewTest {
+
+    @get:Rule
+    val mainCoroutineRule = MainCoroutineRule()
 
     @MockK private lateinit var syncPreference: SyncPreference
 
@@ -149,13 +158,13 @@ class SyncPreferenceViewTest {
     }
 
     @Test
-    fun `GIVEN LoginScreen and syncLogins true WHEN updateSyncPreferenceStatus THEN setStatus false`() {
+    fun `GIVEN LoginScreen and syncLogins true WHEN updateSyncPreferenceStatus THEN setEngineEnabled false`() {
         every { accountManager.authenticatedAccount() } returns mockk()
         every { accountManager.accountNeedsReauth() } returns false
         every { anyConstructed<SyncEnginesStorage>().getStatus() } returns mapOf(
             SyncEngine.Passwords to true,
         )
-        every { anyConstructed<SyncEnginesStorage>().setStatus(any(), any()) } just Runs
+        coEvery { accountManager.setEngineEnabled(any(), any()) } just Runs
         every { syncPreference.setSwitchCheckedState(any()) } just Runs
 
         createView()
@@ -164,17 +173,17 @@ class SyncPreferenceViewTest {
         verify { syncPreference.isChecked = true }
         verify { syncPreference.title = LOGGED_IN_TITLE }
         assertTrue(preferenceChangeListener.captured.onPreferenceChange(syncPreference, false))
-        verify { anyConstructed<SyncEnginesStorage>().setStatus(any(), false) }
+        coVerify { accountManager.setEngineEnabled(SyncEngine.Passwords, false) }
     }
 
     @Test
-    fun `GIVEN LoginScreen and syncLogins false WHEN updateSyncPreferenceStatus THEN setStatus true`() {
+    fun `GIVEN LoginScreen and syncLogins false WHEN updateSyncPreferenceStatus THEN setEngineEnabled true`() {
         every { accountManager.authenticatedAccount() } returns mockk()
         every { accountManager.accountNeedsReauth() } returns false
         every { anyConstructed<SyncEnginesStorage>().getStatus() } returns mapOf(
             SyncEngine.Passwords to false,
         )
-        every { anyConstructed<SyncEnginesStorage>().setStatus(any(), any()) } just Runs
+        coEvery { accountManager.setEngineEnabled(any(), any()) } just Runs
         every { syncPreference.setSwitchCheckedState(any()) } just Runs
 
         createView()
@@ -183,7 +192,7 @@ class SyncPreferenceViewTest {
         verify { syncPreference.isChecked = false }
         verify { syncPreference.title = LOGGED_IN_TITLE }
         assertTrue(preferenceChangeListener.captured.onPreferenceChange(syncPreference, true))
-        verify { anyConstructed<SyncEnginesStorage>().setStatus(any(), true) }
+        coVerify { accountManager.setEngineEnabled(SyncEngine.Passwords, true) }
     }
 
     private fun createView() = SyncPreferenceView(
