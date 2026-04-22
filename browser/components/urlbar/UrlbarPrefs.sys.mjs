@@ -100,6 +100,9 @@ const PREF_URLBAR_DEFAULTS = /** @type {PreferenceDefinition[]} */ ([
   // unexpected issues in Release. We normally want this behavior.
   ["closeOtherPanelsOnOpen", true],
 
+  // Feature gate pref for context menu on the urlbar.
+  ["contextMenu.featureGate", false],
+
   // Whether to show a link for using the search functionality provided by the
   // active view if the the view utilizes OpenSearch.
   ["contextualSearch.enabled", true],

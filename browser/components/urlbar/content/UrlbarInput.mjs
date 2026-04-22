@@ -165,7 +165,6 @@ ${
         <html:moz-urlbar-slot name="page-actions" />
       </html:div>
       <html:div class="urlbarView"
-            context=""
             role="group"
             tooltip="aHTMLTooltip">
         <html:div class="urlbarView-body-outer">
@@ -179,7 +178,7 @@ ${
         <html:div class="search-one-offs"
               includecurrentengine="true"
               disabletab="true"/>
-      </html:div>`;
+   </html:div>`;
   }
 
   /** @type {DocumentFragment} */
@@ -1535,7 +1534,8 @@ ${
       element,
       urlOverride: resultUrl,
     });
-    let where = this._whereToOpen(event);
+
+    let where;
     let openParams = {
       allowInheritPrincipal: false,
       globalHistoryOptions: {
@@ -1548,9 +1548,44 @@ ${
       private: this.isPrivate,
     };
 
-    if (resultUrl && where == "current") {
-      // Open help links in a new tab.
-      where = "tab";
+    if (element?.closest("#urlbarView-context-menu")) {
+      switch (element.id) {
+        case "urlbar-view-context-menu-open-in-tab": {
+          where = "tab";
+          break;
+        }
+        case "urlbarView-context-menu-open-in-window": {
+          where = "window";
+          break;
+        }
+        case "urlbarView-context-menu-open-in-private-window": {
+          where = "window";
+          openParams.private = true;
+          break;
+        }
+        default: {
+          // Open in a container tab.
+          where = "tab";
+          openParams.userContextId = parseInt(
+            element.getAttribute("data-usercontextid")
+          );
+        }
+      }
+
+      if (
+        where == "tab" &&
+        Services.prefs.getBoolPref("browser.tabs.loadInBackground")
+      ) {
+        openParams.avoidBrowserFocus = true;
+        openParams.keepView = true;
+        openParams.inBackground = true;
+      }
+    } else {
+      where = this._whereToOpen(event);
+      if (resultUrl && where == "current") {
+        // Open help links in a new tab.
+        where = "tab";
+      }
     }
 
     if (!this.#providesSearchMode(result)) {
