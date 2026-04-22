@@ -1145,7 +1145,10 @@ void ScriptLoader::NotifyObserversForCachedScript(
     return;
   }
 
-  ScriptHashKey key(this, aRequest, aRequest->getLoadedScript());
+  ScriptHashKey key(this, aRequest,
+                    aRequest->getLoadedScript()->ReferrerPolicy(),
+                    aRequest->getLoadedScript()->GetFetchOptions(),
+                    aRequest->getLoadedScript()->GetURI());
   nsAutoCString keyStr;
   key.ToStringForLookup(keyStr);
 
@@ -3459,7 +3462,10 @@ ScriptLoader::CacheBehavior ScriptLoader::GetCacheBehavior(
     return CacheBehavior::Insert;
   }
 
-  ScriptHashKey key(this, aRequest, aRequest->getLoadedScript());
+  ScriptHashKey key(this, aRequest,
+                    aRequest->getLoadedScript()->ReferrerPolicy(),
+                    aRequest->getLoadedScript()->GetFetchOptions(),
+                    aRequest->getLoadedScript()->GetURI());
   auto cacheResult = mCache->Lookup(*this, key,
                                     /* aSyncLoad = */ true);
   if (cacheResult.mState == CachedSubResourceState::Complete) {
@@ -3522,7 +3528,8 @@ void ScriptLoader::TryCacheRequest(ScriptLoadRequest* aRequest) {
     TRACE_FOR_TEST(aRequest, "memorycache:saved");
   } else {
     MOZ_ASSERT(cacheBehavior == CacheBehavior::Evict);
-    ScriptHashKey key(this, aRequest, loadedScript);
+    ScriptHashKey key(this, aRequest, loadedScript->ReferrerPolicy(),
+                      loadedScript->GetFetchOptions(), loadedScript->GetURI());
     mCache->Evict(key);
     LOG(("ScriptLoader (%p): Evicting in-memory cache for %s.", this,
          aRequest->URI()->GetSpecOrDefault().get()));
