@@ -1556,6 +1556,24 @@ class DefaultTabManagerControllerTest {
         verify { navController.navigate(R.id.browserFragment) }
     }
 
+    @Test
+    fun `GIVEN source and target keys are the same WHEN onMove is invoked THEN moveTabs is not called`() {
+        createController().onMove(sourceKey = "tab1", targetKey = "tab1", placeAfter = false)
+        verify(exactly = 0) { tabsUseCases.moveTabs(any(), any(), placeAfter = false) }
+    }
+
+    @Test
+    fun `GIVEN source and target keys are not the same WHEN onMove is invoked THEN moveTabs is called`() {
+        createController().onMove(sourceKey = "tab1", targetKey = "tab2", placeAfter = false)
+        verify { tabsUseCases.moveTabs(any(), any(), placeAfter = false) }
+    }
+
+    @Test
+    fun `GIVEN target key is null WHEN onMove is invoked THEN moveTabs is called`() {
+        createController().onMove(sourceKey = "tab1", targetKey = null, placeAfter = false)
+        verify(exactly = 0) { tabsUseCases.moveTabs(any(), any(), placeAfter = false) }
+    }
+
     private fun makeBookmarkFolder(guid: String) = BookmarkNode(
         type = BookmarkNodeType.FOLDER,
         parentGuid = BookmarkRoot.Mobile.id,

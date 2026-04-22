@@ -161,6 +161,7 @@ data class TabsTrayState(
      *
      * @property displayTabsInGrid Whether normal and private tabs are displayed in a grid (vs list).
      * @property tabGroupsEnabled Whether the Tab Groups feature is enabled.
+     * @property tabGroupsDragAndDropEnabled:  Whether drag and drop is enabled for Tab Groups.
      * @property isInDebugMode Whether the app is in a debug state or has secret menu enabled.
      * @property showTabAutoCloseBanner Whether the banner for the tab auto-closer feature is visible.
      * @property tabSearchEnabled Whether the tab search feature is globally enabled.
@@ -168,6 +169,7 @@ data class TabsTrayState(
     data class TabsTrayConfig(
         val displayTabsInGrid: Boolean = false,
         val tabGroupsEnabled: Boolean = false,
+        val tabGroupsDragAndDropEnabled: Boolean = false,
         val isInDebugMode: Boolean = false,
         val showTabAutoCloseBanner: Boolean = false,
         val tabSearchEnabled: Boolean = false,

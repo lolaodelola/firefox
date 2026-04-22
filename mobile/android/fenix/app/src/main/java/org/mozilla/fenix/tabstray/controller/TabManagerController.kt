@@ -69,7 +69,11 @@ internal const val INACTIVE_TABS_FEATURE_NAME = "Inactive tabs"
 /**
  * Controller for handling any actions in the tab manager.
  */
-interface TabManagerController : SyncedTabsController, InactiveTabsController, TabsTrayFabController {
+interface TabManagerController :
+    SyncedTabsController,
+    InactiveTabsController,
+    TabsTrayFabController,
+    TabInteractionHandler {
 
     /**
      * Set the current visible tab page to the provided [page].
@@ -125,15 +129,6 @@ interface TabManagerController : SyncedTabsController, InactiveTabsController, T
      * Shares the current set of selected tabs.
      */
     fun handleShareSelectedTabsClicked()
-
-    /**
-     * Moves [tabId] next to before/after [targetId]
-     *
-     * @param tabId The tab to be moved.
-     * @param targetId The id of the tab that the moved tab will be placed next to.
-     * @param placeAfter [Boolean] indicating whether to place the tab before or after the target.
-     */
-    fun handleTabsMove(tabId: String, targetId: String?, placeAfter: Boolean)
 
     /**
      * Navigate from the Tab Manager to Recently Closed section in the History fragment.
@@ -403,14 +398,14 @@ class DefaultTabManagerController(
         showUndoSnackbarForTab(isPrivate)
     }
 
-    override fun handleTabsMove(
-        tabId: String,
-        targetId: String?,
-        placeAfter: Boolean,
-    ) {
-        if (targetId != null && tabId != targetId) {
-            tabsUseCases.moveTabs(listOf(tabId), targetId, placeAfter)
+    override fun onMove(sourceKey: String, targetKey: String?, placeAfter: Boolean) {
+        if (targetKey != null && sourceKey != targetKey) {
+            tabsUseCases.moveTabs(listOf(sourceKey), targetKey, placeAfter)
         }
+    }
+
+    override fun onDrop(sourceKey: String, targetKey: String) {
+        // todo bugs 2019823, 2019824, 2019825: Implement on drop
     }
 
     override fun handleNavigateToRecentlyClosed() {
@@ -598,7 +593,7 @@ class DefaultTabManagerController(
         }
     }
 
-     private fun selectedTabisHome(): Boolean {
+    private fun selectedTabisHome(): Boolean {
         return browserStore.state.selectedTab?.content?.url == ABOUT_HOME_URL
     }
 

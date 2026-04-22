@@ -393,7 +393,7 @@ class TabStorageMiddlewareTest {
             tabGroupState = TabsTrayState.TabGroupState(
                 groups = listOf(expectedTabGroup),
             ),
-            config = TabsTrayState.TabsTrayConfig(tabGroupsEnabled = false),
+            config = TabsTrayState.TabsTrayConfig(tabGroupsEnabled = false, tabGroupsDragAndDropEnabled = false),
         )
         val tabFlow = MutableStateFlow(initialState)
         val tabGroupFlow = MutableStateFlow(emptyList<StoredTabGroup>())

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.annotation.FlexibleWindowLightDarkPreview
 import org.mozilla.fenix.R
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
+import org.mozilla.fenix.tabstray.controller.NoOpTabInteractionHandler
 import org.mozilla.fenix.tabstray.data.TabGroupTheme
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTab
@@ -88,13 +89,14 @@ fun ExpandedTabGroup(
         TabLayout(
             tabs = group.tabs.toList(),
             displayTabsInGrid = true,
+            dragAndDropEnabled = false,
             selectedItemIndex = 0, // updating this in Bug 2030474
             selectionMode = TabsTrayState.Mode.Normal,
+            tabInteractionHandler = NoOpTabInteractionHandler, // todo Bug 2032255: Inject interaction handling
             modifier = Modifier,
             onTabClose = onTabClose,
             onItemClick = onItemClick,
             onItemLongClick = { item -> }, // Ignore long click
-            onMove = { _, _, _ -> }, // Ignore moves
             onTabDragStart = { }, // Ignore drags
             onDeleteTabGroup = { }, // Ignore tab group deletes
             editTabGroupClick = { editTabGroupClick() },

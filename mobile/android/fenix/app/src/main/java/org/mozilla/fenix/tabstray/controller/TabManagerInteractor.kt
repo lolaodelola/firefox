@@ -133,7 +133,7 @@ class DefaultTabManagerInteractor(
         targetId: String?,
         placeAfter: Boolean,
     ) {
-        controller.handleTabsMove(tabId, targetId, placeAfter)
+        controller.onMove(tabId, targetId, placeAfter)
     }
 
     override fun onForceSelectedTabsAsInactiveClicked() {

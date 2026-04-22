@@ -48,6 +48,8 @@ import mozilla.components.compose.base.snackbar.Snackbar
 import mozilla.components.compose.base.snackbar.SnackbarVisuals
 import mozilla.components.compose.base.snackbar.displaySnackbar
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
+import org.mozilla.fenix.tabstray.controller.NoOpTabInteractionHandler
+import org.mozilla.fenix.tabstray.controller.TabInteractionHandler
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTab
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
@@ -111,7 +113,7 @@ private val DefaultStatusBarHeight = 50.dp
  * lock private browsing mode banner.
  * @param onTabAutoCloseBannerDismiss Invoked when the user clicks to dismiss the auto close banner.
  * @param onTabAutoCloseBannerShown Invoked when the auto close banner has been shown to the user.
- * @param onMove Invoked after the drag and drop gesture completed. Swaps positions of two tabs.
+ * @param tabInteractionHandler Handlers tab interactions such as moves and drag and drop.
  * @param onInactiveTabsCFRShown Invoked when the inactive tabs CFR is displayed.
  * @param onInactiveTabsCFRClick Invoked when the inactive tabs CFR is clicked.
  * @param onInactiveTabsCFRDismiss Invoked when the inactive tabs CFR is dismissed.
@@ -154,7 +156,7 @@ fun TabsTray(
     onTabsTrayPbmLockedDismiss: () -> Unit,
     onTabAutoCloseBannerDismiss: () -> Unit,
     onTabAutoCloseBannerShown: () -> Unit,
-    onMove: (String, String?, Boolean) -> Unit,
+    tabInteractionHandler: TabInteractionHandler,
     onInactiveTabsCFRShown: () -> Unit,
     onInactiveTabsCFRClick: () -> Unit,
     onInactiveTabsCFRDismiss: () -> Unit,
@@ -273,6 +275,7 @@ fun TabsTray(
                             selectionMode = tabsTrayState.mode,
                             inactiveTabsExpanded = tabsTrayState.inactiveTabs.isExpanded,
                             displayTabsInGrid = tabsTrayState.config.displayTabsInGrid,
+                            dragAndDropEnabled = tabsTrayState.config.tabGroupsDragAndDropEnabled,
                             onTabClose = onTabClose,
                             shouldShowInactiveTabsAutoCloseDialog = tabsTrayState.inactiveTabs.showAutoCloseDialog,
                             onItemClick = onItemClick,
@@ -284,7 +287,7 @@ fun TabsTray(
                             onEnableInactiveTabAutoCloseClick = onEnableInactiveTabAutoCloseClick,
                             onInactiveTabClick = onInactiveTabClick,
                             onInactiveTabClose = onInactiveTabClose,
-                            onMove = onMove,
+                            tabInteractionHandler = tabInteractionHandler,
                             shouldShowInactiveTabsCFR = tabsTrayState.inactiveTabs.showCFR,
                             onInactiveTabsCFRShown = onInactiveTabsCFRShown,
                             onInactiveTabsCFRClick = onInactiveTabsCFRClick,
@@ -311,7 +314,7 @@ fun TabsTray(
                             onTabClose = onTabClose,
                             onItemClick = onItemClick,
                             onItemLongClick = onItemLongClick,
-                            onMove = onMove,
+                            tabInteractionHandler = tabInteractionHandler,
                             onUnlockPbmClick = onUnlockPbmClick,
                         )
                     }
@@ -414,6 +417,7 @@ private fun TabsTrayPreview(
             onTabPageClick = { page ->
                 tabsTrayStore.dispatch(TabsTrayAction.PageSelected(page))
             },
+            tabInteractionHandler = NoOpTabInteractionHandler,
             onTabClose = { tab ->
                 if (tab.private) {
                     val newTabs = tabsTrayStore.state.privateBrowsing.tabs - tab
@@ -507,7 +511,6 @@ private fun TabsTrayPreview(
             onTabsTrayPbmLockedDismiss = {},
             onTabAutoCloseBannerDismiss = {},
             onTabAutoCloseBannerShown = {},
-            onMove = { _, _, _ -> },
             onInactiveTabsCFRShown = {},
             onInactiveTabsCFRClick = {},
             onInactiveTabsCFRDismiss = {},

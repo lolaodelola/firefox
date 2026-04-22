@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.mozilla.fenix.tabstray.browser.compose
+package org.mozilla.fenix.tabstray.browser.compose.legacy
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.mozilla.fenix.tabstray.browser.compose.TabItemInteractionState
 
 /**
  * Remember the reordering state for reordering grid items.
@@ -216,40 +217,44 @@ class GridReorderState internal constructor(
  */
 @Composable
 @Suppress("MagicNumber")
-fun LazyGridItemScope.DragItemContainer(
+fun LazyGridItemScope.ReorderableDragItemContainer(
     state: GridReorderState,
     key: GridItemKey,
     position: Int,
     swipingActive: Boolean,
     content: @Composable (interactionState: TabItemInteractionState) -> Unit,
 ) {
-    val modifier = Modifier.zIndex(
-        if (swipingActive) {
-            10f
-        } else if (key == state.draggingItemKey || key == state.previousKeyOfDraggedItem) {
-            1f
-        } else {
-            0f
-        },
-    ).then(
-        when (key) {
-            state.draggingItemKey -> {
-                Modifier.graphicsLayer {
-                    translationX = state.computeItemOffset(position).x
-                    translationY = state.computeItemOffset(position).y
+    val modifier = Modifier
+        .zIndex(
+            if (swipingActive) {
+                10f
+            } else if (key == state.draggingItemKey || key == state.previousKeyOfDraggedItem) {
+                1f
+            } else {
+                0f
+            },
+        )
+        .then(
+            when (key) {
+                state.draggingItemKey -> {
+                    Modifier.graphicsLayer {
+                        translationX = state.computeItemOffset(position).x
+                        translationY = state.computeItemOffset(position).y
+                    }
                 }
-            }
-            state.previousKeyOfDraggedItem -> {
-                Modifier.graphicsLayer {
-                    translationX = state.previousItemOffset.value.x
-                    translationY = state.previousItemOffset.value.y
+
+                state.previousKeyOfDraggedItem -> {
+                    Modifier.graphicsLayer {
+                        translationX = state.previousItemOffset.value.x
+                        translationY = state.previousItemOffset.value.y
+                    }
                 }
-            }
-            else -> {
-                Modifier.animateItem(tween())
-            }
-        },
-    )
+
+                else -> {
+                    Modifier.animateItem(tween())
+                }
+            },
+        )
 
     Box(modifier = modifier, propagateMinConstraints = true) {
         content(

@@ -407,6 +407,15 @@ private val tabGridItemPreviewStateData: List<Pair<String, TabGridItemPreviewSta
             interactionState = TabItemInteractionState(isDragged = true),
         ),
     ),
+    Pair(
+        "Hovered by item",
+        TabGridItemPreviewState(
+            isActive = false,
+            multiSelectionEnabled = false,
+            multiSelectionSelected = false,
+            interactionState = TabItemInteractionState(isHoveredByItem = true),
+        ),
+    ),
 )
 
 private class TabGridItemParameterProvider : ThemedValueProvider<TabGridItemPreviewState>(

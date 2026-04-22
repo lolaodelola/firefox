@@ -482,7 +482,7 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
         }
 
         requirePreference<SwitchPreferenceCompat>(R.string.pref_key_tab_groups_drag_and_drop).apply {
-            isVisible = Config.channel.isDebug
+            isVisible = Config.channel.isNightlyOrDebug
             isChecked = context.settings().tabGroupsDragAndDropEnabled
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
@@ -549,9 +549,11 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
             resources.getString(R.string.pref_key_remote_settings_server) -> {
                 SecretSettingsFragmentDirections.actionSecretSettingsFragmentToRemoteSettingsServerFragment()
             }
+
             resources.getString(R.string.pref_key_search_optimization) -> {
                 SecretSettingsFragmentDirections.actionSecretSettingsFragmentToSearchOptimizationFragment()
             }
+
             else -> return super.onPreferenceTreeClick(preference)
         }
         navigateFromSecretSettings(directions)

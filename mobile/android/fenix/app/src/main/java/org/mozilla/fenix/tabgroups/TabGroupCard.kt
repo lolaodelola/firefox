@@ -431,6 +431,19 @@ private class TabGroupCardPreviewProvider : PreviewParameterProvider<TabGroupCar
                 interactionState = TabItemInteractionState(isDragged = true),
             ),
         ),
+        Pair(
+            "Hovered by item",
+            TabGroupCardPreviewState(
+                selectionState =
+                    TabsTrayItemSelectionState(
+                        isFocused = false,
+                        isSelected = false,
+                        multiSelectEnabled = false,
+                    ),
+                groupSize = 4,
+                interactionState = TabItemInteractionState(isHoveredByItem = true),
+            ),
+        ),
     )
 
     override val values: Sequence<TabGroupCardPreviewState>

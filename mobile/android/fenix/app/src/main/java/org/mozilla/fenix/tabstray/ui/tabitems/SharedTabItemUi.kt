@@ -30,7 +30,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -43,6 +50,7 @@ import mozilla.components.compose.base.RadioCheckmark
 import mozilla.components.compose.base.RadioCheckmarkColors
 import mozilla.components.compose.base.menu.DropdownMenu
 import mozilla.components.compose.base.menu.MenuItem
+import mozilla.components.compose.base.modifier.thenConditional
 import mozilla.components.compose.base.text.Text
 import mozilla.components.compose.base.theme.AcornCorners
 import mozilla.components.support.utils.ext.isLandscape
@@ -50,6 +58,7 @@ import mozilla.components.ui.colors.PhotonColors
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
 import org.mozilla.fenix.tabstray.browser.compose.TabItemInteractionState
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
+import org.mozilla.fenix.theme.FirefoxTheme
 import mozilla.components.ui.icons.R as iconsR
 
 // Rounded corner shape used by all tab items
@@ -269,7 +278,7 @@ fun tabItemConditionalBorder(selectionState: TabsTrayItemSelectionState): Border
 @Composable
 @ReadOnlyComposable
 fun tabItemBorderFocused(): BorderStroke {
-    return BorderStroke(width = 4.dp, color = MaterialTheme.colorScheme.tertiary)
+    return BorderStroke(width = FirefoxTheme.layout.border.thick, color = MaterialTheme.colorScheme.tertiary)
 }
 
 /**
@@ -288,7 +297,7 @@ private fun tabItemAnimatedAlpha(interactionState: TabItemInteractionState): Sta
 @Composable
 private fun tabItemAnimatedScale(interactionState: TabItemInteractionState): State<Float> {
     return animateFloatAsState(
-        targetValue = if (interactionState.isDragged) 0.75f else 1f,
+        targetValue = if (interactionState.isDragged || interactionState.isHoveredByItem) 0.75f else 1f,
     )
 }
 
@@ -302,7 +311,35 @@ private fun tabItemAnimatedScale(interactionState: TabItemInteractionState): Sta
 fun Modifier.tabItemInteractionAnimation(interactionState: TabItemInteractionState): Modifier {
     val tabItemAlpha: Float by tabItemAnimatedAlpha(interactionState)
     val tabItemScale: Float by tabItemAnimatedScale(interactionState)
+    val backdropColor = MaterialTheme.colorScheme.secondaryContainer
+    val backdropBorder = MaterialTheme.colorScheme.tertiary
+    val borderSize = FirefoxTheme.layout.border.thick
+    val cornerSize = FirefoxTheme.layout.corner.xLarge
+
     return this
+        .thenConditional(
+            Modifier.drawBehind({
+                // A Stroke rect is centered on the shape edge, which will spill outside the drawing area
+                // To make the border match other tabs, we must inset by half the stroke width, and adjust the size
+                val inset = borderSize.toPx() / 2
+                val shapeOffset = Offset(x = inset, y = inset)
+                val shapeSize = Size(this.size.width - shapeOffset.x * 2, this.size.height - shapeOffset.y * 2)
+                drawRoundRect(
+                    color = backdropColor,
+                    topLeft = shapeOffset,
+                    size = shapeSize,
+                    cornerRadius = CornerRadius(cornerSize.toPx()),
+                )
+                drawRoundRect(
+                    color = backdropBorder,
+                    topLeft = shapeOffset,
+                    size = shapeSize,
+                    cornerRadius = CornerRadius(cornerSize.toPx()),
+                    style = Stroke(width = borderSize.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
+                )
+            }),
+            { interactionState.isHoveredByItem },
+        )
         .graphicsLayer(alpha = tabItemAlpha, scaleX = tabItemScale, scaleY = tabItemScale)
         .semantics {
             scale = tabItemScale

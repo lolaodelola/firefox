@@ -366,7 +366,7 @@ class TabManagementFragment : DialogFragment() {
                                             System.currentTimeMillis()
                                     },
                                     onTabAutoCloseBannerShown = {},
-                                    onMove = tabManagerInteractor::onTabsMove,
+                                    tabInteractionHandler = tabManagerController,
                                     onInactiveTabsCFRShown = {
                                         TabsTray.inactiveTabsCfrVisible.record(NoExtras())
                                     },
@@ -524,6 +524,7 @@ class TabManagementFragment : DialogFragment() {
                     ),
                     config = TabsTrayState.TabsTrayConfig(
                         tabGroupsEnabled = requireContext().settings().tabGroupsEnabled,
+                        tabGroupsDragAndDropEnabled = requireContext().settings().tabGroupsDragAndDropEnabled,
                         displayTabsInGrid = requireContext().settings().gridTabView,
                         isInDebugMode = Config.channel.isDebug ||
                             requireComponents.settings.showSecretDebugMenuThisSession,

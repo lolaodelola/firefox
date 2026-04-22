@@ -80,19 +80,28 @@ class TabsTrayStateTest {
 
     @Test
     fun `GIVEN tab search is enabled and the user is on the Synced tabs page WHEN in the Tab Manager THEN the search icon is not shown`() {
-        val state = TabsTrayState(selectedPage = Page.SyncedTabs, config = TabsTrayState.TabsTrayConfig(tabSearchEnabled = true))
+        val state = TabsTrayState(
+            selectedPage = Page.SyncedTabs,
+            config = TabsTrayState.TabsTrayConfig(tabSearchEnabled = true),
+        )
         assertFalse(state.searchIconVisible)
     }
 
     @Test
     fun `GIVEN tab search is enabled and the user is on the Normal tabs page WHEN in the Tab Manager THEN the search icon is shown`() {
-        val state = TabsTrayState(selectedPage = Page.NormalTabs, config = TabsTrayState.TabsTrayConfig(tabSearchEnabled = true))
+        val state = TabsTrayState(
+            selectedPage = Page.NormalTabs,
+            config = TabsTrayState.TabsTrayConfig(tabSearchEnabled = true),
+        )
         assertTrue(state.searchIconVisible)
     }
 
     @Test
     fun `GIVEN tab search is enabled and the user is on the Private tabs page WHEN in the Tab Manager THEN the search icon is shown`() {
-        val state = TabsTrayState(selectedPage = Page.PrivateTabs, config = TabsTrayState.TabsTrayConfig(tabSearchEnabled = true))
+        val state = TabsTrayState(
+            selectedPage = Page.PrivateTabs,
+            config = TabsTrayState.TabsTrayConfig(tabSearchEnabled = true),
+        )
         assertTrue(state.searchIconVisible)
     }
 
@@ -110,13 +119,19 @@ class TabsTrayStateTest {
 
     @Test
     fun `GIVEN the user is on the Private tabs page without private tabs WHEN in the Tab Manager THEN the search icon is disabled`() {
-        val state = TabsTrayState(selectedPage = Page.PrivateTabs, privateBrowsing = TabsTrayState.PrivateBrowsingState(tabs = emptyList()))
+        val state = TabsTrayState(
+            selectedPage = Page.PrivateTabs,
+            privateBrowsing = TabsTrayState.PrivateBrowsingState(tabs = emptyList()),
+        )
         assertFalse(state.searchIconEnabled)
     }
 
     @Test
     fun `GIVEN the user is on the Private tabs page with private tabs WHEN in the Tab Manager THEN the search icon is enabled`() {
-        val state = TabsTrayState(selectedPage = Page.PrivateTabs, privateBrowsing = TabsTrayState.PrivateBrowsingState(tabs = listOf(createTab(url = ""))))
+        val state = TabsTrayState(
+            selectedPage = Page.PrivateTabs,
+            privateBrowsing = TabsTrayState.PrivateBrowsingState(tabs = listOf(createTab(url = ""))),
+        )
         assertTrue(state.searchIconEnabled)
     }
 

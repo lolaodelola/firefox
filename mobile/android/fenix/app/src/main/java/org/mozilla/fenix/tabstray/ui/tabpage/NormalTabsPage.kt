@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.annotation.FlexibleWindowLightDarkPreview
 import org.mozilla.fenix.R
 import org.mozilla.fenix.tabstray.TabsTrayTestTag
+import org.mozilla.fenix.tabstray.controller.TabInteractionHandler
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.ui.inactivetabs.InactiveTabsList
@@ -45,6 +46,8 @@ private val EmptyPageWidth = 170.dp
  * @param selectionMode [TabsTrayState.Mode] indicating whether the Tab Manager is in single selection.
  * @param inactiveTabsExpanded Whether the Inactive Tabs section is expanded.
  * @param displayTabsInGrid Whether the normal and private tabs should be displayed in a grid.
+ * @param dragAndDropEnabled Whether the grid supports dragging and dropping for tab groups.
+ * @param tabInteractionHandler Handles tab interactions, such as moves and drag and drop.
  * @param onTabClose Invoked when the user clicks to close a tab.
  * @param onItemClick Invoked when the user clicks on a tab.
  * @param onItemLongClick Invoked when the user long clicks a tab.
@@ -59,7 +62,6 @@ private val EmptyPageWidth = 170.dp
  * close dialog's enable button.
  * @param onInactiveTabClick Invoked when the user clicks on an inactive tab.
  * @param onInactiveTabClose Invoked when the user clicks on an inactive tab's close button.
- * @param onMove Invoked after the drag and drop gesture completed. Swaps position of two tabs.
  * @param shouldShowInactiveTabsCFR Returns whether the inactive tabs CFR is displayed.
  * @param onInactiveTabsCFRShown Invoked when the inactive tabs CFR is displayed.
  * @param onInactiveTabsCFRClick Invoked when the inactive tabs CFR is clicked.
@@ -77,6 +79,8 @@ internal fun NormalTabsPage(
     selectionMode: TabsTrayState.Mode,
     inactiveTabsExpanded: Boolean,
     displayTabsInGrid: Boolean,
+    dragAndDropEnabled: Boolean,
+    tabInteractionHandler: TabInteractionHandler,
     onTabClose: (TabsTrayItem.Tab) -> Unit,
     onItemClick: (TabsTrayItem) -> Unit,
     onItemLongClick: (TabsTrayItem) -> Unit,
@@ -88,7 +92,6 @@ internal fun NormalTabsPage(
     onEnableInactiveTabAutoCloseClick: () -> Unit,
     onInactiveTabClick: (TabsTrayItem.Tab) -> Unit,
     onInactiveTabClose: (TabsTrayItem.Tab) -> Unit,
-    onMove: (String, String?, Boolean) -> Unit,
     shouldShowInactiveTabsCFR: Boolean,
     onInactiveTabsCFRShown: () -> Unit,
     onInactiveTabsCFRClick: () -> Unit,
@@ -135,6 +138,7 @@ internal fun NormalTabsPage(
         TabLayout(
             tabs = items,
             displayTabsInGrid = displayTabsInGrid,
+            dragAndDropEnabled = dragAndDropEnabled,
             selectedItemIndex = selectedItemIndex,
             selectionMode = selectionMode,
             modifier = Modifier.testTag(TabsTrayTestTag.NORMAL_TABS_LIST),
@@ -144,7 +148,7 @@ internal fun NormalTabsPage(
             header = optionalInactiveTabsHeader,
             onTabDragStart = onTabDragStart,
             onDeleteTabGroup = onDeleteTabGroup,
-            onMove = onMove,
+            tabInteractionHandler = tabInteractionHandler,
             editTabGroupClick = editTabGroupClick,
         )
     } else {
