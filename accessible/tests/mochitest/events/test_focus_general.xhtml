@@ -17,59 +17,97 @@
   <script type="application/javascript"
           src="../states.js" />
   <script type="application/javascript"
-          src="../events.js" />
+          src="../promisified-events.js" />
 
   <script type="application/javascript">
-    //gA11yEventDumpID = "eventdump"; // debug stuff
-    //gA11yEventDumpToConsole = true; // debug stuff
-
-    var gQueue = null;
-    function doTests()
-    {
+    async function doTests() {
       // Test focus events.
-      gQueue = new eventQueue();
+      let focused = waitForEvent(EVENT_FOCUS, getNode("textbox"));
+      getNode("textbox").focus();
+      await focused;
 
-      gQueue.push(new synthFocus("textbox",
-                                 new focusChecker(getNode("textbox"))));
-      gQueue.push(new synthFocusOnFrame("editabledoc"));
-      gQueue.push(new synthFocus("radioclothes",
-                                 new focusChecker("radiosweater")));
-      gQueue.push(new synthDownKey("radiosweater",
-                                   new focusChecker("radiojacket")));
-      gQueue.push(new synthFocus("checkbox"));
-      gQueue.push(new synthFocus("button"));
-      gQueue.push(new synthFocus("checkbutton"));
-      gQueue.push(new synthFocus("radiobutton"));
+      focused = waitForEvent(
+        EVENT_FOCUS,
+        getNode("editabledoc").contentDocument
+      );
+      getNode("editabledoc").contentDocument.body.focus();
+      await focused;
+
+      focused = waitForEvent(EVENT_FOCUS, "radiosweater");
+      getNode("radioclothes").focus();
+      await focused;
+
+      focused = waitForEvent(EVENT_FOCUS, "radiojacket");
+      synthesizeKey("VK_DOWN", {});
+      await focused;
+
+      focused = waitForEvent(EVENT_FOCUS, "checkbox");
+      getNode("checkbox").focus();
+      await focused;
+
+      focused = waitForEvent(EVENT_FOCUS, "button");
+      getNode("button").focus();
+      await focused;
+
+      focused = waitForEvent(EVENT_FOCUS, "checkbutton");
+      getNode("checkbutton").focus();
+      await focused;
+
+      focused = waitForEvent(EVENT_FOCUS, "radiobutton");
+      getNode("radiobutton").focus();
+      await focused;
 
       // focus menubutton
-      gQueue.push(new synthFocus("menubutton"));
+      focused = waitForEvent(EVENT_FOCUS, "menubutton");
+      getNode("menubutton").focus();
+      await focused;
+
+      let popupstart = waitForEvent(EVENT_MENUPOPUP_START);
       // click menubutton, open popup, focus stays on menu button
-      gQueue.push(new synthClick("menubutton", new nofocusChecker()));
+      synthesizeMouseAtCenter(getNode("menubutton"), {});
+      await popupstart;
+
       // select first menu item ("item 1"), focus on menu item
-      gQueue.push(new synthDownKey("menubutton", new focusChecker("mb_item1")));
+      focused = waitForEvent(EVENT_FOCUS, "mb_item1");
+      synthesizeKey("VK_DOWN", {});
+      await focused;
+
       // choose select menu item, focus gets back to menubutton
-      gQueue.push(new synthEnterKey("mb_item1", new focusChecker("menubutton")));
+      focused = waitForEvent(EVENT_FOCUS, "menubutton");
+      synthesizeKey("VK_RETURN", {});
+      await focused;
+
       // press enter to open popup, focus stays on menubutton
-      gQueue.push(new synthEnterKey("menubutton", new nofocusChecker()));
+      synthesizeKey("VK_RETURN", {});
+
       // select second menu item ("item 2"), focus on menu item
-      gQueue.push(new synthUpKey("menubutton", new focusChecker("mb_item2")));
+      focused = waitForEvent(EVENT_FOCUS, "mb_item2");
+      synthesizeKey("VK_UP", {});
+      await focused;
+
       // close the popup
-      gQueue.push(new synthEscapeKey("menubutton", new focusChecker("menubutton")));
+      focused = waitForEvent(EVENT_FOCUS, "menubutton");
+      synthesizeKey("VK_ESCAPE", {});
+      await focused;
 
       // clicking on button having associated popup doesn't change focus
-      gQueue.push(new synthClick("popupbutton", [
-        new nofocusChecker(),
-        new invokerChecker("popupshown", "backpopup")
-      ]));
+      let shown = new Promise(r =>
+        getNode("backpopup").addEventListener("popupshown", r, { once: true })
+      );
+      synthesizeMouseAtCenter(getNode("popupbutton"), {});
+      await shown;
 
       // select first menu item ("item 1"), focus on menu item
-      gQueue.push(new synthDownKey("popupbutton", new focusChecker("bp_item1")));
-      // choose select menu item, focus gets back to menubutton
-      gQueue.push(new synthEnterKey("bp_item1", new focusChecker("menubutton")));
-      // show popup again for the next test
-      gQueue.push(new synthClick("popupbutton", new nofocusChecker()));
+      focused = waitForEvent(EVENT_FOCUS, "bp_item1");
+      synthesizeKey("VK_DOWN", {});
+      await focused;
 
-      gQueue.invoke(); // Will call SimpleTest.finish();
+      // choose select menu item, focus gets back to menubutton
+      focused = waitForEvent(EVENT_FOCUS, "menubutton");
+      synthesizeKey("VK_RETURN", {});
+      await focused;
+
+      SimpleTest.finish();
     }
 
     SimpleTest.waitForExplicitFinish();
