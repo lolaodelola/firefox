@@ -155,6 +155,7 @@ avoid-blacklist-and-whitelist:
         - layout/tools/reftest/selftest/conftest.py
         - mobile/android/android-components/docs/changelog.md
         - mobile/android/app/geckoview-prefs.js
+        - mobile/android/fenix/app/src/main/java/org/mozilla/fenix/ext/Bitmap.kt
         - mobile/android/fenix/app/src/main/java/org/mozilla/fenix/perf/StrictModeManager.kt
         - mobile/android/fenix/app/src/main/java/org/mozilla/fenix/translations/preferences/downloadlanguages/DownloadLanguagesFeature.kt
         - mobile/android/fenix/app/src/test/java/org/mozilla/fenix/translations/preferences/downloadlanguages/DownloadLanguagesFeatureTest.kt

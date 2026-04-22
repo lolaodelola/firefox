@@ -15,6 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mozilla.fenix.FenixApplication
+import org.mozilla.fenix.HomeActivity
 import org.mozilla.fenix.components.Core
 import org.mozilla.fenix.ext.application
 import org.mozilla.fenix.ext.components
@@ -44,6 +45,26 @@ class HomeFragmentTest {
         every { context.components.core } answers { core }
         every { homeFragment.binding } returns mockk(relaxed = true)
         every { homeFragment.viewLifecycleOwner } returns mockk(relaxed = true)
+    }
+
+    @Test
+    fun `GIVEN the user is in normal mode WHEN checking if should enable wallpaper THEN return true`() {
+        val activity: HomeActivity = mockk {
+            every { themeManager.currentTheme.isPrivate } returns false
+        }
+        every { homeFragment.activity } returns activity
+
+        assertTrue(homeFragment.shouldEnableWallpaper())
+    }
+
+    @Test
+    fun `GIVEN the user is in private mode WHEN checking if should enable wallpaper THEN return false`() {
+        val activity: HomeActivity = mockk {
+            every { themeManager.currentTheme.isPrivate } returns true
+        }
+        every { homeFragment.activity } returns activity
+
+        assertFalse(homeFragment.shouldEnableWallpaper())
     }
 
     @Test

@@ -148,7 +148,7 @@ class MediaNotificationTest {
             assertPlaybackState(browserStore, MediaSession.PlaybackState.PAUSED)
         }.openTabDrawer(retryableComposeTestRule.current) {
             closeTab()
-            verifySnackBarText(retryableComposeTestRule.current, "Private tab closed")
+            verifySnackBarText("Private tab closed")
         }
 
         mDevice.openNotification()

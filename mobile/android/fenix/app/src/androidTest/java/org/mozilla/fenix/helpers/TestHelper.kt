@@ -153,13 +153,6 @@ object TestHelper {
 
     fun verifySnackBarText(expectedText: String) = assertUIObjectExists(itemContainingText(expectedText))
 
-    @OptIn(androidx.compose.ui.test.ExperimentalTestApi::class)
-    fun verifySnackBarText(composeTestRule: ComposeTestRule, expectedText: String) {
-        Log.i(TAG, "verifySnackBarText: Waiting for snackbar with text: $expectedText")
-        composeTestRule.waitUntilAtLeastOneExists(hasText(expectedText), waitingTime)
-        Log.i(TAG, "verifySnackBarText: Found snackbar with text: $expectedText")
-    }
-
     // exit from Menus to home screen or browser
     fun exitMenu() {
         val menuToolbar =

@@ -4,7 +4,7 @@
 
 package org.mozilla.fenix.home
 
-import androidx.compose.material3.SnackbarHostState
+import android.view.View
 import androidx.navigation.NavController
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
@@ -61,7 +61,8 @@ class TabsCleanupFeatureTest {
     @RelaxedMockK
     private lateinit var settings: Settings
 
-    private val snackbarHostState = SnackbarHostState()
+    @RelaxedMockK
+    private lateinit var snackBarParentView: View
 
     private lateinit var feature: TabsCleanupFeature
 
@@ -79,7 +80,7 @@ class TabsCleanupFeatureTest {
                 settings = settings,
                 tabsUseCases = tabsUseCases,
                 fenixBrowserUseCases = fenixBrowserUseCases,
-                snackbarHostState = snackbarHostState,
+                snackBarParentView = snackBarParentView,
                 viewLifecycleScope = testCoroutineScope,
             ),
         )
