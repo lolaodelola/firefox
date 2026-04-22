@@ -27,6 +27,18 @@ using mozilla::Maybe;
 namespace js {
 namespace jit {
 
+JitcodeGlobalEntry::JitcodeGlobalEntry(Kind kind, JitCode* code,
+                                       void* nativeStartAddr,
+                                       void* nativeEndAddr)
+    : JitCodeRange(nativeStartAddr, nativeEndAddr),
+      jitcode_(code),
+      zone_(code->zone()),
+      kind_(kind) {
+  MOZ_ASSERT(code);
+  MOZ_ASSERT(nativeStartAddr);
+  MOZ_ASSERT(nativeEndAddr);
+}
+
 static void GetLineInfoFromJitCodeRecord(uint64_t addr, uint32_t* line,
                                          uint32_t* column) {
   JS::JitCodeRecord* record = JS::LookupJitCodeRecord(addr);
@@ -234,11 +246,10 @@ const JitcodeGlobalEntry* JitcodeGlobalTable::lookupForSampler(
     ionEntry.setSamplePositionInBuffer(samplePosInBuffer);
   }
 
-  // JitcodeGlobalEntries are marked at the end of the mark phase. A read
-  // barrier is not needed. Any JS frames sampled during the sweep phase of
-  // the GC must be on stack, and on-stack frames must already be marked at
-  // the beginning of the sweep phase. It's not possible to assert this here
-  // as we may be off main thread when called from the gecko profiler.
+  // The jitcode_ edge is weak, but no read barrier is needed here because the
+  // profiler never lets GC thing pointers escape: it only uses the entry to
+  // resolve addresses to call-stack info that has already been baked in at
+  // entry-creation time (see callStackAtAddr and realmID).
 
   return entry;
 }
@@ -260,13 +271,21 @@ bool JitcodeGlobalTable::addEntry(UniqueJitcodeGlobalEntry entry) {
              entry->isBaselineInterpreter() || entry->isDummy() ||
              entry->isRealmIndependentShared());
 
-  // Assert the new entry does not have a code range that's equal to (or
-  // contained in) one of the existing entries, because that would confuse the
-  // AVL tree.
-  MOZ_ASSERT(!tree_.maybeLookup(entry.get()));
-
   // Suppress profiler sampling while data structures are being mutated.
   AutoSuppressProfilerSampling suppressSampling(TlsContext.get());
+
+  // Old entries whose JitCode was collected but were kept alive for profiler
+  // buffer processing may still occupy overlapping address ranges. Remove them
+  // from the AVL tree so the new entry can take their place. They are left in
+  // entries_ and will be swept from the vector by traceWeak at the next GC.
+  // There may be multiple (e.g. several small IonIC stubs whose memory was
+  // reused by a larger JitCode).
+  while (JitCodeRange** existing = tree_.maybeLookup(entry.get())) {
+    auto* oldEntry = static_cast<JitcodeGlobalEntry*>(*existing);
+    MOZ_ASSERT(!oldEntry->hasJitcode());
+    tree_.remove(oldEntry);
+    oldEntry->setInTree(false);
+  }
 
   if (!entries_.append(std::move(entry))) {
     return false;
@@ -275,6 +294,7 @@ bool JitcodeGlobalTable::addEntry(UniqueJitcodeGlobalEntry entry) {
     entries_.popBack();
     return false;
   }
+  entries_.back()->setInTree(true);
 
   return true;
 }
@@ -287,72 +307,34 @@ void JitcodeGlobalTable::setAllEntriesAsExpired() {
   }
 }
 
-bool JitcodeGlobalTable::markIteratively(GCMarker* marker) {
-  // JitcodeGlobalTable must keep entries that are in the sampler buffer
-  // alive. This conditionality is akin to holding the entries weakly.
-  //
-  // If this table were marked at the beginning of the mark phase, then
-  // sampling would require a read barrier for sampling in between
-  // incremental GC slices. However, invoking read barriers from the sampler
-  // is wildly unsafe. The sampler may run at any time, including during GC
-  // itself.
-  //
-  // Instead, JitcodeGlobalTable is marked at the beginning of the sweep
-  // phase, along with weak references. The key assumption is the
-  // following. At the beginning of the sweep phase, any JS frames that the
-  // sampler may put in its buffer that are not already there at the
-  // beginning of the mark phase must have already been marked, as either 1)
-  // the frame was on-stack at the beginning of the sweep phase, or 2) the
-  // frame was pushed between incremental sweep slices. Frames of case 1)
-  // are already marked. Frames of case 2) must have been reachable to have
-  // been newly pushed, and thus are already marked.
-  //
-  // The approach above obviates the need for read barriers. The assumption
-  // above is checked in JitcodeGlobalTable::lookupForSampler.
-
-  MOZ_ASSERT(!JS::RuntimeHeapIsMinorCollecting());
-
-  AutoSuppressProfilerSampling suppressSampling(TlsContext.get());
-
-  // If the profiler is off, rangeStart will be Nothing() and all entries are
-  // considered to be expired.
-  Maybe<uint64_t> rangeStart =
-      marker->runtime()->profilerSampleBufferRangeStart();
-
-  bool markedAny = false;
-  for (EntryVector::Range r(entries_.all()); !r.empty(); r.popFront()) {
-    auto& entry = r.front();
-
-    // If an entry is not sampled, reset its buffer position to the invalid
-    // position, and conditionally mark the rest of the entry if its
-    // JitCode is not already marked. This conditional marking ensures
-    // that so long as the JitCode *may* be sampled, we keep any
-    // information that may be handed out to the sampler, like tracked
-    // types used by optimizations and scripts used for pc to line number
-    // mapping, alive as well.
-    if (!rangeStart || !entry->isSampled(*rangeStart)) {
-      entry->setAsExpired();
-      if (!entry->isJitcodeMarkedFromAnyThread(marker->runtime())) {
-        continue;
-      }
-    }
-
-    // The table is runtime-wide. Not all zones may be participating in
-    // the GC.
-    if (!entry->zone()->isCollecting() || entry->zone()->isGCFinished()) {
-      continue;
-    }
-
-    markedAny |= entry->trace(marker->tracer());
-  }
-
-  return markedAny;
-}
-
 void JitcodeGlobalTable::traceWeak(JSRuntime* rt, JSTracer* trc) {
   AutoSuppressProfilerSampling suppressSampling(rt->mainContextFromOwnThread());
 
+  // If the profiler is off, rangeStart will be Nothing() and all entries are
+  // considered to be expired.
+  Maybe<uint64_t> rangeStart = rt->profilerSampleBufferRangeStart();
+
   entries_.eraseIf([&](auto& entry) {
+    // Expire entries no longer referenced from the profiler buffer.
+    if (!entry->isReferencedByProfiler(rangeStart)) {
+      entry->setAsExpired();
+    }
+
+    // Entries whose JitCode was collected in a previous cycle are kept alive
+    // only while still referenced from the profiler buffer. We skip the zone
+    // check here because the zone may have been destroyed after the JitCode
+    // was collected. The entry may have already been removed from the tree by
+    // addEntry if a new JitCode was compiled at the same address.
+    if (!entry->hasJitcode()) {
+      if (entry->isReferencedByProfiler(rangeStart)) {
+        return false;
+      }
+      if (entry->isInTree()) {
+        tree_.remove(entry.get());
+      }
+      return true;
+    }
+
     if (!entry->zone()->isCollecting() || entry->zone()->isGCFinished()) {
       return false;
     }
@@ -363,29 +345,22 @@ void JitcodeGlobalTable::traceWeak(JSRuntime* rt, JSTracer* trc) {
       return false;
     }
 
-    // We have to remove the entry.
-#ifdef DEBUG
-    Maybe<uint64_t> rangeStart = rt->profilerSampleBufferRangeStart();
-    MOZ_ASSERT_IF(rangeStart, !entry->isSampled(*rangeStart));
-#endif
+    // JitCode is being collected. If there are still unprocessed samples
+    // in the profiler buffer referencing this entry, keep the entry alive
+    // (including in the AVL tree) so that the profiler can still resolve
+    // those addresses via callStackAtAddr during streaming. The entry no
+    // longer needs the JitCode pointer since all the information it
+    // provides (call stack strings, realmId) is already baked in.
+    if (entry->isReferencedByProfiler(rangeStart)) {
+      *entry->jitcodePtr() = nullptr;
+      return false;
+    }
+
     tree_.remove(entry.get());
     return true;
   });
 
-  MOZ_ASSERT(tree_.empty() == entries_.empty());
-}
-
-bool JitcodeGlobalEntry::traceJitcode(JSTracer* trc) {
-  if (!IsMarkedUnbarriered(trc->runtime(), jitcode_)) {
-    TraceManuallyBarrieredEdge(trc, &jitcode_,
-                               "jitcodglobaltable-baseentry-jitcode");
-    return true;
-  }
-  return false;
-}
-
-bool JitcodeGlobalEntry::isJitcodeMarkedFromAnyThread(JSRuntime* rt) {
-  return IsMarkedUnbarriered(rt, jitcode_);
+  MOZ_ASSERT_IF(entries_.empty(), tree_.empty());
 }
 
 uint32_t JitcodeGlobalEntry::callStackAtAddr(JSRuntime* rt, void* ptr,
@@ -426,8 +401,6 @@ uint64_t JitcodeGlobalEntry::realmID(JSRuntime* rt) const {
   }
   MOZ_CRASH("Invalid kind");
 }
-
-bool JitcodeGlobalEntry::trace(JSTracer* trc) { return traceJitcode(trc); }
 
 void* JitcodeGlobalEntry::canonicalNativeAddrFor(JSRuntime* rt,
                                                  void* ptr) const {
