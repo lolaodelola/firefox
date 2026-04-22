@@ -1883,10 +1883,10 @@ function testParseAttr(doc, parser) {
       // prettier-ignore
       expected:
         `attr(` +
-          `<span class="inspector-attribute" data-attribute="&quot;&quot;">data-x</span>` +
-          `, ` +
+          `  <span class="inspector-attribute" data-attribute="&quot;&quot;">data-x</span>` +
+          `  ,  ` +
           `<span class="inspector-attr-fallback unmatched-class">"fallback"</span>` +
-        `)`,
+        `  )`,
     },
   ];
 
