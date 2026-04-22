@@ -232,6 +232,12 @@ function getDirectoryEntries(dir) {
   return files;
 }
 
+// Strips the random seed (_XXXX, 4 base64url chars) that nsWebBrowserPersist
+// inserts before the file extension of saved subresources.
+function stripSeedFromFilename(filename) {
+  return filename.replace(/_[A-Za-z0-9_-]{4}(?=\.[^.]+$|$)/, "");
+}
+
 // This test saves the document as a complete web page and verifies
 // that the resources are saved with the correct filename.
 add_task(async function save_document() {
@@ -256,20 +262,19 @@ add_task(async function save_document() {
   saveBrowser(browser);
   await savePromise;
 
-  let filesSaved = getDirectoryEntries(tmpDir);
+  let filesSaved = getDirectoryEntries(tmpDir).map(stripSeedFromFilename);
 
   for (let idx = 0; idx < expectedItems.length; idx++) {
     let filename = expectedItems[idx].filename;
-
-    let file = tmpDir.clone();
-    file.append(filename);
 
     let fileIdx = -1;
     // Use checkShortenedFilename to check long filenames.
     if (filename.length > 240) {
       for (let t = 0; t < filesSaved.length; t++) {
+        // After seed stripping a 64-char truncated filename is 59 chars;
+        // use 55 as the lower bound to also tolerate CreateUnique shortening.
         if (
-          filesSaved[t].length > 60 &&
+          filesSaved[t].length > 55 &&
           checkShortenedFilename(filesSaved[t], filename)
         ) {
           fileIdx = t;
