@@ -453,6 +453,7 @@
   MACRO_(smallestUnit, "smallestUnit")                                         \
   MACRO_(source, "source")                                                     \
   MACRO_(stack, "stack")                                                       \
+  MACRO_(stackTraceLimit, "stackTraceLimit")                                   \
   MACRO_(star_namespace_star_, "*namespace*")                                  \
   MACRO_(start, "start")                                                       \
   MACRO_(startRange, "startRange")                                             \

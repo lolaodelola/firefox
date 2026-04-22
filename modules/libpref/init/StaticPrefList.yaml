@@ -9367,6 +9367,14 @@
   value: false
   mirror: always
   set_spidermonkey_pref: startup
+
+  # Experimental support for Error.stackTraceLimit
+- name: javascript.options.experimental.error_stack_trace_limit
+  type: bool
+  value: false
+  mirror: always
+  set_spidermonkey_pref: startup
+
 #endif  // NIGHTLY_BUILD
 
   # Capture stack traces for OOM

@@ -2234,6 +2234,13 @@ JS_PUBLIC_API bool js::ShouldIgnorePropertyDefinition(JSContext* cx,
       id == NameToId(cx->names().captureStackTrace)) {
     return true;
   }
+#ifdef NIGHTLY_BUILD
+  if (key == JSProto_Function &&
+      !JS::Prefs::experimental_error_stack_trace_limit() &&
+      id == NameToId(cx->names().stackTraceLimit)) {
+    return true;
+  }
+#endif
   if (key == JSProto_Atomics && !JS::Prefs::experimental_atomics_pause() &&
       id == NameToId(cx->names().pause)) {
     return true;
