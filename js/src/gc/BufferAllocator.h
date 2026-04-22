@@ -570,8 +570,8 @@ class BufferAllocator : public SlimLinkedListElement<BufferAllocator> {
   bool sweepSmallBufferRegion(BufferChunk* chunk, SmallBufferRegion* region,
                               SweepKind sweepKind);
   void addSweptRegion(SmallBufferRegion* region, uintptr_t freeStart,
-                      uintptr_t freeEnd, bool expectUnchanged,
-                      FreeLists& freeLists);
+                      uintptr_t freeEnd, bool shouldDecommit,
+                      bool expectUnchanged, FreeLists& freeLists);
   void freeMedium(void* alloc);
   bool growMedium(void* alloc, size_t newBytes);
   bool shrinkMedium(void* alloc, size_t newBytes);

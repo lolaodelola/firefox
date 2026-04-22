@@ -232,6 +232,10 @@ struct AllocSpace {
     return RoundUp(sizeof(Derived), GranularityBytes);
   }
 
+  using AllocIter =
+      BitmapToBlockIter<BitSetIter<MaxAllocCount>, GranularityBytes>;
+  AllocIter allocIter() { return {asDerived(), allocStartBitmap.ref()}; }
+
   void setAllocated(void* alloc, size_t bytes, bool allocated);
   void updateEndOffset(void* alloc, size_t oldBytes, size_t newBytes);
   void setDeallocated(void* alloc, size_t bytes);
@@ -283,6 +287,17 @@ struct AllocSpace {
   FreeRegion* findFollowingFreeRegion(uintptr_t startAddr);
   FreeRegion* findPrecedingFreeRegion(uintptr_t endAddr);
 
+  using FreeLists = BufferAllocator::FreeLists;
+  using SweepKind = BufferAllocator::SweepKind;
+  struct SweepResult {
+    bool isEmpty = false;
+    bool hasNurseryOwnedAllocs = false;
+    size_t bytesFreed = 0;
+  };
+  SweepResult sweep(BufferAllocator* allocator, FreeLists& freeLists,
+                    SweepKind sweepKind, bool sweptAnyPreviously,
+                    bool shouldDecommit);
+
  protected:
   AllocSpace() {
     MOZ_ASSERT(allocStartBitmap.ref().IsEmpty());
@@ -331,6 +346,9 @@ struct AllocSpace {
     return offset >= firstAllocOffset() && offset < SizeBytes;
   }
 #endif
+
+ private:
+  Derived* asDerived() { return static_cast<Derived*>(this); }
 };
 
 // A chunk containing medium buffer allocations for a single zone. Unlike
@@ -363,10 +381,6 @@ struct BufferChunk
   // use.
   MainThreadOrGCTaskData<BufferAllocator::FreeLists> freeLists;
   MainThreadOrGCTaskData<bool> ownsFreeLists;
-
-  using AllocIter =
-      BitmapToBlockIter<BitSetIter<MaxAllocCount>, MediumAllocGranularity>;
-  AllocIter allocIter() { return {this, allocStartBitmap.ref()}; }
 
   using SmallRegionIter = BitmapToBlockIter<SmallRegionBitmap::Iter,
                                             SmallRegionSize, SmallBufferRegion>;
@@ -401,10 +415,6 @@ constexpr size_t FirstMediumAllocOffset = BufferChunk::firstAllocOffset();
 struct SmallBufferRegion : public AllocSpace<SmallBufferRegion, SmallRegionSize,
                                              SmallAllocGranularity> {
   MainThreadOrGCTaskData<bool> hasNurseryOwnedAllocs_;
-
-  using AllocIter =
-      BitmapToBlockIter<BitSetIter<MaxAllocCount>, SmallAllocGranularity>;
-  AllocIter allocIter() { return {this, allocStartBitmap.ref()}; }
 
   static SmallBufferRegion* from(void* alloc) {
     uintptr_t addr = uintptr_t(alloc) & ~SmallRegionMask;
