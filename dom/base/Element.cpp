@@ -84,6 +84,7 @@
 #include "mozilla/dom/DocumentFragment.h"
 #include "mozilla/dom/DocumentInlines.h"
 #include "mozilla/dom/DocumentTimeline.h"
+#include "mozilla/dom/EditContext.h"
 #include "mozilla/dom/ElementBinding.h"
 #include "mozilla/dom/ElementInlines.h"
 #include "mozilla/dom/Flex.h"
@@ -5426,6 +5427,12 @@ TextEditor* Element::GetTextEditorInternal() {
   TextControlElement* textControlElement = TextControlElement::FromNode(this);
   return textControlElement ? MOZ_KnownLive(textControlElement)->GetTextEditor()
                             : nullptr;
+}
+
+void Element::ClearEditContext() {
+  MOZ_ASSERT(HasFlag(ELEMENT_HAS_EDIT_CONTEXT));
+  UnsetFlags(ELEMENT_HAS_EDIT_CONTEXT);
+  EditContext::SetForElement(*this, nullptr);
 }
 
 nsresult Element::SetBoolAttr(nsAtom* aAttr, bool aValue) {

@@ -37,6 +37,7 @@
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/DocumentInlines.h"
 #include "mozilla/dom/DocumentOrShadowRoot.h"
+#include "mozilla/dom/EditContext.h"
 #include "mozilla/dom/ElementBinding.h"
 #include "mozilla/dom/ElementInternals.h"
 #include "mozilla/dom/FetchPriority.h"
@@ -361,6 +362,22 @@ bool nsGenericHTMLElement::Spellcheck() {
 bool nsGenericHTMLElement::Autocorrect() const {
   return !AttrValueIs(kNameSpaceID_None, nsGkAtoms::autocorrect, nsGkAtoms::OFF,
                       eIgnoreCase);
+}
+
+EditContext* nsGenericHTMLElement::GetEditContext() const {
+  return EditContext::GetForElement(*this);
+}
+
+void nsGenericHTMLElement::SetEditContext(EditContext* aContext,
+                                          ErrorResult& aRv) {
+  // TODO: handle errors and active EditContext changes:
+  // https://w3c.github.io/edit-context/#ref-for-dom-htmlelement-editcontext-4
+  if (aContext) {
+    SetFlags(ELEMENT_HAS_EDIT_CONTEXT);
+  } else {
+    UnsetFlags(ELEMENT_HAS_EDIT_CONTEXT);
+  }
+  EditContext::SetForElement(*this, aContext);
 }
 
 bool nsGenericHTMLElement::InNavQuirksMode(Document* aDoc) {

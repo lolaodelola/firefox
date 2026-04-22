@@ -205,8 +205,12 @@ enum : uint32_t {
   ELEMENT_CUSTOM_ELEMENT_REGISTRY_MASK =
       ELEMENT_FLAG_BIT(8) | ELEMENT_FLAG_BIT(9),
 
+  // Whether this element has an associated EditContext
+  // https://w3c.github.io/edit-context
+  ELEMENT_HAS_EDIT_CONTEXT = ELEMENT_FLAG_BIT(10),
+
   // Remaining bits are for subclasses
-  ELEMENT_TYPE_SPECIFIC_BITS_OFFSET = NODE_TYPE_SPECIFIC_BITS_OFFSET + 10
+  ELEMENT_TYPE_SPECIFIC_BITS_OFFSET = NODE_TYPE_SPECIFIC_BITS_OFFSET + 11
 };
 
 #undef ELEMENT_FLAG_BIT
@@ -2036,6 +2040,11 @@ class Element : public FragmentOrElement {
    * Locate a TextEditor rooted at this content node, if there is one.
    */
   MOZ_CAN_RUN_SCRIPT_BOUNDARY mozilla::TextEditor* GetTextEditorInternal();
+
+  /**
+   * Detach EditContext from this element.
+   */
+  void ClearEditContext();
 
   /**
    * Gets value of boolean attribute. Only works for attributes in null

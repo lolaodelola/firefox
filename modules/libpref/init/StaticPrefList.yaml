@@ -2773,6 +2773,13 @@
   value: false
   mirror: always
 
+# Whether to enable EditContext API
+# https://w3c.github.io/edit-context/#dom-editcontext
+- name: dom.editcontext.enabled
+  type: bool
+  value: false
+  mirror: always
+
 # HTMLDialogElement.prototype.requestClose
 # See https://html.spec.whatwg.org/#dom-dialog-requestclose
 - name: dom.element.dialog.request_close.enabled
