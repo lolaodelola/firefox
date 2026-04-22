@@ -68,7 +68,6 @@ fails. This is recommended for writing novel gecko-specific lints. In
 this case the signature for lint functions is ``lint(files, config, logger,
 **kwargs)``.
 
-
 Linter Definition
 -----------------
 
@@ -189,6 +188,7 @@ The ``support-files`` key is used to list configuration files or files related
 to the running of the linter itself. If using ``--outgoing`` or ``--workdir``
 and one of these files was modified, the entire tree will be linted instead of
 just the modified files.
+
 
 Result definition
 -----------------
