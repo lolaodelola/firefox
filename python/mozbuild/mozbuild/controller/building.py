@@ -1899,7 +1899,7 @@ class BuildDriver(MozbuildObject):
 
         return status
 
-    def install_tests(self):
+    def install_tests(self, force=False):
         """Install test files."""
 
         if self.is_clobber_needed():
@@ -1910,7 +1910,18 @@ class BuildDriver(MozbuildObject):
             )
             sys.exit(1)
 
-        install_test_files(mozpath.normpath(self.topsrcdir), self.topobjdir, "_tests")
+        skipped = install_test_files(
+            mozpath.normpath(self.topsrcdir),
+            self.topobjdir,
+            "_tests",
+            force=force,
+        )
+        if skipped:
+            print(
+                "Skipping test file installation (up to date). "
+                "Run with --force to force reinstallation.",
+                file=sys.stderr,
+            )
 
     def _clobber_configure(self):
         # This is an optimistic treatment of the CLOBBER file for when we have
