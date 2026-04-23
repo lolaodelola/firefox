@@ -1739,10 +1739,15 @@ bool SnapshotIterator::allocationReadable(const RValueAllocation& alloc,
 
   switch (alloc.mode()) {
     case RValueAllocation::DOUBLE_REG:
+    case RValueAllocation::FLOAT32_REG:
       return hasRegister(alloc.fpuReg());
+    case RValueAllocation::FLOAT32_STACK:
+      return hasStack(alloc.stackOffset());
 
     case RValueAllocation::TYPED_REG:
       return hasRegister(alloc.reg2());
+    case RValueAllocation::TYPED_STACK:
+      return hasStack(alloc.stackOffset2());
 
 #if defined(JS_NUNBOX32)
     case RValueAllocation::UNTYPED_REG_REG:
@@ -1789,8 +1794,15 @@ bool SnapshotIterator::allocationReadable(const RValueAllocation& alloc,
       return hasStack(alloc.stackOffset());
 #endif
 
-    default:
+    case RValueAllocation::CONSTANT:
+    case RValueAllocation::CST_UNDEFINED:
+    case RValueAllocation::CST_NULL:
+    case RValueAllocation::INTPTR_CST:
+    case RValueAllocation::INT64_CST:
       return true;
+
+    default:
+      MOZ_CRASH("Unexpected mode");
   }
 }
 
