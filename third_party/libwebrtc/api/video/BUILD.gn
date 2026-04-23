@@ -209,6 +209,7 @@ rtc_library("rtp_video_frame_assembler") {
     "..:array_view",
     "..:rtp_packet_info",
     "..:scoped_refptr",
+    "../../api/units:timestamp",
     "../../modules/rtp_rtcp",
     "../../modules/rtp_rtcp:rtp_rtcp_format",
     "../../modules/rtp_rtcp:rtp_video_header",
