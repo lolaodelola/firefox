@@ -597,6 +597,10 @@ ImageTestCase DownscaledJXLTestCase();
 ImageTestCase LargeJXLTestCase();
 ImageTestCase TransparentJXLTestCase();
 ImageTestCase CorruptJXLTestCase();
+ImageTestCase PerfRgbLosslessJXLTestCase();
+ImageTestCase PerfRgbAlphaLosslessJXLTestCase();
+ImageTestCase PerfRgbLossyJXLTestCase();
+ImageTestCase PerfRgbAlphaLossyJXLTestCase();
 #endif
 
 ImageTestCase ExifResolutionTestCase();

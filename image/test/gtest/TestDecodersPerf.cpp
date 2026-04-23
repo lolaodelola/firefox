@@ -156,4 +156,11 @@ IMAGE_GTEST_BENCH_ALPHA_F(WebP, RgbAlphaLossy)
 
 IMAGE_GTEST_BENCH_F(GIF, Rgb)
 
+#ifdef MOZ_JXL
+IMAGE_GTEST_BENCH_F(JXL, RgbLossless)
+IMAGE_GTEST_BENCH_F(JXL, RgbLossy)
+IMAGE_GTEST_BENCH_ALPHA_F(JXL, RgbAlphaLossless)
+IMAGE_GTEST_BENCH_ALPHA_F(JXL, RgbAlphaLossy)
+#endif
+
 }  // namespace

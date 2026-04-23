@@ -1051,6 +1051,25 @@ ImageTestCase CorruptJXLTestCase() {
   return ImageTestCase("corrupt.jxl", "image/jxl", IntSize(100, 100),
                        TEST_CASE_HAS_ERROR);
 }
+
+ImageTestCase PerfRgbLosslessJXLTestCase() {
+  return ImageTestCase("perf_srgb_lossless.jxl", "image/jxl",
+                       IntSize(1000, 1000));
+}
+
+ImageTestCase PerfRgbAlphaLosslessJXLTestCase() {
+  return ImageTestCase("perf_srgb_alpha_lossless.jxl", "image/jxl",
+                       IntSize(1000, 1000), TEST_CASE_IS_TRANSPARENT);
+}
+
+ImageTestCase PerfRgbLossyJXLTestCase() {
+  return ImageTestCase("perf_srgb_lossy.jxl", "image/jxl", IntSize(1000, 1000));
+}
+
+ImageTestCase PerfRgbAlphaLossyJXLTestCase() {
+  return ImageTestCase("perf_srgb_alpha_lossy.jxl", "image/jxl",
+                       IntSize(1000, 1000), TEST_CASE_IS_TRANSPARENT);
+}
 #endif
 
 ImageTestCase ExifResolutionTestCase() {
