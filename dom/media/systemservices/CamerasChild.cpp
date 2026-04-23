@@ -279,17 +279,12 @@ int CamerasChild::GetCaptureCapability(
 }
 
 mozilla::ipc::IPCResult CamerasChild::RecvReplyGetCaptureCapability(
-    const VideoCaptureCapability& ipcCapability) {
+    const webrtc::VideoCaptureCapability& aCapability) {
   LOG(("%s", __PRETTY_FUNCTION__));
   MonitorAutoLock monitor(mReplyMonitor);
   mReceivedReply = true;
   mReplySuccess = true;
-  mReplyCapability->width = ipcCapability.width();
-  mReplyCapability->height = ipcCapability.height();
-  mReplyCapability->maxFPS = ipcCapability.maxFPS();
-  mReplyCapability->videoType =
-      static_cast<webrtc::VideoType>(ipcCapability.videoType());
-  mReplyCapability->interlaced = ipcCapability.interlaced();
+  *mReplyCapability = aCapability;
   monitor.Notify();
   return IPC_OK();
 }
@@ -410,16 +405,12 @@ int CamerasChild::StartCapture(CaptureEngine aCapEngine, const int capture_id,
                                FrameRelay* cb) {
   LOG(("%s", __PRETTY_FUNCTION__));
   AddCallback(capture_id, cb);
-  VideoCaptureCapability capCap(
-      webrtcCaps.width, webrtcCaps.height, webrtcCaps.maxFPS,
-      static_cast<int>(webrtcCaps.videoType), webrtcCaps.interlaced);
-  nsCOMPtr<nsIRunnable> runnable =
-      mozilla::NewRunnableMethod<CaptureEngine, int, VideoCaptureCapability,
-                                 NormalizedConstraints,
-                                 dom::VideoResizeModeEnum>(
-          "camera::PCamerasChild::SendStartCapture", this,
-          &CamerasChild::SendStartCapture, aCapEngine, capture_id, capCap,
-          constraints, resize_mode);
+  nsCOMPtr<nsIRunnable> runnable = mozilla::NewRunnableMethod<
+      CaptureEngine, int, webrtc::VideoCaptureCapability, NormalizedConstraints,
+      dom::VideoResizeModeEnum>("camera::PCamerasChild::SendStartCapture", this,
+                                &CamerasChild::SendStartCapture, aCapEngine,
+                                capture_id, webrtcCaps, constraints,
+                                resize_mode);
   LockAndDispatch<> dispatcher(this, __func__, runnable, kError, kIpcError,
                                kSuccess);
   if (!dispatcher.Success()) {

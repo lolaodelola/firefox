@@ -14,20 +14,10 @@ using mozilla::dom::VideoResizeModeEnum from "mozilla/dom/MediaStreamTrackBindin
 using mozilla::TimeStamp from "mozilla/TimeStamp.h";
 using mozilla::media::TimeUnit from "TimeUnits.h";
 using mozilla::NormalizedConstraints from "MediaTrackConstraints.h";
+using webrtc::VideoCaptureCapability from "mozilla/media/CamerasIPCUtils.h";
 
 namespace mozilla {
 namespace camera {
-
-// IPC analog for webrtc::VideoCaptureCapability
-struct VideoCaptureCapability
-{
-  int width;
-  int height;
-  int maxFPS;
-  int videoType;
-  bool interlaced;
-};
-
 
 // IPC analog for webrtc::VideoFrame
 // the described buffer is transported seperately in a Shmem

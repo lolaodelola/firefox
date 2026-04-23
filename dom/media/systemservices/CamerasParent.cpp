@@ -1084,13 +1084,10 @@ ipc::IPCResult CamerasParent::RecvGetCaptureCapability(
             }
 
             auto webrtcCaps = aValue.ResolveValue();
-            VideoCaptureCapability capCap(
-                webrtcCaps.width, webrtcCaps.height, webrtcCaps.maxFPS,
-                static_cast<int>(webrtcCaps.videoType), webrtcCaps.interlaced);
             LOG("Capability: %u %u %u %d %d", webrtcCaps.width,
                 webrtcCaps.height, webrtcCaps.maxFPS,
                 static_cast<int>(webrtcCaps.videoType), webrtcCaps.interlaced);
-            (void)SendReplyGetCaptureCapability(capCap);
+            (void)SendReplyGetCaptureCapability(webrtcCaps);
           });
   return IPC_OK();
 }
@@ -1334,7 +1331,7 @@ ipc::IPCResult CamerasParent::RecvReleaseCapture(
 
 ipc::IPCResult CamerasParent::RecvStartCapture(
     const CaptureEngine& aCapEngine, const int& aStreamId,
-    const VideoCaptureCapability& aIpcCaps,
+    const webrtc::VideoCaptureCapability& aCapability,
     const NormalizedConstraints& aConstraints,
     const dom::VideoResizeModeEnum& aResizeMode) {
   MOZ_ASSERT(mPBackgroundEventTarget->IsOnCurrentThread());
@@ -1344,7 +1341,7 @@ ipc::IPCResult CamerasParent::RecvStartCapture(
 
   using Promise = MozPromise<int, bool, true>;
   InvokeAsync(mVideoCaptureThread, __func__,
-              [this, self = RefPtr(this), aCapEngine, aStreamId, aIpcCaps,
+              [this, self = RefPtr(this), aCapEngine, aStreamId, aCapability,
                aConstraints, aResizeMode] {
                 LOG_FUNCTION();
 
@@ -1362,18 +1359,8 @@ ipc::IPCResult CamerasParent::RecvStartCapture(
 
                 int error = -1;
                 if (aggregator) {
-                  webrtc::VideoCaptureCapability capability;
-                  capability.width = aIpcCaps.width();
-                  capability.height = aIpcCaps.height();
-                  capability.maxFPS = aIpcCaps.maxFPS();
-                  capability.videoType =
-                      static_cast<webrtc::VideoType>(aIpcCaps.videoType());
-                  capability.interlaced = aIpcCaps.interlaced();
-
-                  if (aggregator) {
-                    error = aggregator->StartStream(aStreamId, capability,
-                                                    aConstraints, aResizeMode);
-                  }
+                  error = aggregator->StartStream(aStreamId, aCapability,
+                                                  aConstraints, aResizeMode);
                 }
 
                 return Promise::CreateAndResolve(
