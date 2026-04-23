@@ -684,8 +684,7 @@ dialog {
   }
 }
 
-.weatherWrapper .location-input-wrapper,
-.weather-forecast-widget .location-input-wrapper {
+.location-input-wrapper {
   background-color: light-dark(var(--color-white), var(--newtab-background-color-secondary));
   color: var(--newtab-text-primary-color);
   border-radius: var(--border-radius-medium);
