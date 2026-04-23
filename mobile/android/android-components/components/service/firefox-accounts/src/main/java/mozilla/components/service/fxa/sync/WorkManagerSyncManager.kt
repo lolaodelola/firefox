@@ -189,6 +189,11 @@ internal class WorkManagerSyncDispatcher(
         ).enqueue()
     }
 
+    override fun setEngineEnabled(engine: SyncEngine, enabled: Boolean) {
+        SyncEnginesStorage(context).setStatus(engine, enabled)
+        syncNow(SyncReason.EngineChange, debounce = false)
+    }
+
     override fun close() {
         unregisterObservers()
         stopPeriodicSync()
