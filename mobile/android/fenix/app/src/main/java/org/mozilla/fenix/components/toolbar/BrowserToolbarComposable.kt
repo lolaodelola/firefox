@@ -20,13 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
 import mozilla.components.browser.state.action.AwesomeBarAction
-import mozilla.components.browser.state.selector.selectedTab
 import mozilla.components.browser.state.state.CustomTabSessionState
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.compose.base.utils.BackInvokedHandler
 import mozilla.components.compose.browser.toolbar.BrowserToolbar
-import mozilla.components.compose.browser.toolbar.BrowserToolbarCFR
-import mozilla.components.compose.browser.toolbar.R
 import mozilla.components.compose.browser.toolbar.store.BrowserToolbarAction.ToolbarGravityUpdated
 import mozilla.components.compose.browser.toolbar.store.BrowserToolbarStore
 import mozilla.components.compose.browser.toolbar.store.ToolbarGravity
@@ -34,8 +31,6 @@ import mozilla.components.compose.browser.toolbar.store.ToolbarGravity.Bottom
 import mozilla.components.compose.browser.toolbar.store.ToolbarGravity.Top
 import mozilla.components.feature.toolbar.ToolbarBehaviorController
 import mozilla.components.lib.state.ext.observeAsComposableState
-import mozilla.telemetry.glean.private.NoExtras
-import org.mozilla.fenix.GleanMetrics.Toolbar
 import org.mozilla.fenix.browser.store.BrowserScreenStore
 import org.mozilla.fenix.components.AppStore
 import org.mozilla.fenix.components.appstate.AppAction.SearchAction.SearchEnded
@@ -96,8 +91,7 @@ class BrowserToolbarComposable(
         val shouldUseBottomToolbar = remember(settings) { settings.shouldUseBottomToolbar }
 
         val toolbarState by toolbarStore.stateFlow.collectAsState()
-        val toolbarCFR = toolbarCFRData(browserStore, settings, customTabSession)
-            ?: toolbarState.displayState.cfr
+        val toolbarCFR = toolbarState.displayState.cfr
 
         DisposableEffect(activity) {
             val toolbarController = ToolbarBehaviorController(
@@ -212,47 +206,5 @@ class BrowserToolbarComposable(
     private fun buildToolbarGravityConfig(): ToolbarGravity = when (settings.shouldUseBottomToolbar) {
         true -> Bottom
         false -> Top
-    }
-}
-
-@Composable
-private fun toolbarCFRData(
-    browserStore: BrowserStore,
-    settings: Settings,
-    customTabSession: CustomTabSessionState?,
-): BrowserToolbarCFR? {
-    // Note: when this CFR is eventually removed, please remove the following:
-    // 1. BrowserToolbarCFR.onShown
-    // 2. BrowserToolbarCFR.onDismiss
-    val canShow = settings.cfrPopupsEnabled &&
-        !settings.hasSeenBrowserToolbarCFR &&
-        settings.toolbarRedesignEnabled &&
-        customTabSession == null
-    if (!canShow) {
-        return null
-    }
-
-    val session = browserStore.observeAsComposableState { it.selectedTab?.content }.value
-    val shouldShowCFR = session != null && session.progress == 100 && !session.loading
-
-    return remember(shouldShowCFR) {
-        if (shouldShowCFR) {
-            BrowserToolbarCFR(
-                tag = "toolbar-redesign",
-                enabled = true,
-                title = R.string.mozac_toolbar_cfr_title,
-                description = R.string.mozac_toolbar_cfr_description,
-                onShown = {
-                    settings.hasSeenBrowserToolbarCFR = true
-                    Toolbar.cfrShown.record(NoExtras())
-                },
-                onDismiss = {
-                    settings.lastCfrShownTimeInMillis = System.currentTimeMillis()
-                    Toolbar.cfrDismissed.record(NoExtras())
-                },
-            )
-        } else {
-            null
-        }
     }
 }

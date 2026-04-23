@@ -194,7 +194,6 @@
 
     <!-- Cfr -->
     <string name="pref_key_menu_cfr" translatable="false">pref_key_menu_cfr</string>
-    <string name="pref_key_toolbar_cfr" translatable="false">pref_key_toolbar_cfr</string>
 
     <!-- Remote Server Settings -->
     <string name="pref_key_remote_settings_server" translatable="false">pref_key_remote_settings_server</string>

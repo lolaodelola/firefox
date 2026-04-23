@@ -92,6 +92,7 @@ class Settings(
     private val appContext: Context,
     private val packageName: String = appContext.packageName,
     private val packageManagerCompatHelper: PackageManagerCompatHelper = appContext.packageManagerCompatHelper,
+    @Suppress("unused")
     private val isBenchmarkBuild: Boolean = BuildConfig.IS_BENCHMARK_BUILD,
 ) : PreferencesHolder {
     companion object {
@@ -2367,15 +2368,6 @@ class Settings(
     var shouldShowMenuCFR by booleanPreference(
         key = appContext.getPreferenceKey(R.string.pref_key_menu_cfr),
         default = false,
-    )
-
-    /**
-     * Indicates if the toolbar CFR was displayed to the user.
-     */
-    var hasSeenBrowserToolbarCFR by booleanPreference(
-        key = appContext.getPreferenceKey(R.string.pref_key_toolbar_cfr),
-        default = Config.channel.isReleaseOrBeta || isBenchmarkBuild,
-        persistDefaultIfNotExists = true,
     )
 
     /**

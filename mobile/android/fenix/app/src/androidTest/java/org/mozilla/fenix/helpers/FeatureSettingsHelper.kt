@@ -120,11 +120,6 @@ interface FeatureSettingsHelper {
     var tabManagerOpeningAnimationEnabled: Boolean
 
     /**
-     * Indicates if the toolbar CFR was displayed to the user.
-     */
-    var hasSeenBrowserToolbarCFR: Boolean
-
-    /**
      * Indicates if the shake to summarize toolbar CFR was displayed to the user.
      */
     var hasSeenShakeToSummarizeToolbarCfr: Boolean
