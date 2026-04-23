@@ -22696,6 +22696,45 @@ void CodeGenerator::visitLocalTimeToUTC(LLocalTimeToUTC* ins) {
   masm.callWithABI<Fn, jit::DateLocalTimeToUTC>(ABIType::Float64);
 }
 
+void CodeGenerator::visitYearFromTime(LYearFromTime* ins) {
+  FloatRegister utcTime = ToFloatRegister(ins->utcTime());
+  Register temp0 = ToRegister(ins->temp0());
+  MOZ_ASSERT(ToFloatRegister(ins->output()) == ReturnDoubleReg);
+
+  using Fn = double (*)(JSContext*, double);
+  masm.setupAlignedABICall();
+  masm.loadJSContext(temp0);
+  masm.passABIArg(temp0);
+  masm.passABIArg(utcTime, ABIType::Float64);
+  masm.callWithABI<Fn, jit::DateYearFromTime>(ABIType::Float64);
+}
+
+void CodeGenerator::visitMonthFromTime(LMonthFromTime* ins) {
+  FloatRegister utcTime = ToFloatRegister(ins->utcTime());
+  Register temp0 = ToRegister(ins->temp0());
+  MOZ_ASSERT(ToFloatRegister(ins->output()) == ReturnDoubleReg);
+
+  using Fn = double (*)(JSContext*, double);
+  masm.setupAlignedABICall();
+  masm.loadJSContext(temp0);
+  masm.passABIArg(temp0);
+  masm.passABIArg(utcTime, ABIType::Float64);
+  masm.callWithABI<Fn, jit::DateMonthFromTime>(ABIType::Float64);
+}
+
+void CodeGenerator::visitDateFromTime(LDateFromTime* ins) {
+  FloatRegister utcTime = ToFloatRegister(ins->utcTime());
+  Register temp0 = ToRegister(ins->temp0());
+  MOZ_ASSERT(ToFloatRegister(ins->output()) == ReturnDoubleReg);
+
+  using Fn = double (*)(JSContext*, double);
+  masm.setupAlignedABICall();
+  masm.loadJSContext(temp0);
+  masm.passABIArg(temp0);
+  masm.passABIArg(utcTime, ABIType::Float64);
+  masm.callWithABI<Fn, jit::DateDateFromTime>(ABIType::Float64);
+}
+
 void CodeGenerator::visitNewDateObject(LNewDateObject* lir) {
   FloatRegister utcTime = ToFloatRegister(lir->utcTime());
   Register output = ToRegister(lir->output());

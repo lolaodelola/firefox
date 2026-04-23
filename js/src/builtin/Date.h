@@ -65,6 +65,11 @@ bool DateParse(const JSOffThreadAtom* str, ParsedDate* result);
  */
 JS::ClippedTime LocalTimeToUTC(JSContext* cx, int64_t localTime);
 
+/**
+ * Convert from UTC time to local time.
+ */
+int64_t UTCToLocalTime(JSContext* cx, int64_t utcTime);
+
 bool date_valueOf(JSContext* cx, unsigned argc, JS::Value* vp);
 
 bool date_toPrimitive(JSContext* cx, unsigned argc, JS::Value* vp);

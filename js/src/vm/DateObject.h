@@ -38,12 +38,14 @@ class DateObject : public NativeObject {
    */
   static const uint32_t COMPONENTS_START_SLOT = 2;
 
+ public:
   static const uint32_t LOCAL_TIME_SLOT = COMPONENTS_START_SLOT + 0;
   static const uint32_t LOCAL_YEAR_SLOT = COMPONENTS_START_SLOT + 1;
   static const uint32_t LOCAL_MONTH_SLOT = COMPONENTS_START_SLOT + 2;
   static const uint32_t LOCAL_DATE_SLOT = COMPONENTS_START_SLOT + 3;
   static const uint32_t LOCAL_DAY_SLOT = COMPONENTS_START_SLOT + 4;
 
+ private:
   /*
    * Unlike the above slots that hold LocalTZA-adjusted component values,
    * LOCAL_SECONDS_INTO_YEAR_SLOT holds a composite value that can be used

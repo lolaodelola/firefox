@@ -4599,6 +4599,36 @@
   generate_lir: true
   lir_temps: 1
 
+- name: YearFromTime
+  operands:
+    utcTime: Double
+  result_type: Double
+  # Neither movable nor implements congruentTo, see DateParse.
+  alias_set: none
+  possibly_calls: true
+  generate_lir: true
+  lir_temps: 1
+
+- name: MonthFromTime
+  operands:
+    utcTime: Double
+  result_type: Double
+  # Neither movable nor implements congruentTo, see DateParse.
+  alias_set: none
+  possibly_calls: true
+  generate_lir: true
+  lir_temps: 1
+
+- name: DateFromTime
+  operands:
+    utcTime: Double
+  result_type: Double
+  # Neither movable nor implements congruentTo, see DateParse.
+  alias_set: none
+  possibly_calls: true
+  generate_lir: true
+  lir_temps: 1
+
 - name: NewDateObject
   operands:
     utcTime: Double

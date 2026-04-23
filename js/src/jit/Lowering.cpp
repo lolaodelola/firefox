@@ -8340,6 +8340,24 @@ void LIRGenerator::visitLocalTimeToUTC(MLocalTimeToUTC* ins) {
   defineReturn(lir, ins);
 }
 
+void LIRGenerator::visitYearFromTime(MYearFromTime* ins) {
+  auto* lir = new (alloc()) LYearFromTime(useRegisterAtStart(ins->utcTime()),
+                                          tempFixed(CallTempReg0));
+  defineReturn(lir, ins);
+}
+
+void LIRGenerator::visitMonthFromTime(MMonthFromTime* ins) {
+  auto* lir = new (alloc()) LMonthFromTime(useRegisterAtStart(ins->utcTime()),
+                                           tempFixed(CallTempReg0));
+  defineReturn(lir, ins);
+}
+
+void LIRGenerator::visitDateFromTime(MDateFromTime* ins) {
+  auto* lir = new (alloc()) LDateFromTime(useRegisterAtStart(ins->utcTime()),
+                                          tempFixed(CallTempReg0));
+  defineReturn(lir, ins);
+}
+
 void LIRGenerator::visitPostIntPtrConversion(MPostIntPtrConversion* ins) {
   // This operation is a no-op.
   redefine(ins, ins->input());

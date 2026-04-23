@@ -3590,6 +3590,9 @@ class DateObjectReplacer : public MDefinitionVisitorDefaultNoop {
   MIRGraph& graph_;
   MInstruction* dateObject_;
 
+  // Allow scalar replacement if a date component is read exactly once.
+  bool hasSeenDateComponent_ = false;
+
   TempAllocator& alloc() { return graph_.alloc(); }
 
   MNewDateObject* newDateObject() const {
@@ -3600,6 +3603,7 @@ class DateObjectReplacer : public MDefinitionVisitorDefaultNoop {
   void visitGuardShape(MGuardShape* ins);
   void visitUnbox(MUnbox* ins);
   void visitLoadFixedSlot(MLoadFixedSlot* ins);
+  void visitDateFillLocalTimeSlots(MDateFillLocalTimeSlots* ins);
 
  public:
   DateObjectReplacer(const MIRGenerator* mir, MIRGraph& graph,
@@ -3608,7 +3612,7 @@ class DateObjectReplacer : public MDefinitionVisitorDefaultNoop {
     MOZ_ASSERT(IsOptimizableNewDateObjectInstruction(dateObject));
   }
 
-  bool escapes(MInstruction* ins) const;
+  bool escapes(MInstruction* ins);
   bool run();
   void assertSuccess() const;
 };
@@ -3645,17 +3649,58 @@ void DateObjectReplacer::visitLoadFixedSlot(MLoadFixedSlot* ins) {
   if (ins->object() != dateObject_) {
     return;
   }
-  MOZ_ASSERT(ins->slot() == DateObject::UTC_TIME_SLOT);
 
-  // Replace load with the UTC time argument.
-  ins->replaceAllUsesWith(newDateObject()->utcTime());
+  auto* utcTime = newDateObject()->utcTime();
+
+  MDefinition* replacement;
+  switch (ins->slot()) {
+    case DateObject::UTC_TIME_SLOT: {
+      // Replace load with the UTC time argument.
+      replacement = utcTime;
+      break;
+    }
+    case DateObject::LOCAL_YEAR_SLOT: {
+      auto* yearFromTime = MYearFromTime::New(alloc(), utcTime);
+      ins->block()->insertBefore(ins, yearFromTime);
+      replacement = yearFromTime;
+      break;
+    }
+    case DateObject::LOCAL_MONTH_SLOT: {
+      auto* monthFromTime = MMonthFromTime::New(alloc(), utcTime);
+      ins->block()->insertBefore(ins, monthFromTime);
+      replacement = monthFromTime;
+      break;
+    }
+    case DateObject::LOCAL_DATE_SLOT: {
+      auto* dateFromTime = MDateFromTime::New(alloc(), utcTime);
+      ins->block()->insertBefore(ins, dateFromTime);
+      replacement = dateFromTime;
+      break;
+    }
+    default:
+      MOZ_CRASH("unexpected slot");
+  }
+
+  // Replace the load.
+  ins->replaceAllUsesWith(replacement);
 
   // Remove the load.
   ins->block()->discard(ins);
 }
 
+void DateObjectReplacer::visitDateFillLocalTimeSlots(
+    MDateFillLocalTimeSlots* ins) {
+  // Skip fill on other objects.
+  if (ins->date() != dateObject_) {
+    return;
+  }
+
+  // Remove the fill without any replacement.
+  ins->block()->discard(ins);
+}
+
 // Returns false if the Date object does not escape.
-bool DateObjectReplacer::escapes(MInstruction* ins) const {
+bool DateObjectReplacer::escapes(MInstruction* ins) {
   MOZ_ASSERT(ins->type() == MIRType::Object);
 
   JitSpewDef(JitSpew_Escape, "Check Date object\n", ins);
@@ -3706,13 +3751,32 @@ bool DateObjectReplacer::escapes(MInstruction* ins) const {
       case MDefinition::Opcode::LoadFixedSlot: {
         auto* load = def->toLoadFixedSlot();
 
-        // We can replace loading the UTC time slot.
-        if (load->slot() != DateObject::UTC_TIME_SLOT) {
-          JitSpew(JitSpew_Escape, "is escaped by unsupported LoadFixedSlot\n");
-          return true;
+        switch (load->slot()) {
+          case DateObject::UTC_TIME_SLOT:
+            // We can replace loading the UTC time slot.
+            break;
+          case DateObject::LOCAL_YEAR_SLOT:
+          case DateObject::LOCAL_MONTH_SLOT:
+          case DateObject::LOCAL_DATE_SLOT:
+            // We can replace loading these date component slots. Only allow a
+            // single load, because it's probably more efficient to use the
+            // cached components in the Date object if multiple loads happen.
+            if (!hasSeenDateComponent_) {
+              hasSeenDateComponent_ = true;
+              break;
+            }
+            [[fallthrough]];
+          default:
+            JitSpew(JitSpew_Escape,
+                    "is escaped by unsupported LoadFixedSlot\n");
+            return true;
         }
         break;
       }
+
+      // No-op for scalar replaced date objects.
+      case MDefinition::Opcode::DateFillLocalTimeSlots:
+        break;
 
       // This instruction is a no-op used to test that scalar replacement is
       // working as expected.

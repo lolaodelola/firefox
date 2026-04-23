@@ -3296,6 +3296,42 @@ double DateLocalTimeToUTC(JSContext* cx, int64_t localTime) {
   return JS::CanonicalizeNaN(js::LocalTimeToUTC(cx, localTime).toDouble());
 }
 
+double DateYearFromTime(JSContext* cx, double utcTime) {
+  AutoUnsafeCallWithABI unsafe;
+
+  auto clipped = JS::TimeClip(utcTime);
+  if (!clipped.isValid()) {
+    return JS::GenericNaN();
+  }
+
+  int64_t localTime = js::UTCToLocalTime(cx, int64_t(clipped.toDouble()));
+  return double(ToYearMonthDay(localTime).year);
+}
+
+double DateMonthFromTime(JSContext* cx, double utcTime) {
+  AutoUnsafeCallWithABI unsafe;
+
+  auto clipped = JS::TimeClip(utcTime);
+  if (!clipped.isValid()) {
+    return JS::GenericNaN();
+  }
+
+  int64_t localTime = js::UTCToLocalTime(cx, int64_t(clipped.toDouble()));
+  return double(ToYearMonthDay(localTime).month);
+}
+
+double DateDateFromTime(JSContext* cx, double utcTime) {
+  AutoUnsafeCallWithABI unsafe;
+
+  auto clipped = JS::TimeClip(utcTime);
+  if (!clipped.isValid()) {
+    return JS::GenericNaN();
+  }
+
+  int64_t localTime = js::UTCToLocalTime(cx, int64_t(clipped.toDouble()));
+  return double(ToYearMonthDay(localTime).day);
+}
+
 JSObject* NewDateObject(JSContext* cx, double utcTime) {
   auto clipped = JS::TimeClip(utcTime);
   MOZ_ASSERT(
