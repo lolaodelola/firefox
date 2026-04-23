@@ -6309,6 +6309,11 @@
   value: false
   mirror: always
 
+- name: extensions.web_accessible_workers.deprecated_behavior
+  type: bool
+  value: false
+  mirror: always
+
 # Whether the InstallTrigger global should be enabled (kept for compatibility,
 # as it is still used in the wild as an improper UA detection method)
 - name: extensions.InstallTrigger.enabled
