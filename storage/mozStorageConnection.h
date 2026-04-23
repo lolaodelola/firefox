@@ -253,6 +253,11 @@ class Connection final : public mozIStorageConnection,
   inline bool transactionInProgress(const SQLiteMutexAutoLock& aProofOfLock) {
     return !getAutocommit();
   }
+  inline bool transactionInProgress(const SQLiteMutexAutoLock& aProofOfLock,
+                                    sqlite3* aNativeConnection) {
+    return aNativeConnection &&
+           !static_cast<bool>(::sqlite3_get_autocommit(aNativeConnection));
+  }
 
   /**
    * Indicates if this database connection supports the given operation.

@@ -2497,7 +2497,7 @@ Connection::BeginTransaction() {
 nsresult Connection::beginTransactionInternal(
     const SQLiteMutexAutoLock& aProofOfLock, sqlite3* aNativeConnection,
     int32_t aTransactionType) {
-  if (transactionInProgress(aProofOfLock)) {
+  if (transactionInProgress(aProofOfLock, aNativeConnection)) {
     return NS_ERROR_FAILURE;
   }
   nsresult rv;
@@ -2533,7 +2533,7 @@ Connection::CommitTransaction() {
 
 nsresult Connection::commitTransactionInternal(
     const SQLiteMutexAutoLock& aProofOfLock, sqlite3* aNativeConnection) {
-  if (!transactionInProgress(aProofOfLock)) {
+  if (!transactionInProgress(aProofOfLock, aNativeConnection)) {
     return NS_ERROR_UNEXPECTED;
   }
   nsresult rv =
@@ -2557,7 +2557,7 @@ Connection::RollbackTransaction() {
 
 nsresult Connection::rollbackTransactionInternal(
     const SQLiteMutexAutoLock& aProofOfLock, sqlite3* aNativeConnection) {
-  if (!transactionInProgress(aProofOfLock)) {
+  if (!transactionInProgress(aProofOfLock, aNativeConnection)) {
     return NS_ERROR_UNEXPECTED;
   }
 
