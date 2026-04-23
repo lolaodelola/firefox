@@ -5960,6 +5960,16 @@ bool WarpCacheIRTranspiler::emitDateParse(StringOperandId strId,
   return defineOperand(resultId, ins);
 }
 
+bool WarpCacheIRTranspiler::emitTimeClip(NumberOperandId timeId,
+                                         NumberOperandId resultId) {
+  MDefinition* time = getOperand(timeId);
+
+  auto* ins = MTimeClip::New(alloc(), time);
+  add(ins);
+
+  return defineOperand(resultId, ins);
+}
+
 bool WarpCacheIRTranspiler::emitTruthyResult(OperandId inputId) {
   MDefinition* input = getOperand(inputId);
 

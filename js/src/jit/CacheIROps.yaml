@@ -3855,6 +3855,14 @@
     str: StringId
     result: NumberId
 
+- name: TimeClip
+  shared: true
+  transpile: true
+  cost_estimate: 2
+  args:
+    time: NumberId
+    result: NumberId
+
 - name: ArrayFromArgumentsObjectResult
   shared: true
   transpile: true

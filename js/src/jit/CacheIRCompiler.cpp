@@ -11748,6 +11748,26 @@ bool CacheIRCompiler::emitDateParse(StringOperandId strId,
   return true;
 }
 
+bool CacheIRCompiler::emitTimeClip(NumberOperandId timeId,
+                                   NumberOperandId resultId) {
+  JitSpew(JitSpew_Codegen, "%s", __FUNCTION__);
+
+  ValueOperand output = allocator.defineValueRegister(masm, resultId);
+  AutoAvailableFloatRegister scratchFloat0(*this, FloatReg0);
+  AutoAvailableFloatRegister scratchFloat1(*this, FloatReg1);
+
+  allocator.ensureDoubleRegister(masm, timeId, scratchFloat0);
+
+  if (Assembler::HasRoundInstruction(RoundingMode::TowardsZero)) {
+    masm.timeClip(scratchFloat0, scratchFloat1);
+  } else {
+    LiveRegisterSet liveRegs = liveVolatileRegs();
+    masm.timeClip(scratchFloat0, scratchFloat1, output.scratchReg(), liveRegs);
+  }
+  masm.boxDouble(scratchFloat1, output, scratchFloat1);
+  return true;
+}
+
 bool CacheIRCompiler::emitArrayFromArgumentsObjectResult(ObjOperandId objId,
                                                          uint32_t shapeOffset) {
   JitSpew(JitSpew_Codegen, "%s", __FUNCTION__);

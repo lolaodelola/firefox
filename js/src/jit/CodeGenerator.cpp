@@ -22667,6 +22667,21 @@ void CodeGenerator::visitDateParse(LDateParse* ins) {
   masm.callWithABI<Fn, jit::DateParse>(ABIType::Float64);
 }
 
+void CodeGenerator::visitTimeClip(LTimeClip* ins) {
+  auto time = ToFloatRegister(ins->time());
+  auto output = ToFloatRegister(ins->output());
+
+  masm.timeClip(time, output);
+}
+
+void CodeGenerator::visitTimeClipCall(LTimeClipCall* ins) {
+  auto time = ToFloatRegister(ins->time());
+  auto output = ToFloatRegister(ins->output());
+  auto temp = ToRegister(ins->temp0());
+
+  masm.timeClip(time, output, temp, liveVolatileRegs(ins));
+}
+
 void CodeGenerator::visitCanonicalizeNaND(LCanonicalizeNaND* ins) {
   auto output = ToFloatRegister(ins->output());
   MOZ_ASSERT(output == ToFloatRegister(ins->input()));

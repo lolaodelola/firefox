@@ -8315,6 +8315,17 @@ void LIRGenerator::visitDateParse(MDateParse* ins) {
   defineReturn(lir, ins);
 }
 
+void LIRGenerator::visitTimeClip(MTimeClip* ins) {
+  if (Assembler::HasRoundInstruction(RoundingMode::TowardsZero)) {
+    auto* lir = new (alloc()) LTimeClip(useRegister(ins->input()));
+    define(lir, ins);
+  } else {
+    auto* lir = new (alloc()) LTimeClipCall(useRegister(ins->input()), temp());
+    define(lir, ins);
+    assignSafepoint(lir, ins);
+  }
+}
+
 void LIRGenerator::visitPostIntPtrConversion(MPostIntPtrConversion* ins) {
   // This operation is a no-op.
   redefine(ins, ins->input());

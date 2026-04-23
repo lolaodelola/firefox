@@ -5903,6 +5903,10 @@ class MacroAssembler : public MacroAssemblerSpecific {
                                       ValueOperand output, Register scratch1,
                                       Register scratch2);
 
+  void timeClip(FloatRegister time, FloatRegister output);
+  void timeClip(FloatRegister time, FloatRegister output, Register scratch,
+                const LiveRegisterSet& liveRegs);
+
   void computeImplicitThis(Register env, ValueOperand output, Label* slowPath);
 
  private:
