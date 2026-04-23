@@ -392,6 +392,7 @@ preferences-fonts-header2 =
 
 preferences-default-zoom-label =
     .label = Default zoom
+    .accesskey = z
 
 # Variables:
 #   $percentage (number) - Zoom percentage value
