@@ -43,7 +43,12 @@ from ..dirutils import mkdir
 from ..serialized_logging import read_serialized_record
 from ..telemetry import get_cpu_brand
 from ..testing import install_test_files
-from ..util import FileAvoidWrite, construct_log_filename, resolve_target_to_make
+from ..util import (
+    FileAvoidWrite,
+    construct_log_filename,
+    is_running_under_coding_agent,
+    resolve_target_to_make,
+)
 from .clobber import Clobberer
 
 RE_BUILD_OUTPUT = re.compile(
@@ -1499,12 +1504,19 @@ class BuildDriver(MozbuildObject):
                             and not allow_subdirectory_build
                             and (Path(self.topsrcdir) / target).is_dir()
                         ):
+                            message = "Build argument '{target}' is a subdirectory and was ignored."
+                            # Don't tell agents how to override, because they do
+                            # override
+                            if not is_running_under_coding_agent:
+                                message += (
+                                    "\nUse --allow-subdirectory-build to override."
+                                )
+
                             self.log(
                                 logging.WARNING,
                                 "build",
                                 {"target": target},
-                                "Build argument '{target}' is a subdirectory and was ignored. "
-                                "Use --allow-subdirectory-build to override.",
+                                message,
                             )
                             continue
 
