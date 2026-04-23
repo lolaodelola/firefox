@@ -60,19 +60,24 @@ void DisassembleInstruction(char* buffer, size_t bufsize, const Instruction* ins
 #endif
 
 class MozBaseAssembler;
-typedef js::jit::AssemblerBufferWithConstantPools<4, Instruction, MozBaseAssembler,
-                                                  NumShortBranchRangeTypes> ARMBuffer;
+
+using ARMBuffer = js::jit::AssemblerBufferWithConstantPools<
+    Instruction, MozBaseAssembler,
+    js::jit::AssemblerBufferSettings{
+        .instSize = 4,
+        .guardSize = 1,
+        .headerSize = 1,
+        .instBufferAlign = 8,
+        .pcBias = 0,
+        .alignFillInst = HINT | (NOP << ImmHint_offset),
+        .nopFillInst = HINT | (NOP << ImmHint_offset),
+        .numShortBranchRanges = NumShortBranchRangeTypes,
+    }>;
 
 // Base class for vixl::Assembler, for isolating Moz-specific changes to VIXL.
 class MozBaseAssembler : public js::jit::AssemblerShared {
   // Buffer initialization constants.
-  static const unsigned BufferGuardSize = 1;
-  static const unsigned BufferHeaderSize = 1;
-  static const size_t   BufferCodeAlignment = 8;
   static const size_t   BufferMaxPoolOffset = 1024;
-  static const unsigned BufferPCBias = 0;
-  static const uint32_t BufferAlignmentFillInstruction = HINT | (NOP << ImmHint_offset);
-  static const uint32_t BufferNopFillInstruction = HINT | (NOP << ImmHint_offset);
   static const unsigned BufferNumDebugNopsToInsert = 0;
 
 #ifdef JS_DISASM_ARM64
@@ -83,14 +88,7 @@ class MozBaseAssembler : public js::jit::AssemblerShared {
 
  public:
   MozBaseAssembler()
-    : armbuffer_(BufferGuardSize,
-                 BufferHeaderSize,
-                 BufferCodeAlignment,
-                 BufferMaxPoolOffset,
-                 BufferPCBias,
-                 BufferAlignmentFillInstruction,
-                 BufferNopFillInstruction,
-                 BufferNumDebugNopsToInsert)
+    : armbuffer_(BufferMaxPoolOffset, BufferNumDebugNopsToInsert)
   {
 #ifdef JS_DISASM_ARM64
       spew_.setLabelIndent(LabelIndent);

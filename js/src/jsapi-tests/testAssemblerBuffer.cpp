@@ -357,22 +357,29 @@ static constexpr unsigned NumShortBranchRanges = 3;
 // ShortBranchVeneerExpiresTooFastNoPool fail.
 static constexpr size_t ShortRangeBranchHysteresis = 20;
 
+static constexpr auto AsmBufSettings = js::jit::AssemblerBufferSettings{
+    .instSize = InstSize,
+    .guardSize = 1,
+    .headerSize = 1,
+    .instBufferAlign = 0,
+    .pcBias = 0,
+    .alignFillInst = Instr::AlignFiller(0),
+    .nopFillInst = Instr::NoopFiller(0),
+    .numShortBranchRanges = NumShortBranchRanges,
+    .shortRangeBranchHysteresis = ShortRangeBranchHysteresis,
+};
+
 using AsmBufWithPool =
-    js::jit::AssemblerBufferWithConstantPools<InstSize, Inst, TestAssembler,
-                                              NumShortBranchRanges,
-                                              ShortRangeBranchHysteresis>;
+    js::jit::AssemblerBufferWithConstantPools<Inst, TestAssembler,
+                                              AsmBufSettings>;
 
 struct TestAsmBufWithPool : AsmBufWithPool {
   TestAsmBufWithPool()
       : AsmBufWithPool(
-            /* guardSize= */ 1,
-            /* headerSize= */ 1,
-            /* instBufferAlign(unused)= */ 0,
             /* poolMaxOffset= */ 17,
-            /* pcBias= */ 0,
-            /* alignFillInst= */ Instr::AlignFiller(0),
-            /* nopFillInst= */ Instr::NoopFiller(0),
             /* nopFill= */ 0) {}
+
+  static constexpr auto InstSize = AsmBufSettings.instSize;
 
   /**
    * Dump instructions to help debugging.
