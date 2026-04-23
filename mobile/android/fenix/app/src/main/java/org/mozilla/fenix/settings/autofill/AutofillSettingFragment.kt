@@ -31,6 +31,7 @@ import mozilla.components.lib.state.ext.consumeFrom
 import mozilla.components.lib.state.helpers.StoreProvider.Companion.fragmentStore
 import mozilla.components.lib.state.helpers.StoreProvider.Companion.storeProvider
 import mozilla.components.service.fxa.SyncEngine
+import mozilla.components.service.fxa.manager.SyncEnginesStorage
 import mozilla.components.service.sync.autofill.AutofillCreditCardsAddressesStorage
 import mozilla.components.ui.widgets.withCenterAlignedButtons
 import org.mozilla.fenix.Config
@@ -508,19 +509,18 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment(), SystemInset
     }
 
     private fun updateSyncStatusAcrossDevices(destination: String, newValue: Boolean) {
-        val engine = when (destination) {
-            AutofillScreenDestination.ADDRESS -> SyncEngine.Addresses
-            AutofillScreenDestination.CREDIT_CARD -> SyncEngine.CreditCards
-            else -> return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            requireComponents.backgroundServices.accountManager.setEngineEnabled(engine, newValue)
-        }
         when (destination) {
-            AutofillScreenDestination.ADDRESS ->
-                requireContext().settings().shouldSyncAddressesAcrossDevices = newValue
-            AutofillScreenDestination.CREDIT_CARD ->
-                requireContext().settings().shouldSyncCreditCardsAcrossDevices = newValue
+            AutofillScreenDestination.ADDRESS -> {
+                SyncEnginesStorage(requireContext()).setStatus(SyncEngine.Addresses, newValue)
+                requireContext().settings().shouldSyncAddressesAcrossDevices =
+                    newValue
+            }
+
+            AutofillScreenDestination.CREDIT_CARD -> {
+                SyncEnginesStorage(requireContext()).setStatus(SyncEngine.CreditCards, newValue)
+                requireContext().settings().shouldSyncCreditCardsAcrossDevices =
+                    newValue
+            }
         }
     }
 

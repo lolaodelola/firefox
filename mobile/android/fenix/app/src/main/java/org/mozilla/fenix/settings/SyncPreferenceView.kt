@@ -5,7 +5,6 @@
 package org.mozilla.fenix.settings
 
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import mozilla.components.concept.sync.AccountObserver
@@ -33,8 +32,8 @@ import mozilla.components.service.fxa.manager.SyncEnginesStorage
  */
 class SyncPreferenceView(
     private val syncPreference: SyncPreference,
-    private val lifecycleOwner: LifecycleOwner,
-    private val accountManager: FxaAccountManager,
+    lifecycleOwner: LifecycleOwner,
+    accountManager: FxaAccountManager,
     private val syncEngine: SyncEngine,
     private val loggedOffTitle: String,
     private val loggedInTitle: String,
@@ -84,10 +83,8 @@ class SyncPreferenceView(
             isChecked = syncStatus
 
             setOnPreferenceChangeListener { _, newValue ->
-                lifecycleOwner.lifecycleScope.launch {
-                    accountManager.setEngineEnabled(syncEngine, newValue as Boolean)
-                }
-                setSwitchCheckedState(newValue as Boolean)
+                SyncEnginesStorage(context).setStatus(syncEngine, newValue as Boolean)
+                setSwitchCheckedState(newValue)
                 true
             }
         }
