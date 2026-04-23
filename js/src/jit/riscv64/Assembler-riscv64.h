@@ -296,8 +296,8 @@ class Assembler : public AssemblerShared,
   BufferOffset nextOffset() { return m_buffer.nextOffset(); }
   // Get the buffer offset of the next inserted instruction. This may flush
   // constant pools.
-  BufferOffset nextInstrOffset(int numInstr = 1) {
-    return m_buffer.nextInstrOffset(numInstr);
+  BufferOffset nextInstrOffset(unsigned numInsts, unsigned numNewDeadlines) {
+    return m_buffer.nextInstrOffset(numInsts, numNewDeadlines);
   }
   void comment(const char* msg) { spew("; %s", msg); }
 

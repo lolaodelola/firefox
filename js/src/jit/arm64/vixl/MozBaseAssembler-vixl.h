@@ -122,7 +122,11 @@ class MozBaseAssembler : public js::jit::AssemblerShared {
   // Get the buffer offset of the next inserted instruction. This may flush
   // constant pools.
   BufferOffset nextInstrOffset() {
-    return armbuffer_.nextInstrOffset();
+    return armbuffer_.nextInstrOffset(1, 0);
+  }
+  BufferOffset nextInstrOffset(ImmBranchRangeType branchRange) {
+    // Short branch range types may add a new deadline.
+    return armbuffer_.nextInstrOffset(1, branchRange < NumShortBranchRangeTypes);
   }
 
   // Get the next usable buffer offset. Note that a constant pool may be placed

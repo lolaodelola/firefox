@@ -219,7 +219,7 @@ void Assembler::b(Instruction* at, int imm19, Condition cond) {
 BufferOffset Assembler::b(Label* label) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(UncondBranchRangeType);
   BufferOffset actual = b(LinkAndGetInstructionOffsetTo(next, UncondBranchRangeType, label), doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   return actual;
@@ -229,7 +229,7 @@ BufferOffset Assembler::b(Label* label) {
 BufferOffset Assembler::b(Label* label, Condition cond) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(CondBranchRangeType);
   BufferOffset actual = b(LinkAndGetInstructionOffsetTo(next, CondBranchRangeType, label), cond, doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   return actual;
@@ -262,7 +262,7 @@ void Assembler::bl(Instruction* at, int imm26) {
 void Assembler::bl(Label* label) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(UncondBranchRangeType);
   BufferOffset actual = bl(LinkAndGetInstructionOffsetTo(next, UncondBranchRangeType, label), doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   (void)actual;
@@ -282,7 +282,7 @@ void Assembler::cbz(Instruction* at, const Register& rt, int imm19) {
 void Assembler::cbz(const Register& rt, Label* label) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(CondBranchRangeType);
   BufferOffset actual = cbz(rt, LinkAndGetInstructionOffsetTo(next, CondBranchRangeType, label), doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   (void)actual;
@@ -302,7 +302,7 @@ void Assembler::cbnz(Instruction* at, const Register& rt, int imm19) {
 void Assembler::cbnz(const Register& rt, Label* label) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(CondBranchRangeType);
   BufferOffset actual = cbnz(rt, LinkAndGetInstructionOffsetTo(next, CondBranchRangeType, label), doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   (void)actual;
@@ -324,7 +324,7 @@ void Assembler::tbz(Instruction* at, const Register& rt, unsigned bit_pos, int i
 void Assembler::tbz(const Register& rt, unsigned bit_pos, Label* label) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(TestBranchRangeType);
   BufferOffset actual = tbz(rt, bit_pos, LinkAndGetInstructionOffsetTo(next, TestBranchRangeType, label), doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   (void)actual;
@@ -346,7 +346,7 @@ void Assembler::tbnz(Instruction* at, const Register& rt, unsigned bit_pos, int 
 void Assembler::tbnz(const Register& rt, unsigned bit_pos, Label* label) {
   // Encode the relative offset from the inserted branch to the label.
   LabelDoc doc = refLabel(label);
-  BufferOffset next = nextInstrOffset();
+  BufferOffset next = nextInstrOffset(TestBranchRangeType);
   BufferOffset actual = tbnz(rt, bit_pos, LinkAndGetInstructionOffsetTo(next, TestBranchRangeType, label), doc);
   MOZ_ASSERT_IF(actual.assigned(), next == actual);
   (void)actual;

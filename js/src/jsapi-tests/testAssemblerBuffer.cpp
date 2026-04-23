@@ -1331,4 +1331,109 @@ BEGIN_TEST(testAssemblerBuffer_ARM64_ShortBranchSecondaryVeneer) {
   return true;
 }
 END_TEST(testAssemblerBuffer_ARM64_ShortBranchSecondaryVeneer)
+
+BEGIN_TEST(
+    testAssemblerBuffer_ARM64_ShortBranchSecondaryVeneerRegisterDeadline) {
+  using namespace js::jit;
+  using namespace AArch64;
+
+  js::LifoAlloc lifo(4096, js::MallocArena);
+  TempAllocator alloc(&lifo);
+  JitContext jc(cx);
+  StackMacroAssembler masm(cx, alloc);
+  AutoCreatedBy acb(masm, __func__);
+
+  auto rt = vixl::x1;
+
+  auto tbz = std::bind_front(AArch64::tbz, rt);
+
+  Label tbz_lbl1;
+  Label tbz_lbl2;
+  Label cbz_lbl;
+
+  BufferOffset tbz1(masm.currentOffset());
+  unsigned tbz1_bitpos = 0;
+
+  // Emit more instructions than covered through the default hysteresis.
+  constexpr int32_t tbz_count = (js::jit::ShortRangeBranchHysteresis / 4) + 1;
+  for (int32_t i = 0; i < tbz_count; ++i) {
+    masm.Tbz(rt, tbz1_bitpos, &tbz_lbl1);
+  }
+
+  // Create the same number of short branches for a different range.
+  constexpr int32_t cbz_count = tbz_count;
+  for (int32_t i = 0; i < cbz_count; ++i) {
+    masm.Cbz(rt, &cbz_lbl);
+  }
+
+  // tbz1 is unbound.
+  CHECK_EQUAL(masm.getInstructionAt(tbz1)->InstructionBits(),
+              tbz(tbz1_bitpos, unbound));
+
+  // Compute deadline for tbz1 instruction.
+  BufferOffset tbz_deadline1(
+      tbz1.getOffset() +
+      vixl::Instruction::ImmBranchMaxForwardOffset(vixl::TestBranchRangeType));
+
+  // Instructions until deadline is reached.
+  int32_t current = int32_t(masm.currentOffset());
+  int32_t instr_until_deadline = (tbz_deadline1.getOffset() - current) / 4;
+
+  // Total number of secondary veneers, plus a pool guard and pool header.
+  //
+  // There is the same number of tbz and cbz instructions, so the total number
+  // of "secondary" veneers is the same, too.
+  int32_t secondary_veneers_and_pool_instr = tbz_count + 1 + 1;
+
+  // Compute how many instructions to insert until deadline is reached.
+  int32_t nops = instr_until_deadline - secondary_veneers_and_pool_instr;
+
+  // Insert nops.
+  for (int32_t i = 0; i < nops; ++i) {
+    masm.Nop();
+  }
+
+  // tbz1 is still unbound after emitting nops.
+  CHECK_EQUAL(masm.getInstructionAt(tbz1)->InstructionBits(),
+              tbz(tbz1_bitpos, unbound));
+
+  // 30 determined through testing, but there's probably a way to compute it.
+  constexpr int32_t more_instr = 30;
+
+  // Minus one to leave room for the final tbz instruction.
+  constexpr int32_t more_nops = more_instr - 1;
+
+  // Insert more nops.
+  for (int32_t i = 0; i < more_nops; ++i) {
+    masm.Nop();
+  }
+  BufferOffset after_last_nop(masm.currentOffset());
+
+  // Create the final tbz instruction.
+  unsigned tbz2_bitpos = 1;
+  masm.Tbz(rt, tbz2_bitpos, &tbz_lbl2);
+
+  // Ensure tbz2 is the last emitted instruction.
+  //
+  // This will trigger a pool generation through `nextInstrOffset()`.
+  BufferOffset tbz2(masm.currentOffset() - 4);
+  CHECK_EQUAL(masm.getInstructionAt(tbz2)->InstructionBits(),
+              tbz(tbz2_bitpos, unbound));
+
+  // Pool was added after the last nop.
+  CHECK_EQUAL(masm.getInstructionAt(after_last_nop)->InstructionBits(),
+              b(offset(after_last_nop, tbz2)));
+
+  // Pool header
+  BufferOffset header(after_last_nop.getOffset() + 4);
+  CHECK_EQUAL(masm.getInstructionAt(header)->InstructionBits(), poolheader(1));
+
+  // Finally bind all labels.
+  masm.bind(&tbz_lbl1);
+  masm.bind(&tbz_lbl2);
+  masm.bind(&cbz_lbl);
+
+  return true;
+}
+END_TEST(testAssemblerBuffer_ARM64_ShortBranchSecondaryVeneerRegisterDeadline)
 #endif /* JS_CODEGEN_ARM64 */
