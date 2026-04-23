@@ -180,8 +180,25 @@
                    overflows="false"/>
       <toolbaritem id="urlbar-container"
                    class="urlbar-container"
+                   context="urlbarView-context-menu"
                    removable="false"
                    overflows="false">
+        <menupopup id="urlbarView-context-menu">
+          <menuitem id="urlbar-view-context-menu-open-in-tab"
+                    data-l10n-id="urlbar-view-context-menu-open-in-tab"/>
+          <menu id="urlbarView-context-menu-open-in-container-tab"
+                data-l10n-id="urlbar-view-context-menu-open-in-container-tab"
+                selection-type="single"
+                node-type="link"
+                hide-if-private-browsing="true"
+                hide-if-usercontext-disabled="true">
+            <menupopup id="urlbarView-context-menu-open-in-container-tab-popup"/>
+          </menu>
+          <menuitem id="urlbarView-context-menu-open-in-window"
+                    data-l10n-id="urlbar-view-context-menu-open-in-window"/>
+          <menuitem id="urlbarView-context-menu-open-in-private-window"
+                    data-l10n-id="urlbar-view-context-menu-open-in-private-window"/>
+        </menupopup>
         <toolbartabstop/>
         <html:moz-urlbar id="urlbar"
               class="urlbar"

@@ -458,6 +458,9 @@ pref("browser.urlbar.weather.featureGate", false);
 // Enable clipboard suggestions feature, the pref should be removed once stable.
 pref("browser.urlbar.clipboard.featureGate", false);
 
+// Enable context menu on the urlbar.
+pref("browser.urlbar.contextMenu.featureGate", false);
+
 // The minimum prefix length of a weather keyword the user must type to trigger
 // the suggestion. 0 means the min length should be taken from Nimbus or remote
 // settings.

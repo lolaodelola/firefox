@@ -531,6 +531,8 @@ https_first_disabled = true
 https_first_disabled = true
 support-files = ["redirect_to.sjs"]
 
+["browser_urlbar_contextmenu.js"]
+
 ["browser_urlbar_modifiedClick.js"]
 
 ["browser_urlbar_selection.js"]
