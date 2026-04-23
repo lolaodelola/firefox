@@ -3,8 +3,8 @@
 
   "compilerOptions": {
     "noEmit": true,
+    "libReplacement": true,
     "target": "es2024",
-    "types": ["gecko"],
     // Using `unknown` for catch variables causes us to need to check if
     // everything is an `Error` (or appropriate object) before using properties
     // from them. We have lint rules that ensure that we throw objects, which are

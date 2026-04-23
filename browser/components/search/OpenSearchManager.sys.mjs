@@ -3,7 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- *  @import { SearchEngine } from "moz-src:///toolkit/components/search/SearchEngine.sys.mjs";
+ * @import { SearchEngine } from "moz-src:///toolkit/components/search/SearchEngine.sys.mjs";
+ * @import { UrlbarInput } from "moz-src:///browser/components/urlbar/content/UrlbarInput.mjs";
  */
 
 const lazy = {};
@@ -134,7 +135,9 @@ class _OpenSearchManager {
    */
   updateOpenSearchBadge(win) {
     let engines = this.#offeredEngines.get(win.gBrowser.selectedBrowser);
-    for (let urlbar of win.document.querySelectorAll("moz-urlbar")) {
+    for (let urlbar of /** @type {NodeListOf<UrlbarInput>} */ (
+      win.document.querySelectorAll("moz-urlbar")
+    )) {
       if (!urlbar.controller) {
         // This means it is not initialized and happens
         // if the new searchbar is disabled.
