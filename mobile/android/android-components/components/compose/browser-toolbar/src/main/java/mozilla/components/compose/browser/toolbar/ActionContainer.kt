@@ -111,8 +111,10 @@ fun ActionContainer(
                 is AnimatedPillAction -> {
                     AnimatedPillButton(
                         icon = action.icon,
+                        overlayIcon = action.overlayIcon,
                         text = action.text,
                         contentDescription = action.contentDescription,
+                        highlighted = action.highlighted,
                         onClick = action.onClick,
                         onInteraction = onInteraction,
                     )
