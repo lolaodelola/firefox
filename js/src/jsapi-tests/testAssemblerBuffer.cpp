@@ -347,9 +347,20 @@ static constexpr size_t InstSize = sizeof(Inst);
 // (The first type isn't currently used, cf. `TestAssembler::BranchRangeFor`.)
 static constexpr unsigned NumShortBranchRanges = 3;
 
+// `TestAssembler::BranchRange{,Short}` is smaller than the default hysteresis
+// `jit::ShortRangeBranchHysteresis`. For testing purposes adjust the hysteresis
+// to match non-test assemblers, where the hysteresis smaller than any branch
+// range.
+//
+// Use 20 bytes to test the error case in ShortBranchVeneerExpiresTooFastNoPool.
+// Smaller sizes break other assembler buffer parts and larger values don't make
+// ShortBranchVeneerExpiresTooFastNoPool fail.
+static constexpr size_t ShortRangeBranchHysteresis = 20;
+
 using AsmBufWithPool =
     js::jit::AssemblerBufferWithConstantPools<InstSize, Inst, TestAssembler,
-                                              NumShortBranchRanges>;
+                                              NumShortBranchRanges,
+                                              ShortRangeBranchHysteresis>;
 
 struct TestAsmBufWithPool : AsmBufWithPool {
   TestAsmBufWithPool()
@@ -453,6 +464,25 @@ struct TestAssembler {
     *branch = Instr::PatchedShortBranch(veneerOff - branchOff);
   }
 };
+
+class AutoForbidNops {
+ protected:
+  AsmBufWithPool* ab_;
+
+ public:
+  explicit AutoForbidNops(AsmBufWithPool* ab) : ab_(ab) { ab_->enterNoNops(); }
+  ~AutoForbidNops() { ab_->leaveNoNops(); }
+};
+
+class AutoForbidPoolsAndNops : public AutoForbidNops {
+ public:
+  AutoForbidPoolsAndNops(AsmBufWithPool* ab, size_t maxInst)
+      : AutoForbidNops(ab) {
+    ab_->enterNoPool(maxInst);
+  }
+  ~AutoForbidPoolsAndNops() { ab_->leaveNoPool(); }
+};
+
 }  // namespace
 
 BEGIN_TEST(testAssemblerBuffer_AssemblerBufferWithConstantPools) {
@@ -782,6 +812,104 @@ BEGIN_TEST(
 END_TEST(
     testAssemblerBuffer_AssemblerBufferWithConstantPools_ShortBranchVeneerExpiresTooFast)
 
+BEGIN_TEST(
+    testAssemblerBuffer_AssemblerBufferWithConstantPools_ShortBranchVeneerExpiresTooFastNoPool) {
+  using js::jit::BufferOffset;
+
+  TestAsmBufWithPool ab{};
+
+  BufferOffset br1 = ab.putInt(Instr::ShortBranch(0xaa));
+  ab.registerBranchDeadline(
+      1, BufferOffset(br1.getOffset() + TestAssembler::BranchRange));
+
+  BufferOffset br2 = ab.putInt(Instr::ShortBranch(0xbb));
+  ab.registerBranchDeadline(
+      1, BufferOffset(br2.getOffset() + TestAssembler::BranchRange));
+
+  BufferOffset br3 = ab.putInt(Instr::ShortBranch(0xcc));
+  ab.registerBranchDeadline(
+      1, BufferOffset(br3.getOffset() + TestAssembler::BranchRange));
+
+  BufferOffset br4 = ab.putInt(Instr::ShortBranch(0xdd));
+  ab.registerBranchDeadline(
+      2, BufferOffset(br4.getOffset() + TestAssembler::BranchRangeShort));
+
+  // Branch should not have been patched yet here.
+  CHECK_EQUAL(*ab.getInst(br1), Instr::ShortBranch(0xaa));
+  CHECK_EQUAL(*ab.getInst(br2), Instr::ShortBranch(0xbb));
+  CHECK_EQUAL(*ab.getInst(br3), Instr::ShortBranch(0xcc));
+  CHECK_EQUAL(*ab.getInst(br4), Instr::ShortBranch(0xdd));
+
+  // Instructions:
+  //
+  //  0: br1 (deadline = 36)
+  //  4: br2 (deadline = 40)
+  //  8: br3 (deadline = 44)
+  // 12: br4 (deadline = 40)
+  CHECK_EQUAL(br4.getOffset(), 12);
+
+  // Three consecutive instructions can't be emitted at this point, because when
+  // issuing the pool for the earliest dead line (br1 at offset 36), this
+  // instruction sequence would be generated:
+  //
+  // 16: arith(1)
+  // 20: arith(2)
+  // 24: arith(3)
+  // 28: guard branch
+  // 32: pool header
+  // 36: veneer1
+  // 40: veneer2 + veneer4 (!!! Conflict !!!)
+  //
+  // The deadline for both br2 and br4 is at offset 40, so we have a conflict.
+  //
+  // That means the three `arith` instructions need to be emitted after the
+  // pool:
+  //
+  //  0: br1 pc+24
+  //  4: br2 pc+24
+  //  8: br3 pc+28
+  // 12: br4 pc+20
+  // 16: guard branch pc+24
+  // 20: pool header
+  // 24: veneer1
+  // 28: veneer2
+  // 32: veneer4
+  // 36: veneer3
+  // 40: arith(1)
+  // 44: arith(2)
+  // 48: arith(3)
+  {
+    AutoForbidPoolsAndNops afp(&ab, 3);
+
+    ab.putInt(Instr::Arith(1));
+    ab.putInt(Instr::Arith(2));
+    ab.putInt(Instr::Arith(3));
+  }
+
+  // Now the branches must have been patched.
+  CHECK_EQUAL(*ab.getInst(br1),
+              Instr::PatchedShortBranch(24));  // br1 pc+24 (patched)
+  CHECK_EQUAL(*ab.getInst(br2),
+              Instr::PatchedShortBranch(24));  // br2 pc+24 (patched)
+  CHECK_EQUAL(*ab.getInst(br3),
+              Instr::PatchedShortBranch(28));  // br3 pc+28 (patched)
+  CHECK_EQUAL(*ab.getInst(br4),
+              Instr::PatchedShortBranch(20));  // br4 pc+20 (patched)
+
+  CHECK_EQUAL(*ab.getInst(BufferOffset(24)),
+              Instr::VeneerBranch(0xaa));  // veneer1 w/ original 'aa' offset.
+  CHECK_EQUAL(*ab.getInst(BufferOffset(28)),
+              Instr::VeneerBranch(0xbb));  // veneer2 w/ original 'bb' offset.
+  CHECK_EQUAL(*ab.getInst(BufferOffset(32)),
+              Instr::VeneerBranch(0xdd));  // veneer4 w/ original 'dd' offset.
+  CHECK_EQUAL(*ab.getInst(BufferOffset(36)),
+              Instr::VeneerBranch(0xcc));  // veneer3 w/ original 'cc' offset.
+
+  return true;
+}
+END_TEST(
+    testAssemblerBuffer_AssemblerBufferWithConstantPools_ShortBranchVeneerExpiresTooFastNoPool)
+
 // Test that everything is put together correctly in the ARM64 assembler.
 #if defined(JS_CODEGEN_ARM64)
 
@@ -1095,4 +1223,112 @@ BEGIN_TEST(testAssemblerBuffer_ARM64_ShortBranchVeneerExpiresTooFast) {
   return true;
 }
 END_TEST(testAssemblerBuffer_ARM64_ShortBranchVeneerExpiresTooFast)
+
+BEGIN_TEST(testAssemblerBuffer_ARM64_ShortBranchSecondaryVeneer) {
+  using namespace js::jit;
+  using namespace AArch64;
+
+  js::LifoAlloc lifo(4096, js::MallocArena);
+  TempAllocator alloc(&lifo);
+  JitContext jc(cx);
+  StackMacroAssembler masm(cx, alloc);
+  AutoCreatedBy acb(masm, __func__);
+
+  auto rt = vixl::x1;
+
+  auto tbz = std::bind_front(AArch64::tbz, rt);
+
+  Label tbz_lbl1;
+  Label tbz_lbln;
+  Label cbz_lbln;
+
+  BufferOffset tbz1(masm.currentOffset());
+  unsigned tbz1_bitpos = 0;
+  masm.Tbz(rt, tbz1_bitpos, &tbz_lbl1);
+
+  // Emit more instructions than covered through the default hysteresis.
+  constexpr int32_t tbz_count = js::jit::ShortRangeBranchHysteresis / 4;
+  for (int32_t i = 0; i < tbz_count; ++i) {
+    masm.Tbz(rt, 1, &tbz_lbln);
+  }
+
+  // Create additional short branches for a different range. The total number of
+  // these branches must be larger than |tbz_count|. That way all tbz branches
+  // are considered as "secondary veneers" in AssemblerBufferWithConstantPools,
+  // cf. |AssemblerBufferWithConstantPools::sizeOfSecondaryVeneers()|.
+  constexpr int32_t cbz_count = tbz_count + 10;
+  for (int32_t i = 0; i < cbz_count; ++i) {
+    masm.Cbz(rt, &cbz_lbln);
+  }
+
+  // tbz1 is unbound.
+  CHECK_EQUAL(masm.getInstructionAt(tbz1)->InstructionBits(),
+              tbz(tbz1_bitpos, unbound));
+
+  // Compute deadline for tbz1 instruction.
+  BufferOffset tbz_deadline1(
+      tbz1.getOffset() +
+      vixl::Instruction::ImmBranchMaxForwardOffset(vixl::TestBranchRangeType));
+
+  // Instructions until deadline is reached.
+  int32_t current = int32_t(masm.currentOffset());
+  int32_t instr_until_deadline = (tbz_deadline1.getOffset() - current) / 4;
+
+  // Total number of tbz instructions, plus a pool guard and pool header.
+  int32_t tbz_and_pool_instr = 1 + tbz_count + 1 + 1;
+
+  // Compute how many nops to insert until deadline is reached.
+  int32_t nops = instr_until_deadline - tbz_and_pool_instr;
+
+  // Insert nops.
+  for (int32_t i = 0; i < nops; ++i) {
+    masm.Nop();
+  }
+
+  // tbz1 is still unbound after emitting nops.
+  CHECK_EQUAL(masm.getInstructionAt(tbz1)->InstructionBits(),
+              tbz(tbz1_bitpos, unbound));
+
+  BufferOffset nop_before_pool(masm.currentOffset() - 4);
+  CHECK_EQUAL(masm.getInstructionAt(nop_before_pool)->InstructionBits(), nop());
+
+  // AutoForbidPoolsAndNops triggers pool construction.
+  {
+    js::jit::AutoForbidPoolsAndNops afp(&masm, 1);
+
+    masm.Nop();
+  }
+
+  BufferOffset nop_after_pool(masm.currentOffset() - 4);
+  CHECK_EQUAL(masm.getInstructionAt(nop_after_pool)->InstructionBits(), nop());
+
+  // Pool guard branch
+  BufferOffset guard(nop_before_pool.getOffset() + 4);
+  CHECK_EQUAL(masm.getInstructionAt(guard)->InstructionBits(),
+              b(offset(guard, nop_after_pool)));
+
+  // Pool header
+  BufferOffset header(nop_before_pool.getOffset() + 8);
+  CHECK_EQUAL(masm.getInstructionAt(header)->InstructionBits(), poolheader(1));
+
+  // Veneer branch for tbz1.
+  BufferOffset veneer1(nop_before_pool.getOffset() + 12);
+  CHECK_EQUAL(masm.getInstructionAt(veneer1)->InstructionBits(), b(unbound));
+
+  // tbz1 bound to the veneer branch.
+  CHECK_EQUAL(masm.getInstructionAt(tbz1)->InstructionBits(),
+              tbz(tbz1_bitpos, offset(tbz1, veneer1)));
+
+  // Finally bind all labels.
+  masm.bind(&tbz_lbl1);
+  masm.bind(&tbz_lbln);
+  masm.bind(&cbz_lbln);
+
+  // Veneer branch bound to label tbz_lbl1.
+  CHECK_EQUAL(masm.getInstructionAt(veneer1)->InstructionBits(),
+              b(label_offset(veneer1, &tbz_lbl1)));
+
+  return true;
+}
+END_TEST(testAssemblerBuffer_ARM64_ShortBranchSecondaryVeneer)
 #endif /* JS_CODEGEN_ARM64 */

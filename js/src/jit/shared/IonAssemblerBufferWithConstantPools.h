@@ -525,7 +525,8 @@ struct Pool {
 //
 //
 template <size_t InstSize, class Inst, class Asm,
-          unsigned NumShortBranchRanges = 0>
+          unsigned NumShortBranchRanges = 0,
+          size_t ShortRangeBranchHysteresis = jit::ShortRangeBranchHysteresis>
 struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
  private:
   // The PoolEntry index counter. Each PoolEntry is given a unique index,
@@ -694,6 +695,39 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
   static const unsigned OOM_FAIL = unsigned(-1);
   static const unsigned DUMMY_INDEX = unsigned(-2);
 
+  size_t sizeOfSecondaryVeneers(unsigned numNewDeadlines = 0) const {
+    // When NumShortBranchRanges > 1, it is possible for branch deadlines to
+    // expire faster than we can insert veneers. Suppose branches are 4 bytes
+    // each, we could have the following deadline set:
+    //
+    //   Range 0: 40, 44, 48
+    //   Range 1: 44, 48
+    //
+    // It is not good enough to start inserting veneers at the 40 deadline; we
+    // would not be able to create veneers for the second 44 deadline.
+    // Instead, we need to start at 32:
+    //
+    //   32: veneer(40)
+    //   36: veneer(44)
+    //   40: veneer(44)
+    //   44: veneer(48)
+    //   48: veneer(48)
+    //
+    // This is a pretty conservative solution to the problem: If we begin at
+    // the earliest deadline, we can always emit all veneers for the range
+    // that currently has the most pending deadlines. That may not leave room
+    // for veneers for the remaining ranges, so reserve space for those
+    // secondary range veneers assuming the worst case deadlines.
+
+    // Total pending secondary range veneer size.
+    //
+    // Veneer branch is expected to have the same size as a pool guard branch.
+    return guardSize_ *
+           (branchDeadlines_.size() - branchDeadlines_.maxRangeSize() +
+            numNewDeadlines) *
+           InstSize;
+  }
+
   // Check if it is possible to add numInst instructions and numPoolEntries
   // constant pool entries without needing to flush the current pool.
   bool hasSpaceForInsts(unsigned numInsts, unsigned numPoolEntries,
@@ -711,40 +745,13 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
     }
 
     // Any short-range branch that would go out of range?
+    //
+    // NOTE: Must be kept in sync with hasExpirableShortRangeBranches.
     if (!branchDeadlines_.empty()) {
       size_t deadline = branchDeadlines_.earliestDeadline().getOffset();
       size_t poolEnd = poolOffset + pool_.getPoolSize() +
                        numPoolEntries * sizeof(PoolAllocUnit);
-
-      // When NumShortBranchRanges > 1, is is possible for branch deadlines to
-      // expire faster than we can insert veneers. Suppose branches are 4 bytes
-      // each, we could have the following deadline set:
-      //
-      //   Range 0: 40, 44, 48
-      //   Range 1: 44, 48
-      //
-      // It is not good enough to start inserting veneers at the 40 deadline; we
-      // would not be able to create veneers for the second 44 deadline.
-      // Instead, we need to start at 32:
-      //
-      //   32: veneer(40)
-      //   36: veneer(44)
-      //   40: veneer(44)
-      //   44: veneer(48)
-      //   48: veneer(48)
-      //
-      // This is a pretty conservative solution to the problem: If we begin at
-      // the earliest deadline, we can always emit all veneers for the range
-      // that currently has the most pending deadlines. That may not leave room
-      // for veneers for the remaining ranges, so reserve space for those
-      // secondary range veneers assuming the worst case deadlines.
-
-      // Total pending secondary range veneer size.
-      size_t secondaryVeneers =
-          guardSize_ *
-          (branchDeadlines_.size() - branchDeadlines_.maxRangeSize() +
-           numNewDeadlines) *
-          InstSize;
+      size_t secondaryVeneers = sizeOfSecondaryVeneers(numNewDeadlines);
 
       if (deadline < poolEnd + secondaryVeneers) {
         return false;
@@ -944,6 +951,8 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
 
  private:
   // Are any short-range branches about to expire?
+  //
+  // NOTE: Must be kept in sync with hasSpaceForInsts.
   bool hasExpirableShortRangeBranches(size_t reservedBytes) const {
     if (branchDeadlines_.empty()) {
       return false;
@@ -956,10 +965,9 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
     // of flushPool, we have to check for overflow when comparing the deadline
     // with our expected reserved bytes.
     size_t deadline = branchDeadlines_.earliestDeadline().getOffset();
-    using CheckedSize = mozilla::CheckedInt<size_t>;
-    CheckedSize current(this->nextOffset().getOffset());
-    CheckedSize poolFreeSpace(reservedBytes);
-    auto future = current + poolFreeSpace;
+    size_t current = this->nextOffset().getOffset();
+    mozilla::CheckedInt<size_t> poolFreeSpace(reservedBytes);
+    auto future = (current + sizeOfSecondaryVeneers()) + poolFreeSpace;
     return !future.isValid() || deadline < future.value();
   }
 
