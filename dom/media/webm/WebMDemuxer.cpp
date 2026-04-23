@@ -50,24 +50,53 @@ LazyLogModule gNesteggLog("Nestegg");
 // Functions for reading and seeking using WebMDemuxer required for
 // nestegg_io. The 'user data' passed to these functions is the
 // demuxer's context.
-static int webmdemux_read(void* aBuffer, size_t aLength, void* aUserData) {
+static int64_t webmdemux_read(void* aBuffer, size_t aLength, void* aUserData) {
   MOZ_ASSERT(aUserData);
   MOZ_ASSERT(aLength < UINT32_MAX);
   WebMDemuxer::NestEggContext* context =
       reinterpret_cast<WebMDemuxer::NestEggContext*>(aUserData);
+  // Nestegg buffers reads internally and may request up to its IO buffer
+  // size (several KiB) even when the parser only needs a few bytes.
+  // SourceBufferResource returns NS_ERROR_DOM_MEDIA_WAITING_FOR_DATA for any
+  // read that extends past currently-appended data rather than serving a
+  // partial read, so an unclamped read-ahead near the end of an MSE append
+  // would misreport a fully-available packet as waiting for data. Clamp to
+  // the cached range so short reads surface through the new nestegg
+  // short-read path, and only let WAITING_FOR_DATA propagate when no bytes
+  // are currently cached at the stream position.
+  if (context->IsMediaSource()) {
+    int64_t offset = context->GetResource()->Tell();
+    int64_t cachedEnd =
+        context->GetResource()->GetResource()->GetCachedDataEnd(offset);
+    if (cachedEnd > offset) {
+      int64_t available = cachedEnd - offset;
+      if (static_cast<int64_t>(aLength) > available) {
+        aLength = static_cast<size_t>(available);
+      }
+    }
+  }
   uint32_t bytes = 0;
   context->mLastIORV = context->GetResource()->Read(static_cast<char*>(aBuffer),
                                                     aLength, &bytes);
-  bool eof = bytes < aLength;
-  return NS_FAILED(context->mLastIORV) ? -1 : eof ? 0 : 1;
+  if (NS_FAILED(context->mLastIORV)) {
+    return -1;
+  }
+  return bytes;
 }
 
 static int webmdemux_seek(int64_t aOffset, int aWhence, void* aUserData) {
   MOZ_ASSERT(aUserData);
   WebMDemuxer::NestEggContext* context =
       reinterpret_cast<WebMDemuxer::NestEggContext*>(aUserData);
-  context->mLastIORV = context->GetResource()->Seek(aWhence, aOffset);
-  return NS_SUCCEEDED(context->mLastIORV) ? 0 : -1;
+  nsresult rv = context->GetResource()->Seek(aWhence, aOffset);
+  // Don't overwrite mLastIORV on success: nestegg performs internal rewind
+  // seeks after failed reads, and a successful rewind must not mask the
+  // original read failure (e.g. NS_ERROR_DOM_MEDIA_WAITING_FOR_DATA).
+  if (NS_FAILED(rv)) {
+    context->mLastIORV = rv;
+    return -1;
+  }
+  return 0;
 }
 
 static int64_t webmdemux_tell(void* aUserData) {
@@ -1016,7 +1045,11 @@ Result<RefPtr<NesteggPacketHolder>, nsresult> WebMDemuxer::NextPacket(
 Result<RefPtr<NesteggPacketHolder>, nsresult> WebMDemuxer::DemuxPacket(
     TrackInfo::TrackType aType) {
   nestegg_packet* packet;
-  const NestEggContext& context = CallbackContext(aType);
+  NestEggContext& context =
+      aType == TrackInfo::kVideoTrack ? mVideoContext : mAudioContext;
+  // Clear any IO result carried over from a prior nestegg operation so that
+  // mLastIORV only reflects failures that occur during this packet read.
+  context.mLastIORV = NS_OK;
   int r = nestegg_read_packet(context.mContext, &packet);
   if (r <= 0) {
     nsresult rv = context.mLastIORV;
@@ -1037,7 +1070,14 @@ Result<RefPtr<NesteggPacketHolder>, nsresult> WebMDemuxer::DemuxPacket(
     return Err(NS_ERROR_DOM_MEDIA_DEMUXER_ERR);
   }
 
-  int64_t offset = Resource(aType).Tell();
+  // Use nestegg's logical end-of-packet offset rather than the resource
+  // cursor: nestegg's internal buffering means the cursor may be ahead of
+  // the packet's actual end in the stream.
+  int64_t offset = 0;
+  if (nestegg_packet_end_offset(packet, &offset) != 0) {
+    WEBM_DEBUG("nestegg_packet_end_offset: error");
+    return Err(NS_ERROR_DOM_MEDIA_DEMUXER_ERR);
+  }
   RefPtr<NesteggPacketHolder> holder = new NesteggPacketHolder();
   if (!holder->Init(packet, offset, track, false)) {
     WEBM_DEBUG("NesteggPacketHolder::Init: error");
