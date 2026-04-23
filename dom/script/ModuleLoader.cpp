@@ -263,12 +263,10 @@ nsresult ModuleLoader::CompileJavaScriptOrWasmModule(
       return NS_ERROR_FAILURE;
     }
 
-    bool alreadyStarted;
-    if (!JS::StartCollectingDelazifications(aCx, aModuleOut, stencil,
-                                            alreadyStarted)) {
+    if (!GetScriptLoader()->StartCollectingDelazifications(aCx, aModuleOut,
+                                                           stencil)) {
       return NS_ERROR_FAILURE;
     }
-    (void)alreadyStarted;
 
     return NS_OK;
   }
@@ -291,12 +289,10 @@ nsresult ModuleLoader::CompileJavaScriptOrWasmModule(
     }
 
     if (aRequest->PassedConditionForEitherCache()) {
-      bool alreadyStarted;
-      if (!JS::StartCollectingDelazifications(aCx, aModuleOut, stencil,
-                                              alreadyStarted)) {
+      if (!GetScriptLoader()->StartCollectingDelazifications(aCx, aModuleOut,
+                                                             stencil)) {
         return NS_ERROR_FAILURE;
       }
-      MOZ_ASSERT(!alreadyStarted);
     }
 
     GetScriptLoader()->TryCacheRequest(aRequest);
@@ -342,12 +338,10 @@ nsresult ModuleLoader::CompileJavaScriptOrWasmModule(
   }
 
   if (aRequest->PassedConditionForEitherCache()) {
-    bool alreadyStarted;
-    if (!JS::StartCollectingDelazifications(aCx, aModuleOut, stencil,
-                                            alreadyStarted)) {
+    if (!GetScriptLoader()->StartCollectingDelazifications(aCx, aModuleOut,
+                                                           stencil)) {
       return NS_ERROR_FAILURE;
     }
-    MOZ_ASSERT(!alreadyStarted);
   }
 
   GetScriptLoader()->TryCacheRequest(aRequest);

@@ -138,7 +138,7 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
   explicit ScriptLoader(Document* aDocument);
 
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS_FINAL
-  NS_DECL_CYCLE_COLLECTION_CLASS(ScriptLoader)
+  NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS(ScriptLoader)
 
   /**
    * Called when the document that owns this script loader changes global. The
@@ -683,6 +683,30 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
   // Implements https://html.spec.whatwg.org/#execute-the-script-block
   nsresult EvaluateScriptElement(ScriptLoadRequest* aRequest);
 
+  bool StartCollectingDelazifications(JSContext* aCx,
+                                      JS::Handle<JSScript*> aScript,
+                                      JS::Stencil* aStencil);
+  bool StartCollectingDelazifications(JSContext* aCx,
+                                      JS::Handle<JSObject*> aModule,
+                                      JS::Stencil* aStencil);
+
+ private:
+  void AppendDelazificationCollection(JS::Handle<JSScript*> aScript);
+  void AppendDelazificationCollection(JS::Handle<JSObject*> aModule);
+
+  enum class CollectDelazifications : bool { No, Yes };
+
+  void InstantiateStencil(JSContext* aCx, JS::CompileOptions& aCompileOptions,
+                          JS::Stencil* aStencil,
+                          JS::MutableHandle<JSScript*> aScript,
+                          JS::Handle<JSScript*> aDebuggerIntroductionScript,
+                          ErrorResult& aRv,
+                          const nsAutoCString& aProfilerLabelString,
+                          JS::InstantiationStorage* aStorage = nullptr,
+                          CollectDelazifications aCollectDelazifications =
+                              CollectDelazifications::No);
+
+ public:
   // Instantiate classic script from one of the following data:
   //   * text source
   //   * serialized stencil
@@ -854,6 +878,10 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
 
   Document* mDocument;  // [WEAK]
   nsCOMArray<nsIScriptLoaderObserver> mObservers;
+
+  // The list of ongoing delazification collections.
+  nsTArray<JS::Heap<JSScript*>> mDelazificationCollectingScripts;
+  nsTArray<JS::Heap<JSObject*>> mDelazificationCollectingModules;
 
   // The following lists maintains the list of requests for each phase and
   // situation.
