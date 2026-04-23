@@ -1306,6 +1306,14 @@ nsresult xpc::CreateSandboxObject(JSContext* cx, MutableHandleValue vp,
   }
   MOZ_ASSERT(principal);
 
+  nsGlobalWindowInner* windowOfProto = nullptr;
+  if (options.proto) {
+    JSObject* unwrappedProto = js::UncheckedUnwrap(options.proto, false);
+    if (principal->Subsumes(nsContentUtils::ObjectPrincipal(unwrappedProto))) {
+      windowOfProto = WindowGlobalOrNull(unwrappedProto);
+    }
+  }
+
   JS::RealmOptions realmOptions;
 
   auto& creationOptions = realmOptions.creationOptions();
@@ -1322,6 +1330,10 @@ nsresult xpc::CreateSandboxObject(JSContext* cx, MutableHandleValue vp,
   }
 
   xpc::SetPrefableRealmOptions(realmOptions);
+  if (!isSystemPrincipal &&
+      (!windowOfProto || !windowOfProto->CrossOriginIsolated())) {
+    creationOptions.setDefineSharedArrayBufferConstructor(false);
+  }
   if (options.sameZoneAs) {
     creationOptions.setNewCompartmentInExistingZone(
         js::UncheckedUnwrap(options.sameZoneAs));

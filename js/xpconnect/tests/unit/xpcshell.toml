@@ -336,6 +336,8 @@ head = "head_ongc.js"
 
 ["test_sandbox_DOMException.js"]
 
+["test_sandbox_SharedArrayBuffer.js"]
+
 ["test_sandbox_atob.js"]
 
 ["test_sandbox_builtins.js"]
