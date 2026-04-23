@@ -1214,13 +1214,44 @@
             "name",
             `tab-notification-box-${this._nextNotificationBoxId++}`
           );
-          this.getTabNotificationDeck().append(element);
-          if (browser == this.selectedBrowser) {
-            this._updateVisibleNotificationBox(browser);
-          }
+          this.#insertNotificationBox(browser, element);
         }, this._notificationEnableDelay);
       }
       return browser._notificationBox;
+    }
+
+    /**
+     * Insert a notification box into the correct container.
+     *
+     * In Split View, notifications go into the panel's browserContainer
+     * so they appear only in that panel.
+     *
+     * Otherwise, they go into the shared tab notification deck.
+     *
+     * @param {MozBrowser} browser
+     * @param {Element} box
+     *   The notification box.
+     */
+    #insertNotificationBox(browser, box) {
+      if (this.#isBrowserInActiveSplitView(browser)) {
+        let browserContainer = this.getBrowserContainer(browser);
+        if (box.parentNode === browserContainer) {
+          // Notification box is already in the container.
+          return;
+        }
+        let browserStack = browserContainer.querySelector(".browserStack");
+        browserContainer.insertBefore(box, browserStack);
+        return;
+      }
+      this.getTabNotificationDeck().append(box);
+      if (browser == this.selectedBrowser) {
+        this._updateVisibleNotificationBox(browser);
+      }
+    }
+
+    #isBrowserInActiveSplitView(browser) {
+      let tab = this.getTabForBrowser(browser);
+      return this.#activeSplitView && tab?.splitview === this.#activeSplitView;
     }
 
     readNotificationBox(aBrowser) {
@@ -1234,6 +1265,13 @@
         return;
       }
       let notificationBox = this.readNotificationBox(aBrowser);
+      if (
+        notificationBox?._stack &&
+        notificationBox._stack.parentNode !== this.getTabNotificationDeck()
+      ) {
+        // Notification box is not in the deck (e.g. in a Split View panel).
+        return;
+      }
       this.getTabNotificationDeck().selectedViewName = notificationBox
         ? notificationBox.stack.getAttribute("name")
         : "";
@@ -8266,11 +8304,31 @@
 
     on_TabSplitViewActivate(aEvent) {
       this.#activeSplitView = aEvent.detail.splitview;
+      this.#moveSplitViewNotificationBoxes(aEvent.detail.tabs);
     }
 
     on_TabSplitViewDeactivate(aEvent) {
       if (this.#activeSplitView === aEvent.detail.splitview) {
         this.#activeSplitView = null;
+      }
+      this.#moveSplitViewNotificationBoxes(aEvent.detail.tabs);
+    }
+
+    /**
+     * Move existing notification boxes into or out of Split View
+     * panel containers.
+     *
+     * @param {MozTabbrowserTab[]} tabs
+     */
+    #moveSplitViewNotificationBoxes(tabs) {
+      for (const tab of tabs) {
+        let notificationBox = this.readNotificationBox(tab.linkedBrowser);
+        if (notificationBox?._stack) {
+          this.#insertNotificationBox(
+            tab.linkedBrowser,
+            notificationBox._stack
+          );
+        }
       }
     }
 
