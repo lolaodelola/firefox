@@ -111,6 +111,8 @@ skip-if = [
 
 ["browser_rules_class_panel_toggle.js"]
 
+["browser_rules_color-preview.js"]
+
 ["browser_rules_colorUnit.js"]
 
 ["browser_rules_color_scheme_simulation.js"]
