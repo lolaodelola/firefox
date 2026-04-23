@@ -200,7 +200,13 @@ export var ContentTaskUtils = {
       return Promise.resolve();
     }
     return new Promise(resolve => {
-      let obs = new subject.documentGlobal.MutationObserver(function () {
+      /**
+       * @backward-compat { version 152 }
+       *
+       * Get rid of the ownerGlobal fallback once 152 makes it to release.
+       */
+      let global = subject.documentGlobal ?? subject.ownerGlobal;
+      let obs = new global.MutationObserver(function () {
         if (checkFn && !checkFn()) {
           return;
         }
