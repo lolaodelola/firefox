@@ -5,16 +5,16 @@
 package mozilla.components.compose.browser.awesomebar.internal.optimizedsuggestions
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -75,10 +75,7 @@ internal fun SportSuggestion(
     ) {
         Column(
             modifier = Modifier
-                .padding(
-                    horizontal = AcornTheme.layout.space.static200,
-                    vertical = AcornTheme.layout.space.static300,
-                ),
+                .padding(AcornTheme.layout.space.static200),
         ) {
             SuggestionHeader(
                 sport = state.sport,
@@ -88,10 +85,7 @@ internal fun SportSuggestion(
                 date = state.date,
             )
 
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
+            Spacer(modifier = Modifier.height(AcornTheme.layout.space.static100))
 
             SuggestionTeams(
                 awayTeam = state.awayTeam,
@@ -115,37 +109,38 @@ private fun SuggestionHeader(
     Row(verticalAlignment = Alignment.CenterVertically) {
         sportCategory.toSportIcon()?.let {
             Icon(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(color = MaterialTheme.colorScheme.surfaceContainerHighest)
-                    .padding(AcornTheme.layout.space.static50),
                 painter = it,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        Spacer(modifier = Modifier.width(AcornTheme.layout.space.static50))
+        Text(
+            text = sport,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+            style = AcornTheme.typography.subtitle2,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
 
-        Spacer(modifier = Modifier.width(AcornTheme.layout.space.static100))
+        Spacer(modifier = Modifier.weight(1f))
 
         Text(
             text = buildString {
-                append("$sport · ")
                 status.stringResId?.let {
                     append("${stringResource(it)} · ")
                 }
                 append(getSportsDate(date))
             },
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 16.dp),
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
             style = AcornTheme.typography.body2,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         if (statusType == SportSuggestionStatusType.LIVE) {
+            Spacer(modifier = Modifier.weight(1f))
+
             LiveStatus()
         }
     }
@@ -160,8 +155,16 @@ private fun SuggestionTeams(
     val teamContentDescription = getTeamContentDescription(shouldDisplayScore, awayTeam, homeTeam)
     Row(
         modifier = Modifier
-            .padding(top = AcornTheme.layout.space.static150)
             .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .padding(
+                vertical = AcornTheme.layout.space.static150,
+                horizontal = AcornTheme.layout.space.static100,
+            )
             .clearAndSetSemantics {
                 this.contentDescription = teamContentDescription
             },
@@ -174,7 +177,10 @@ private fun SuggestionTeams(
             modifier = Modifier.weight(1f),
         )
 
-        ScoreText(text = ":", modifier = Modifier.padding(horizontal = 16.dp))
+        ScoreText(
+            text = ":",
+            modifier = Modifier.padding(horizontal = AcornTheme.layout.space.static100),
+        )
 
         Team(
             team = homeTeam,
@@ -254,19 +260,25 @@ private fun Team(
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         if (shouldDisplayScore && !isAwayTeam) {
-            ScoreText(text = "${team.score}", modifier = Modifier.padding(end = 24.dp))
+            ScoreText(
+                text = "${team.score}",
+                modifier = Modifier.padding(end = AcornTheme.layout.space.static100),
+            )
         }
         Text(
             text = team.name,
             modifier = modifier,
-            style = AcornTheme.typography.subtitle1,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 3,
+            style = AcornTheme.typography.subtitle2,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
         )
         if (shouldDisplayScore && isAwayTeam) {
-            ScoreText(text = "${team.score}", modifier = Modifier.padding(start = 24.dp))
+            ScoreText(
+                text = "${team.score}",
+                modifier = Modifier.padding(start = AcornTheme.layout.space.static100),
+            )
         }
     }
 }
@@ -278,7 +290,7 @@ private fun ScoreText(text: String, modifier: Modifier = Modifier) {
         textAlign = TextAlign.Center,
         style = AcornTheme.typography.headline5,
         fontWeight = FontWeight.W700,
-        color = MaterialTheme.colorScheme.onSurface,
+        color = MaterialTheme.colorScheme.primary,
         modifier = modifier,
     )
 }
