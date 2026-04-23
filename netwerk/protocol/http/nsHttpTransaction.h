@@ -353,12 +353,17 @@ class nsHttpTransaction final : public nsAHttpTransaction,
     uint32_t mPriority;
   };
 
-  Mutex mLock MOZ_UNANNOTATED{"transaction lock"};
+  // Fields annotated MOZ_GUARDED_BY(mLock) are accessed from multiple threads.
+  // Fields without annotation are either socket-thread-only, or have complex
+  // mixed-access patterns (e.g. mConnection is checked without the lock on the
+  // socket thread but modified with it; mChunkedDecoder is accessed without the
+  // lock except during trailer extraction).
+  Mutex mLock{"transaction lock"};
 
-  nsCOMPtr<nsIInterfaceRequestor> mCallbacks;
+  nsCOMPtr<nsIInterfaceRequestor> mCallbacks MOZ_GUARDED_BY(mLock);
   nsCOMPtr<nsITransportEventSink> mTransportSink;
   nsCOMPtr<nsIEventTarget> mConsumerTarget;
-  nsCOMPtr<nsITransportSecurityInfo> mSecurityInfo;
+  nsCOMPtr<nsITransportSecurityInfo> mSecurityInfo MOZ_GUARDED_BY(mLock);
   nsCOMPtr<nsIAsyncInputStream> mPipeIn;
   nsCOMPtr<nsIAsyncOutputStream> mPipeOut;
   nsCOMPtr<nsIRequestContext> mRequestContext;
@@ -405,7 +410,7 @@ class nsHttpTransaction final : public nsAHttpTransaction,
 
   nsHttpChunkedDecoder* mChunkedDecoder{nullptr};
 
-  TimingStruct mTimings;
+  TimingStruct mTimings MOZ_GUARDED_BY(mLock);
 
   nsresult mStatus{NS_OK};
 
@@ -556,7 +561,10 @@ class nsHttpTransaction final : public nsAHttpTransaction,
   Atomic<bool, Relaxed> mClassOfServiceIncremental{false};
 
  public:
-  nsIInterfaceRequestor* SecurityCallbacks() { return mCallbacks; }
+  nsIInterfaceRequestor* SecurityCallbacks() {
+    MutexAutoLock lock(mLock);
+    return mCallbacks;
+  }
   // Called when this transaction is inserted in the pending queue.
   void OnPendingQueueInserted(const nsACString& aConnectionHashKey);
 
@@ -599,7 +607,7 @@ class nsHttpTransaction final : public nsAHttpTransaction,
   RefPtr<nsHttpConnectionInfo> mBackupConnInfo;
   // A clone of mConnInfo taken when this transaction is activated.
   // Describes the server that the associated connection is connected to.
-  RefPtr<nsHttpConnectionInfo> mFinalizedConnInfo;
+  RefPtr<nsHttpConnectionInfo> mFinalizedConnInfo MOZ_GUARDED_BY(mLock);
   RefPtr<HTTPSRecordResolver> mResolver;
   TRANSACTION_RESTART_REASON mRestartReason = TRANSACTION_RESTART_NONE;
 
@@ -618,18 +626,19 @@ class nsHttpTransaction final : public nsAHttpTransaction,
   bool mEarlyDataWasAvailable = false;
   bool ShouldRestartOn0RttError(nsresult reason);
 
-  nsCOMPtr<nsIEarlyHintObserver> mEarlyHintObserver;
+  nsCOMPtr<nsIEarlyHintObserver> mEarlyHintObserver MOZ_GUARDED_BY(mLock);
   // This hash key is set when a transaction is inserted into the connection
   // entry's pending queue.
   // See nsHttpConnectionMgr::GetOrCreateConnectionEntry(). A transaction could
   // be associated with the connection entry whose hash key is not the same as
   // this transaction's.
-  nsCString mHashKeyOfConnectionEntry;
+  nsCString mHashKeyOfConnectionEntry MOZ_GUARDED_BY(mLock);
   // The CNAME of the host, or empty if none.
   nsCString mCname;
   nsCString mServerHeader;
 
-  nsCOMPtr<WebTransportSessionEventListener> mWebTransportSessionEventListener;
+  nsCOMPtr<WebTransportSessionEventListener> mWebTransportSessionEventListener
+      MOZ_GUARDED_BY(mLock);
 
   nsAutoCString mUrl;
   RefPtr<nsAHttpTransaction> mHappyEyeballsProxy;

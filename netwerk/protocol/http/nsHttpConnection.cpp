@@ -138,10 +138,7 @@ nsresult nsHttpConnection::Init(
   mSocketOut = outstream;
   mForWebSocket = forWebSocket;
 
-  // See explanation for non-strictness of this operation in
-  // SetSecurityCallbacks.
-  mCallbacks = new nsMainThreadPtrHolder<nsIInterfaceRequestor>(
-      "nsHttpConnection::mCallbacks", callbacks, false);
+  InitCallbacks(callbacks, "nsHttpConnection::mCallbacks");
 
   mErrorBeforeConnect = status;
   if (NS_SUCCEEDED(mErrorBeforeConnect)) {
@@ -688,7 +685,8 @@ nsresult nsHttpConnection::AddTransaction(nsAHttpTransaction* httpTransaction,
        mSpdySession ? "SPDY" : "QUIC", needTunnel ? " over tunnel" : ""));
 
   if (mSpdySession) {
-    if (!mSpdySession->AddStream(httpTransaction, priority, mCallbacks)) {
+    nsCOMPtr<nsIInterfaceRequestor> callbacks = GetCallbacks();
+    if (!mSpdySession->AddStream(httpTransaction, priority, callbacks)) {
       MOZ_ASSERT(false);  // this cannot happen!
       httpTransaction->Close(NS_ERROR_ABORT);
       return NS_ERROR_FAILURE;
@@ -706,7 +704,8 @@ nsresult nsHttpConnection::CreateTunnelStream(
     return NS_ERROR_UNEXPECTED;
   }
 
-  auto result = mSpdySession->CreateTunnelStream(httpTransaction, mCallbacks,
+  nsCOMPtr<nsIInterfaceRequestor> callbacks = GetCallbacks();
+  auto result = mSpdySession->CreateTunnelStream(httpTransaction, callbacks,
                                                  mRtt, aIsExtendedCONNECT);
   if (result.isErr()) {
     return result.unwrapErr();
@@ -2324,11 +2323,7 @@ nsHttpConnection::GetInterface(const nsIID& iid, void** result) {
 
   MOZ_ASSERT(!OnSocketThread(), "on socket thread");
 
-  nsCOMPtr<nsIInterfaceRequestor> callbacks;
-  {
-    MutexAutoLock lock(mCallbacksLock);
-    callbacks = mCallbacks;
-  }
+  nsCOMPtr<nsIInterfaceRequestor> callbacks = GetCallbacks();
   if (callbacks) return callbacks->GetInterface(iid, result);
   return NS_ERROR_NO_INTERFACE;
 }

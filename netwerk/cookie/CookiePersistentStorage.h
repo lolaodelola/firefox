@@ -147,7 +147,7 @@ class CookiePersistentStorage final : public CookieStorage,
   // Synchronized by the same mMonitor + mInitialized pattern as mReadArray.
   nsTArray<CookieDomainTuple> mCleanupArray;
 
-  Monitor mMonitor MOZ_UNANNOTATED;
+  Monitor mMonitor MOZ_ANNOTATED;
 
   Atomic<bool> mInitialized;
   Atomic<bool> mInitializedDBConn;

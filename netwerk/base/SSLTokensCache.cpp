@@ -589,7 +589,7 @@ nsresult SSLTokensCache::Put(const nsACString& aKey, const uint8_t* aToken,
           aSrc.ref(), [](const auto& element) { return element.Clone(); }));
     };
 
-    auto makeRecord = [&]() {
+    auto makeRecord = [&]() MOZ_REQUIRES(sLock) {
       auto rec = MakeUnique<TokenCacheRecord>();
       rec->mKey = aKey;
       rec->mExpirationTime = aExpirationTime;

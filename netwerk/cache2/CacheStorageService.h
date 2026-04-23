@@ -436,8 +436,8 @@ class CacheStorageService final : public nsICacheStorageService,
     virtual ~IOThreadSuspender() = default;
     NS_IMETHOD Run() override;
 
-    Monitor mMon MOZ_UNANNOTATED;
-    bool mSignaled{false};
+    Monitor mMon;
+    bool mSignaled MOZ_GUARDED_BY(mMon){false};
   };
 
   RefPtr<IOThreadSuspender> mActiveIOSuspender;
