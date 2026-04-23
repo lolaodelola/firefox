@@ -81,13 +81,6 @@ class Calendar final {
    */
   Result<Ok, ICUError> SetTimeInMs(double aUnixEpoch);
 
-  /**
-   * Return ICU legacy keywords, such as "gregorian", "islamic",
-   * "islamic-civil", "hebrew", etc.
-   */
-  static Result<SpanEnumeration<char>, ICUError>
-  GetLegacyKeywordValuesForLocale(const char* aLocale);
-
  private:
   /**
    * Internal function to convert a legacy calendar identifier to the newer
