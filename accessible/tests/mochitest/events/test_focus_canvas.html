@@ -12,7 +12,7 @@
   <script type="application/javascript"
           src="../common.js"></script>
   <script type="application/javascript"
-          src="../promisified-events.js"></script>
+          src="../events.js"></script>
   <script type="application/javascript"
           src="../role.js"></script>
   <script type="application/javascript"
@@ -21,18 +21,14 @@
   <script type="application/javascript">
     // gA11yEventDumpToConsole = true;
 
-    async function doTests() {
-      let focused = waitForEvent(EVENT_FOCUS, "button");
-      selectAllTextAndFocus("button");
-      await focused;
-      testStates(getAccessible("button"), STATE_FOCUSED);
+    var gQueue = null;
+    function doTests() {
+      gQueue = new eventQueue();
 
-      focused = waitForEvent(EVENT_FOCUS, "textbox");
-      synthesizeKey("KEY_Tab", { shiftKey: false });
-      await focused;
-      testStates(getAccessible("textbox"), STATE_FOCUSED);
+      gQueue.push(new synthFocus("button"));
+      gQueue.push(new synthTab("button", new focusChecker("textbox")));
 
-      SimpleTest.finish();
+      gQueue.invoke(); // Will call SimpleTest.finish();
     }
 
     SimpleTest.waitForExplicitFinish();
