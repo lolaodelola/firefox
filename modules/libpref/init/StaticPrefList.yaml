@@ -9404,7 +9404,7 @@
 # used and cache the result.
 - name: javascript.options.experimental.self_hosted_cache
   type: bool
-  value: false
+  value: true
   mirror: always
   set_spidermonkey_pref: always
 
