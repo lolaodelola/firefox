@@ -706,6 +706,9 @@ update-application-heading =
 update-application-suppress-prompts-heading =
     .label = Notifications
 
+update-application-updates-managed-by-os =
+    .message = Updates are managed by your operating system
+
 # Variables:
 # $version (string) - Firefox version
 update-application-version = Version { $version } <a data-l10n-name="learn-more">What’s new</a>

@@ -1587,6 +1587,11 @@ const UpdatesHelpers = {
 };
 
 Preferences.addSetting({
+  id: "updatesManagedByOS",
+  visible: () => !UpdatesHelpers.showUpdatesSettings,
+});
+
+Preferences.addSetting({
   id: "updateApp",
   visible: () => UpdatesHelpers.showUpdatesSettings,
 });
@@ -2881,6 +2886,11 @@ SettingGroupManager.registerGroups({
     l10nId: "update-application-heading",
     headingLevel: 2,
     items: [
+      {
+        id: "updatesManagedByOS",
+        l10nId: "update-application-updates-managed-by-os",
+        control: "moz-message-bar",
+      },
       {
         id: "updateApp",
         control: "moz-box-group",

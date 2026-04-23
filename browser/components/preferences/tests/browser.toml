@@ -90,6 +90,8 @@ support-files = [
 
 ["browser_tabs_open_external_next_to_active_tab.js"]
 
+["browser_updates_managed_by_os.js"]
+
 ["browser_windows_launch_on_login.js"]
 run-if = [
   "os == 'win' && !msix",
