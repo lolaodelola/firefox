@@ -183,15 +183,14 @@ JS_PUBLIC_API bool JS::FinishCollectingDelazifications(
   return ::FinishCollectingDelazifications(cx, sso, stencilOut);
 }
 
-JS_PUBLIC_API void JS::AbortCollectingDelazifications(JS::HandleScript script) {
+JS_PUBLIC_API void JS::AbortCollectingDelazifications(JSScript* script) {
   if (!script) {
     return;
   }
   script->sourceObject()->unsetCollectingDelazifications();
 }
 
-JS_PUBLIC_API void JS::AbortCollectingDelazifications(
-    JS::Handle<JSObject*> module) {
+JS_PUBLIC_API void JS::AbortCollectingDelazifications(JSObject* module) {
   module->as<ModuleObject>()
       .scriptSourceObject()
       ->unsetCollectingDelazifications();
