@@ -386,11 +386,18 @@ const size_t ShortRangeBranchHysteresis = 128;
 
 struct Pool {
  private:
-  // The maximum program-counter relative offset below which the instruction
-  // set can encode. Different classes of intructions might support different
-  // ranges but for simplicity the minimum is used here, and for the ARM this
-  // is constrained to 1024 by the float load instructions.
+  // The maximum pc relative offset encoded in instructions that reference
+  // pool entries. This is generally set to the maximum offset that can be
+  // encoded by the instructions, but for testing can be lowered to affect the
+  // pool placement and frequency of pool placement.
+  //
+  // Different classes of instructions might support different ranges but for
+  // simplicity the same maximum offset is applied to all instructions. In other
+  // words the smallest maximum offset of all instructions is used.
+  //
+  // For ARM32 this is constrained to 1024 by the float load instruction VLDR.
   const size_t maxOffset_;
+
   // An offset to apply to program-counter relative offsets. The ARM has a
   // bias of 8.
   const unsigned bias_;
@@ -585,12 +592,6 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
   // instruction sized units.
   static constexpr unsigned HeaderSize = settings.headerSize;
 
-  // The maximum pc relative offset encoded in instructions that reference
-  // pool entries. This is generally set to the maximum offset that can be
-  // encoded by the instructions, but for testing can be lowered to affect the
-  // pool placement and frequency of pool placement.
-  const size_t poolMaxOffset_;
-
   // The bias on pc relative addressing mode offsets, in units of bytes. The
   // ARM has a bias of 8 bytes.
   static constexpr unsigned PcBias = settings.pcBias;
@@ -666,7 +667,6 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
  public:
   AssemblerBufferWithConstantPools(size_t poolMaxOffset, unsigned nopFill)
       : poolEntryCount(0),
-        poolMaxOffset_(poolMaxOffset),
         pool_(poolMaxOffset, PcBias, this->lifoAlloc_),
         poolInfo_(this->lifoAlloc_),
         branchDeadlines_(this->lifoAlloc_),
