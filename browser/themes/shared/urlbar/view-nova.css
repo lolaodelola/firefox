@@ -14,10 +14,17 @@
 
   --urlbarView-small-font-size: 0.85em;
 
-  --urlbarView-results-padding: 7px;
-  --urlbarView-row-gutter: var(--space-xxsmall);
-  --urlbarView-item-inline-padding: var(--urlbar-icon-padding);
-  --urlbarView-item-block-padding: 6px;
+  /* The purpose of the gutter is to create a visible gap between adjacent hovered
+     and selected rows while keeping the view's entire hover area contiguous. */
+  --urlbarView-row-gutter: var(--space-xsmall);
+  --urlbarView-row-border: var(--urlbarView-row-gutter) solid transparent;
+  --urlbarView-row-border-radius: calc(var(--urlbar-inner-border-radius) + var(--urlbarView-row-gutter));
+  --urlbarView-row-background-clip: padding-box;
+
+  --urlbarView-row-padding-block: var(--space-small);
+  --urlbarView-row-padding-inline: var(--urlbar-icon-padding);
+
+  --urlbarView-padding: calc(var(--space-large) - var(--urlbarView-row-gutter));
 
   /* The two common row icon types are favicons and rich search suggestion icons,
      favicons being smaller. Depending on current product requirements, there
@@ -88,21 +95,18 @@
   display: block;
   text-shadow: none;
   overflow: clip;
-  margin-inline: var(--urlbarView-results-padding);
-  width: calc(100% - 2 * var(--urlbarView-results-padding));
+  margin-inline: var(--urlbarView-padding);
 }
 
+/* TODO Bug 2019152: Replace this border-top with a border on the input. */
 .urlbarView-body-inner {
-  width: calc(100% + 2 * var(--urlbarView-row-gutter));
-  margin-inline: calc(-1 * var(--urlbarView-row-gutter));
-
   #urlbar[open] > .urlbarView > .urlbarView-body-outer > & {
     border-top: 1px solid var(--urlbarview-separator-color);
   }
 }
 
 .urlbarView-results {
-  padding-block: calc(var(--urlbarView-results-padding) - var(--urlbarView-row-gutter));
+  padding-block: var(--urlbarView-padding);
   white-space: nowrap;
 
   /* Vertically center the one-offs when no results are present. */
@@ -149,13 +153,9 @@
   align-items: center;
   fill: currentColor;
   fill-opacity: var(--urlbar-icon-fill-opacity);
-
-  /* Use a transparent border rather than margin such that the view's entire
-     hover area is contiguous and a row is always hovered as the user moves the
-     mouse across rows, even though each row's highlighted area is smaller. */
-  border: var(--urlbarView-row-gutter) solid transparent;
-  border-radius: calc(var(--urlbarView-row-gutter) + var(--urlbar-inner-border-radius));
-  background-clip: padding-box;
+  border: var(--urlbarView-row-border);
+  border-radius: var(--urlbarView-row-border-radius);
+  background-clip: var(--urlbarView-row-background-clip);
 
   /* Must hide the overflowing rows while the view is updating */
   &[hidden] {
@@ -198,8 +198,8 @@
 
   flex: auto;
   overflow: hidden;
-  padding-inline: var(--urlbarView-item-inline-padding);
-  padding-block: var(--urlbarView-item-block-padding);
+  padding-inline: var(--urlbarView-row-padding-inline);
+  padding-block: var(--urlbarView-row-padding-block);
 
   :root:not([uidensity="compact"]) & {
     min-height: 20px; /* row min-height 32px - (2 * padding-block 6px) */
@@ -480,7 +480,7 @@
 
 .urlbarView-button:where(:not(:empty):not(.urlbarView-button-result-menu)),
 .urlbarView-splitbutton-dropmarker {
-  border-radius: var(--urlbar-inner-border-radius);
+  border-radius: var(--button-border-radius);
   padding: 0.5em 1em;
   font-size: 0.93em;
   font-weight: var(--font-weight-semibold);
@@ -550,7 +550,7 @@
     position: absolute;
     /* `top` controls how far the label is from the main part of the row. */
     top: var(--urlbarView-labeled-row-label-top);
-    margin-inline-start: var(--urlbarView-item-inline-padding);
+    margin-inline-start: var(--urlbarView-row-padding-inline);
     font-size: 0.8em;
     /* The color and opacity of labels is the same as the "This time, search with"
        text in the search shortcuts. See `.search-panel-header > label` in
@@ -589,7 +589,7 @@
     position: absolute;
     bottom: 0.72em;
     font-size: var(--urlbarView-small-font-size);
-    margin-inline-start: calc(var(--urlbarView-item-inline-padding) + var(--urlbarView-favicon-margin-start));
+    margin-inline-start: calc(var(--urlbarView-row-padding-inline) + var(--urlbarView-favicon-margin-start));
     padding-inline-start: calc(var(--urlbarView-favicon-size) + var(--urlbarView-favicon-margin-end));
     background-image: url("chrome://branding/content/icon32.png");
     background-repeat: no-repeat;
@@ -969,7 +969,7 @@
       padding-block: 6px;
 
       &:last-child {
-        padding-block-end: max(0px, 6px - var(--urlbarView-results-padding));
+        padding-block-end: max(0px, 6px - var(--urlbarView-padding));
       }
     }
   }
@@ -1102,9 +1102,9 @@
 
 .urlbarView-actions-container {
   margin-inline-start: calc(
-    var(--urlbarView-item-inline-padding) + var(--urlbarView-favicon-margin-start) + var(--urlbarView-favicon-size) + var(--urlbarView-icon-margin-end)
+    var(--urlbarView-row-padding-inline) + var(--urlbarView-favicon-margin-start) + var(--urlbarView-favicon-size) + var(--urlbarView-icon-margin-end)
   );
-  margin-block-end: var(--urlbarView-item-block-padding);
+  margin-block-end: var(--urlbarView-row-padding-block);
 }
 
 .urlbarView-action-btn {
@@ -1168,7 +1168,7 @@
 .urlbarView-row[tip-type="realtime_opt_in"] {
   /* `margin-block-end` is large to give enough spacing between the opt-in and the
      row label in the next row. */
-  margin-block: var(--urlbarView-item-block-padding) calc(5 * var(--urlbarView-item-block-padding));
+  margin-block: var(--urlbarView-row-padding-block) calc(5 * var(--urlbarView-row-padding-block));
   padding-block: 0;
   border-block: none;
   border-radius: var(--border-radius-medium);
@@ -1226,6 +1226,18 @@
 
 /* Basic style for Realtime suggestions */
 
+.urlbarView-row[dynamicType^="realtime-"]:not([row-selectable]) {
+  /* When a realtime row contains multiple items, each item is individually
+     selectable rather than the row. Set borders on the items so that the gutter
+     and selection styling applies to them and not the row. */
+  border: none;
+  > .urlbarView-realtime-root > .urlbarView-realtime-item {
+    border: var(--urlbarView-row-border);
+    border-radius: var(--urlbarView-row-border-radius);
+    background-clip: var(--urlbarView-row-background-clip);
+  }
+}
+
 .urlbarView-realtime-root {
   --green-status-color: light-dark(var(--color-green-60), var(--color-green-20));
   --red-status-color: light-dark(var(--color-red-70), var(--color-red-40));
@@ -1249,17 +1261,13 @@
     display: flex;
     align-items: center;
 
-    /* This should match the radius on `.urlbarView-row`. Only visible when there
-     are multiple items in a row. */
-    border-radius: calc(var(--urlbarView-row-gutter) + var(--urlbar-border-radius));
-
     /* Inline spacing between multiple items in a row */
     margin-inline-end: var(--space-small);
 
     /* The block and inline-start padding should match the normal inner inline
      padding we removed above, in order to keep the first item's image aligned
      with the text and images in other rows. */
-    padding: var(--urlbarView-item-inline-padding);
+    padding: var(--urlbarView-row-padding-inline);
     padding-inline-end: var(--space-large);
 
     .urlbarView-realtime-root:not([selectable]) > &:not([selected]):hover {
@@ -1665,7 +1673,7 @@
 #urlbar .search-panel-one-offs-header-label {
   white-space: nowrap;
   margin: 0;
-  padding-inline: var(--urlbarView-item-inline-padding) 18px;
+  padding-inline: var(--urlbarView-row-padding-inline) 18px;
 }
 
 #urlbar .searchbar-engine-one-off-item {

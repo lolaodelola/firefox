@@ -24,10 +24,10 @@
   --urlbarview-background-color-selected: SelectedItem;
   --urlbarview-border-radius: calc(var(--button-border-radius) + var(--dimension-2));
 
-  /* TODO Bug 2031910: Make sure the border radius is 24px for Nova. */
+  /* TODO Bug 2031910: Finalize the border radius for Nova. */
   /* stylelint-disable-next-line media-query-no-invalid */
   @media -moz-pref("browser.nova.enabled") {
-    --urlbarview-border-radius: var(--border-radius-large);
+    --urlbarview-border-radius: 1.8462em;
   }
 
   --urlbarview-separator-color: color-mix(in srgb, currentColor 14%, transparent);
