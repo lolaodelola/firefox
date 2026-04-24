@@ -2347,11 +2347,13 @@ pref("identity.fxaccounts.telemetry.clientAssociationPing.enabled", true);
   pref("media.gmp-widevinecdm.visible", true);
   pref("media.gmp-widevinecdm.enabled", true);
   pref("media.gmp-widevinecdm.chromium-guid", "oimompecagnajdejgnnjijobebaeigek");
+  pref("media.gmp-widevinecdm.allow-chromium-update", true);
   pref("media.gmp-widevinecdm.force-chromium-update", false);
   pref("media.gmp-widevinecdm.force-chromium-beta", false);
 #if defined(MOZ_WMF_CDM) && defined(_M_AMD64)
   pref("media.gmp-widevinecdm-l1.forceInstall", false);
   pref("media.gmp-widevinecdm-l1.chromium-guid", "neifaoindggfcjicffkgpmnlppeffabd");
+  pref("media.gmp-widevinecdm-l1.allow-chromium-update", true);
   pref("media.gmp-widevinecdm-l1.force-chromium-update", false);
   pref("media.gmp-widevinecdm-l1.force-chromium-beta", false);
 #ifdef NIGHTLY_BUILD
