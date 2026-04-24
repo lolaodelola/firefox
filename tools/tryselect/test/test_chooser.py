@@ -28,6 +28,7 @@ TASKS = [
         "label": "test-windows-xpcshell-e10s",
         "attributes": {
             "unittest_suite": "xpcshell",
+            "build_platform": "windows",
         },
     },
     {
@@ -36,6 +37,7 @@ TASKS = [
         "attributes": {
             "unittest_suite": "mochitest-browser-chrome",
             "mochitest_try_name": "mochitest-browser-chrome",
+            "build_platform": "windows",
         },
     },
 ]
@@ -75,6 +77,44 @@ def test_try_chooser_renders_filters(app):
 
     # Guard against debug leftovers creeping back into the checkbox onchange.
     assert b"console.log" not in response.data
+
+
+def test_try_chooser_cross_section_narrowing_preconditions(app):
+    # filter.js's cross-section narrowing pools checkbox filter values per
+    # attribute and scopes them by that attribute's "namespace" — the set
+    # of values any section renders as a checkbox option. For selecting
+    # a Platform row to narrow Test rows, two structural facts must hold:
+    #   1. Platform's checkbox values carry build_platform (contributing
+    #      to the build_platform namespace).
+    #   2. The tasks object serialized into the page carries build_platform
+    #      on test tasks too, so the namespace has something to match.
+    # If either breaks, selecting a platform silently stops constraining
+    # tests, which is precisely the regression this guards against.
+    client = app.test_client()
+    response = client.get("/")
+    assert response.status_code == 200
+
+    # A Platform checkbox must exist carrying build_platform=[windows].
+    # Use lookaheads so attribute ordering on the <input> tag isn't part
+    # of the contract — an unrelated template shuffle shouldn't look
+    # like a cross-section narrowing regression.
+    assert re.search(
+        rb"<input\b(?=[^>]*\bname=\"build\")"
+        rb"(?=[^>]*\bvalue='\{\"build_platform\": \[\"windows\"\]\}')",
+        response.data,
+    )
+    # Test and mochitest task entries in the tasks global must include
+    # build_platform so JS can narrow them by platform. Match on attribute
+    # presence, not on JSON key order, so an unrelated attribute addition
+    # can't masquerade as a regression.
+    assert re.search(
+        rb'"test-windows-xpcshell-e10s":\s*\{[^}]*"build_platform":\s*"windows"',
+        response.data,
+    )
+    assert re.search(
+        rb'"test-windows-mochitest-e10s":\s*\{[^}]*"build_platform":\s*"windows"',
+        response.data,
+    )
 
 
 def test_try_chooser_buildtype_radio_is_scalar(app):

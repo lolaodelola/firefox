@@ -16,6 +16,36 @@ var selected = [];
 // so toggling any checkbox resets the dismissals.
 var manualExcluded = new Set();
 
+// For each filter attribute, the set of all values any section offers as a
+// checkbox option. Computed once from the rendered DOM and used by apply()
+// to scope cross-section constraints: a task is only subject to another
+// section's attribute filter when its attribute value falls inside that
+// attribute's namespace. E.g. Platform's build_platform namespace covers
+// desktop platforms, so it narrows test tasks (build_platform="linux")
+// but skips Android builds (build_platform="android-arm64-opt").
+const attrNamespace = {};
+$(".filter[type='checkbox']").each(function () {
+  let attrs = JSON.parse(this.value);
+  for (let attr in attrs) {
+    if (!(attr in attrNamespace)) {
+      attrNamespace[attr] = new Set();
+    }
+    for (let v of attrs[attr]) {
+      attrNamespace[attr].add(v);
+    }
+  }
+});
+// Fail loudly if the namespace ends up empty but there are tasks to
+// filter — an empty namespace means every cross-section constraint
+// silently skips, so selecting a Platform row would stop narrowing Test
+// rows. That exact failure mode is invisible from the UI.
+if (!Object.keys(attrNamespace).length && Object.keys(tasks).length) {
+  throw new Error(
+    `try chooser: no checkbox filter attributes discovered at load; ` +
+      `cross-section narrowing would silently no-op`
+  );
+}
+
 var getExcludeTerms = () =>
   excludeFilter.value
     .toLowerCase()
@@ -76,18 +106,24 @@ var updateLabels = () => {
 var apply = () => {
   manualExcluded.clear();
 
-  // Each checked section box contributes a filter set scoped to that
-  // section's task kinds. Sets are OR'd across sections: a task is
-  // selected if it matches any set whose kinds include task.kind. The
-  // buildtype radio is handled cross-section since "opt"/"debug" applies
-  // regardless of which section the task lives in.
+  // Each checked section box contributes a per-checkbox filter set scoped
+  // to that section's task kinds. Sets are OR'd across checkboxes so that
+  // e.g. checking two Android rows matches only tasks that fit either row
+  // exactly (no combinatorial expansion across rows within a section).
   //
-  // Per-section scoping matters because attribute names can overlap across
-  // sections. For example the Android section uses "kind" as a filter
-  // attribute (e.g. "build-apk"), and every task's attributes also carry a
-  // "kind" field - without scoping, checking an Android box would reject
-  // every non-Android task.
+  // Attribute values are also pooled across checked boxes so that selecting
+  // a platform narrows other sections that share the attribute (e.g.
+  // Platform "windows" constrains Test rows to windows tasks). The pooled
+  // filter only applies when the task's attribute value is inside the
+  // attribute's namespace (see attrNamespace above), which lets Platform's
+  // build_platform=[windows] narrow tests without rejecting Android builds
+  // whose build_platform is in a different namespace entirely. The same
+  // rule also handles the "kind" collision: Android's "kind" values
+  // (build-apk, etc.) don't include "build", so a Platform build task
+  // whose attributes.kind is "build" is not in the kind namespace and the
+  // pooled filter skips it.
   let filterSets = [];
+  let crossSection = {};
   let buildTypeFilter = null;
 
   $(".filter:checked").each(function () {
@@ -103,6 +139,14 @@ var apply = () => {
       kinds: new Set(this.name.split(",")),
       filters: attrs,
     });
+    for (let attr in attrs) {
+      if (!(attr in crossSection)) {
+        crossSection[attr] = new Set();
+      }
+      for (let v of attrs[attr]) {
+        crossSection[attr].add(v);
+      }
+    }
   });
   updateLabels();
 
@@ -117,6 +161,7 @@ var apply = () => {
       return false;
     }
 
+    let matchedSection = false;
     for (let { kinds, filters } of filterSets) {
       if (!kinds.has(task.kind)) {
         continue;
@@ -129,10 +174,39 @@ var apply = () => {
         }
       }
       if (ok) {
-        return true;
+        matchedSection = true;
+        break;
       }
     }
-    return false;
+    if (!matchedSection) {
+      return false;
+    }
+
+    for (let attr in crossSection) {
+      if (!(attr in task)) {
+        continue;
+      }
+      // Pooled value must be in the attribute's namespace (values any
+      // section renders for this attr); otherwise skip — not our
+      // dimension to narrow. A missing namespace entry means crossSection
+      // picked up an attribute from a source attrNamespace didn't index
+      // (which shouldn't be possible today) — throw so a future refactor
+      // that breaks this invariant fails loud instead of silently letting
+      // tasks through unfiltered.
+      const ns = attrNamespace[attr];
+      if (!ns) {
+        throw new Error(
+          `try chooser: attrNamespace missing entry for "${attr}"`
+        );
+      }
+      if (!ns.has(task[attr])) {
+        continue;
+      }
+      if (!crossSection[attr].has(task[attr])) {
+        return false;
+      }
+    }
+    return true;
   };
 
   selected = filterSets.length ? Object.keys(tasks).filter(taskMatches) : [];
