@@ -19,10 +19,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDirections
 import androidx.navigation.NavHostController
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.flow.MutableSharedFlow
 import mozilla.components.browser.state.state.searchEngines
 import mozilla.components.compose.browser.toolbar.store.BrowserToolbarState
 import mozilla.components.compose.browser.toolbar.store.BrowserToolbarStore
 import mozilla.components.compose.browser.toolbar.store.Mode
+import mozilla.components.feature.importer.ImporterResult
 import mozilla.components.lib.state.helpers.StoreProvider.Companion.fragmentStore
 import mozilla.components.support.base.feature.ViewBoundFeatureWrapper
 import org.mozilla.fenix.HomeActivity
@@ -80,6 +82,8 @@ class BookmarkFragment : Fragment(), SystemInsetsPaddedFragment {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             lensFeature?.get()?.handleImageResult(result.resultCode, result.data)
         }
+
+    private val importResultFlow = MutableSharedFlow<ImporterResult>(extraBufferCapacity = 1)
 
     @Suppress("LongMethod")
     override fun onCreateView(
@@ -186,6 +190,7 @@ class BookmarkFragment : Fragment(), SystemInsetsPaddedFragment {
                                         AppAction.BookmarkAction.BookmarkOperationResultReported(it),
                                     )
                                 },
+                                importResults = { importResultFlow },
                             ),
                         ),
                     )
@@ -215,6 +220,15 @@ class BookmarkFragment : Fragment(), SystemInsetsPaddedFragment {
             qrScanFenixFeature = QrScanFenixFeature.register(this, qrScanLauncher)
             voiceSearchFeature = VoiceSearchFeature.register(this, voiceSearchLauncher)
             lensFeature = LensFeature.register(this, lensLauncher)
+        }
+
+        childFragmentManager.setFragmentResultListener(
+            ImportBookmarksDialogFragment.REQUEST_KEY,
+            viewLifecycleOwner,
+        ) { _, bundle ->
+            ImportBookmarksDialogFragment.decodeResult(bundle)?.let {
+                importResultFlow.tryEmit(it)
+            }
         }
     }
 

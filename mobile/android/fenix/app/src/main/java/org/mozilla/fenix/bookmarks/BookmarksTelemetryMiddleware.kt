@@ -40,7 +40,7 @@ internal class BookmarksTelemetryMiddleware : Middleware<BookmarksState, Bookmar
             EditBookmarkAction.DeleteClicked -> { recordEditDeleteMetrics() }
             RootOverflowMenuClicked,
             RootOverflowMenuDismissed,
-            ImportFileClicked,
+            ImportAction.ImportFileClicked,
             EditBookmarkAction.FolderClicked,
             is EditBookmarkAction.TitleChanged,
             is EditBookmarkAction.URLChanged,
@@ -50,6 +50,7 @@ internal class BookmarksTelemetryMiddleware : Middleware<BookmarksState, Bookmar
             is EditFolderAction.TitleChanged,
             EditFolderAction.DeleteClicked,
             EditFolderAction.ParentFolderClicked,
+            ImportAction.ImportFailed,
             is SnackbarAction,
             is BookmarkLongClicked,
             is BookmarksLoaded, is SearchDismissed, is EditBookmarkClicked, is FolderClicked,

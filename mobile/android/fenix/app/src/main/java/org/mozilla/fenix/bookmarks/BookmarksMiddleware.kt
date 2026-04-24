@@ -7,6 +7,9 @@ package org.mozilla.fenix.bookmarks
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import mozilla.appservices.places.BookmarkRoot
 import mozilla.components.concept.engine.EngineSession
@@ -14,6 +17,7 @@ import mozilla.components.concept.storage.BookmarkInfo
 import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
 import mozilla.components.concept.storage.BookmarksStorage
+import mozilla.components.feature.importer.ImporterResult
 import mozilla.components.feature.tabs.TabsUseCases
 import mozilla.components.lib.state.Middleware
 import mozilla.components.lib.state.Store
@@ -46,6 +50,9 @@ private const val WARN_OPEN_ALL_SIZE = 15
  * @param lastSavedFolderCache used to cache the last folder you edited a bookmark in.
  * @param reportResultGlobally Invoked when an error occurs that needs to be reported even if the
  * feature goes out of scope.
+ * @param importResults Provides the [Flow] of [ImporterResult]s produced by the bookmarks import
+ * dialog. The middleware subscribes on [Init] and dispatches [SnackbarAction.ImportFailed] when a
+ * [ImporterResult.Failure] is emitted.
  * @param lifecycleScope lifecycle bound CoroutineScope scope used to cancel jobs when leaving bookmarks.
  */
 @Suppress("LongParameterList", "LargeClass")
@@ -68,6 +75,7 @@ internal class BookmarksMiddleware(
     private val saveBookmarkSortOrder: suspend (BookmarksListSortOrder) -> Unit,
     private val lastSavedFolderCache: LastSavedFolderCache,
     private val reportResultGlobally: (BookmarksGlobalResultReport) -> Unit,
+    private val importResults: () -> Flow<ImporterResult>,
     private val lifecycleScope: CoroutineScope,
 ) : Middleware<BookmarksState, BookmarksAction> {
 
@@ -89,7 +97,16 @@ internal class BookmarksMiddleware(
         }
 
         when (action) {
-            Init -> store.tryDispatchLoadFor(BookmarkRoot.Mobile.id)
+            Init -> {
+                store.tryDispatchLoadFor(BookmarkRoot.Mobile.id)
+                importResults()
+                    .onEach { result ->
+                        if (result is ImporterResult.Failure) {
+                            store.dispatch(ImportAction.ImportFailed)
+                        }
+                    }
+                    .launchIn(lifecycleScope)
+            }
             is InitEdit -> lifecycleScope.launch {
                 Result.runCatching {
                     val bookmarkNode = bookmarksStorage.getBookmark(action.guid).getOrNull()
@@ -367,12 +384,14 @@ internal class BookmarksMiddleware(
                     }
                 }
             }
-            ImportFileClicked -> {
+            ImportAction.ImportFileClicked -> {
                 navigateToImportDialog()
+            }
+            ImportAction.ImportFailed -> {
+                store.dispatch(SnackbarAction.ImportFailed)
             }
             RootOverflowMenuClicked,
             RootOverflowMenuDismissed,
-            ImportFileClicked,
             SelectFolderAction.SearchClicked,
             SelectFolderAction.SearchDismissed,
             is InitEditLoaded,
@@ -397,6 +416,7 @@ internal class BookmarksMiddleware(
             is ReceivedSyncSignInUpdate,
             PrivateBrowsingAuthorized,
             SnackbarAction.Dismissed,
+            SnackbarAction.ImportFailed,
             -> Unit
         }
     }

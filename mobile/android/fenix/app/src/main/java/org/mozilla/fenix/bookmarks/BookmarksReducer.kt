@@ -67,7 +67,8 @@ internal fun bookmarksReducer(state: BookmarksState, action: BookmarksAction) = 
     }
     RootOverflowMenuClicked -> state.copy(rootMenuShown = true)
     RootOverflowMenuDismissed -> state.copy(rootMenuShown = false)
-    ImportFileClicked -> state.copy(rootMenuShown = false)
+    ImportAction.ImportFileClicked -> state.copy(rootMenuShown = false)
+    ImportAction.ImportFailed,
     CloseClicked,
     FirstSyncCompleted,
     SelectFolderAction.ViewAppeared,
@@ -280,6 +281,10 @@ private fun BookmarksState.handleSnackbarAction(action: SnackbarAction): Bookmar
 
         SnackbarAction.SelectFolderFailed -> {
             this.copy(bookmarksSnackbarState = BookmarksSnackbarState.SelectFolderFailed)
+        }
+
+        SnackbarAction.ImportFailed -> {
+            this.copy(bookmarksSnackbarState = BookmarksSnackbarState.ImportFailed)
         }
     }
 }

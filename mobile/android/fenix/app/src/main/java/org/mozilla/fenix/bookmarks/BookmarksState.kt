@@ -174,6 +174,7 @@ internal sealed class BookmarksSnackbarState {
     data object CantEditDesktopFolders : BookmarksSnackbarState()
     data class BookmarkMoved(val from: String, val to: String) : BookmarksSnackbarState()
     data object SelectFolderFailed : BookmarksSnackbarState()
+    data object ImportFailed : BookmarksSnackbarState()
 }
 
 internal data class BookmarksEditBookmarkState(

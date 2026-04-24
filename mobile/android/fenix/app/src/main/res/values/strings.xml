@@ -1979,6 +1979,8 @@
     <string name="bookmark_sort_menu_z_to_a">Sort by Z to A</string>
     <!-- Label for button to import bookmarks from file. -->
     <string name="bookmark_import_menu_button">Import from file</string>
+    <!-- Snackbar message shown when a bookmark import attempt fails. -->
+    <string name="bookmark_import_failure_snackbar">Couldn’t import bookmarks. Try again.</string>
     <!-- Bookmark multi select title in app bar
      %1$d is the number of bookmarks selected -->
     <string name="bookmarks_multi_select_title">%1$d selected</string>

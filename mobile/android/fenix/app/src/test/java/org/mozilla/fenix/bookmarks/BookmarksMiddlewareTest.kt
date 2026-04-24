@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import mozilla.appservices.places.BookmarkRoot
 import mozilla.components.concept.engine.EngineSession
@@ -3329,7 +3330,7 @@ class BookmarksMiddlewareTest {
         val store = buildMiddleware(this).makeStore(BookmarksState.default.copy(rootMenuShown = true))
         testScheduler.advanceUntilIdle()
 
-        store.dispatch(ImportFileClicked)
+        store.dispatch(ImportAction.ImportFileClicked)
         testScheduler.advanceUntilIdle()
 
         assertFalse(store.state.rootMenuShown)
@@ -3359,6 +3360,7 @@ class BookmarksMiddlewareTest {
         saveBookmarkSortOrder = saveSortOrder,
         lastSavedFolderCache = lastSavedFolderCache,
         reportResultGlobally = reportResultGlobally,
+        importResults = { emptyFlow() },
         lifecycleScope = scope,
     )
 

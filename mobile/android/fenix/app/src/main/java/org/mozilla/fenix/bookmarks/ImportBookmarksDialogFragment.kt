@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.compose.content
 import mozilla.components.feature.importer.BookmarkImporter
+import mozilla.components.feature.importer.ImporterResult
 
 internal class ImportBookmarksDialogFragment : DialogFragment() {
     override fun onCreateView(
@@ -18,10 +19,37 @@ internal class ImportBookmarksDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View = content {
-        BookmarkImporter(onFinished = { dismiss() })
+        BookmarkImporter(
+            onFinished = { result ->
+                parentFragmentManager.setFragmentResult(
+                    REQUEST_KEY,
+                    Bundle().apply { putString(KEY_RESULT, result.encode()) },
+                )
+                dismiss()
+            },
+        )
     }
 
     companion object {
+        const val REQUEST_KEY = "import_bookmarks_request"
+        const val KEY_RESULT = "result"
+        internal const val RESULT_SUCCESS = "success"
+        internal const val RESULT_FAILURE = "failure"
+        internal const val RESULT_CANCELLED = "cancelled"
         const val TAG = "import_dialog"
+
+        fun decodeResult(bundle: Bundle): ImporterResult? =
+            when (bundle.getString(KEY_RESULT)) {
+                RESULT_SUCCESS -> ImporterResult.Success(importCount = 0)
+                RESULT_FAILURE -> ImporterResult.Failure
+                RESULT_CANCELLED -> ImporterResult.Cancelled
+                else -> null
+            }
     }
+}
+
+private fun ImporterResult.encode(): String = when (this) {
+    is ImporterResult.Success -> ImportBookmarksDialogFragment.RESULT_SUCCESS
+    ImporterResult.Failure -> ImportBookmarksDialogFragment.RESULT_FAILURE
+    ImporterResult.Cancelled -> ImportBookmarksDialogFragment.RESULT_CANCELLED
 }

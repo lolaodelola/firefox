@@ -279,6 +279,7 @@ private fun BookmarksList(
                 ),
             )
         }
+        BookmarksSnackbarState.ImportFailed -> stringResource(R.string.bookmark_import_failure_snackbar)
         else -> ""
     }
 
@@ -300,6 +301,12 @@ private fun BookmarksList(
                 )
             }
             is BookmarksSnackbarState.BookmarkMoved -> scope.launch {
+                snackbarHostState.displaySnackbar(
+                    message = snackbarMessage,
+                    onDismissPerformed = { store.dispatch(SnackbarAction.Dismissed) },
+                )
+            }
+            BookmarksSnackbarState.ImportFailed -> scope.launch {
                 snackbarHostState.displaySnackbar(
                     message = snackbarMessage,
                     onDismissPerformed = { store.dispatch(SnackbarAction.Dismissed) },
@@ -1283,7 +1290,7 @@ private fun RootBookmarksOverflowMenu(store: BookmarksStore) {
     val menuItems = listOf(
         MenuItem.TextItem(
             text = Text.Resource(R.string.bookmark_import_menu_button),
-            onClick = { store.dispatch(ImportFileClicked) },
+            onClick = { store.dispatch(ImportAction.ImportFileClicked) },
         ),
     )
 
@@ -1370,7 +1377,7 @@ private fun RootEmptyContent(
     if (showBookmarksImport) {
         FilledButton(
             text = stringResource(R.string.bookmark_import_menu_button),
-            onClick = { dispatcher(ImportFileClicked) },
+            onClick = { dispatcher(ImportAction.ImportFileClicked) },
             modifier = Modifier
                 .heightIn(40.dp)
                 .fillMaxWidth(),
