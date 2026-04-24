@@ -2779,10 +2779,14 @@ void AssertJitStackInvariants(JSContext* cx) {
               frameSize % JitStackAlignment == 0,
               "The blinterp entry frame should keep the alignment");
 
+          size_t numArgs = frames.numActualArgs();
+          if (frames.isFunctionFrame()) {
+            // The caller pushes `undefined` for missing formals.
+            numArgs = std::max(numArgs, frames.callee()->nargs());
+          }
           size_t expectedFrameSize =
-              sizeof(Value) *
-                  (frames.callee()->nargs() + 1 /* |this| argument */ +
-                   frames.isConstructing() /* new.target */) +
+              sizeof(Value) * (numArgs + 1 /* |this| argument */ +
+                               frames.isConstructing() /* new.target */) +
               sizeof(JitFrameLayout);
           MOZ_RELEASE_ASSERT(frameSize >= expectedFrameSize,
                              "The frame is large enough to hold all arguments");
