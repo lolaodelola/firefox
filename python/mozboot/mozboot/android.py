@@ -465,6 +465,7 @@ def ensure_android_avd(
     no_interactive=False,
     avd_manifest=None,
     prewarm_avd=False,
+    sdk_path: Optional[Path] = None,
 ):
     """
     Use the given sdkmanager tool (like 'sdkmanager') to install required
@@ -483,7 +484,8 @@ def ensure_android_avd(
     # avdmanager needs Java
     ensure_java(os_name, os_arch)
 
-    sdk_path = get_sdk_path(os_name)
+    if sdk_path is None:
+        sdk_path = get_sdk_path(os_name)
     avdmanager_tool = get_avdmanager_tool_path(sdk_path)
     adb_tool = get_adb_tool_path(sdk_path)
     emulator_tool = get_emulator_tool_path(sdk_path)
