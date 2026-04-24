@@ -79,12 +79,9 @@ RefPtr<WebRenderLayerManager> WebRenderLayerManager::Create(
                         << " isParent: " << XRE_IsParentProcess();
   }
 
-  PWebRenderBridgeChild* wrBridge =
-      (static_cast<CompositorBridgeChild*>(aCBChild))
-          ->AllocPWebRenderBridgeChild(aPipelineId, size, windowKind);
-  PWebRenderBridgeChild* actor = aCBChild->SendPWebRenderBridgeConstructor(
-      wrBridge, aPipelineId, size, windowKind);
-  if (!actor) {
+  PWebRenderBridgeChild* bridge =
+      aCBChild->SendPWebRenderBridgeConstructor(aPipelineId, size, windowKind);
+  if (!bridge) {
     // This should only fail if we attempt to access a layer we don't have
     // permission for, or more likely, the GPU process crashed again during
     // reinitialization. We can expect to be notified again to reinitialize
@@ -97,7 +94,7 @@ RefPtr<WebRenderLayerManager> WebRenderLayerManager::Create(
   }
 
   RefPtr<WebRenderBridgeChild> wrChild =
-      static_cast<WebRenderBridgeChild*>(actor);
+      static_cast<WebRenderBridgeChild*>(bridge);
   return new WebRenderLayerManager(aWidget, wrChild.forget());
 }
 

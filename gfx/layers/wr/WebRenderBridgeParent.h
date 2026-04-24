@@ -64,9 +64,6 @@ class WebRenderBridgeParent final : public PWebRenderBridgeParent,
                                     public CompositableParentManager,
                                     public FrameRecorder {
  public:
-  NS_INLINE_DECL_REFCOUNTING_INHERITED(WebRenderBridgeParent,
-                                       ISurfaceAllocator);
-
   // Constructor for root WebRenderBridgeParents.
   WebRenderBridgeParent(CompositorBridgeParent* aCompositorBridge,
                         const wr::PipelineId& aPipelineId,
