@@ -704,8 +704,6 @@ run-if = [
 
 ["test_file_url_with_host.js"]
 
-["test_file_root.js"]
-
 ["test_filestreams.js"]
 
 ["test_freshconnection.js"]
