@@ -6,6 +6,7 @@
 #include "MPRISServiceHandler.h"
 
 #include <stdint.h>
+#include <inttypes.h>
 #include <unordered_map>
 
 #include "MPRISInterfaceDescription.h"

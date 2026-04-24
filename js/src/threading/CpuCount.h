@@ -5,7 +5,7 @@
 #ifndef threading_CpuCount_h
 #define threading_CpuCount_h
 
-#include <cstdint>
+#include <inttypes.h>
 
 namespace js {
 

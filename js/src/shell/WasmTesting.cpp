@@ -16,6 +16,7 @@
 
 #include "shell/WasmTesting.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
 

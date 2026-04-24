@@ -8,6 +8,7 @@
 #define mozilla_dom_AsyncLogger_h
 
 #include <atomic>
+#include <cinttypes>
 #include <thread>
 
 #include "GeckoProfiler.h"

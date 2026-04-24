@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 #include <cerrno>
+#include <cinttypes>
 #include <cstdio>
 
 #ifdef XP_WIN
