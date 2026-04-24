@@ -490,6 +490,7 @@ void GeckoMediaPluginServiceParent::UnloadPlugins() {
     std::swap(plugins, mPlugins);
 
     for (GMPServiceParent* parent : mServiceParents) {
+      parent->BeginShutdown();
       (void)parent->SendBeginShutdown();
     }
 
@@ -1924,6 +1925,11 @@ GMPServiceParent::GMPServiceParent(GeckoMediaPluginServiceParent* aService)
 GMPServiceParent::~GMPServiceParent() {
   MOZ_ASSERT(NS_IsMainThread(), "Should be destroyted on the main thread");
   mService->ServiceUserDestroyed(this);
+}
+
+void GMPServiceParent::BeginShutdown() {
+  mService->mMutex.AssertCurrentThreadOwns();
+  mShutdownBlocker = nullptr;
 }
 
 mozilla::ipc::IPCResult GMPServiceParent::RecvLaunchGMP(
