@@ -5,6 +5,7 @@
 #define MOCKCUBEB_H_
 
 #include <atomic>
+#include <chrono>
 #include <utility>
 
 #include "AudioDeviceInfo.h"
