@@ -4,6 +4,7 @@
 
 /**
  * @import {OpenedConnection} from "resource://gre/modules/Sqlite.sys.mjs"
+ * @import {Query} from "./UrlbarProvidersManager.sys.mjs"
  */
 
 /**
@@ -14,10 +15,6 @@ import {
   UrlbarProvider,
   UrlbarUtils,
 } from "moz-src:///browser/components/urlbar/UrlbarUtils.sys.mjs";
-
-/**
- * @typedef {import("UrlbarProvidersManager.sys.mjs").Query} Query
- */
 
 const lazy = {};
 

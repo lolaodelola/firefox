@@ -56,16 +56,15 @@ const lazy = XPCOMUtils.declareLazy({
 });
 
 /**
- * @import {AppProvidedConfigEngine} from "ConfigSearchEngine.sys.mjs"
- * @import {AddonSearchEngine} from "AddonSearchEngine.sys.mjs"
- * @import {OpenSearchEngine} from "OpenSearchEngine.sys.mjs"
- * @import {SearchEngine} from "SearchEngine.sys.mjs"
- * @import {SearchEngineSelector} from "SearchEngineSelector.sys.mjs"
+ * @import {AddonSearchEngine} from "./AddonSearchEngine.sys.mjs"
+ * @import {OpenSearchEngine} from "./OpenSearchEngine.sys.mjs"
+ * @import {SearchEngine} from "./SearchEngine.sys.mjs"
+ * @import {SearchEngineSelector} from "./SearchEngineSelector.sys.mjs"
  * @import {
  *   RefinedSearchConfig,
  *   SearchEngineDefinition,
  * } from "../uniffi-bindgen-gecko-js/components/generated/RustSearch.sys.mjs";
- * @import {UserSearchEngine, FormInfo} from "UserSearchEngine.sys.mjs"
+ * @import {UserSearchEngine, FormInfo} from "./UserSearchEngine.sys.mjs"
  */
 
 const TOPIC_LOCALES_CHANGE = "intl:app-locales-changed";
