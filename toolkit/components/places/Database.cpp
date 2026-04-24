@@ -23,7 +23,6 @@
 #include "SQLFunctions.h"
 #include "Helpers.h"
 #include "nsFaviconService.h"
-#include "ConcurrentConnection.h"
 
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
@@ -599,19 +598,6 @@ nsresult Database::EnsureConnection() {
     rv = storage->OpenUnsharedDatabase(databaseFile,
                                        mozIStorageService::CONNECTION_DEFAULT,
                                        getter_AddRefs(mMainConn));
-    if (rv == NS_ERROR_STORAGE_IOERR) {
-      // A ConcurrentConnection may be racing with us: on some filesystems
-      // (e.g. network shares) concurrent WAL-mode opens can return
-      // SQLITE_IOERR instead of SQLITE_BUSY, which busy_timeout cannot handle.
-      // Interrupt any ongoing CC operation and retry once. If CC had an open
-      // connection and was holding a WAL reader lock, the interrupt releases
-      // it. After our retry succeeds, CC will reopen via the
-      // TOPIC_PLACES_INIT_COMPLETE observer once Places finishes initializing.
-      ConcurrentConnection::MaybeInterrupt();
-      rv = storage->OpenUnsharedDatabase(databaseFile,
-                                         mozIStorageService::CONNECTION_DEFAULT,
-                                         getter_AddRefs(mMainConn));
-    }
     if (NS_SUCCEEDED(rv) && !databaseExisted) {
       mDatabaseStatus = nsINavHistoryService::DATABASE_STATUS_CREATE;
     } else if (rv == NS_ERROR_FILE_CORRUPTED) {
