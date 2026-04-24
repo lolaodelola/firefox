@@ -4,6 +4,8 @@
 
 #include "OrientedImage.h"
 
+#include <algorithm>
+
 #include "gfx2DGlue.h"
 #include "gfxContext.h"
 #include "gfxDrawable.h"
