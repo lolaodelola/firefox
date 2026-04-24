@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <bit>
-#include <cctype>
 #include <optional>
 #include <ostream>
 

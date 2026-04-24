@@ -4,7 +4,6 @@
 
 #include "GfxInfo.h"
 
-#include <cctype>
 #include <errno.h>
 #include <unistd.h>
 #include <string>
