@@ -7,6 +7,10 @@
 /* import-globals-from ../../mochitest/attributes.js */
 loadScripts({ name: "attributes.js", dir: MOCHITESTS_DIR });
 
+// This file has a lot of tests and may fail in the slower environments (such as
+// test-verify).
+requestLongerTimeout(2);
+
 /**
  * Default textbox accessible attributes.
  */
