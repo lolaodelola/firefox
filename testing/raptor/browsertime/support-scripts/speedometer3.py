@@ -77,6 +77,8 @@ class Speedometer3Support(BasePythonSupport):
             "unit": unit,
             "alertThreshold": float(test.get("alert_threshold", 2.0)),
             "lowerIsBetter": lower_is_better,
+            "minBackWindow": 24,
+            "maxBackWindow": 48,
             "name": measurement_name,
             "replicates": replicates,
             "shouldAlert": True,
@@ -97,6 +99,8 @@ class Speedometer3Support(BasePythonSupport):
         See base_python_support.py for what's expected from this method.
         """
         suite["type"] = "benchmark"
+        suite["minBackWindow"] = 24
+        suite["maxBackWindow"] = 48
         if suite["subtests"] == {}:
             suite["subtests"] = []
         for measurement_name, replicates in test["measurements"].items():
