@@ -3,6 +3,20 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 api = {
+    "variant": [
+        "bad_variant_access",
+        "get",
+        "get_if",
+        "holds_alternative",
+        "monostate",
+        "variant",
+        "variant_alternative",
+        "variant_alternative_t",
+        "variant_npos",
+        "variant_size",
+        "variant_size_v",
+        "visit",
+    ],
     "locale": [
         "codecvt",
         "codecvt_base",
