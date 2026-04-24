@@ -877,10 +877,8 @@ void EmitSwitchStack(MacroAssembler& masm, Register switchTarget,
   // Switch to the destination instance from the switch target.
   masm.loadPtr(Address(switchTarget, offsetof(wasm::SwitchTarget, instance)),
                InstanceReg);
-  masm.loadWasmPinnedRegsFromInstance(mozilla::Nothing());
-  MOZ_ASSERT(HeapReg != scratch1 && HeapReg != scratch2 && HeapReg != scratch3);
   masm.switchToWasmInstanceRealm(scratch1, scratch2);
-  // NOTE: InstanceReg (and HeapReg) is now live with the destination instance.
+  // NOTE: InstanceReg is now live with the destination instance.
 
   // Load the cx from InstanceReg and stack target from the switch target, and
   // enter it. This will clobber scratch1, scratch2, scratch3.
