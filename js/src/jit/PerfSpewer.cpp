@@ -78,6 +78,7 @@ pid_t gettid_pthread() {
 
 #ifdef XP_WIN
 #  include "util/WindowsWrapper.h"
+#  include <codecvt>
 #  include <evntprov.h>
 #  include <string>
 
