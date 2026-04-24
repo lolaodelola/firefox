@@ -906,6 +906,7 @@ layout/tables/test/test_bug337124.html
 mobile/android/android-components/docs/_includes/footer.html
 mobile/android/android-components/docs/_includes/head.html
 mobile/android/android-components/docs/_layouts/home.html
+mobile/android/fenix/app/src/androidTest/assets/pages/downloads.html
 mobile/android/fenix/app/src/androidTest/assets/pages/htmlControls.html
 mobile/android/fenix/app/src/androidTest/assets/pages/trackingPage.html
 mobile/android/geckoview/src/androidTest/assets/www/accessibility/test-headings.html

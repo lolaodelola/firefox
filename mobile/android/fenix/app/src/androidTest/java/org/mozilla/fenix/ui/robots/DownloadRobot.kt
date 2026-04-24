@@ -66,10 +66,6 @@ class DownloadRobot(private val composeTestRule: ComposeTestRule) {
         Log.i(TAG, "verifyDownloadPrompt: Trying to verify that the download button is displayed")
         composeTestRule.downloadButton().assertIsDisplayed()
         Log.i(TAG, "verifyDownloadPrompt: Verified that the download button is displayed")
-
-        browserScreen(this@DownloadRobot.composeTestRule) {
-        }.clickDownloadLink(fileName) {
-        }
     }
 
     fun verifyDownloadCompleteSnackbar(fileName: String) =
@@ -132,6 +128,7 @@ class DownloadRobot(private val composeTestRule: ComposeTestRule) {
     }
 
     fun openPageAndDownloadFile(url: Uri, downloadFile: String) {
+        Log.i(TAG, "openPageAndDownloadFile: Navigating to $url to download $downloadFile")
         navigationToolbar(this@DownloadRobot.composeTestRule) {
         }.enterURLAndEnterToBrowser(url) {
             waitForPageToLoad(pageLoadWaitingTime = waitingTimeLong)
@@ -140,6 +137,7 @@ class DownloadRobot(private val composeTestRule: ComposeTestRule) {
             verifyDownloadPrompt(composeTestRule, downloadFile)
         }.clickDownload(composeTestRule) {
         }
+        Log.i(TAG, "openPageAndDownloadFile: Download initiated for $downloadFile")
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -166,17 +164,17 @@ class DownloadRobot(private val composeTestRule: ComposeTestRule) {
 
     @OptIn(ExperimentalTestApi::class)
     fun verifyEmptyDownloadsList() {
-        Log.i(TAG, "verifyEmptyDownloadsList: Waiting for $waitingTime until the \"No downloads yet\" list message exists")
-        this@DownloadRobot.composeTestRule.waitUntilAtLeastOneExists(hasText(getStringResource(R.string.download_empty_message_2)), waitingTime)
-        Log.i(TAG, "verifyEmptyDownloadsList: Waited for $waitingTime until the \"No downloads yet\" list message exists")
+        Log.i(TAG, "verifyEmptyDownloadsList: Waiting for $waitingTimeLong until the \"No downloads yet\" list message exists")
+        this@DownloadRobot.composeTestRule.waitUntilAtLeastOneExists(hasText(getStringResource(R.string.download_empty_message_2)), waitingTimeLong)
+        Log.i(TAG, "verifyEmptyDownloadsList: Waited for $waitingTimeLong until the \"No downloads yet\" list message exists")
         Log.i(TAG, "verifyEmptyDownloadsList: Trying to verify that the \"No downloads yet\" list message is displayed")
         this@DownloadRobot.composeTestRule.onNodeWithText(getStringResource(R.string.download_empty_message_2))
             .assertIsDisplayed()
         Log.i(TAG, "verifyEmptyDownloadsList: Verified that the \"No downloads yet\" list message is displayed")
 
-        Log.i(TAG, "verifyEmptyDownloadsList: Waiting for $waitingTime until the \"Files you download will appear here.\" list message exists")
-        this@DownloadRobot.composeTestRule.waitUntilAtLeastOneExists(hasText(getStringResource(R.string.download_empty_description)), waitingTime)
-        Log.i(TAG, "verifyEmptyDownloadsList: Waited for $waitingTime until the \"Files you download will appear here.\" list message exists")
+        Log.i(TAG, "verifyEmptyDownloadsList: Waiting for $waitingTimeLong until the \"Files you download will appear here.\" list message exists")
+        this@DownloadRobot.composeTestRule.waitUntilAtLeastOneExists(hasText(getStringResource(R.string.download_empty_description)), waitingTimeLong)
+        Log.i(TAG, "verifyEmptyDownloadsList: Waited for $waitingTimeLong until the \"Files you download will appear here.\" list message exists")
         Log.i(TAG, "verifyEmptyDownloadsList: Trying to verify that the \"Files you download will appear here.\" list message is displayed")
         this@DownloadRobot.composeTestRule.onNodeWithText(getStringResource(R.string.download_empty_description))
             .assertIsDisplayed()
