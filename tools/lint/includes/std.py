@@ -3,6 +3,25 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 api = {
+    "mutex": [
+        "adopt_lock",
+        "adopt_lock_t",
+        "call_once",
+        "defer_lock",
+        "defer_lock_t",
+        "lock",
+        "lock_guard",
+        "mutex",
+        "once_flag",
+        "recursive_mutex",
+        "recursive_timed_mutex",
+        "scoped_lock",
+        "timed_mutex",
+        "try_lock",
+        "try_to_lock",
+        "try_to_lock_t",
+        "unique_lock",
+    ],
     "bitset": [
         "bitset",
     ],
