@@ -334,6 +334,10 @@ class _ConfigurationModule extends RootBiDiModule {
 
     const hasContextConfiguration = contextIds !== NULL;
     const hasUserContextConfiguration = userContextIds !== NULL;
+    const hasGlobalConfiguration =
+      supportsGlobalConfiguration &&
+      !hasContextConfiguration &&
+      !hasUserContextConfiguration;
 
     const { navigables, userContexts } = this.#getConfigurationTargets(
       contextIds,
@@ -348,7 +352,7 @@ class _ConfigurationModule extends RootBiDiModule {
     const sessionDataItems = this.#generateSessionDataUpdate({
       category,
       hasContextConfiguration,
-      hasGlobalConfiguration: true,
+      hasGlobalConfiguration,
       navigables,
       resetValue,
       userContexts,
