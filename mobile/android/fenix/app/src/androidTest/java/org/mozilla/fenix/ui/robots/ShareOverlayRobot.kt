@@ -198,13 +198,30 @@ class ShareOverlayRobot {
         Log.i(TAG, "verifyShareLinkIntent: Verified that the share intent for link: $url was launched")
     }
 
+    /**
+     * Click the share target for [appName] and wait for the share sheet to dismiss.
+     * Callers must follow up with [assertNativeAppOpens] to verify the target app
+     * foregrounded -- this helper intentionally does not verify the launch itself.
+     */
     fun clickSharingApp(appName: String, appPackageName: String) {
-            val sharingApp = itemContainingText(appName)
-            if (isPackageInstalled(appPackageName)) {
-                assertUIObjectExists(sharingApp)
+        val sharingApp = itemContainingText(appName)
+        if (isPackageInstalled(appPackageName)) {
+            assertUIObjectExists(sharingApp)
+            for (i in 1..RETRY_COUNT) {
+                Log.i(TAG, "clickSharingApp: Started try #$i")
+                if (!sharingApp.exists()) {
+                    // Share sheet is gone: a prior click was consumed. Stop clicking,
+                    // and let callers verify the target app via assertNativeAppOpens.
+                    Log.i(TAG, "clickSharingApp: Share sheet dismissed, stopping click retry")
+                    break
+                }
                 Log.i(TAG, "clickSharingApp: Trying to click sharing app: $appName and wait for a new window")
                 sharingApp.clickAndWaitForNewWindow()
                 Log.i(TAG, "clickSharingApp: Clicked sharing app: $appName and waited for a new window")
+            }
+            if (sharingApp.exists()) {
+                Log.i(TAG, "clickSharingApp: Retries exhausted; share sheet still visible")
+            }
         }
     }
 
