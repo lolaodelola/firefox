@@ -3851,6 +3851,19 @@ void ScriptLoader::OnMemoryPressure() {
   StopCollectingDelazifications();
 }
 
+void ScriptLoader::DispatchStopCollectingDelazifications() {
+  if (mDelazificationCollectingScripts.IsEmpty() &&
+      mDelazificationCollectingModules.IsEmpty()) {
+    return;
+  }
+
+  nsCOMPtr<nsIRunnable> encoder =
+      NewRunnableMethod("ScriptLoader::StopCollectingDelazifications", this,
+                        &ScriptLoader::StopCollectingDelazifications);
+  (void)NS_DispatchToCurrentThreadQueue(encoder.forget(),
+                                        EventQueuePriority::Idle);
+}
+
 void ScriptLoader::StopCollectingDelazifications() {
   // NOTE: There's no difference between JS::FinishCollectingDelazifications
   //       and JS::AbortCollectingDelazifications, except for whether
@@ -3894,6 +3907,8 @@ void ScriptLoader::MaybeUpdateDiskCache() {
     if (!mCache->MaybeScheduleUpdateDiskCache()) {
       TRACE_FOR_TEST_0("diskcache:noschedule");
     }
+
+    DispatchStopCollectingDelazifications();
     return;
   }
 
@@ -3921,6 +3936,8 @@ void ScriptLoader::MaybeUpdateDiskCache() {
     GiveUpDiskCaching();
     return;
   }
+
+  DispatchStopCollectingDelazifications();
 
   LOG(("ScriptLoader (%p): Schedule the disk cache encoding.", this));
 }
