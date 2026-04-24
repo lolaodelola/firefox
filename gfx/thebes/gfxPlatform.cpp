@@ -3077,30 +3077,8 @@ void gfxPlatform::InitHardwareVideoConfig() {
   InitPlatformHardwareVideoConfig();
   InitPlatformHardwarDRMConfig();
 
-  FeatureState& featureVulkanDec =
-      gfxConfig::GetFeature(Feature::HARDWARE_VIDEO_DECODING_VULKAN);
-  featureVulkanDec.Reset();
-  featureVulkanDec.EnableByDefault();
-  if (!StaticPrefs::media_hardware_video_decoding_vulkan_enabled_AtStartup()) {
-    featureVulkanDec.UserDisable(
-        "User disabled via media.hardware-video-decoding-vulkan.enabled pref",
-        "FEATURE_HARDWARE_VIDEO_DECODING_VULKAN_PREF_DISABLED"_ns);
-  }
-
-  bool canUseVulkanDecode = false;
-  int32_t vulkanDecStatus = nsIGfxInfo::FEATURE_STATUS_UNKNOWN;
-  nsCString vulkanDecFailureId;
-  if (featureVulkanDec.IsEnabled() &&
-      NS_SUCCEEDED(gfxInfo->GetFeatureStatus(
-          nsIGfxInfo::FEATURE_HARDWARE_VIDEO_DECODING_VULKAN,
-          vulkanDecFailureId, &vulkanDecStatus)) &&
-      vulkanDecStatus == nsIGfxInfo::FEATURE_STATUS_OK) {
-    canUseVulkanDecode = true;
-  }
-
   nsCString message;
-  gfxVars::SetCanUseHardwareVideoDecoding(featureDec.IsEnabled() ||
-                                          canUseVulkanDecode);
+  gfxVars::SetCanUseHardwareVideoDecoding(featureDec.IsEnabled());
   gfxVars::SetCanUseHardwareVideoEncoding(featureEnc.IsEnabled());
 
 #ifdef MOZ_WIDGET_ANDROID
@@ -3118,7 +3096,7 @@ void gfxPlatform::InitHardwareVideoConfig() {
   FeatureState& featureDec##name =                                             \
       gfxConfig::GetFeature(Feature::name##_HW_DECODE);                        \
   featureDec##name.Reset();                                                    \
-  if (featureDec.IsEnabled() || canUseVulkanDecode) {                          \
+  if (featureDec.IsEnabled()) {                                                \
     CODEC_HW_FEATURE_SETUP_PLATFORM(name, Dec, false)                          \
     if (!IsGfxInfoStatusOkay(nsIGfxInfo::FEATURE_##name##_HW_DECODE, &message, \
                              failureId)) {                                     \

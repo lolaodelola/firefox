@@ -631,13 +631,11 @@ set_config("MOZ_WAYLAND", depends_if(wayland_headers)(lambda _: True))
 set_define("MOZ_WAYLAND", depends_if(wayland_headers)(lambda _: True))
 
 
-# Hardware-accelerated video decode (VAAPI, Vulkan, V4L2) on Linux
-# ================================================================
+# Hardware-accelerated video decode with VAAPI and V4L2 on Linux
+# ==============================================================
 set_config("MOZ_ENABLE_VAAPI", True, when=toolkit_gtk)
 set_define("MOZ_ENABLE_VAAPI", True, when=toolkit_gtk)
 
-set_config("MOZ_ENABLE_VULKAN_VIDEO", True, when=toolkit_gtk)
-set_define("MOZ_ENABLE_VULKAN_VIDEO", True, when=toolkit_gtk)
 
 @depends(target, toolkit_gtk)
 def v4l2(target, toolkit_gtk):

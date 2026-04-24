@@ -80,7 +80,6 @@ enum class GLFeature {
   blend_minmax,
   clear_buffers,
   copy_buffer,
-  copy_image,
   depth_clamp,
   depth_texture,
   draw_buffers,
@@ -391,7 +390,6 @@ class GLContext : public GenericAtomicRefCounted, public SupportsWeakPtr {
     ARB_color_buffer_float,
     ARB_compatibility,
     ARB_copy_buffer,
-    ARB_copy_image,
     ARB_depth_clamp,
     ARB_depth_texture,
     ARB_draw_buffers,
@@ -3107,20 +3105,6 @@ class GLContext : public GenericAtomicRefCounted, public SupportsWeakPtr {
     ASSERT_SYMBOL_PRESENT(fCopyBufferSubData);
     mSymbols.fCopyBufferSubData(readtarget, writetarget, readoffset,
                                 writeoffset, size);
-    AFTER_GL_CALL;
-  }
-
-  // Core GL & Extension ARB_copy_image
- public:
-  void fCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel,
-                         GLint srcX, GLint srcY, GLint srcZ, GLuint dstName,
-                         GLenum dstTarget, GLint dstLevel, GLint dstX,
-                         GLint dstY, GLint dstZ, GLsizei srcWidth,
-                         GLsizei srcHeight, GLsizei srcDepth) {
-    BEFORE_GL_CALL;
-    mSymbols.fCopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ,
-                               dstName, dstTarget, dstLevel, dstX, dstY, dstZ,
-                               srcWidth, srcHeight, srcDepth);
     AFTER_GL_CALL;
   }
 

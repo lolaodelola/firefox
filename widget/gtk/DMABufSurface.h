@@ -173,7 +173,6 @@ class DMABufSurface {
   void FenceDelete();
 
   void MaybeSemaphoreWait(GLuint aGlTexture);
-  void SetSemaphoreFd(int aDuppedRawFd, bool aIsSyncFd = false);
 
   // Set and get a global surface UID. The UID is shared across process
   // and it's used to track surface lifetime in various parts of rendering
@@ -305,7 +304,6 @@ class DMABufSurface {
   RefPtr<mozilla::gfx::FileHandleWrapper> mSyncFd;
   EGLSyncKHR mSync;
   RefPtr<mozilla::gfx::FileHandleWrapper> mSemaphoreFd;
-  bool mSemaphoreFdIsSyncFd = false;
   // mGL is tied to textures/eglimages created over dmabuf and it's null for
   // dmabuf without textures/eglimages.
   RefPtr<mozilla::gl::GLContext> mGL;
@@ -460,10 +458,6 @@ class DMABufSurfaceYUV final : public DMABufSurface {
 
   bool CreateTexture(mozilla::gl::GLContext* aGLContext,
                      int aPlane = 0) override;
-  bool CreateTextureViaCopyYUV(mozilla::gl::GLContext* aGLContext,
-                               int aPlane = 0);
-  bool CreateTextureViaCopyP010(mozilla::gl::GLContext* aGLContext,
-                                int aPlane = 0);
   void ReleaseTextures() override;
 
   void ReleaseSurface() override;
