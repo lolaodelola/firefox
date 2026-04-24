@@ -4,6 +4,9 @@
 
 // Documentation for libpref is in modules/libpref/docs/index.rst.
 
+#ifdef NIGHTLY_BUILD
+#  include <regex>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
