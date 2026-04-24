@@ -162,7 +162,7 @@ add_task(async function test_addon_allowed() {
   await assertManagementAPIInstallType(install.addon.id, "normal");
   equal(install.addon.appDisabled, false, "Addon should not be disabled");
   equal(
-    Services.policies.isAddonRequiredByPolicy(install.addon.id),
+    install.addon.isInstalledByEnterprisePolicy,
     false,
     "Addon should NOT be marked as installed by enterprise policy"
   );

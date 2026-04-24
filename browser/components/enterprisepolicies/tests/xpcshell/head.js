@@ -159,7 +159,7 @@ async function assertManagementAPIInstallType(addonId, expectedInstallType) {
   const addon = await AddonManager.getAddonByID(addonId);
   const expectInstalledByPolicy = expectedInstallType === "admin";
   equal(
-    Services.policies.isAddonRequiredByPolicy(addon.id),
+    addon.isInstalledByEnterprisePolicy,
     expectInstalledByPolicy,
     `Addon should ${
       expectInstalledByPolicy ? "be" : "NOT be"

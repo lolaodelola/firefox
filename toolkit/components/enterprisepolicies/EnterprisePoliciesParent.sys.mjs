@@ -437,17 +437,6 @@ EnterprisePoliciesManager.prototype = {
     return settings;
   },
 
-  isAddonRequiredByPolicy(addonID) {
-    const policySettings = this.getExtensionSettings(addonID);
-    const legacyLockedSettings =
-      this.getActivePolicies()?.Extensions?.Locked ?? [];
-    return (
-      ["force_installed", "normal_installed"].includes(
-        policySettings?.installation_mode
-      ) || legacyLockedSettings.includes(addonID)
-    );
-  },
-
   mayInstallAddon(addon) {
     // See https://dev.chromium.org/administrators/policy-list-3/extension-settings-full
     if (!ExtensionSettings) {

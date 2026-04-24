@@ -40,7 +40,7 @@ const installType = addon => {
     return "sideload";
   } else if (addon.isSystem) {
     return "other";
-  } else if (Services.policies?.isAddonRequiredByPolicy(addon.id)) {
+  } else if (addon.isInstalledByEnterprisePolicy) {
     return "admin";
   }
   return "normal";
@@ -309,7 +309,7 @@ this.management = class extends ExtensionAPIPersistent {
 
           if (
             addon.type !== "theme" &&
-            !Services.policies?.isAddonRequiredByPolicy(extension.id)
+            !extension.isInstalledByEnterprisePolicy
           ) {
             throw new ExtensionError(
               "setEnabled can only be used for themes or by addons installed by enterprise policy"

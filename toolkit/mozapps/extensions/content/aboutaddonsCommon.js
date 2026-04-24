@@ -84,7 +84,7 @@ function installPromptHandler(info) {
     return Promise.resolve();
   }
 
-  if (Services.policies?.isAddonRequiredByPolicy(info.existingAddon.id)) {
+  if (info.existingAddon.isInstalledByEnterprisePolicy) {
     return Promise.resolve();
   }
 

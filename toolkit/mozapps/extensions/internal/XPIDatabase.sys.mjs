@@ -1368,6 +1368,23 @@ export class AddonWrapper {
   }
 
   /**
+   * Returns true if the addon is configured to be installed
+   * by enterprise policy.
+   *
+   * Should be kept in sync with Extension.sys.mjs
+   */
+  get isInstalledByEnterprisePolicy() {
+    const policySettings = Services.policies?.getExtensionSettings(this.id);
+    const legacyLockedSettings =
+      Services.policies?.getActivePolicies()?.Extensions?.Locked ?? [];
+    return (
+      ["force_installed", "normal_installed"].includes(
+        policySettings?.installation_mode
+      ) || legacyLockedSettings.includes(this.id)
+    );
+  }
+
+  /**
    * Required permissions that extension has access to based on its manifest.
    * In mv3 this doesn't include host_permissions.
    */
@@ -2674,7 +2691,7 @@ export const XPIDatabase = {
     if (
       this.mustSign(aAddon.type) &&
       aAddon.adminInstallOnly &&
-      !Services.policies?.isAddonRequiredByPolicy(aAddon.id)
+      !aAddon.wrapper.isInstalledByEnterprisePolicy
     ) {
       logger.warn(
         `Add-on ${aAddon.id} is installable only from policies, but no policy extension settings have been found.`

@@ -1677,7 +1677,7 @@ class AddonInstall {
 
         if (
           this.addon.adminInstallOnly &&
-          !Services.policies?.isAddonRequiredByPolicy(this.addon.id)
+          !this.addon.wrapper.isInstalledByEnterprisePolicy
         ) {
           return Promise.reject([
             AddonManager.ERROR_ADMIN_INSTALL_ONLY,
