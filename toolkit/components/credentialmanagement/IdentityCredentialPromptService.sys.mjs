@@ -578,7 +578,10 @@ export class IdentityCredentialPromptService {
       browser
     );
     if (notification) {
-      browser.ownerGlobal.PopupNotifications.remove(notification, true);
+      browser.ownerGlobal.PopupNotifications.remove(
+        notification,
+        /* withoutUserResponse = */ true
+      );
     }
   }
 }

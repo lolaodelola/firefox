@@ -1229,7 +1229,7 @@ var gXPInstallObserver = {
       PopupNotifications.getNotification(id, browser)
     ).filter(notification => notification != null);
 
-    PopupNotifications.remove(notifications, true);
+    PopupNotifications.remove(notifications, /* withoutUserResponse = */ true);
 
     return !!notifications.length;
   },

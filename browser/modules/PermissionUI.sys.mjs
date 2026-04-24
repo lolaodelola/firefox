@@ -681,7 +681,7 @@ class PermissionPrompt {
       options.hideClose = true;
     }
 
-    options.eventCallback = (topic, nextRemovalReason, isCancel) => {
+    options.eventCallback = (topic, nextRemovalReason, withoutUserResponse) => {
       // When the docshell of the browser is aboout to be swapped to another one,
       // the "swapping" event is called. Returning true causes the notification
       // to be moved to the new browser.
@@ -702,7 +702,7 @@ class PermissionPrompt {
       // You can remove this restriction if you need it, but be
       // mindful of other consumers.
       if (topic == "removed" && !postPrompt) {
-        if (isCancel) {
+        if (withoutUserResponse) {
           this.cancel();
         }
         this.onAfterShow();
