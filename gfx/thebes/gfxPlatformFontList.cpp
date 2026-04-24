@@ -47,6 +47,7 @@
 
 #include "base/eintr_wrapper.h"
 
+#include <locale.h>
 #include <numeric>
 
 using namespace mozilla;

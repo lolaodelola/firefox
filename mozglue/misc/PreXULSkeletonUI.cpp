@@ -11,6 +11,7 @@
 #include <math.h>
 #include <limits.h>
 #include <cmath>
+#include <locale>
 #include <string>
 #include <objbase.h>
 #include <shlobj.h>
