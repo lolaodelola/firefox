@@ -281,6 +281,15 @@ struct GLContextSymbols final {
   void(GLAPIENTRY* fCopyBufferSubData)(GLenum, GLenum, GLintptr, GLintptr,
                                        GLsizeiptr);
 
+  // ARB_copy_image / OpenGL 4.3 / OpenGL ES 3.2
+  void(GLAPIENTRY* fCopyImageSubData)(GLuint srcName, GLenum srcTarget,
+                                      GLint srcLevel, GLint srcX, GLint srcY,
+                                      GLint srcZ, GLuint dstName,
+                                      GLenum dstTarget, GLint dstLevel,
+                                      GLint dstX, GLint dstY, GLint dstZ,
+                                      GLsizei srcWidth, GLsizei srcHeight,
+                                      GLsizei srcDepth);
+
   GLenum(GLAPIENTRY* fGetGraphicsResetStatus)();
 
   // ARB_sync

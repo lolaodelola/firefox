@@ -97,6 +97,7 @@ namespace layers {
   uint32_t pid;
   FileDescriptor[] refCount;
   nullable FileHandleWrapper semaphoreFd;
+  bool semaphoreFdIsSyncFd;
 };
 
 [Comparable] struct SurfaceTextureDescriptor {

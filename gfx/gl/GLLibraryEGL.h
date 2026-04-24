@@ -539,6 +539,14 @@ class GLLibraryEGL final {
                               EGLint* num_devices) {
     WRAP(fQueryDevicesEXT(max_devices, devices, num_devices));
   }
+  // EGL_EXT_image_dma_buf_import_modifiers
+  EGLBoolean fQueryDmaBufModifiersEXT(EGLDisplay dpy, EGLint format,
+                                      EGLint max_modifiers, uint64_t* modifiers,
+                                      EGLBoolean* external_only,
+                                      EGLint* num_modifiers) const {
+    WRAP(fQueryDmaBufModifiersEXT(dpy, format, max_modifiers, modifiers,
+                                  external_only, num_modifiers));
+  }
 
 #undef WRAP
 
@@ -692,6 +700,10 @@ class GLLibraryEGL final {
                                              EGLDeviceEXT* devices,
                                              EGLint* num_devices);
 
+    // EGL_EXT_image_dma_buf_import_modifiers
+    EGLBoolean(GLAPIENTRY* fQueryDmaBufModifiersEXT)(
+        EGLDisplay dpy, EGLint format, EGLint max_modifiers,
+        uint64_t* modifiers, EGLBoolean* external_only, EGLint* num_modifiers);
   } mSymbols = {};
 };
 

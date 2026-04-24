@@ -760,6 +760,11 @@ bool GLLibraryEGL::Init(nsACString* const out_failureId) {
     const SymLoadStruct symbols[] = {SYMBOL(QueryDevicesEXT), END_OF_SYMBOLS};
     (void)fnLoadSymbols(symbols);
   }
+  {
+    const SymLoadStruct symbols[] = {SYMBOL(QueryDmaBufModifiersEXT),
+                                     END_OF_SYMBOLS};
+    (void)fnLoadSymbols(symbols);
+  }
 
   return true;
 }

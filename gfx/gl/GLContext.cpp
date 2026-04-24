@@ -98,6 +98,7 @@ static const char* const sExtensionNames[] = {
     "GL_ARB_color_buffer_float",
     "GL_ARB_compatibility",
     "GL_ARB_copy_buffer",
+    "GL_ARB_copy_image",
     "GL_ARB_depth_clamp",
     "GL_ARB_depth_texture",
     "GL_ARB_draw_buffers",
@@ -1098,6 +1099,13 @@ void GLContext::LoadMoreSymbols(const SymbolLoader& loader) {
             END_SYMBOLS
         };
         fnLoadFeatureByCore(coreSymbols, extSymbols, GLFeature::texture_storage);
+    }
+
+    if (IsSupported(GLFeature::copy_image)) {
+        const SymLoadStruct symbols[] = {
+            {(PRFuncPtr*)&mSymbols.fCopyImageSubData, {{"glCopyImageSubData"}}},
+            END_SYMBOLS};
+        fnLoadForFeature(symbols, GLFeature::copy_image);
     }
 
     if (IsSupported(GLFeature::sampler_objects)) {
