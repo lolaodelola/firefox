@@ -74,17 +74,6 @@ export default class IPProtectionStatusCard extends MozLitElement {
       : null;
   }
 
-  locationTemplate() {
-    return this.location
-      ? html` <img
-            slot="location-icon"
-            role="presentation"
-            src="chrome://browser/skin/notification-icons/geo.svg"
-          />
-          <span slot="location">${this.location.name}</span>`
-      : null;
-  }
-
   locationSelectionButtonTemplate() {
     return html`
       <moz-button
@@ -128,7 +117,7 @@ export default class IPProtectionStatusCard extends MozLitElement {
               src=${iconSrc}
             />`
           : null}
-        ${this.bandwidthUsageTemplate()} ${this.locationTemplate()}
+        ${this.bandwidthUsageTemplate()}
         <moz-button
           slot="action"
           type=${buttonType}
