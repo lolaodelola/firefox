@@ -577,6 +577,10 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
 
   // The size of a pool guard, in instructions. A branch around the pool.
   static constexpr unsigned GuardSize = settings.guardSize;
+
+  // Veneer branch is expected to have the same size as a pool guard branch.
+  static constexpr unsigned VeneerSize = settings.guardSize;
+
   // The size of the header that is put at the beginning of a full pool, in
   // instruction sized units.
   static constexpr unsigned HeaderSize = settings.headerSize;
@@ -736,9 +740,7 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
     // secondary range veneers assuming the worst case deadlines.
 
     // Total pending secondary range veneer size.
-    //
-    // Veneer branch is expected to have the same size as a pool guard branch.
-    return GuardSize *
+    return VeneerSize *
            (branchDeadlines_.size() - branchDeadlines_.maxRangeSize() +
             numNewDeadlines) *
            InstSize;
@@ -1029,8 +1031,8 @@ struct AssemblerBufferWithConstantPools : public AssemblerBuffer<Inst> {
       // new branches to track.
       branchDeadlines_.removeDeadline(rangeIdx, deadline);
 
-      // Make room for the veneer. Same as a pool guard branch.
-      BufferOffset veneer = this->putBytes(GuardSize * InstSize, nullptr);
+      // Make room for the veneer.
+      BufferOffset veneer = this->putBytes(VeneerSize * InstSize, nullptr);
       if (this->oom()) {
         return;
       }
