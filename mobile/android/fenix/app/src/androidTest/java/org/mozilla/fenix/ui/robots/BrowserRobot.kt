@@ -1166,18 +1166,6 @@ class BrowserRobot(private val composeTestRule: ComposeTestRule) {
         Log.i(TAG, "fillPdfForm: Clicked PDF form check box")
     }
 
-    fun goToPreviousPageFromRedesignedToolbar() {
-        Log.i(TAG, "goToPreviousPageFromRedesignedToolbar: Trying to click the \"Back\" button")
-        itemWithDescription(getStringResource(R.string.browser_menu_back)).click()
-        Log.i(TAG, "goToPreviousPageFromRedesignedToolbar: Clicked the \"Back\" button")
-    }
-
-    fun goForwardFromRedesignedToolbar() {
-        Log.i(TAG, "goForwardFromRedesignedToolbar: Trying to click the \"Forward\" button")
-        itemWithDescription(getStringResource(R.string.browser_menu_forward)).click()
-        Log.i(TAG, "goForwardFromRedesignedToolbar: Clicked the \"Forward\" button")
-    }
-
     fun getCurrentUrl(): String {
         val searchBar = searchBar()
         waitForPageToLoad()
@@ -1650,16 +1638,6 @@ class BrowserRobot(private val composeTestRule: ComposeTestRule) {
 
             DownloadRobot(composeTestRule).interact()
             return DownloadRobot.Transition(composeTestRule)
-        }
-
-        fun clickShareButtonFromRedesignedToolbar(interact: ShareOverlayRobot.() -> Unit): ShareOverlayRobot.Transition {
-            Log.i(TAG, "clickShareButtonFromRedesignedToolbar: Trying to click the \"Share\" button")
-            itemWithDescription(getStringResource(R.string.share_button_content_description)).click()
-            Log.i(TAG, "clickShareButtonFromRedesignedToolbar: Clicked the \"Share\" button")
-            mDevice.waitNotNull(Until.findObject(By.text("ALL ACTIONS")), waitingTime)
-
-            ShareOverlayRobot().interact()
-            return ShareOverlayRobot.Transition()
         }
 
         @OptIn(ExperimentalTestApi::class)
