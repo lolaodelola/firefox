@@ -41,6 +41,7 @@ struct ParamTraits<mozilla::VideoInfo> {
     WriteParam(aWriter, aParam.mColorSpace);
     WriteParam(aWriter, aParam.mColorPrimaries);
     WriteParam(aWriter, aParam.mTransferFunction);
+    WriteParam(aWriter, aParam.mHDRMetadata);
     WriteParam(aWriter, aParam.mColorRange);
     WriteParam(aWriter, aParam.mAlphaPresent);
     WriteParam(aWriter, aParam.mCrypto);
@@ -59,6 +60,7 @@ struct ParamTraits<mozilla::VideoInfo> {
            ReadParam(aReader, &aResult->mColorSpace) &&
            ReadParam(aReader, &aResult->mColorPrimaries) &&
            ReadParam(aReader, &aResult->mTransferFunction) &&
+           ReadParam(aReader, &aResult->mHDRMetadata) &&
            ReadParam(aReader, &aResult->mColorRange) &&
            ReadParam(aReader, &aResult->mAlphaPresent) &&
            ReadParam(aReader, &aResult->mCrypto);
