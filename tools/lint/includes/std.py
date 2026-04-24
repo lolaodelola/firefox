@@ -3,19 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 api = {
-    "iomanip": [
-        "get_money",
-        "get_time",
-        "put_money",
-        "put_time",
-        "quoted",
-        "resetiosflags",
-        "setbase",
-        "setfill",
-        "setiosflags",
-        "setprecision",
-        "setw",
-    ],
     "atomic": [
         "atomic",
         "atomic_bool",
