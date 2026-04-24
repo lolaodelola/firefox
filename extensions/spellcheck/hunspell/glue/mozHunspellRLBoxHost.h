@@ -7,6 +7,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <stdint.h>
 
