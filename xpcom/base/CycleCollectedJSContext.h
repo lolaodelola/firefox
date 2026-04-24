@@ -5,6 +5,8 @@
 #ifndef mozilla_CycleCollectedJSContext_h
 #define mozilla_CycleCollectedJSContext_h
 
+#include <deque>
+
 #include "js/TracingAPI.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/LinkedList.h"

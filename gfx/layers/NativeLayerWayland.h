@@ -5,6 +5,8 @@
 #ifndef mozilla_layers_NativeLayerWayland_h
 #define mozilla_layers_NativeLayerWayland_h
 
+#include <deque>
+
 #include "mozilla/Atomics.h"
 #include "mozilla/Mutex.h"
 #include "mozilla/layers/NativeLayer.h"

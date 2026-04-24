@@ -6,6 +6,7 @@
 
 #include <cerrno>
 #include <cstdlib>
+#include <deque>
 #include <set>
 #include <sstream>
 #include <vector>

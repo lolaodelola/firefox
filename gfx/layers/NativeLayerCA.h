@@ -7,6 +7,7 @@
 
 #include <IOSurface/IOSurfaceRef.h>
 
+#include <deque>
 #include <ostream>
 
 #include "mozilla/Mutex.h"
