@@ -35,7 +35,7 @@ Accessible::Accessible(AccType aType, AccGenericType aGenericTypes,
       mRoleMapEntryIndex(aRoleMapEntryIndex) {}
 
 void Accessible::StaticAsserts() const {
-  static_assert(eLastAccType <= (1 << kTypeBits) - 1,
+  static_assert(kHighestAccType <= (1 << kTypeBits) - 1,
                 "Accessible::mType was oversized by eLastAccType!");
   static_assert(
       eLastAccGenericType <= (1 << kGenericTypesBits) - 1,

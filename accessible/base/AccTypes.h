@@ -5,18 +5,21 @@
 #ifndef mozilla_a11y_AccTypes_h
 #define mozilla_a11y_AccTypes_h
 
+#include "mozilla/DefineEnum.h"
+
 namespace mozilla {
 namespace a11y {
 
 /**
  * Accessible object types. Each accessible class can have own type.
  */
-enum AccType {
+// clang-format off
+MOZ_DEFINE_ENUM(AccType,
   /**
    * This set of types is used for accessible creation, keep them together in
    * alphabetical order since they are used in switch statement.
    */
-  eNoType,
+  (eNoType,
   eHTMLAbbrevType,
   eHTMLBRType,
   eHTMLButtonType,
@@ -59,10 +62,9 @@ enum AccType {
   eXULListItemType,
   eXULTabpanelsType,
   eXULTooltipType,
-  eXULTreeType,
-
-  eLastAccType = eXULTreeType
-};
+  eXULTreeType)
+);
+// clang-format on
 
 /**
  * Generic accessible type, different accessible classes can share the same
