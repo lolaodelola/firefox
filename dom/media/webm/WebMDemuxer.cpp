@@ -401,6 +401,43 @@ nsresult WebMDemuxer::GetCodecPrivateData(
   return NS_OK;
 }
 
+static Maybe<gfx::HDRMetadata> ParseWebMMasteringMetadata(
+    const nestegg_video_params& aParams) {
+  gfx::HDRMetadata hdr;
+  if (!std::isnan(aParams.primary_r_chromacity_x)) {
+    gfx::Smpte2086Metadata smpte;
+    smpte.displayPrimaryRed.x =
+        static_cast<float>(aParams.primary_r_chromacity_x);
+    smpte.displayPrimaryRed.y =
+        static_cast<float>(aParams.primary_r_chromacity_y);
+    smpte.displayPrimaryGreen.x =
+        static_cast<float>(aParams.primary_g_chromacity_x);
+    smpte.displayPrimaryGreen.y =
+        static_cast<float>(aParams.primary_g_chromacity_y);
+    smpte.displayPrimaryBlue.x =
+        static_cast<float>(aParams.primary_b_chromacity_x);
+    smpte.displayPrimaryBlue.y =
+        static_cast<float>(aParams.primary_b_chromacity_y);
+    smpte.whitePoint.x =
+        static_cast<float>(aParams.white_point_chromaticity_x);
+    smpte.whitePoint.y =
+        static_cast<float>(aParams.white_point_chromaticity_y);
+    smpte.maxLuminance = static_cast<float>(aParams.luminance_max);
+    smpte.minLuminance = static_cast<float>(aParams.luminance_min);
+    hdr.mSmpte2086 = Some(smpte);
+  }
+  if (aParams.max_cll != 0 || aParams.max_fall != 0) {
+    gfx::ContentLightLevel cll;
+    cll.maxContentLightLevel = aParams.max_cll;
+    cll.maxFrameAverageLightLevel = aParams.max_fall;
+    hdr.mContentLightLevel = Some(cll);
+  }
+  if (!hdr.IsValid()) {
+    return Nothing();
+  }
+  return Some(hdr);
+}
+
 nsresult WebMDemuxer::ReadMetadata() {
   int r = mVideoContext.Init();
   if (r == -1) {

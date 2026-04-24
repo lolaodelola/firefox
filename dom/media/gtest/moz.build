@@ -78,6 +78,7 @@ UNIFIED_SOURCES += [
     "TestVideoUtils.cpp",
     "TestVPXDecoding.cpp",
     "TestWebMBuffered.cpp",
+    "TestWebMDemuxer.cpp",
     "TestWebMWriter.cpp",
     "YUVBufferGenerator.cpp",
 ]
@@ -136,6 +137,7 @@ TEST_HARNESS_FILES.gtest += [
     "test_ValidLargeEBMLMaxIdLength.webm",
     "test_ValidSmallEBMLMaxSizeLength.webm",
     "test_vbri.mp3",
+    "tos-vp9-hdr-cll.webm",
 ]
 
 TEST_DIRS += [
@@ -152,6 +154,7 @@ LOCAL_INCLUDES += [
     "/dom/media/mp4",
     "/dom/media/platforms",
     "/dom/media/platforms/agnostic",
+    "/dom/media/webm",
     "/dom/media/webrtc",
     "/gfx/2d/",
     "/security/certverifier",
