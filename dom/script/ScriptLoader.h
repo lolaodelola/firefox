@@ -80,14 +80,15 @@ class ScriptRequestProcessor;
 enum class ReferrerPolicy : uint8_t;
 enum class RequestPriority : uint8_t;
 
-class AsyncCompileShutdownObserver final : public nsIObserver {
-  ~AsyncCompileShutdownObserver() { Unregister(); }
+class ShutdownAndMemoryPressureObserver final : public nsIObserver {
+  ~ShutdownAndMemoryPressureObserver() { Unregister(); }
 
  public:
-  explicit AsyncCompileShutdownObserver(ScriptLoader* aLoader)
+  explicit ShutdownAndMemoryPressureObserver(ScriptLoader* aLoader)
       : mScriptLoader(aLoader) {}
 
   void OnShutdown();
+  void OnMemoryPressure();
   void Unregister();
 
   NS_DECL_ISUPPORTS
@@ -460,6 +461,12 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
    */
   void Destroy();
 
+  /**
+   * Called when memory pressure is detected.
+   * This clears cache-related fields.
+   */
+  void OnMemoryPressure();
+
   /*
    * Get the currently active script's ScriptFetchInfo.
    *
@@ -780,6 +787,11 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
    */
   void UpdateDiskCache();
 
+  /**
+   * Stop collecting any ongoing delazifications.
+   */
+  void StopCollectingDelazifications();
+
  public:
   /**
    * Encode the stencils and compress it.
@@ -880,6 +892,7 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
   nsCOMArray<nsIScriptLoaderObserver> mObservers;
 
   // The list of ongoing delazification collections.
+  // They'll get aborted on memory pressure.
   nsTArray<JS::Heap<JSScript*>> mDelazificationCollectingScripts;
   nsTArray<JS::Heap<JSObject*>> mDelazificationCollectingModules;
 
@@ -1015,8 +1028,9 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
 
   nsCOMPtr<nsIConsoleReportCollector> mReporter;
 
-  // ShutdownObserver for off thread compilations
-  RefPtr<AsyncCompileShutdownObserver> mShutdownObserver;
+  // ShutdownObserver for off thread compilations, and the
+  // observer for the memory pressure.
+  RefPtr<ShutdownAndMemoryPressureObserver> mObserver;
 
   RefPtr<ModuleLoader> mModuleLoader;
   nsTArray<RefPtr<ModuleLoader>> mWebExtModuleLoaders;

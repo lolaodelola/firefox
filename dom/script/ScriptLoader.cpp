@@ -122,29 +122,50 @@ LazyLogModule ScriptLoader::gScriptLoaderLog("ScriptLoader");
 static constexpr auto kNullMimeType = "javascript/null"_ns;
 
 /////////////////////////////////////////////////////////////
-// AsyncCompileShutdownObserver
+// ShutdownAndMemoryPressureObserver
 /////////////////////////////////////////////////////////////
 
-NS_IMPL_ISUPPORTS(AsyncCompileShutdownObserver, nsIObserver)
+NS_IMPL_ISUPPORTS(ShutdownAndMemoryPressureObserver, nsIObserver)
 
-void AsyncCompileShutdownObserver::OnShutdown() {
+void ShutdownAndMemoryPressureObserver::OnShutdown() {
   if (mScriptLoader) {
     mScriptLoader->Destroy();
     MOZ_ASSERT(!mScriptLoader);
   }
 }
 
-void AsyncCompileShutdownObserver::Unregister() {
+void ShutdownAndMemoryPressureObserver::OnMemoryPressure() {
+  if (mScriptLoader) {
+    mScriptLoader->OnMemoryPressure();
+  }
+}
+
+void ShutdownAndMemoryPressureObserver::Unregister() {
   if (mScriptLoader) {
     mScriptLoader = nullptr;
     nsContentUtils::UnregisterShutdownObserver(this);
+
+    nsCOMPtr<nsIObserverService> obsService = services::GetObserverService();
+    if (obsService) {
+      obsService->RemoveObserver(this, "memory-pressure");
+    }
   }
 }
 
 NS_IMETHODIMP
-AsyncCompileShutdownObserver::Observe(nsISupports* aSubject, const char* aTopic,
-                                      const char16_t* aData) {
-  OnShutdown();
+ShutdownAndMemoryPressureObserver::Observe(nsISupports* aSubject,
+                                           const char* aTopic,
+                                           const char16_t* aData) {
+  if (strcmp(aTopic, "xpcom-shutdown") == 0) {
+    OnShutdown();
+    return NS_OK;
+  }
+
+  if (strcmp(aTopic, "memory-pressure") == 0) {
+    OnMemoryPressure();
+    return NS_OK;
+  }
+
   return NS_OK;
 }
 
@@ -225,8 +246,13 @@ ScriptLoader::ScriptLoader(Document* aDocument)
     LOG(("ScriptLoader (%p): Using in-memory cache.", this));
   }
 
-  mShutdownObserver = new AsyncCompileShutdownObserver(this);
-  nsContentUtils::RegisterShutdownObserver(mShutdownObserver);
+  mObserver = new ShutdownAndMemoryPressureObserver(this);
+  nsContentUtils::RegisterShutdownObserver(mObserver);
+
+  nsCOMPtr<nsIObserverService> obsService = services::GetObserverService();
+  if (obsService) {
+    obsService->AddObserver(mObserver, "memory-pressure", false);
+  }
 }
 
 ScriptLoader::~ScriptLoader() {
@@ -278,9 +304,9 @@ ScriptLoader::~ScriptLoader() {
     mPendingChildLoaders[j]->RemoveParserBlockingScriptExecutionBlocker();
   }
 
-  if (mShutdownObserver) {
-    mShutdownObserver->Unregister();
-    mShutdownObserver = nullptr;
+  if (mObserver) {
+    mObserver->Unregister();
+    mObserver = nullptr;
   }
 
   mModuleLoader = nullptr;
@@ -3805,13 +3831,46 @@ void ScriptLoader::Destroy() {
     mCache->UpdateEverHitTelemetry();
   }
 
-  if (mShutdownObserver) {
-    mShutdownObserver->Unregister();
-    mShutdownObserver = nullptr;
+  if (mObserver) {
+    mObserver->Unregister();
+    mObserver = nullptr;
   }
 
   CancelAndClearScriptLoadRequests();
   GiveUpDiskCaching();
+  StopCollectingDelazifications();
+}
+
+void ScriptLoader::OnMemoryPressure() {
+  // When memory pressure is detected, release the stencils held by the
+  // ongoing delazification collection.
+  // SharedScriptCache will also clear the cache, and then those stencils
+  // will no longer held by anything live long and will be collected
+  // shortly.
+
+  StopCollectingDelazifications();
+}
+
+void ScriptLoader::StopCollectingDelazifications() {
+  // NOTE: There's no difference between JS::FinishCollectingDelazifications
+  //       and JS::AbortCollectingDelazifications, except for whether
+  //       to return the stencil or not.
+  //       The stencil pointer is held by LoadedScript, and thus we call
+  //       JS::AbortCollectingDelazifications here, which is more light-weight.
+
+  for (size_t i = 0; i < mDelazificationCollectingScripts.Length(); ++i) {
+    JSScript* script = mDelazificationCollectingScripts[i];
+    JS::AbortCollectingDelazifications(script);
+  }
+  mDelazificationCollectingScripts.Clear();
+
+  for (size_t i = 0; i < mDelazificationCollectingModules.Length(); ++i) {
+    JSObject* module = mDelazificationCollectingModules[i];
+    JS::AbortCollectingDelazifications(module);
+  }
+  mDelazificationCollectingModules.Clear();
+
+  mozilla::DropJSObjects(this);
 }
 
 void ScriptLoader::MaybeUpdateDiskCache() {
