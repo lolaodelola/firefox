@@ -4,10 +4,6 @@
 
 ## Chrome
 
-main-context-menu-open-link-new-smart-window =
-    .label = Open Link in New Smart Window
-    .accesskey = S
-
 appmenuitem-new-ai-window =
     .label = New Smart Window
     .value = New Smart Window

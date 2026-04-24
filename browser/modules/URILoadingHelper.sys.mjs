@@ -146,9 +146,6 @@ function openInWindow(url, params, sourceWindow) {
   if (params.schemelessInput !== undefined) {
     extraOptions.setPropertyAsUint32("schemelessInput", params.schemelessInput);
   }
-  if (params.aiWindow) {
-    extraOptions.setPropertyAsBool("ai-window", true);
-  }
 
   var allowThirdPartyFixupSupports = Cc[
     "@mozilla.org/supports-PRBool;1"

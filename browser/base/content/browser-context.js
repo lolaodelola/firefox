@@ -52,9 +52,6 @@ document.addEventListener(
         case "context-openlinkprivate":
           gContextMenu.openLinkInPrivateWindow();
           break;
-        case "context-openlinksmartwindow":
-          gContextMenu.openLinkInSmartWindow();
-          break;
         case "context-bookmarklink":
           gContextMenu.bookmarkLink();
           break;

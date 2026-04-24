@@ -5,8 +5,6 @@
 const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
-  AIWindow:
-    "moz-src:///browser/components/aiwindow/ui/modules/AIWindow.sys.mjs",
   BrowserSearchTelemetry:
     "moz-src:///browser/components/search/BrowserSearchTelemetry.sys.mjs",
   BrowserUtils: "resource://gre/modules/BrowserUtils.sys.mjs",
@@ -500,15 +498,10 @@ export class nsContextMenu {
       "browser.tabs.splitView.enabled"
     );
     let currentTabInSplitView = !!window.gBrowser?.selectedTab?.splitview;
-    let showSmartWindow = lazy.AIWindow.isAIWindowEnabled();
     this.showItem("context-openlink", shouldShow && !isWindowPrivate);
     this.showItem(
       "context-openlinkprivate",
       shouldShow && lazy.PrivateBrowsingUtils.enabled
-    );
-    this.showItem(
-      "context-openlinksmartwindow",
-      shouldShow && showSmartWindow && !isWindowPrivate
     );
     this.showItem("context-openlinkintab", shouldShow && !inContainer);
     this.showItem("context-openlinkincontainertab", shouldShow && inContainer);
@@ -1487,16 +1480,6 @@ export class nsContextMenu {
       this.linkURL,
       "window",
       this._openLinkInParameters({ private: true })
-    );
-  }
-
-  // Open linked-to URL in a new smart window.
-  openLinkInSmartWindow() {
-    const params = this._getGlobalHistoryOptions();
-    this.window.openLinkIn(
-      this.linkURL,
-      "window",
-      this._openLinkInParameters({ ...params, aiWindow: true })
     );
   }
 
