@@ -28,6 +28,8 @@ prefs = [
 ["browser_ReducedProtectionNotification.js"]
 https_first_disabled = true
 
+["browser_ReducedProtectionNotification_permanentPB.js"]
+
 ["browser_SitePermissions.js"]
 
 ["browser_SitePermissions_combinations.js"]
