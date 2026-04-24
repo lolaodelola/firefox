@@ -778,6 +778,13 @@ EventSourceImpl::OnStopRequest(nsIRequest* aRequest, nsresult aStatusCode) {
   // There could be additional network errors that are not covered in the above
   // checks
   //  See Bug 1808511
+  if (aStatusCode == NS_BINDING_ABORTED) {
+    nsresult rv = Dispatch(NewRunnableMethod("dom::EventSourceImpl::Close",
+                                             this, &EventSourceImpl::Close),
+                           NS_DISPATCH_NORMAL);
+    NS_ENSURE_SUCCESS(rv, rv);
+    return NS_OK;
+  }
   if (NS_FAILED(aStatusCode) && aStatusCode != NS_ERROR_CONNECTION_REFUSED &&
       aStatusCode != NS_ERROR_NET_TIMEOUT &&
       aStatusCode != NS_ERROR_NET_RESET &&
