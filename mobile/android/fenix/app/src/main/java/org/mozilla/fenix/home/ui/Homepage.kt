@@ -160,11 +160,7 @@ internal fun Homepage(
                         onPrivateModeTapped = { browsingModeChanged(BrowsingMode.Private) },
                         onStoriesTapped = { interactor.onDiscoverMoreClicked() },
                         onNewsAnimationShown = { components.settings.recordNewsButtonAnimationShown() },
-                        onLogoClicked = {
-                            if (components.settings.enableHomepageSportsWidget) {
-                                showSportsCountrySelector = true
-                            }
-                        },
+                        onLogoClicked = {},
                         onLogoLongClicked = interactor::onLogoLongClicked,
                     )
                 }
@@ -176,18 +172,12 @@ internal fun Homepage(
                 }
 
                 is HeaderState.Normal -> {
-                    val components = components
-
                     HomepageHeader(
                         wordmarkTextColor = headerState.wordmarkTextColor,
                         privateBrowsingButtonColor = headerState.privateBrowsingButtonColor,
                         browsingMode = state.browsingMode,
                         browsingModeChanged = browsingModeChanged,
-                        onLogoClicked = {
-                            if (components.settings.enableHomepageSportsWidget) {
-                                showSportsCountrySelector = true
-                            }
-                        },
+                        onLogoClicked = {},
                         onLogoLongClicked = interactor::onLogoLongClicked,
                     )
                 }
