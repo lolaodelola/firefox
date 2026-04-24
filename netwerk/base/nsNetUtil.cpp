@@ -2447,26 +2447,26 @@ bool NS_SecurityCompareURIs(nsIURI* aSourceURI, nsIURI* aTargetURI,
   }
 #endif
 
-  nsCOMPtr<nsIPrincipal> sourceBlobPrincipal;
-  if (BlobURLProtocolHandler::GetBlobURLPrincipal(
-          sourceBaseURI, getter_AddRefs(sourceBlobPrincipal))) {
-    nsCOMPtr<nsIURI> sourceBlobOwnerURI;
-    auto* basePrin = BasePrincipal::Cast(sourceBlobPrincipal);
-    rv = basePrin->GetURI(getter_AddRefs(sourceBlobOwnerURI));
-    if (NS_SUCCEEDED(rv)) {
-      sourceBaseURI = std::move(sourceBlobOwnerURI);
+  if (sourceBaseURI->SchemeIs(BLOBURI_SCHEME)) {
+    // NOTE: OriginAttributes are discarded by GetURI, so can be default.
+    nsCOMPtr<nsIPrincipal> sourceBlobPrincipal;
+    if (!BlobURLProtocolHandler::GetBlobURLPrincipal(
+            sourceBaseURI, OriginAttributes(),
+            getter_AddRefs(sourceBlobPrincipal))) {
+      return false;
     }
+    sourceBaseURI = sourceBlobPrincipal->GetURI();
   }
 
-  nsCOMPtr<nsIPrincipal> targetBlobPrincipal;
-  if (BlobURLProtocolHandler::GetBlobURLPrincipal(
-          targetBaseURI, getter_AddRefs(targetBlobPrincipal))) {
-    nsCOMPtr<nsIURI> targetBlobOwnerURI;
-    auto* basePrin = BasePrincipal::Cast(targetBlobPrincipal);
-    rv = basePrin->GetURI(getter_AddRefs(targetBlobOwnerURI));
-    if (NS_SUCCEEDED(rv)) {
-      targetBaseURI = std::move(targetBlobOwnerURI);
+  if (targetBaseURI->SchemeIs(BLOBURI_SCHEME)) {
+    // NOTE: OriginAttributes are discarded by GetURI, so can be default.
+    nsCOMPtr<nsIPrincipal> targetBlobPrincipal;
+    if (!BlobURLProtocolHandler::GetBlobURLPrincipal(
+            targetBaseURI, OriginAttributes(),
+            getter_AddRefs(targetBlobPrincipal))) {
+      return false;
     }
+    targetBaseURI = targetBlobPrincipal->GetURI();
   }
 
   if (!sourceBaseURI || !targetBaseURI) return false;

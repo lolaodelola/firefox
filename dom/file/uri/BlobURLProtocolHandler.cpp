@@ -722,30 +722,23 @@ bool BlobURLProtocolHandler::HasDataEntryTypeBlob(const nsACString& aUri) {
 /* static */
 nsresult BlobURLProtocolHandler::GenerateURIString(nsIPrincipal* aPrincipal,
                                                    nsACString& aUri) {
-  nsresult rv;
-  nsCOMPtr<nsIUUIDGenerator> uuidgen =
-      do_GetService("@mozilla.org/uuid-generator;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_ARG(aPrincipal);
 
-  nsID id;
-  rv = uuidgen->GenerateUUIDInPlace(&id);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  aUri.AssignLiteral(BLOBURI_SCHEME);
-  aUri.Append(':');
-
-  if (aPrincipal) {
-    nsAutoCString origin;
-    rv = aPrincipal->GetWebExposedOriginSerialization(origin);
-    if (NS_FAILED(rv)) {
-      origin.AssignLiteral("null");
-    }
-
-    aUri.Append(origin);
-    aUri.Append('/');
+  nsID id{};
+  nsresult rv = nsID::GenerateUUIDInPlace(id);
+  if (NS_FAILED(rv)) {
+    return rv;
   }
 
-  aUri += NSID_TrimBracketsASCII(id);
+  nsAutoCString origin;
+  if (NS_FAILED(aPrincipal->GetWebExposedOriginSerialization(origin))) {
+    // Special case the system principal to have a "system" origin part, so that
+    // the system principal can be recovered from the URI.
+    // See bug 2006467 for removing system principal Blob URLs in the future.
+    origin = aPrincipal->IsSystemPrincipal() ? "system"_ns : "null"_ns;
+  }
+
+  aUri = BLOBURI_SCHEME ":"_ns + origin + "/"_ns + NSID_TrimBracketsASCII(id);
 
   return NS_OK;
 }
@@ -826,15 +819,18 @@ NS_IMPL_ISUPPORTS(BlobURLProtocolHandler, nsIProtocolHandler,
   // This method can be called on any thread, which is why we lock the mutex
   // for read access to gDataTable.
   bool revoked = true;
+  nsCOMPtr<nsIPrincipal> principal;
   {
     StaticMutexAutoLock lock(sMutex);
     mozilla::dom::DataInfo* info = GetDataInfo(aSpec);
     revoked = !info || info->mRevokeId != 0;
+    principal = info ? info->mPrincipal : nullptr;
   }
 
   return NS_MutateURI(new BlobURL::Mutator())
       .SetSpec(aSpec)
       .Apply(&nsIBlobURLMutator::SetRevoked, revoked)
+      .Apply(&nsIBlobURLMutator::MaybeSetNullPrincipal, principal)
       .Finalize(aResult);
 }
 
@@ -862,6 +858,7 @@ BlobURLProtocolHandler::GetScheme(nsACString& result) {
 
 /* static */
 bool BlobURLProtocolHandler::GetBlobURLPrincipal(nsIURI* aURI,
+                                                 const OriginAttributes& aAttrs,
                                                  nsIPrincipal** aPrincipal) {
   MOZ_ASSERT(aURI);
   MOZ_ASSERT(aPrincipal);
@@ -871,20 +868,39 @@ bool BlobURLProtocolHandler::GetBlobURLPrincipal(nsIURI* aURI,
     return false;
   }
 
-  StaticMutexAutoLock lock(sMutex);
-  mozilla::dom::DataInfo* info =
-      GetDataInfoFromURI(aURI, true /*aAlsoIfRevoked */);
-  if (!info || !info->mBlobImpl) {
-    return false;
-  }
-
   nsCOMPtr<nsIPrincipal> principal;
 
-  if (blobURL->Revoked()) {
-    principal = NullPrincipal::Create(
-        BasePrincipal::Cast(info->mPrincipal)->OriginAttributesRef());
+  nsDependentCSubstring originPart = blobURL->OriginPart();
+  if (originPart == "system"_ns) {
+    principal = nsContentUtils::GetSystemPrincipal();
+  } else if (originPart == "null"_ns) {
+    // If the origin part is the string "null", the principal should have been
+    // cached on the URI when it was parsed.
+    principal = blobURL->GetNullPrincipal();
+
+    // If the principal has the "null" origin part, it cannot be a
+    // BlobURLBroadcastPrincipal, as in the future we will not broadcast
+    // registrations, so the principal would not be available.
+    MOZ_DIAGNOSTIC_ASSERT(!principal ||
+                          !IsBlobURLBroadcastPrincipal(principal));
   } else {
-    principal = info->mPrincipal;
+    // The web-exposed origin serialization is present, we have an origin URI.
+    nsCOMPtr<nsIURI> uri;
+    nsresult rv = NS_NewURI(getter_AddRefs(uri), originPart);
+    NS_ENSURE_SUCCESS(rv, false);
+
+    principal = BasePrincipal::CreateContentPrincipal(uri, aAttrs);
+
+    // Ensure the principal's origin serialization matches the origin part,
+    // otherwise we'll treat the origin part as invalid.
+    nsAutoCString serialization;
+    rv = principal->GetWebExposedOriginSerialization(serialization);
+    if (NS_WARN_IF(NS_FAILED(rv)) || NS_WARN_IF(originPart != serialization)) {
+      return false;
+    }
+  }
+  if (!principal) {
+    return false;
   }
 
   principal.forget(aPrincipal);

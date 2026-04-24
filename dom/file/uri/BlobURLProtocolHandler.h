@@ -85,19 +85,17 @@ class BlobURLProtocolHandler final : public nsIProtocolHandler,
       std::function<bool(BlobImpl*, nsIPrincipal*, const nsCString&,
                          const nsACString&, bool aRevoked)>&& aCb);
 
-  // This method returns false if aURI is not a known BlobURL. Otherwise it
-  // returns true.
+  // This method extracts principal information from the given Blob URL, and
+  // returns false if the principal cannot be determined.
   //
-  // When true is returned, the aPrincipal out param is meaningful.  It gets
-  // set to the principal that a channel loaded from the blob would get if
-  // the blob is not already revoked and to a NullPrincipal if the blob is
-  // revoked.
+  // NOTE: This function does not confirm that a given Blob URL is valid and/or
+  // non-revoked. This should only be checked by trying to load the Blob URL
+  // using a channel.
   //
-  // This means that for a revoked blob URL this method may either return
-  // false or return true and hand out a NullPrincipal in aPrincipal,
-  // depending on whether the "remove it from the hashtable" timer has
-  // fired.  See RemoveDataEntry().
-  static bool GetBlobURLPrincipal(nsIURI* aURI, nsIPrincipal** aPrincipal);
+  // NOTE: The principal returned by this function may have different
+  // OriginAttributes than the "true" principal of the underlying blob.
+  static bool GetBlobURLPrincipal(nsIURI* aURI, const OriginAttributes& aAttrs,
+                                  nsIPrincipal** aPrincipal);
 
   // Check if metadata about Blob URLs created with this principal should be
   // broadcast into every content process. This is currently the case for

@@ -52,6 +52,17 @@ nsresult BlobURL::ReadPrivate(nsIObjectInputStream* aStream) {
   rv = aStream->ReadBoolean(&mRevoked);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // NOTE: We intentionally do not persist nullPrincipal here.
+  //
+  // The null principal would be meaningless if this blob URL was persisted into
+  // long-term storage (which is generally the use of `nsIObjectInputStream`).
+  // While there are currently limited legacy uses of `nsIObjectInputStream` for
+  // IPC, none which serialize a BlobURL should ever result in it being loaded.
+  //
+  // Not persisting any additional data here also avoids potential versioning
+  // issues if a Blob URL was ever serialized using nsIObjectInputStream into
+  // the user's profile.
+
   return NS_OK;
 }
 
@@ -62,6 +73,8 @@ BlobURL::Write(nsIObjectOutputStream* aStream) {
 
   rv = aStream->WriteBoolean(mRevoked);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // NOTE: We intentionally do not persist nullPrincipal here. (see above)
 
   return NS_OK;
 }
@@ -77,6 +90,8 @@ BlobURL::Serialize(mozilla::ipc::URIParams& aParams) {
   hostParams.simpleParams() = simpleParams;
 
   hostParams.revoked() = mRevoked;
+
+  hostParams.nullPrincipal() = mNullPrincipal;
 
   aParams = std::move(hostParams);
 }
@@ -95,7 +110,15 @@ bool BlobURL::Deserialize(const mozilla::ipc::URIParams& aParams) {
     return false;
   }
 
+  if (OriginPart() != "null"_ns && hostParams.nullPrincipal()) {
+    NS_ERROR("Received nullPrincipal for non-null BlobURL");
+    return false;
+  }
+
   mRevoked = hostParams.revoked();
+
+  mNullPrincipal = hostParams.nullPrincipal();
+
   return true;
 }
 
