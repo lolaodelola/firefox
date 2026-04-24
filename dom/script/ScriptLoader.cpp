@@ -122,50 +122,29 @@ LazyLogModule ScriptLoader::gScriptLoaderLog("ScriptLoader");
 static constexpr auto kNullMimeType = "javascript/null"_ns;
 
 /////////////////////////////////////////////////////////////
-// ShutdownAndMemoryPressureObserver
+// AsyncCompileShutdownObserver
 /////////////////////////////////////////////////////////////
 
-NS_IMPL_ISUPPORTS(ShutdownAndMemoryPressureObserver, nsIObserver)
+NS_IMPL_ISUPPORTS(AsyncCompileShutdownObserver, nsIObserver)
 
-void ShutdownAndMemoryPressureObserver::OnShutdown() {
+void AsyncCompileShutdownObserver::OnShutdown() {
   if (mScriptLoader) {
     mScriptLoader->Destroy();
     MOZ_ASSERT(!mScriptLoader);
   }
 }
 
-void ShutdownAndMemoryPressureObserver::OnMemoryPressure() {
-  if (mScriptLoader) {
-    mScriptLoader->OnMemoryPressure();
-  }
-}
-
-void ShutdownAndMemoryPressureObserver::Unregister() {
+void AsyncCompileShutdownObserver::Unregister() {
   if (mScriptLoader) {
     mScriptLoader = nullptr;
     nsContentUtils::UnregisterShutdownObserver(this);
-
-    nsCOMPtr<nsIObserverService> obsService = services::GetObserverService();
-    if (obsService) {
-      obsService->RemoveObserver(this, "memory-pressure");
-    }
   }
 }
 
 NS_IMETHODIMP
-ShutdownAndMemoryPressureObserver::Observe(nsISupports* aSubject,
-                                           const char* aTopic,
-                                           const char16_t* aData) {
-  if (strcmp(aTopic, "xpcom-shutdown") == 0) {
-    OnShutdown();
-    return NS_OK;
-  }
-
-  if (strcmp(aTopic, "memory-pressure") == 0) {
-    OnMemoryPressure();
-    return NS_OK;
-  }
-
+AsyncCompileShutdownObserver::Observe(nsISupports* aSubject, const char* aTopic,
+                                      const char16_t* aData) {
+  OnShutdown();
   return NS_OK;
 }
 
@@ -213,17 +192,6 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(ScriptLoader)
       mPendingChildLoaders, mModuleLoader, mWebExtModuleLoaders)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
-NS_IMPL_CYCLE_COLLECTION_TRACE_BEGIN(ScriptLoader)
-  for (size_t i = 0; i < tmp->mDelazificationCollectingScripts.Length(); ++i) {
-    NS_IMPL_CYCLE_COLLECTION_TRACE_JS_MEMBER_CALLBACK(
-        mDelazificationCollectingScripts[i])
-  }
-  for (size_t i = 0; i < tmp->mDelazificationCollectingModules.Length(); ++i) {
-    NS_IMPL_CYCLE_COLLECTION_TRACE_JS_MEMBER_CALLBACK(
-        mDelazificationCollectingModules[i])
-  }
-NS_IMPL_CYCLE_COLLECTION_TRACE_END
-
 NS_IMPL_CYCLE_COLLECTING_ADDREF(ScriptLoader)
 NS_IMPL_CYCLE_COLLECTING_RELEASE(ScriptLoader)
 
@@ -246,25 +214,12 @@ ScriptLoader::ScriptLoader(Document* aDocument)
     LOG(("ScriptLoader (%p): Using in-memory cache.", this));
   }
 
-  mObserver = new ShutdownAndMemoryPressureObserver(this);
-  nsContentUtils::RegisterShutdownObserver(mObserver);
-
-  nsCOMPtr<nsIObserverService> obsService = services::GetObserverService();
-  if (obsService) {
-    obsService->AddObserver(mObserver, "memory-pressure", false);
-  }
+  mShutdownObserver = new AsyncCompileShutdownObserver(this);
+  nsContentUtils::RegisterShutdownObserver(mShutdownObserver);
 }
 
 ScriptLoader::~ScriptLoader() {
   LOG(("ScriptLoader::~ScriptLoader %p", this));
-
-  if (!mDelazificationCollectingScripts.IsEmpty() ||
-      !mDelazificationCollectingModules.IsEmpty()) {
-    mDelazificationCollectingScripts.Clear();
-    mDelazificationCollectingModules.Clear();
-
-    mozilla::DropJSObjects(this);
-  }
 
   mObservers.Clear();
 
@@ -304,9 +259,9 @@ ScriptLoader::~ScriptLoader() {
     mPendingChildLoaders[j]->RemoveParserBlockingScriptExecutionBlocker();
   }
 
-  if (mObserver) {
-    mObserver->Unregister();
-    mObserver = nullptr;
+  if (mShutdownObserver) {
+    mShutdownObserver->Unregister();
+    mShutdownObserver = nullptr;
   }
 
   mModuleLoader = nullptr;
@@ -3265,60 +3220,19 @@ static void Decode(JSContext* aCx, JS::CompileOptions& aCompileOptions,
   }
 }
 
-bool ScriptLoader::StartCollectingDelazifications(JSContext* aCx,
-                                                  JS::Handle<JSScript*> aScript,
-                                                  JS::Stencil* aStencil) {
-  JS::CollectDelazificationsResult result;
-  if (!JS::StartCollectingDelazifications(aCx, aScript, aStencil, result)) {
-    return false;
-  }
-  if (result == JS::CollectDelazificationsResult::NewlyStarted) {
-    AppendDelazificationCollection(aScript);
-  }
-  return true;
-}
-
-bool ScriptLoader::StartCollectingDelazifications(JSContext* aCx,
-                                                  JS::Handle<JSObject*> aModule,
-                                                  JS::Stencil* aStencil) {
-  JS::CollectDelazificationsResult result;
-  if (!JS::StartCollectingDelazifications(aCx, aModule, aStencil, result)) {
-    return false;
-  }
-  if (result == JS::CollectDelazificationsResult::NewlyStarted) {
-    AppendDelazificationCollection(aModule);
-  }
-  return true;
-}
-
-void ScriptLoader::AppendDelazificationCollection(
-    JS::Handle<JSScript*> aScript) {
-  if (mDelazificationCollectingScripts.IsEmpty() &&
-      mDelazificationCollectingModules.IsEmpty()) {
-    mozilla::HoldJSObjects(this);
-  }
-  mDelazificationCollectingScripts.AppendElement(aScript);
-}
-
-void ScriptLoader::AppendDelazificationCollection(
-    JS::Handle<JSObject*> aModule) {
-  if (mDelazificationCollectingScripts.IsEmpty() &&
-      mDelazificationCollectingModules.IsEmpty()) {
-    mozilla::HoldJSObjects(this);
-  }
-  mDelazificationCollectingModules.AppendElement(aModule);
-}
+enum class CollectDelazifications : bool { No, Yes };
+enum class IsAlreadyCollecting : bool { No, Yes };
 
 // Instantiate (on main-thread) a JS::Stencil generated by off-thread or
 // main-thread parsing or decoding.
-void ScriptLoader::InstantiateStencil(
+static void InstantiateStencil(
     JSContext* aCx, JS::CompileOptions& aCompileOptions, JS::Stencil* aStencil,
     JS::MutableHandle<JSScript*> aScript,
     JS::Handle<JSScript*> aDebuggerIntroductionScript, ErrorResult& aRv,
     const nsAutoCString& aProfilerLabelString,
-    JS::InstantiationStorage* aStorage /* = nullptr */,
-    CollectDelazifications aCollectDelazifications
-    /* = CollectDelazifications::No */) {
+    JS::InstantiationStorage* aStorage = nullptr,
+    CollectDelazifications aCollectDelazifications =
+        CollectDelazifications::No) {
   AUTO_PROFILER_MARKER_TEXT("ScriptInstantiation", JS,
                             MarkerInnerWindowIdFromJSContext(aCx),
                             aProfilerLabelString);
@@ -3333,7 +3247,8 @@ void ScriptLoader::InstantiateStencil(
   }
 
   if (aCollectDelazifications == CollectDelazifications::Yes) {
-    if (!StartCollectingDelazifications(aCx, script, aStencil)) {
+    bool ignored;
+    if (!JS::StartCollectingDelazifications(aCx, script, aStencil, ignored)) {
       aRv.NoteJSContextException(aCx);
       return;
     }
@@ -3831,59 +3746,13 @@ void ScriptLoader::Destroy() {
     mCache->UpdateEverHitTelemetry();
   }
 
-  if (mObserver) {
-    mObserver->Unregister();
-    mObserver = nullptr;
+  if (mShutdownObserver) {
+    mShutdownObserver->Unregister();
+    mShutdownObserver = nullptr;
   }
 
   CancelAndClearScriptLoadRequests();
   GiveUpDiskCaching();
-  StopCollectingDelazifications();
-}
-
-void ScriptLoader::OnMemoryPressure() {
-  // When memory pressure is detected, release the stencils held by the
-  // ongoing delazification collection.
-  // SharedScriptCache will also clear the cache, and then those stencils
-  // will no longer held by anything live long and will be collected
-  // shortly.
-
-  StopCollectingDelazifications();
-}
-
-void ScriptLoader::DispatchStopCollectingDelazifications() {
-  if (mDelazificationCollectingScripts.IsEmpty() &&
-      mDelazificationCollectingModules.IsEmpty()) {
-    return;
-  }
-
-  nsCOMPtr<nsIRunnable> encoder =
-      NewRunnableMethod("ScriptLoader::StopCollectingDelazifications", this,
-                        &ScriptLoader::StopCollectingDelazifications);
-  (void)NS_DispatchToCurrentThreadQueue(encoder.forget(),
-                                        EventQueuePriority::Idle);
-}
-
-void ScriptLoader::StopCollectingDelazifications() {
-  // NOTE: There's no difference between JS::FinishCollectingDelazifications
-  //       and JS::AbortCollectingDelazifications, except for whether
-  //       to return the stencil or not.
-  //       The stencil pointer is held by LoadedScript, and thus we call
-  //       JS::AbortCollectingDelazifications here, which is more light-weight.
-
-  for (size_t i = 0; i < mDelazificationCollectingScripts.Length(); ++i) {
-    JSScript* script = mDelazificationCollectingScripts[i];
-    JS::AbortCollectingDelazifications(script);
-  }
-  mDelazificationCollectingScripts.Clear();
-
-  for (size_t i = 0; i < mDelazificationCollectingModules.Length(); ++i) {
-    JSObject* module = mDelazificationCollectingModules[i];
-    JS::AbortCollectingDelazifications(module);
-  }
-  mDelazificationCollectingModules.Clear();
-
-  mozilla::DropJSObjects(this);
 }
 
 void ScriptLoader::MaybeUpdateDiskCache() {
@@ -3907,8 +3776,6 @@ void ScriptLoader::MaybeUpdateDiskCache() {
     if (!mCache->MaybeScheduleUpdateDiskCache()) {
       TRACE_FOR_TEST_0("diskcache:noschedule");
     }
-
-    DispatchStopCollectingDelazifications();
     return;
   }
 
@@ -3936,8 +3803,6 @@ void ScriptLoader::MaybeUpdateDiskCache() {
     GiveUpDiskCaching();
     return;
   }
-
-  DispatchStopCollectingDelazifications();
 
   LOG(("ScriptLoader (%p): Schedule the disk cache encoding.", this));
 }
