@@ -2194,31 +2194,25 @@ static bool ParseDate(JSContext* maybecx, const LinearStringOrOffThreadAtom* s,
              : ParseDate(maybecx, s->twoByteChars(nogc), s->length(), result);
 }
 
-static bool ParseDate(JSContext* cx, DateTimeInfo* dtInfo,
-                      const JSLinearString* s, ClippedTime* result) {
+static ClippedTime ParseDate(JSContext* cx, const JSLinearString* s) {
   // Collect telemetry on how often Date.parse is being used.
   // This can be removed in the future, see Bug 1944630.
   cx->runtime()->setUseCounter(cx->global(), JSUseCounter::DATEPARSE);
 
   ParsedDate parsed;
   if (!ParseDate(cx, s, &parsed)) {
-    return false;
+    return ClippedTime::invalid();
   }
 
   auto [date, isLocalTime] = parsed;
   if (isLocalTime) {
-    date = UTC(dtInfo, date);
+    date = UTC(cx->realm()->getDateTimeInfo(), date);
   }
-  *result = TimeClip(date);
-  return true;
+  return TimeClip(date);
 }
 
 ClippedTime js::DateParse(JSContext* cx, const JSLinearString* str) {
-  ClippedTime result;
-  if (!ParseDate(cx, cx->realm()->getDateTimeInfo(), str, &result)) {
-    return ClippedTime::invalid();
-  }
-  return result;
+  return ParseDate(cx, str);
 }
 
 bool js::DateParse(const JSOffThreadAtom* str, ParsedDate* result) {
@@ -2269,12 +2263,7 @@ static bool date_parse(JSContext* cx, unsigned argc, Value* vp) {
     return false;
   }
 
-  ClippedTime result;
-  if (!ParseDate(cx, cx->realm()->getDateTimeInfo(), linearStr, &result)) {
-    args.rval().setNaN();
-    return true;
-  }
-
+  ClippedTime result = ParseDate(cx, linearStr);
   args.rval().set(TimeValue(result));
   return true;
 }
@@ -4797,9 +4786,7 @@ static bool DateOneArgument(JSContext* cx, const CallArgs& args) {
       return false;
     }
 
-    if (!ParseDate(cx, cx->realm()->getDateTimeInfo(), linearStr, &t)) {
-      t = ClippedTime::invalid();
-    }
+    t = ParseDate(cx, linearStr);
   } else {
     double d;
     if (!ToNumber(cx, value, &d)) {
