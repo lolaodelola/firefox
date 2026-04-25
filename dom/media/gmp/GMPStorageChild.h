@@ -5,8 +5,6 @@
 #ifndef GMPStorageChild_h_
 #define GMPStorageChild_h_
 
-#include <queue>
-
 #include "gmp-platform.h"
 #include "gmp-storage.h"
 #include "mozilla/Mutex.h"

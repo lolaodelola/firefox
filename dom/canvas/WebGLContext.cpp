@@ -8,7 +8,6 @@
 #include <array>
 #include <bitset>
 #include <cctype>
-#include <queue>
 
 #include "AccessCheck.h"
 #include "CompositableHost.h"

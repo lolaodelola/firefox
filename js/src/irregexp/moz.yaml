@@ -25,7 +25,7 @@ vendoring:
     - patches/icu4x.patch
     - patches/remove-using-enum.patch
     - patches/regexp-tracer-unique-ptr.patch
-    - patches/unordered-set-include.patch
+    - patches/fix-include.patch
     - patches/disable-bytecode-analysis.patch
 
   update-actions:
