@@ -9,7 +9,6 @@
 #  include "nsPrintfCString.h"
 #endif
 
-#include <stdio.h>
 #include <strsafe.h>
 #include <winperf.h>
 
