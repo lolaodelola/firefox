@@ -1348,10 +1348,12 @@ bool WebGLContext::PushRemoteTexture(
   if (!ownerClient) {
     if (!mRemoteTextureOwner) {
       // Ensure we have a remote texture owner client for WebGLParent.
-      if (!mHost) {
+      const auto* outOfProcess =
+          mHost ? mHost->mOwnerData.outOfProcess : nullptr;
+      if (!outOfProcess) {
         return onFailure();
       }
-      auto pid = mHost->mOwner->OtherPid();
+      auto pid = outOfProcess->OtherPid();
       mRemoteTextureOwner = MakeRefPtr<layers::RemoteTextureOwnerClient>(pid);
     }
     ownerClient = mRemoteTextureOwner;
@@ -1474,10 +1476,11 @@ void WebGLContext::EnsureContextLostRemoteTextureOwner(
 
   if (!mRemoteTextureOwner) {
     // Ensure we have a remote texture owner client for WebGLParent.
-    if (!mHost) {
+    const auto* outOfProcess = mHost ? mHost->mOwnerData.outOfProcess : nullptr;
+    if (!outOfProcess) {
       return;
     }
-    auto pid = mHost->mOwner->OtherPid();
+    auto pid = outOfProcess->OtherPid();
     mRemoteTextureOwner = MakeRefPtr<layers::RemoteTextureOwnerClient>(pid);
   }
 
@@ -1754,18 +1757,22 @@ void WebGLContext::DummyReadFramebufferOperation() {
 }
 
 layers::SharedSurfacesHolder* WebGLContext::GetSharedSurfacesHolder() const {
-  if (mHost) {
-    return mHost->mOwner->mSharedSurfacesHolder;
+  const auto* outOfProcess = mHost ? mHost->mOwnerData.outOfProcess : nullptr;
+  if (outOfProcess) {
+    return outOfProcess->mSharedSurfacesHolder;
   }
-  MOZ_ASSERT_UNREACHABLE("Unexpected missing host!");
+  MOZ_ASSERT_UNREACHABLE("Unexpected use of SharedSurfacesHolder in process!");
   return nullptr;
 }
 
 dom::ContentParentId WebGLContext::GetContentId() const {
-  if (mHost) {
-    return mHost->mOwner->mContentId;
+  const auto* outOfProcess = mHost ? mHost->mOwnerData.outOfProcess : nullptr;
+  if (outOfProcess) {
+    return outOfProcess->mContentId;
   }
-  MOZ_ASSERT_UNREACHABLE("Unexpected missing host!");
+  if (XRE_IsContentProcess()) {
+    return dom::ContentChild::GetSingleton()->GetID();
+  }
   return dom::ContentParentId();
 }
 

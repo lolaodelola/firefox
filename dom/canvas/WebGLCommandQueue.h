@@ -262,7 +262,10 @@ class MethodDispatcher {
 };
 
 struct WebGLMethodInfo {
-  enum Flags : uint8_t {};
+  enum Flags : uint8_t {
+    // Method should be run with lock if in-process.
+    LOCK_IN_PROCESS = 1 << 0,
+  };
 
   size_t id = 0;
   uint8_t flags = 0;

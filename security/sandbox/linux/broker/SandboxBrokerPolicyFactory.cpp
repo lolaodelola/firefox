@@ -353,9 +353,12 @@ static void AddX11Dependencies(SandboxBroker::Policy* policy) {
   policy->AddPath(SandboxBroker::MAY_CONNECT, bumblebeeSocket);
 
 #if defined(MOZ_WIDGET_GTK) && defined(MOZ_X11)
-  // Allow local X11 connections, if:
+  // Allow local X11 connections, for several purposes:
   //
-  // * Primus or VirtualGL is used, to contact the secondary X server
+  // * for content processes to use WebGL when the browser is in headless
+  //   mode, by opening the X display if/when needed
+  //
+  // * if Primus or VirtualGL is used, to contact the secondary X server
   static const bool kIsX11 =
       !mozilla::widget::GdkIsWaylandDisplay() && PR_GetEnv("DISPLAY");
   if (kIsX11) {

@@ -178,7 +178,8 @@ class ContextGenerationInfo final {
 
 // -
 
-// The WebGL actor's ownership relationship looks like this:
+// In the cross process case, the WebGL actor's ownership relationship looks
+// like this:
 // ---------------------------------------------------------------------
 // | ClientWebGLContext -> WebGLChild -> WebGLParent -> HostWebGLContext
 // ---------------------------------------------------------------------
@@ -192,6 +193,7 @@ struct NotLostData final : public SupportsWeakPtr, RefCounted<NotLostData> {
   webgl::InitContextResult info;
 
   RefPtr<mozilla::dom::WebGLChild> outOfProcess;
+  std::unique_ptr<HostWebGLContext> inProcess;
 
   webgl::ContextGenerationInfo state;
   std::array<RefPtr<ClientWebGLExtensionBase>,
@@ -2346,7 +2348,8 @@ class ClientWebGLContext final : public nsICanvasRenderingContextInternal,
   // The cross-process communication mechanism
   // -------------------------------------------------------------------------
  protected:
-  // Dispatches over IPC.
+  // If we are running WebGL in this process then call the HostWebGLContext
+  // method directly.  Otherwise, dispatch over IPC.
   template <typename MethodType, MethodType method, typename... CallerArgs>
   void Run(const CallerArgs&... args) const {
     const auto info = WebGLMethodInfo::Get<MethodType, method>();
