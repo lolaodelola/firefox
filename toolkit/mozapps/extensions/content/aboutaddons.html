@@ -73,6 +73,14 @@
     ></script>
     <script
       type="module"
+      src="chrome://mozapps/content/extensions/components/addon-options.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/plugin-options.mjs"
+    ></script>
+    <script
+      type="module"
       src="chrome://mozapps/content/extensions/components/addon-permissions-list.mjs"
     ></script>
     <script
@@ -356,59 +364,6 @@
           action="manage-shortcuts"
           data-l10n-id="addon-manage-extensions-shortcuts"
           data-l10n-attrs="accesskey"
-        ></panel-item>
-      </panel-list>
-    </template>
-
-    <template name="addon-options">
-      <panel-list>
-        <panel-item
-          data-l10n-id="remove-addon-button"
-          action="remove"
-        ></panel-item>
-        <panel-item
-          data-l10n-id="install-update-button"
-          action="install-update"
-          badged
-        ></panel-item>
-        <panel-item
-          data-l10n-id="preferences-addon-button"
-          action="preferences"
-        ></panel-item>
-        <hr />
-        <panel-item
-          data-l10n-id="report-addon-button"
-          action="report"
-        ></panel-item>
-        <hr />
-        <panel-item
-          data-l10n-id="manage-addon-button"
-          action="expand"
-        ></panel-item>
-      </panel-list>
-    </template>
-
-    <template name="plugin-options">
-      <panel-list>
-        <panel-item
-          data-l10n-id="always-activate-button"
-          action="always-activate"
-          type="checkbox"
-        ></panel-item>
-        <panel-item
-          data-l10n-id="never-activate-button"
-          action="never-activate"
-          type="checkbox"
-        ></panel-item>
-        <hr />
-        <panel-item
-          data-l10n-id="preferences-addon-button"
-          action="preferences"
-        ></panel-item>
-        <hr />
-        <panel-item
-          data-l10n-id="manage-addon-button"
-          action="expand"
         ></panel-item>
       </panel-list>
     </template>

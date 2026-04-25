@@ -8,7 +8,8 @@
 /* global windowRoot */
 // openAmoInTab is used as a window global by colorway-removal-notice.mjs,
 // recommended-footer.mjs, and recommended-themes-footer.mjs.
-/* exported openAmoInTab */
+// isAbuseReportSupported is used as a window global by addon-options.mjs.
+/* exported openAmoInTab, isAbuseReportSupported */
 
 "use strict";
 
@@ -880,137 +881,6 @@ class AddonPageOptions extends HTMLElement {
   }
 }
 customElements.define("addon-page-options", AddonPageOptions);
-
-class AddonOptions extends HTMLElement {
-  connectedCallback() {
-    if (!this.children.length) {
-      this.render();
-    }
-  }
-
-  get panel() {
-    return this.querySelector("panel-list");
-  }
-
-  updateSeparatorsVisibility() {
-    let lastSeparator;
-    let elWasVisible = false;
-
-    // Collect the panel-list children that are not already hidden.
-    const children = Array.from(this.panel.children).filter(el => !el.hidden);
-
-    for (let child of children) {
-      if (child.localName == "hr") {
-        child.hidden = !elWasVisible;
-        if (!child.hidden) {
-          lastSeparator = child;
-        }
-        elWasVisible = false;
-      } else {
-        elWasVisible = true;
-      }
-    }
-    if (!elWasVisible && lastSeparator) {
-      lastSeparator.hidden = true;
-    }
-  }
-
-  get template() {
-    return "addon-options";
-  }
-
-  render() {
-    this.appendChild(importTemplate(this.template));
-  }
-
-  setElementState(el, card, addon, updateInstall) {
-    switch (el.getAttribute("action")) {
-      case "remove":
-        if (hasPermission(addon, "uninstall")) {
-          // Regular add-on that can be uninstalled.
-          el.disabled = false;
-          el.hidden = false;
-          document.l10n.setAttributes(el, "remove-addon-button");
-        } else if (addon.isBuiltin) {
-          // Likely the built-in themes, can't be removed, that's fine.
-          el.hidden = true;
-        } else {
-          // Likely sideloaded, mention that it can't be removed with a link.
-          el.hidden = false;
-          el.disabled = true;
-          if (!el.querySelector('[slot="support-link"]')) {
-            let link = document.createElement("a", { is: "moz-support-link" });
-            link.setAttribute("data-l10n-name", "link");
-            link.setAttribute("support-page", "cant-remove-addon");
-            link.setAttribute("slot", "support-link");
-            el.appendChild(link);
-            document.l10n.setAttributes(el, "remove-addon-disabled-button");
-          }
-        }
-        break;
-      case "report":
-        el.hidden = !isAbuseReportSupported(addon);
-        break;
-      case "install-update":
-        el.hidden = !updateInstall;
-        break;
-      case "expand":
-        el.hidden = card.expanded;
-        break;
-      case "preferences":
-        el.hidden =
-          getOptionsType(addon) !== "tab" &&
-          (getOptionsType(addon) !== "inline" || card.expanded);
-        if (!el.hidden) {
-          isAddonOptionsUIAllowed(addon).then(allowed => {
-            el.hidden = !allowed;
-          });
-        }
-        break;
-    }
-  }
-
-  update(card, addon, updateInstall) {
-    for (let el of this.items) {
-      this.setElementState(el, card, addon, updateInstall);
-    }
-
-    // Update the separators visibility based on the updated visibility
-    // of the actions in the panel-list.
-    this.updateSeparatorsVisibility();
-  }
-
-  get items() {
-    return this.querySelectorAll("panel-item");
-  }
-
-  get visibleItems() {
-    return Array.from(this.items).filter(item => !item.hidden);
-  }
-}
-customElements.define("addon-options", AddonOptions);
-
-class PluginOptions extends AddonOptions {
-  get template() {
-    return "plugin-options";
-  }
-
-  setElementState(el, card, addon) {
-    const userDisabledStates = {
-      "always-activate": false,
-      "never-activate": true,
-    };
-    const action = el.getAttribute("action");
-    if (action in userDisabledStates) {
-      let userDisabled = userDisabledStates[action];
-      el.checked = addon.userDisabled === userDisabled;
-      el.disabled = !(el.checked || hasPermission(addon, action));
-    } else {
-      super.setElementState(el, card, addon);
-    }
-  }
-}
-customElements.define("plugin-options", PluginOptions);
 
 class InlineOptionsBrowser extends HTMLElement {
   constructor() {
