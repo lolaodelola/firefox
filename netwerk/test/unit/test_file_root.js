@@ -108,9 +108,7 @@ add_task(async function test_posix_root_listing_format() {
     Assert.ok(entryRe.test(line), `Entry has expected format: "${line}"`);
   }
 
-  const names = new Set(
-    driveLines.map(l => l.split(" ")[1])
-  );
+  const names = new Set(driveLines.map(l => l.split(" ")[1]));
   Assert.ok(names.has("etc"), "'etc' must appear in the root listing");
   Assert.ok(names.has("tmp"), "'tmp' must appear in the root listing");
 });
