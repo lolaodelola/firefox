@@ -3,6 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 api = {
+    "codecvt": [
+        "codecvt_mode",
+        "codecvt_utf16",
+        "codecvt_utf8",
+        "codecvt_utf8_utf16",
+    ],
     "regex": [
         "basic_regex",
         "cmatch",
