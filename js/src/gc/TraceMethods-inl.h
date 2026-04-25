@@ -174,6 +174,7 @@ void js::GCMarker::eagerlyMarkChildren(JSRope* rope) {
     JSString* left = rope->leftChild();
     JSString* right = rope->rightChild();
 
+    bool shouldMark = true;
 #ifdef JS_GC_CONCURRENT_MARKING
     // Check for a change of type performed by the main thread. This uses
     // fence/fence synchronisation with the atomic operation being the update to
@@ -195,35 +196,38 @@ void js::GCMarker::eagerlyMarkChildren(JSRope* rope) {
     if constexpr (bool(opts & gc::MarkingOptions::ConcurrentMarking)) {
       gc::MemoryAcquireFence<opts>(rope->runtimeFromAnyThread());
       if (!rope->isRopeAtomic()) {
-        continue;
+        shouldMark = false;
       }
     }
 #else
     MOZ_DIAGNOSTIC_ASSERT(rope->JSString::isRope());
 #endif
 
-    if (mark<opts>(right)) {
-      MOZ_ASSERT(!right->isPermanentAtom());
-      if (right->isLinear()) {
-        eagerlyMarkChildren<opts>(static_cast<JSLinearString*>(right));
-      } else {
-        next = static_cast<JSRope*>(right);
+    if (shouldMark) {
+      if (mark<opts>(right)) {
+        MOZ_ASSERT(!right->isPermanentAtom());
+        if (right->isLinear()) {
+          eagerlyMarkChildren<opts>(static_cast<JSLinearString*>(right));
+        } else {
+          next = static_cast<JSRope*>(right);
+        }
+      }
+
+      if (mark<opts>(left)) {
+        MOZ_ASSERT(!left->isPermanentAtom());
+        if (left->isLinear()) {
+          eagerlyMarkChildren<opts>(static_cast<JSLinearString*>(left));
+        } else {
+          // When both children are ropes, set aside the right one to
+          // scan it later.
+          if (next && !stack.pushTempRope(next)) {
+            delayMarkingChildrenOnOOM(next);
+          }
+          next = static_cast<JSRope*>(left);
+        }
       }
     }
 
-    if (mark<opts>(left)) {
-      MOZ_ASSERT(!left->isPermanentAtom());
-      if (left->isLinear()) {
-        eagerlyMarkChildren<opts>(static_cast<JSLinearString*>(left));
-      } else {
-        // When both children are ropes, set aside the right one to
-        // scan it later.
-        if (next && !stack.pushTempRope(next)) {
-          delayMarkingChildrenOnOOM(next);
-        }
-        next = static_cast<JSRope*>(left);
-      }
-    }
     if (next) {
       rope = next;
     } else if (savedPos != stack.position()) {
