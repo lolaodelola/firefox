@@ -73,6 +73,14 @@
     ></script>
     <script
       type="module"
+      src="chrome://mozapps/content/extensions/components/addon-permissions-list.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/addon-sitepermissions-list.mjs"
+    ></script>
+    <script
+      type="module"
       src="chrome://mozapps/content/extensions/components/recommended-extensions-section.mjs"
     ></script>
     <script
@@ -403,44 +411,6 @@
           action="expand"
         ></panel-item>
       </panel-list>
-    </template>
-
-    <template name="addon-permissions-list">
-      <div class="addon-permissions-list-wrapper">
-        <h2 class="permission-header"></h2>
-        <em class="permission-subheader" hidden></em>
-        <div class="addon-permissions-required" hidden>
-          <div
-            class="permission-subsection"
-            data-l10n-id="addon-permissions-required-label"
-          ></div>
-          <ul class="addon-permissions-list"></ul>
-        </div>
-        <div class="addon-permissions-optional" hidden>
-          <div
-            class="permission-subsection"
-            data-l10n-id="addon-permissions-optional-label"
-          ></div>
-          <ul class="addon-permissions-list"></ul>
-        </div>
-        <div class="addon-permissions-empty" hidden></div>
-        <div class="addon-permissions-footer"></div>
-      </div>
-    </template>
-
-    <template name="addon-sitepermissions-list">
-      <div class="addon-permissions-required" hidden>
-        <h2
-          class="permission-header"
-          data-l10n-id="addon-sitepermissions-required"
-        >
-          <span
-            data-l10n-name="hostname"
-            class="addon-sitepermissions-host"
-          ></span>
-        </h2>
-        <ul class="addon-permissions-list"></ul>
-      </div>
     </template>
 
     <template name="card">
