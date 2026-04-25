@@ -275,6 +275,8 @@ class SharedScriptCache final
 
   bool ShouldIgnoreMemoryPressure() override;
 
+  void ClearInProcessForMemoryPressure() override;
+
  private:
   bool EnsureEverHitMap();
   void OnContentShutdown(nsISupports* aSubject);

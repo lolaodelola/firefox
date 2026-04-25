@@ -277,6 +277,14 @@ bool SharedScriptCache::ShouldIgnoreMemoryPressure() {
       dom_script_loader_experimental_navigation_cache_check_memory_pressure();
 }
 
+void SharedScriptCache::ClearInProcessForMemoryPressure() {
+  for (auto iter = mComplete.Iter(); !iter.Done(); iter.Next()) {
+    iter.Data().mResource->InvalidateCachedStencil();
+  }
+
+  SharedSubResourceCache::ClearInProcessForMemoryPressure();
+}
+
 void SharedScriptCache::LoadCompleted(SharedScriptCache* aCache,
                                       ScriptLoadData& aData) {}
 
