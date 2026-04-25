@@ -8,6 +8,7 @@
 #include <initguid.h>
 #include <mfidl.h>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <windows.h>
 #include <wrl.h>
@@ -32,14 +33,15 @@ inline constexpr WCHAR kCLEARKEY_SYSTEM_NAME[] = L"org.w3.clearkey";
 #  define LOG(msg, ...)
 #endif
 
-#define PRETTY_FUNC                                    \
-  ([&]() -> std::string {                              \
-    std::string prettyFunction(__PRETTY_FUNCTION__);   \
-    std::size_t pos1 = prettyFunction.find("::");      \
-    std::size_t pos2 = prettyFunction.find("(", pos1); \
-    return prettyFunction.substr(0, pos2);             \
-  })()                                                 \
-      .c_str()
+// Returns a trimmed pretty-function name as a std::string. Callers must
+// bind the result to a named local before calling .c_str() on it, so the
+// backing buffer outlives the pointer handed to printf.
+inline std::string GetPrettyFunctionName(const char* aPrettyFunc) {
+  std::string prettyFunction(aPrettyFunc);
+  std::size_t pos1 = prettyFunction.find("::");
+  std::size_t pos2 = prettyFunction.find("(", pos1);
+  return prettyFunction.substr(0, pos2);
+}
 
 // We can't reuse the definition in the `MediaEngineUtils.h` due to the
 // restriction of not being able to use XPCOM string in the external library.
@@ -54,22 +56,32 @@ inline constexpr WCHAR kCLEARKEY_SYSTEM_NAME[] = L"org.w3.clearkey";
     } while (false)
 #endif
 
-#ifndef NOT_IMPLEMENTED
-#  define NOT_IMPLEMENTED()                                \
-    do {                                                   \
-      LOG("WARNING : '%s' NOT IMPLEMENTED!", PRETTY_FUNC); \
+#if WMF_CLEARKEY_DEBUG
+#  define NOT_IMPLEMENTED()                                       \
+    do {                                                          \
+      const std::string prettyFunc =                              \
+          mozilla::GetPrettyFunctionName(__PRETTY_FUNCTION__);    \
+      LOG("WARNING : '%s' NOT IMPLEMENTED!", prettyFunc.c_str()); \
     } while (0)
-#endif
-
-#ifndef ENTRY_LOG
-#  define ENTRY_LOG(...)                 \
-    do {                                 \
-      LOG("%s [%p]", PRETTY_FUNC, this); \
+#  define ENTRY_LOG(...)                                       \
+    do {                                                       \
+      const std::string prettyFunc =                           \
+          mozilla::GetPrettyFunctionName(__PRETTY_FUNCTION__); \
+      LOG("%s [%p]", prettyFunc.c_str(), this);                \
     } while (0)
-#  define ENTRY_LOG_ARGS(fmt, ...)                            \
-    do {                                                      \
-      LOG("%s [%p]: " fmt, PRETTY_FUNC, this, ##__VA_ARGS__); \
-      (void)(0, ##__VA_ARGS__);                               \
+#  define ENTRY_LOG_ARGS(fmt, ...)                                   \
+    do {                                                             \
+      const std::string prettyFunc =                                 \
+          mozilla::GetPrettyFunctionName(__PRETTY_FUNCTION__);       \
+      LOG("%s [%p]: " fmt, prettyFunc.c_str(), this, ##__VA_ARGS__); \
+    } while (0)
+#else
+#  define NOT_IMPLEMENTED() ((void)0)
+#  define ENTRY_LOG(...) ((void)0)
+#  define ENTRY_LOG_ARGS(fmt, ...) \
+    do {                           \
+      (void)fmt;                   \
+      (void)(0, ##__VA_ARGS__);    \
     } while (0)
 #endif
 
