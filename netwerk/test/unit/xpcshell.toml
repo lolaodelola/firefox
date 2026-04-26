@@ -685,13 +685,6 @@ run-if = [
 
 ["test_event_sink.js"]
 
-["test_eof_retry.js"]
-prefs = [
-  "security.tls.version.min=4",
-  "security.tls.version.max=4",
-  "network.http.speculative-parallel-limit=0",
-]
-
 ["test_eviction.js"]
 
 ["test_extract_charset_from_content_type.js"]
