@@ -19420,33 +19420,11 @@
 #endif
   mirror: once
 
-#if defined(ANDROID)
-- name: webgl.allow-in-content
-  type: bool
-  value: false
-  mirror: once
-#endif
-
 # Should we override the blocklist to enable WebGL?
 - name: webgl.ignore-blocklist
   type: bool
   value: false
   mirror: once
-
-- name: webgl.out-of-process
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
-
-- name: webgl.out-of-process.worker
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
-
-- name: webgl.out-of-process.force
-  type: RelaxedAtomicBool
-  value: false
-  mirror: always
 
 - name: webgl.out-of-process.shmem-size
   type: RelaxedAtomicUint32

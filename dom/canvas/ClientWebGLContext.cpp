@@ -838,19 +838,6 @@ void ClientWebGLContext::ResetBitmap() {
   Run<RPROC(Resize)>(size);  // No-change resize still clears/resets everything.
 }
 
-static bool IsWebglOutOfProcessEnabled() {
-  if (StaticPrefs::webgl_out_of_process_force()) {
-    return true;
-  }
-  if (!gfx::gfxVars::AllowWebglOop()) {
-    return false;
-  }
-  if (!NS_IsMainThread()) {
-    return StaticPrefs::webgl_out_of_process_worker();
-  }
-  return StaticPrefs::webgl_out_of_process();
-}
-
 bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
   const auto pNotLost = MakeRefPtr<webgl::NotLostData>(*this);
   auto& notLost = *pNotLost;
@@ -888,17 +875,6 @@ bool ClientWebGLContext::CreateHostContext(const uvec2& requestedSize) {
         .size = requestedSize,
         .options = options,
     };
-
-    // -
-
-    auto useOop = IsWebglOutOfProcessEnabled();
-    if (XRE_IsParentProcess()) {
-      useOop = false;
-    }
-
-    if (!useOop) {
-      return Err("WebGL disabled in remote processes");
-    }
 
     // -
 
