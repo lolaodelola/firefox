@@ -790,6 +790,7 @@ class JSTerm extends Component {
       if (Services.prefs.getBoolPref(PREF_CMNEXT_ENABLED)) {
         this.editor.setText(newValue);
         this.editor.setCursorAt(lines.length, ch);
+        this.editor.setAutoCompletionText();
       } else {
         // In order to get the autocomplete popup to work properly, we need to set the
         // editor text and the cursor in the same operation. If we don't, the text change
@@ -914,8 +915,14 @@ class JSTerm extends Component {
       );
     }
 
-    if (!completionText || change.canceled || !addedCharacterMatchCompletion) {
-      this.setAutoCompletionText("");
+    if (!Services.prefs.getBoolPref(PREF_CMNEXT_ENABLED)) {
+      if (
+        !completionText ||
+        change.canceled ||
+        !addedCharacterMatchCompletion
+      ) {
+        this.setAutoCompletionText("");
+      }
     }
 
     if (!addedCharacterMatchCompletion && !addedCharacterMatchPopupItem) {
