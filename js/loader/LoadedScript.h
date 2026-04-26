@@ -23,7 +23,6 @@
 #include "nsCOMPtr.h"
 #include "nsCycleCollectionParticipant.h"
 #include "nsICacheInfoChannel.h"  // nsICacheInfoChannel
-#include "nsIMemoryReporter.h"
 
 #include "jsapi.h"
 #include "ResolvedModuleSet.h"
@@ -132,7 +131,7 @@ class ScriptFetchInfo : public nsISupports {
 // As the LoadedScript can be shared, using the SharedSubResourceCache, it is
 // exposed to the memory reporter such that sharing might be accounted for
 // properly.
-class LoadedScript : public nsIMemoryReporter {
+class LoadedScript : public nsISupports {
  protected:
   LoadedScript(ScriptKind aKind, nsIURI* aURI);
 
@@ -144,17 +143,10 @@ class LoadedScript : public nsIMemoryReporter {
   virtual ~LoadedScript();
 
  public:
-  // When the memory should be reported, register it using RegisterMemoryReport,
-  // and make sure to call SizeOfIncludingThis in the enclosing container.
-  //
-  // Each reported script would be listed under
-  // `explicit/js/script/loaded-script/<kind>`.
-  void RegisterMemoryReport();
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
 
  public:
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS;
-  NS_DECL_NSIMEMORYREPORTER;
   NS_DECL_CYCLE_COLLECTION_CLASS(LoadedScript)
 
   uint16_t ClampedRefCountForTelemetry() const {

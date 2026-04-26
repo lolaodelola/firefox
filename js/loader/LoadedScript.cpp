@@ -101,8 +101,6 @@ void HostReleaseScriptFetchInfo(const Value& aPrivate) {
 // LoadedScript
 //////////////////////////////////////////////////////////////
 
-MOZ_DEFINE_MALLOC_SIZE_OF(LoadedScriptMallocSizeOf)
-
 // LoadedScript itself doesn't have to be cycle-collected,
 // but ModuleScript subclass needs cycle-collection.
 //
@@ -181,43 +179,7 @@ LoadedScript::LoadedScript(const LoadedScript& aOther)
   }
 }
 
-LoadedScript::~LoadedScript() {
-  mozilla::UnregisterWeakMemoryReporter(this);
-  mozilla::DropJSObjects(this);
-}
-
-void LoadedScript::RegisterMemoryReport() {
-  mozilla::RegisterWeakMemoryReporter(this);
-}
-
-NS_IMETHODIMP
-LoadedScript::CollectReports(nsIHandleReportCallback* aHandleReport,
-                             nsISupports* aData, bool aAnonymize) {
-#define COLLECT_REPORT(path, kind)                                   \
-  MOZ_COLLECT_REPORT(path, KIND_HEAP, UNITS_BYTES,                   \
-                     SizeOfIncludingThis(LoadedScriptMallocSizeOf),  \
-                     "Memory used for LoadedScript to hold on " kind \
-                     " across documents")
-
-  switch (mKind) {
-    case ScriptKind::eClassic:
-      COLLECT_REPORT("explicit/js/script/loaded-script/classic", "scripts");
-      break;
-    case ScriptKind::eImportMap:
-      COLLECT_REPORT("explicit/js/script/loaded-script/import-map",
-                     "import-maps");
-      break;
-    case ScriptKind::eModule:
-      COLLECT_REPORT("explicit/js/script/loaded-script/module", "modules");
-      break;
-    case ScriptKind::eEvent:
-      COLLECT_REPORT("explicit/js/script/loaded-script/event", "event scripts");
-      break;
-  }
-
-#undef COLLECT_REPORT
-  return NS_OK;
-}
+LoadedScript::~LoadedScript() { mozilla::DropJSObjects(this); }
 
 size_t LoadedScript::SizeOfIncludingThis(
     mozilla::MallocSizeOf aMallocSizeOf) const {
