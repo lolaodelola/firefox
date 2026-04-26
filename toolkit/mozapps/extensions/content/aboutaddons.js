@@ -646,64 +646,6 @@ var DiscoveryAPI = {
   },
 };
 
-class SearchAddons extends HTMLElement {
-  connectedCallback() {
-    if (this.childElementCount === 0) {
-      this.input = document.createElement("moz-input-search");
-      this.input.setAttribute("maxlength", 100);
-      this.input.setAttribute("data-l10n-attrs", "placeholder");
-      this.input.setAttribute("iconsrc", "");
-      document.l10n.setAttributes(this.input, "addons-heading-search-input");
-      this.append(this.input);
-
-      this.button = document.createElement("moz-button");
-      this.button.setAttribute("type", "ghost");
-      this.button.setAttribute(
-        "iconsrc",
-        "chrome://global/skin/icons/search-textbox.svg"
-      );
-      document.l10n.setAttributes(this.button, "addons-heading-search-button");
-      this.append(this.button);
-    }
-    this.input.addEventListener("keypress", this);
-    this.button.addEventListener("click", this);
-  }
-
-  disconnectedCallback() {
-    this.input.removeEventListener("keypress", this);
-    this.button.removeEventListener("click", this);
-  }
-
-  handleEvent(e) {
-    if (
-      e.type == "click" ||
-      (e.type === "keypress" && e.keyCode == KeyEvent.DOM_VK_RETURN)
-    ) {
-      this.searchAddons(this.value);
-    }
-  }
-
-  get value() {
-    return this.input.value;
-  }
-
-  searchAddons(query) {
-    if (query.length === 0) {
-      return;
-    }
-
-    let url = formatUTMParams(
-      "addons-manager-search",
-      AddonRepository.getSearchURL(query)
-    );
-
-    let browser = getBrowserElement();
-    let chromewin = browser.ownerGlobal;
-    chromewin.openWebLinkIn(url, "tab");
-  }
-}
-customElements.define("search-addons", SearchAddons);
-
 class MessageBarStackElement extends HTMLElement {
   constructor() {
     super();
@@ -988,68 +930,6 @@ class AddonPageHeader extends HTMLElement {
   }
 }
 customElements.define("addon-page-header", AddonPageHeader);
-
-class AddonUpdatesMessage extends HTMLElement {
-  static get observedAttributes() {
-    return ["state"];
-  }
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-    let style = document.createElement("style");
-    style.textContent = `
-      @import "chrome://global/skin/in-content/common.css";
-      button {
-        margin: 0;
-      }
-    `;
-    this.message = document.createElement("span");
-    this.message.hidden = true;
-    this.button = document.createElement("button");
-    this.button.addEventListener("click", e => {
-      if (e.button === 0) {
-        gViewController.loadView("updates/available");
-      }
-    });
-    this.button.hidden = true;
-    this.shadowRoot.append(style, this.message, this.button);
-  }
-
-  connectedCallback() {
-    document.l10n.connectRoot(this.shadowRoot);
-    document.l10n.translateFragment(this.shadowRoot);
-  }
-
-  disconnectedCallback() {
-    document.l10n.disconnectRoot(this.shadowRoot);
-  }
-
-  attributeChangedCallback(name, oldVal, newVal) {
-    if (name === "state" && oldVal !== newVal) {
-      let l10nId = `addon-updates-${newVal}`;
-      switch (newVal) {
-        case "updating":
-        case "installed":
-        case "none-found":
-          this.button.hidden = true;
-          this.message.hidden = false;
-          document.l10n.setAttributes(this.message, l10nId);
-          break;
-        case "manual-updates-found":
-          this.message.hidden = true;
-          this.button.hidden = false;
-          document.l10n.setAttributes(this.button, l10nId);
-          break;
-      }
-    }
-  }
-
-  set state(val) {
-    this.setAttribute("state", val);
-  }
-}
-customElements.define("addon-updates-message", AddonUpdatesMessage);
 
 class AddonPageOptions extends HTMLElement {
   connectedCallback() {
@@ -1697,16 +1577,6 @@ class PluginOptions extends AddonOptions {
 }
 customElements.define("plugin-options", PluginOptions);
 
-class ProxyContextMenu extends HTMLElement {
-  openPopupAtScreen(...args) {
-    // prettier-ignore
-    const parentContextMenuPopup =
-      windowRoot.ownerGlobal.document.getElementById("contentAreaContextMenu");
-    return parentContextMenuPopup.openPopupAtScreen(...args);
-  }
-}
-customElements.define("proxy-context-menu", ProxyContextMenu);
-
 class InlineOptionsBrowser extends HTMLElement {
   constructor() {
     super();
@@ -1919,75 +1789,6 @@ class InlineOptionsBrowser extends HTMLElement {
   }
 }
 customElements.define("inline-options-browser", InlineOptionsBrowser);
-
-class UpdateReleaseNotes extends HTMLElement {
-  connectedCallback() {
-    this.addEventListener("click", this);
-  }
-
-  disconnectedCallback() {
-    this.removeEventListener("click", this);
-  }
-
-  handleEvent(e) {
-    // We used to strip links, but ParserUtils.parseFragment() leaves them in,
-    // so just make sure we open them using the null principal in a new tab.
-    if (e.type == "click" && e.target.localName == "a" && e.target.href) {
-      e.preventDefault();
-      e.stopPropagation();
-      windowRoot.ownerGlobal.openWebLinkIn(e.target.href, "tab");
-    }
-  }
-
-  async loadForUri(uri) {
-    // Can't load the release notes without a URL to load.
-    if (!uri || !uri.spec) {
-      this.setErrorMessage();
-      this.dispatchEvent(new CustomEvent("release-notes-error"));
-      return;
-    }
-
-    // Don't try to load for the same update a second time.
-    if (this.url == uri.spec) {
-      this.dispatchEvent(new CustomEvent("release-notes-cached"));
-      return;
-    }
-
-    // Store the URL to skip the network if loaded again.
-    this.url = uri.spec;
-
-    // Set the loading message before hitting the network.
-    this.setLoadingMessage();
-    this.dispatchEvent(new CustomEvent("release-notes-loading"));
-
-    try {
-      // loadReleaseNotes will fetch and sanitize the release notes.
-      let fragment = await loadReleaseNotes(uri);
-      this.textContent = "";
-      this.appendChild(fragment);
-      this.dispatchEvent(new CustomEvent("release-notes-loaded"));
-    } catch (e) {
-      this.setErrorMessage();
-      this.dispatchEvent(new CustomEvent("release-notes-error"));
-    }
-  }
-
-  setMessage(id) {
-    this.textContent = "";
-    let message = document.createElement("p");
-    document.l10n.setAttributes(message, id);
-    this.appendChild(message);
-  }
-
-  setLoadingMessage() {
-    this.setMessage("release-notes-loading");
-  }
-
-  setErrorMessage() {
-    this.setMessage("release-notes-error");
-  }
-}
-customElements.define("update-release-notes", UpdateReleaseNotes);
 
 class AddonPermissionsList extends HTMLElement {
   setAddon(addon) {
