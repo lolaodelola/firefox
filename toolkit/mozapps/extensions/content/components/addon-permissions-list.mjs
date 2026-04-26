@@ -1,9 +1,10 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-/* globals AddonCard, Extension, ExtensionPermissions */
+/* globals Extension, ExtensionPermissions */
 
 import { AboutAddonsHTMLElement } from "../aboutaddons-utils.mjs";
+import { AddonCard } from "./addon-card.mjs";
 
 class AddonPermissionsList extends AboutAddonsHTMLElement {
   static get markup() {
