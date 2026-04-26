@@ -6,6 +6,9 @@
 /* import-globals-from abuse-reports.js */
 /* import-globals-from view-controller.js */
 /* global windowRoot */
+// openAmoInTab is used as a window global by colorway-removal-notice.mjs,
+// recommended-footer.mjs, and recommended-themes-footer.mjs.
+/* exported openAmoInTab */
 
 "use strict";
 
@@ -73,9 +76,6 @@ const PERMISSION_MASKS = {
 };
 
 const PREF_DISCOVERY_API_URL = "extensions.getAddons.discovery.api_url";
-const PREF_THEME_RECOMMENDATION_URL =
-  "extensions.recommendations.themeRecommendationUrl";
-const PREF_PRIVACY_POLICY_URL = "extensions.recommendations.privacyPolicyUrl";
 const PREF_RECOMMENDATION_ENABLED = "browser.discovery.enabled";
 const PREF_TELEMETRY_ENABLED = "datareporting.healthreport.uploadEnabled";
 const PRIVATE_BROWSING_PERM_NAME = "internal:privateBrowsingAllowed";
@@ -3408,124 +3408,6 @@ class RecommendedAddonList extends HTMLElement {
   }
 }
 customElements.define("recommended-addon-list", RecommendedAddonList);
-
-class RecommendedFooter extends HTMLElement {
-  connectedCallback() {
-    if (this.childElementCount == 0) {
-      this.appendChild(importTemplate("recommended-footer"));
-      this.querySelector(".privacy-policy-link").href =
-        Services.prefs.getStringPref(PREF_PRIVACY_POLICY_URL);
-      this.addEventListener("click", this);
-    }
-  }
-
-  handleEvent(event) {
-    let action = event.target.getAttribute("action");
-    switch (action) {
-      case "open-amo":
-        openAmoInTab(this);
-        break;
-    }
-  }
-}
-customElements.define("recommended-footer", RecommendedFooter, {
-  extends: "footer",
-});
-
-class RecommendedThemesFooter extends HTMLElement {
-  connectedCallback() {
-    if (this.childElementCount == 0) {
-      this.appendChild(importTemplate("recommended-themes-footer"));
-      let themeRecommendationRow = this.querySelector(".theme-recommendation");
-      let themeRecommendationUrl = Services.prefs.getStringPref(
-        PREF_THEME_RECOMMENDATION_URL
-      );
-      if (themeRecommendationUrl) {
-        themeRecommendationRow.querySelector("a").href = themeRecommendationUrl;
-      }
-      themeRecommendationRow.hidden = !themeRecommendationUrl;
-      this.addEventListener("click", this);
-    }
-  }
-
-  handleEvent(event) {
-    let action = event.target.getAttribute("action");
-    switch (action) {
-      case "open-amo":
-        openAmoInTab(this, "themes");
-        break;
-    }
-  }
-}
-customElements.define("recommended-themes-footer", RecommendedThemesFooter, {
-  extends: "footer",
-});
-
-/**
- * This element will handle showing recommendations with a
- * <recommended-addon-list> and a <footer>. The footer will be hidden until
- * the <recommended-addon-list> is done making its request so the footer
- * doesn't move around.
- *
- * Subclass this element to use it and define a `template` property to pull
- * the template from. Expected template:
- *
- * <h1>My extra content can go here.</h1>
- * <p>It can be anything but a footer or recommended-addon-list.</p>
- * <recommended-addon-list></recommended-addon-list>
- * <footer>My custom footer</footer>
- */
-class RecommendedSection extends HTMLElement {
-  connectedCallback() {
-    if (this.childElementCount == 0) {
-      this.render();
-    }
-  }
-
-  get list() {
-    return this.querySelector("recommended-addon-list");
-  }
-
-  get footer() {
-    return this.querySelector("footer");
-  }
-
-  render() {
-    this.appendChild(importTemplate(this.template));
-
-    // Hide footer until the cards are loaded, to prevent the content from
-    // suddenly shifting when the user attempts to interact with it.
-    let { footer } = this;
-    footer.hidden = true;
-    this.list.loadCardsIfNeeded().finally(() => {
-      footer.hidden = false;
-    });
-  }
-}
-
-class RecommendedExtensionsSection extends RecommendedSection {
-  get template() {
-    return "recommended-extensions-section";
-  }
-}
-customElements.define(
-  "recommended-extensions-section",
-  RecommendedExtensionsSection
-);
-
-class RecommendedThemesSection extends RecommendedSection {
-  get template() {
-    return "recommended-themes-section";
-  }
-}
-customElements.define("recommended-themes-section", RecommendedThemesSection);
-
-class DiscoveryPane extends RecommendedSection {
-  get template() {
-    return "discopane";
-  }
-}
-customElements.define("discovery-pane", DiscoveryPane);
 
 // Define views
 gViewController.defineView("list", async type => {

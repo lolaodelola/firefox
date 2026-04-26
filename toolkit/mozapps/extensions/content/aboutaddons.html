@@ -73,6 +73,26 @@
     ></script>
     <script
       type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-footer.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-themes-footer.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-extensions-section.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-themes-section.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/discovery-pane.mjs"
+    ></script>
+    <script
+      type="module"
       src="chrome://mozapps/content/extensions/components/categories-box.mjs"
     ></script>
     <script
@@ -758,80 +778,6 @@
         <addon-permissions-list name="permissions"></addon-permissions-list>
         <update-release-notes name="release-notes"></update-release-notes>
       </named-deck>
-    </template>
-
-    <template name="recommended-footer">
-      <div class="amo-link-container view-footer-item">
-        <button
-          class="primary"
-          action="open-amo"
-          data-l10n-id="find-more-addons"
-        ></button>
-      </div>
-      <div class="view-footer-item">
-        <a
-          class="privacy-policy-link"
-          data-l10n-id="privacy-policy"
-          target="_blank"
-        ></a>
-      </div>
-    </template>
-
-    <template name="discopane">
-      <header>
-        <p>
-          <span data-l10n-id="discopane-intro3">
-            <a
-              class="discopane-intro-learn-more-link"
-              is="moz-support-link"
-              support-page="recommended-extensions-program"
-              data-l10n-name="learn-more-trigger"
-            >
-            </a>
-          </span>
-        </p>
-      </header>
-      <taar-notice></taar-notice>
-      <recommended-addon-list></recommended-addon-list>
-      <footer is="recommended-footer" class="view-footer"></footer>
-    </template>
-
-    <template name="recommended-extensions-section">
-      <h2
-        data-l10n-id="recommended-extensions-heading"
-        class="header-name recommended-heading"
-      ></h2>
-      <taar-notice></taar-notice>
-      <recommended-addon-list
-        type="extension"
-        hide-installed
-      ></recommended-addon-list>
-      <footer is="recommended-footer" class="view-footer"></footer>
-    </template>
-
-    <template name="recommended-themes-footer">
-      <p data-l10n-id="recommended-theme-1" class="theme-recommendation">
-        <a data-l10n-name="link" target="_blank"></a>
-      </p>
-      <div class="amo-link-container view-footer-item">
-        <button
-          class="primary"
-          action="open-amo"
-          data-l10n-id="find-more-themes"
-        ></button>
-      </div>
-    </template>
-
-    <template name="recommended-themes-section">
-      <h2
-        data-l10n-id="recommended-themes-heading"
-        class="header-name recommended-heading"
-      ></h2>
-      <recommended-addon-list
-        type="theme"
-        hide-installed
-      ></recommended-addon-list>
-      <footer is="recommended-themes-footer" class="view-footer"></footer>
     </template>
 
     <template id="shortcut-view">
