@@ -43,7 +43,6 @@ class FileSearchBar extends Component {
       findPrev: PropTypes.func.isRequired,
       setSearchOptions: PropTypes.func.isRequired,
       searchOptions: PropTypes.object.isRequired,
-      DebuggerImage: PropTypes.elementType.isRequired,
       CloseButton: PropTypes.elementType.isRequired,
     };
   }
@@ -338,7 +337,6 @@ class FileSearchBar extends Component {
       searchKey,
       setSearchOptions,
       searchOptions,
-      DebuggerImage,
       CloseButton,
     } = this.props;
 
@@ -377,7 +375,6 @@ class FileSearchBar extends Component {
         onToggleSearchModifier: () => this.doSearch(this.state.query),
         setSearchOptions,
         searchOptions,
-        DebuggerImage,
         CloseButton,
       })
     );

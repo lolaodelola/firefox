@@ -16,7 +16,7 @@ import {
 import PropTypes from "devtools/client/shared/vendor/react-prop-types";
 import { connect } from "devtools/client/shared/vendor/react-redux";
 import { features } from "../../utils/prefs";
-import DebuggerImage from "../shared/DebuggerImage";
+import DebuggerImage from "devtools/client/shared/components/DebuggerImage";
 
 import * as objectInspector from "resource://devtools/client/shared/components/object-inspector/index.js";
 

@@ -16,6 +16,8 @@ const {
   span,
 } = require("devtools/client/shared/vendor/react-dom-factories");
 
+const DebuggerImage = require("devtools/client/shared/components/DebuggerImage");
+
 const classnames = require("resource://devtools/client/shared/classnames.js");
 const SearchModifiers = require("resource://devtools/client/shared/components/SearchModifiers.js");
 
@@ -24,7 +26,7 @@ const locale = new LocalizationHelper(
   "devtools/client/locales/components.properties"
 );
 
-const arrowBtn = (onClick, type, className, tooltip, DebuggerImage) => {
+const arrowBtn = (onClick, type, className, tooltip) => {
   const props = {
     className,
     key: type,
@@ -74,7 +76,6 @@ class SearchInput extends Component {
       showSearchModifiers: PropTypes.bool.isRequired,
       onToggleSearchModifier: PropTypes.func,
       CloseButton: PropTypes.elementType,
-      DebuggerImage: PropTypes.elementType,
     };
   }
 
@@ -122,7 +123,7 @@ class SearchInput extends Component {
   }
 
   renderArrowButtons() {
-    const { handleNext, handlePrev, DebuggerImage } = this.props;
+    const { handleNext, handlePrev } = this.props;
 
     return [
       arrowBtn(
@@ -229,7 +230,7 @@ class SearchInput extends Component {
   }
 
   renderSpinner() {
-    const { isLoading, DebuggerImage } = this.props;
+    const { isLoading } = this.props;
     if (!isLoading) {
       return null;
     }
@@ -316,7 +317,6 @@ class SearchInput extends Component {
       showErrorEmoji,
       size,
       disabled,
-      DebuggerImage,
     } = this.props;
 
     const inputProps = {
