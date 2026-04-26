@@ -2743,16 +2743,13 @@ class Editor extends EventEmitter {
       const { codemirrorLanguage } = this.#CodeMirror6;
       const cursorLocation = this.getSelectionCursor();
       const line = cm.state.doc.line(cursorLocation.from.line);
-      const tokPos = line.from + cursorLocation.from.ch;
 
       await lezerUtils.walkTree(cm, codemirrorLanguage, {
         filterSet: lezerUtils.nodeTypeSets.variables,
         enterVisitor: node => {
-          if (node.from <= tokPos && node.to >= tokPos) {
-            variables.push(cm.state.doc.sliceString(node.from, node.to));
-          }
+          variables.push(cm.state.doc.sliceString(node.from, node.to));
         },
-        walkFrom: line.from,
+        walkFrom: 0,
         walkTo: line.to,
       });
     } else {
