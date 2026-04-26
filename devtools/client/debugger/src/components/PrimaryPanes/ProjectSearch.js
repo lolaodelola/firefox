@@ -19,6 +19,7 @@ import { getRelativePath } from "../../utils/sources-tree/utils";
 import {
   getProjectSearchQuery,
   getNavigateCounter,
+  getSearchOptions,
 } from "../../selectors/index";
 
 import DebuggerImage from "devtools/client/shared/components/DebuggerImage";
@@ -78,6 +79,9 @@ export class ProjectSearch extends Component {
       query: PropTypes.string.isRequired,
       searchSources: PropTypes.func.isRequired,
       selectSpecificLocationOrSameUrl: PropTypes.func.isRequired,
+      searchOptions: PropTypes.object.isRequired,
+      setSearchOptions: PropTypes.func.isRequired,
+      navigateCounter: PropTypes.number,
     };
   }
 
@@ -406,6 +410,7 @@ export class ProjectSearch extends Component {
       onHistoryScroll: this.onHistoryScroll,
       showClose: false,
       showExcludePatterns: true,
+      showSearchModifiers: true,
       excludePatternsLabel: L10N.getStr(
         "projectTextSearch.excludePatterns.label"
       ),
@@ -414,8 +419,8 @@ export class ProjectSearch extends Component {
       ),
       searchKey: searchKeys.PROJECT_SEARCH,
       onToggleSearchModifier: this.doSearch,
-      searchOptions: {},
-      setSearchOptions: () => {},
+      searchOptions: this.props.searchOptions,
+      setSearchOptions: this.props.setSearchOptions,
       expanded: false,
       hasPrefix: false,
     });
@@ -450,10 +455,12 @@ ProjectSearch.contextTypes = {
 const mapStateToProps = state => ({
   query: getProjectSearchQuery(state),
   navigateCounter: getNavigateCounter(state),
+  searchOptions: getSearchOptions(state, searchKeys.PROJECT_SEARCH),
 });
 
 export default connect(mapStateToProps, {
   searchSources: actions.searchSources,
   selectSpecificLocationOrSameUrl: actions.selectSpecificLocationOrSameUrl,
   doSearchForHighlight: actions.doSearchForHighlight,
+  setSearchOptions: actions.setSearchOptions,
 })(ProjectSearch);

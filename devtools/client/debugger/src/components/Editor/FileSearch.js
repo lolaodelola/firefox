@@ -6,7 +6,7 @@ import PropTypes from "devtools/client/shared/vendor/react-prop-types";
 import React, { Component } from "devtools/client/shared/vendor/react";
 
 import FileSearchBar from "devtools/client/shared/components/FileSearchBar";
-import { CloseButton } from "devtools/client/debugger/src/components/shared/Button/index";
+import CloseButton from "devtools/client/shared/components/CloseButton";
 
 class FileSearch extends Component {
   static contextTypes = {

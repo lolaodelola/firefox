@@ -43,7 +43,6 @@ class FileSearchBar extends Component {
       findPrev: PropTypes.func.isRequired,
       setSearchOptions: PropTypes.func.isRequired,
       searchOptions: PropTypes.object.isRequired,
-      CloseButton: PropTypes.elementType.isRequired,
     };
   }
 
@@ -332,13 +331,8 @@ class FileSearchBar extends Component {
   }
 
   render() {
-    const {
-      searchInFileEnabled,
-      searchKey,
-      setSearchOptions,
-      searchOptions,
-      CloseButton,
-    } = this.props;
+    const { searchInFileEnabled, searchKey, setSearchOptions, searchOptions } =
+      this.props;
 
     const {
       results: { count },
@@ -375,7 +369,6 @@ class FileSearchBar extends Component {
         onToggleSearchModifier: () => this.doSearch(this.state.query),
         setSearchOptions,
         searchOptions,
-        CloseButton,
       })
     );
   }

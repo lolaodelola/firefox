@@ -17,6 +17,7 @@ const {
 } = require("devtools/client/shared/vendor/react-dom-factories");
 
 const DebuggerImage = require("devtools/client/shared/components/DebuggerImage");
+const CloseButton = require("devtools/client/shared/components/CloseButton");
 
 const classnames = require("resource://devtools/client/shared/classnames.js");
 const SearchModifiers = require("resource://devtools/client/shared/components/SearchModifiers.js");
@@ -75,7 +76,6 @@ class SearchInput extends Component {
       setSearchOptions: PropTypes.func.isRequired,
       showSearchModifiers: PropTypes.bool.isRequired,
       onToggleSearchModifier: PropTypes.func,
-      CloseButton: PropTypes.elementType,
     };
   }
 
@@ -288,8 +288,6 @@ class SearchInput extends Component {
   }
 
   renderClose() {
-    const { CloseButton } = this.props;
-
     if (!this.props.showClose) {
       return null;
     }

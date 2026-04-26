@@ -32,7 +32,7 @@ import {
 } from "../../selectors/index";
 import { getExpressionResultGripAndFront } from "../../utils/expressions";
 
-import { CloseButton } from "../shared/Button/index";
+import CloseButton from "devtools/client/shared/components/CloseButton";
 
 const { debounce } = require("resource://devtools/shared/debounce.js");
 

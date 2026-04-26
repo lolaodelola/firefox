@@ -4,6 +4,7 @@
 
 /* Shared imports */
 @import url("chrome://devtools/content/shared/components/AppErrorBoundary.css");
+@import url("chrome://devtools/content/shared/components/CloseButton.css");
 @import url("chrome://devtools/content/shared/components/DebuggerImage.css");
 @import url("chrome://devtools/content/shared/components/FileSearchBar.css");
 @import url("chrome://devtools/content/shared/components/SearchInput.css");
@@ -15,7 +16,6 @@
 @import url("chrome://devtools/content/debugger/src/components/shared/Accordion.css");
 @import url("chrome://devtools/content/debugger/src/components/shared/Badge.css");
 @import url("chrome://devtools/content/debugger/src/components/shared/BracketArrow.css");
-@import url("chrome://devtools/content/debugger/src/components/shared/Button/styles/CloseButton.css");
 @import url("chrome://devtools/content/debugger/src/components/shared/Button/styles/CommandBarButton.css");
 @import url("chrome://devtools/content/debugger/src/components/shared/Button/styles/PaneToggleButton.css");
 @import url("chrome://devtools/content/debugger/src/components/shared/Dropdown.css");

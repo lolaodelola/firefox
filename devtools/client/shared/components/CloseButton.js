@@ -2,11 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at <http://mozilla.org/MPL/2.0/>. */
 
-import React from "devtools/client/shared/vendor/react";
-import { button } from "devtools/client/shared/vendor/react-dom-factories";
-import PropTypes from "devtools/client/shared/vendor/react-prop-types";
+"use strict";
 
-import DebuggerImage from "devtools/client/shared/components/DebuggerImage";
+const React = require("devtools/client/shared/vendor/react");
+const { button } = require("devtools/client/shared/vendor/react-dom-factories");
+const PropTypes = require("devtools/client/shared/vendor/react-prop-types");
+
+const DebuggerImage = require("devtools/client/shared/components/DebuggerImage");
 
 function CloseButton({ handleClick, buttonClass, tooltip }) {
   return button(
@@ -27,4 +29,4 @@ CloseButton.propTypes = {
   tooltip: PropTypes.string,
 };
 
-export default CloseButton;
+module.exports = CloseButton;
