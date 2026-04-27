@@ -63,6 +63,14 @@ add_task(async function test_aboutwelcome_embedded_backup_restore_properties() {
     true,
   ]);
 
+  sandbox
+    .stub(BackupService.get(), "findBackupsInWellKnownLocations")
+    .resolves({
+      found: false,
+      backupFileToRestore: null,
+      multipleBackupsFound: false,
+    });
+
   await setAboutWelcomeMultiStage(TEST_DEFAULT_JSON);
   let { cleanup, browser } = await openMRAboutWelcome();
 
