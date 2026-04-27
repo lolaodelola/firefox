@@ -497,6 +497,7 @@ export const NET_ERRORS = [
     },
     customNetError: {
       titleL10nId: "contentEncodingError-title",
+      showResponseStatus: true,
       whatCanYouDoL10nId: "certerror-bad-cert-domain-what-can-you-do-about-it",
     },
     hasNoUserFix: false,
