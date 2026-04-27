@@ -270,6 +270,7 @@ class SearchSuggestionsProvidersBuilder(
         if (state.showSportsSuggestions) {
             providersToAdd.add(
                 SportsOnlineSuggestionProvider(
+                    icons = components.core.icons,
                     searchUseCase = searchUseCase,
                     dataSource = combinedOnlineDataSource,
                     suggestionsHeader = suggestionsStringsProvider.firefoxSuggestOnlineHeader,

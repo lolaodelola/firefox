@@ -4,7 +4,14 @@
 
 package mozilla.components.feature.awesomebar.provider
 
+import android.graphics.Bitmap
 import androidx.annotation.VisibleForTesting
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import mozilla.components.browser.icons.BrowserIcons
+import mozilla.components.browser.icons.IconRequest
 import mozilla.components.concept.awesomebar.AwesomeBar
 import mozilla.components.concept.awesomebar.optimizedsuggestions.SportSuggestionCategory
 import mozilla.components.concept.awesomebar.optimizedsuggestions.SportSuggestionDate
@@ -32,6 +39,7 @@ internal const val DEFAULT_SPORT_SUGGESTION_LIMIT = 1
  * @property maxNumberOfSuggestions the maximum number of suggestions to be provided.
  */
 class SportsOnlineSuggestionProvider(
+    private val icons: BrowserIcons,
     private val searchUseCase: SearchUseCases.SearchUseCase,
     private val dataSource: AwesomeBar.CombinedSuggestionsDataSource,
     private val suggestionsHeader: String? = null,
@@ -52,7 +60,7 @@ class SportsOnlineSuggestionProvider(
 
         val items = dataSource.fetchSports(text)
         val suggestions = items
-            .asSequence()
+            .asFlow()
             .mapNotNull { item ->
                 item.toSuggestionOrNull()?.let { it to item.sportCategory }
             }
@@ -69,7 +77,7 @@ class SportsOnlineSuggestionProvider(
         return suggestions.map { it.first }
     }
 
-    private fun AwesomeBar.SportItem.toSuggestionOrNull(): AwesomeBar.SportSuggestion? {
+    private suspend fun AwesomeBar.SportItem.toSuggestionOrNull(): AwesomeBar.SportSuggestion? {
         val hasRequiredFields =
             query.isNotBlank() && sport.isNotBlank()
         val sportCategory = parseSportCategory(sportCategory)
@@ -168,9 +176,10 @@ class SportsOnlineSuggestionProvider(
     }
 
     @VisibleForTesting
-    internal fun parseTeam(team: AwesomeBar.SportItem.Team): SportSuggestionTeam? {
+    internal suspend fun parseTeam(team: AwesomeBar.SportItem.Team): SportSuggestionTeam? {
+        val icon = fetchTeamIcon(icons, team.icon)
         return team.name.takeIf { it.isNotBlank() }?.let {
-            SportSuggestionTeam(it, team.score)
+            SportSuggestionTeam(it, team.score, icon)
         }
     }
 
@@ -186,5 +195,23 @@ class SportsOnlineSuggestionProvider(
             "racing" -> SportSuggestionCategory.RACING
             else -> SportSuggestionCategory.MISC
         }
+    }
+
+    private suspend fun fetchTeamIcon(
+        icons: BrowserIcons,
+        url: String?,
+    ): Bitmap? {
+        if (url.isNullOrBlank()) return null
+
+        val resources = listOf(IconRequest.Resource(url, IconRequest.Resource.Type.IMAGE_SRC))
+        val request = IconRequest(
+            url = url,
+            size = IconRequest.Size.LAUNCHER_ADAPTIVE,
+            resources = resources,
+            isPrivate = true,
+        )
+
+        val icon = icons.loadIcon(request).await()
+        return icon.bitmap
     }
 }

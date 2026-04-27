@@ -45,6 +45,7 @@ class SportsOnlineSuggestionProviderTest {
         fakeDataSource = FakeCombinedOnlineSuggestionDataSource(sportResults = listOf(sampleSportItem()))
 
         provider = SportsOnlineSuggestionProvider(
+            icons = mock(),
             searchUseCase = mock(),
             dataSource = fakeDataSource,
             suggestionsHeader = null,
@@ -82,6 +83,7 @@ class SportsOnlineSuggestionProviderTest {
             sportResults = listOf(sampleSportItem("test query")),
         )
         val localProvider = SportsOnlineSuggestionProvider(
+            icons = mock(),
             searchUseCase = searchUseCase,
             dataSource = localDateSource,
             suggestionsHeader = null,
@@ -110,6 +112,7 @@ class SportsOnlineSuggestionProviderTest {
         val localDataSource = FakeCombinedOnlineSuggestionDataSource(sportResults = manyResults)
 
         val limitedProvider = SportsOnlineSuggestionProvider(
+            icons = mock(),
             searchUseCase = mock(),
             dataSource = localDataSource,
             suggestionsHeader = null,
@@ -126,6 +129,7 @@ class SportsOnlineSuggestionProviderTest {
     @Test
     fun `id is stable per instance`() = runTest {
         val p = SportsOnlineSuggestionProvider(
+            icons = mock(),
             searchUseCase = mock(),
             dataSource = FakeCombinedOnlineSuggestionDataSource(sportResults = listOf(sampleSportItem())),
             suggestionsHeader = null,
@@ -145,6 +149,7 @@ class SportsOnlineSuggestionProviderTest {
     fun `cancellation before delay prevents data source call`() = runTest {
         val localDataSource = FakeCombinedOnlineSuggestionDataSource(sportResults = listOf(sampleSportItem()))
         val cancellableProvider = SportsOnlineSuggestionProvider(
+            icons = mock(),
             searchUseCase = mock(),
             dataSource = localDataSource,
             suggestionsHeader = null,
@@ -346,7 +351,7 @@ class SportsOnlineSuggestionProviderTest {
     // --- parseTeam tests ---
 
     @Test
-    fun `parseTeam returns team with name and score`() {
+    fun `parseTeam returns team with name and score`() = runTest {
         val team = AwesomeBar.SportItem.Team(
             key = "MIN",
             name = "Minnesota Wild",
@@ -362,7 +367,7 @@ class SportsOnlineSuggestionProviderTest {
     }
 
     @Test
-    fun `parseTeam returns null for blank team name`() {
+    fun `parseTeam returns null for blank team name`() = runTest {
         val team = AwesomeBar.SportItem.Team(
             key = "MIN",
             name = "   ",

@@ -41,6 +41,6 @@ private fun TeamDto.toTeamSportItem(): SportItem.Team {
         name = name,
         colors = colors,
         score = score,
-        icon = null,
+        icon = icon,
     )
 }
