@@ -43,7 +43,9 @@ span { background:lime; border:1px solid black; }
 .bb { border-bottom-width:6px; }
 x { display:block; height: 40px; }
 .t { border-bottom-width:0; }
+.b { border-top-width:0; }
 .m {  border:5px solid; border-top-width:0; border-bottom-width:0; }
+.br1 { height:34px; border-width:5px; border-top-style:solid; }
 .br2 { height:4px; }
 .br3 { height:39px; }
 
@@ -53,7 +55,8 @@ x { display:block; height: 40px; }
 
 <div class="columns" style="height:40px">
 <div style="background:grey">
-<div class="grid">
+<div class="br1"></div>
+<div class="grid b">
 <span class="avoid-break"><x></x></span>
 </div></div></div>
 
@@ -65,7 +68,8 @@ x { display:block; height: 40px; }
 
 <div class="columns" style="height:40px">
 <div style="padding-top:1px; background:grey">
-<div class="grid">
+<div class="br1"></div>
+<div class="grid b">
 <span class="avoid-break"><x></x></span>
 </div></div></div>
 

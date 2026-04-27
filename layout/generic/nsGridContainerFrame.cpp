@@ -8035,6 +8035,8 @@ nsGridContainerFrame::GetNearestFragmentainer(
         data->mToFragmentainerEnd = NS_UNCONSTRAINEDSIZE;
       }
       const auto numRows = aGridRI.mRows.mSizes.Length();
+      data->mCanBreakAtStart =
+          numRows > 0 && aGridRI.mRows.mSizes[0].mPosition > 0;
       nscoord bSize = gridRI->ComputedBSize();
       data->mIsAutoBSize = bSize == NS_UNCONSTRAINEDSIZE;
       if (data->mIsAutoBSize) {
@@ -8384,8 +8386,9 @@ nscoord nsGridContainerFrame::ReflowInFragmentainer(
     }
 
     // Consume at least one row in each fragment until we have consumed them
-    // all.
-    if (startRow == endRow && startRow != numRows) {
+    // all. Except for the first row if there's a break opportunity before it.
+    if (startRow == endRow && startRow != numRows &&
+        (startRow != 0 || !aFragmentainer.mCanBreakAtStart)) {
       ++endRow;
     }
 
@@ -8522,11 +8525,13 @@ nscoord nsGridContainerFrame::ReflowRowsInFragmentainer(
                     StyleBoxDecorationBreak::Clone;
   bool didGrowRow = false;
   // As we walk across rows, we track whether the current row is at the top
-  // of its grid-fragment, to help decide whether we can break before it.
-  // The first row is always at the top of its grid-fragment: grid containers
-  // are not block containers, so there is never a Class C break opportunity
-  // before the first row.
-  bool isRowTopOfPage = true;
+  // of its grid-fragment, to help decide whether we can break before it. When
+  // this function starts, our row is at the top of the current fragment if:
+  //  - we're starting with a nonzero row (i.e. we're a continuation)
+  // OR:
+  //  - we're starting with the first row, & we're not allowed to break before
+  //    it (which makes it effectively at the top of its grid-fragment).
+  bool isRowTopOfPage = aStartRow != 0 || !aFragmentainer.mCanBreakAtStart;
   const bool isStartRowTopOfPage = isRowTopOfPage;
   // Save our full available size for later.
   const nscoord gridAvailableSize = aFragmentainer.mToFragmentainerEnd;
