@@ -110,12 +110,11 @@ class Animation : public DOMEventTargetHelper,
   virtual void SetEffect(AnimationEffect* aEffect);
   void SetEffectNoUpdate(AnimationEffect* aEffect);
 
-  // FIXME: Bug 1676794. This is a tentative solution before we implement
-  // ScrollTimeline interface. If the timeline is scroll/view timeline, we
-  // return null. Once we implement ScrollTimeline interface, we can drop this.
+  // FIXME: Bug 2014906. ViewTimeline doesn't have a JS interface yet, so we
+  // return null for it. Once we implement it, we can drop this BinaryName.
   already_AddRefed<AnimationTimeline> GetTimelineFromJS() const {
-    return mTimeline && mTimeline->IsScrollTimeline() ? nullptr
-                                                      : do_AddRef(mTimeline);
+    return mTimeline && mTimeline->IsViewTimeline() ? nullptr
+                                                    : do_AddRef(mTimeline);
   }
   void SetTimelineFromJS(AnimationTimeline* aTimeline) {
     SetTimeline(aTimeline);
