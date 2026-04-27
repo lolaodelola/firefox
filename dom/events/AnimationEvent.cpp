@@ -34,7 +34,6 @@ already_AddRefed<AnimationEvent> AnimationEvent::Constructor(
   internalEvent->mAnimationName = aParam.mAnimationName;
   internalEvent->mElapsedTime = aParam.mElapsedTime;
   internalEvent->mPseudoElement = aParam.mPseudoElement;
-  internalEvent->mAnimation = aParam.mAnimation;
 
   e->SetTrusted(trusted);
   e->SetComposed(aParam.mComposed);
@@ -51,10 +50,6 @@ float AnimationEvent::ElapsedTime() {
 
 void AnimationEvent::GetPseudoElement(nsAString& aPseudoElement) {
   aPseudoElement = mEvent->AsAnimationEvent()->mPseudoElement;
-}
-
-CSSAnimation* AnimationEvent::GetAnimation() {
-  return mEvent->AsAnimationEvent()->mAnimation;
 }
 
 }  // namespace mozilla::dom

@@ -35,7 +35,6 @@ already_AddRefed<TransitionEvent> TransitionEvent::Constructor(
   internalEvent->mPropertyName = aParam.mPropertyName;
   internalEvent->mElapsedTime = aParam.mElapsedTime;
   internalEvent->mPseudoElement = aParam.mPseudoElement;
-  internalEvent->mAnimation = aParam.mAnimation;
 
   e->SetTrusted(trusted);
   e->SetComposed(aParam.mComposed);
@@ -48,10 +47,6 @@ void TransitionEvent::GetPropertyName(nsAString& aPropertyName) const {
 
 float TransitionEvent::ElapsedTime() {
   return mEvent->AsTransitionEvent()->mElapsedTime;
-}
-
-CSSTransition* TransitionEvent::GetAnimation() {
-  return mEvent->AsTransitionEvent()->mAnimation;
 }
 
 void TransitionEvent::GetPseudoElement(nsAString& aPseudoElement) const {

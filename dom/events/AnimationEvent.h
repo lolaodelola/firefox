@@ -6,7 +6,6 @@
 
 #include "mozilla/EventForwards.h"
 #include "mozilla/dom/AnimationEventBinding.h"
-#include "mozilla/dom/CSSAnimation.h"
 #include "mozilla/dom/Event.h"
 #include "nsStringFwd.h"
 
@@ -33,8 +32,6 @@ class AnimationEvent : public Event {
   float ElapsedTime();
 
   void GetPseudoElement(nsAString& aPseudoElement);
-
-  CSSAnimation* GetAnimation();
 
  protected:
   ~AnimationEvent() = default;
