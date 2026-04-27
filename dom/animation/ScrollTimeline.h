@@ -16,11 +16,6 @@ enum class StyleScroller : uint8_t;
 enum class StyleOverflow : uint8_t;
 }  // namespace mozilla
 
-namespace mozilla::dom {
-enum class ScrollAxis : uint8_t;
-struct ScrollTimelineOptions;
-}  // namespace mozilla::dom
-
 #define PROGRESS_TIMELINE_DURATION_MILLISEC 100000
 
 namespace mozilla {
@@ -76,15 +71,9 @@ class ScrollTimeline : public AnimationTimeline,
  protected:
   struct ScrollerInfo {
     enum class Type : uint8_t {
-      /// The scroller was provided as a DOM Element (see ScrollTimeline ctor)
-      Provided,
-      /// The scroller is the root scroller of the document
       Root,
-      /// The scroller is the animation target's nearest ancestor scroller
       Nearest,
-      /// The scroller is specified by name (scroll-timeline-name)
       Name,
-      /// The scroller is the element being animated itself
       Self,
     };
     Type mType = Type::Root;
@@ -101,11 +90,6 @@ class ScrollTimeline : public AnimationTimeline,
     ScrollerInfo() = default;
 
     bool IsAnonymous() const { return mType != Type::Name; }
-
-    static ScrollerInfo Anonymous(Type aType, Element* aElement,
-                                  const PseudoStyleRequest& aPseudoRequest) {
-      return {aType, aElement, aPseudoRequest};
-    }
 
     static ScrollerInfo Anonymous(StyleScroller aType,
                                   const NonOwningAnimationTarget& aTarget) {
@@ -150,8 +134,11 @@ class ScrollTimeline : public AnimationTimeline,
     layers::ScrollDirection Axis() const;
     StyleOverflow SourceScrollStyle() const;
     bool APZIsActiveForSource() const;
-    // May return null if script created us.
-    Element* SourceElement() const { return mSource.mElement; }
+    Element* SourceElement() const {
+      auto* element = mSource.mElement;
+      MOZ_ASSERT(element);
+      return element;
+    }
     bool ScrollingDirectionIsAvailable() const;
     // If the source of a ScrollTimeline is an element whose principal box does
     // not exist or is not a scroll container, then its phase is the timeline
@@ -188,15 +175,10 @@ class ScrollTimeline : public AnimationTimeline,
   NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(ScrollTimeline, AnimationTimeline)
 
   JSObject* WrapObject(JSContext* aCx,
-                       JS::Handle<JSObject*> aGivenProto) override;
-
-  // ScrollTimeline methods.
-  static already_AddRefed<ScrollTimeline> Constructor(
-      const GlobalObject& aGlobal, const ScrollTimelineOptions& aOptions,
-      ErrorResult& aRv);
-  // MOZ_CAN_RUN_SCRIPT because GetScrollingElement may flush in quirks mode.
-  MOZ_CAN_RUN_SCRIPT Element* GetSource() const;
-  dom::ScrollAxis GetScrollAxis() const;
+                       JS::Handle<JSObject*> aGivenProto) override {
+    // FIXME: Bug 1676794: Implement ScrollTimeline interface.
+    return nullptr;
+  }
 
   State GetState() const {
     return State{mScrollerInfo.Source(), mAxis,
@@ -241,8 +223,11 @@ class ScrollTimeline : public AnimationTimeline,
 
   void WillRefresh();
 
-  // May return null if script created us.
-  Element* SourceElement() const { return mScrollerInfo.Source().mElement; }
+  Element* SourceElement() const {
+    auto* element = mScrollerInfo.Source().mElement;
+    MOZ_ASSERT(element);
+    return element;
+  }
 
   virtual NonOwningAnimationTarget TimelineTarget() const {
     MOZ_ASSERT(!mScrollerInfo.IsAnonymous());
