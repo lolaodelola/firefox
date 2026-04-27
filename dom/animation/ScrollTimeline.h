@@ -151,9 +151,7 @@ class ScrollTimeline : public AnimationTimeline,
     StyleOverflow SourceScrollStyle() const;
     bool APZIsActiveForSource() const;
     // May return null if script created us.
-    Element* SourceElement() const {
-      return mSource.mElement;
-    }
+    Element* SourceElement() const { return mSource.mElement; }
     bool ScrollingDirectionIsAvailable() const;
     // If the source of a ScrollTimeline is an element whose principal box does
     // not exist or is not a scroll container, then its phase is the timeline
@@ -244,9 +242,7 @@ class ScrollTimeline : public AnimationTimeline,
   void WillRefresh();
 
   // May return null if script created us.
-  Element* SourceElement() const {
-    return mScrollerInfo.Source().mElement;
-  }
+  Element* SourceElement() const { return mScrollerInfo.Source().mElement; }
 
   virtual NonOwningAnimationTarget TimelineTarget() const {
     MOZ_ASSERT(!mScrollerInfo.IsAnonymous());
