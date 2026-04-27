@@ -22,7 +22,7 @@ interface Animation : EventTarget {
   attribute DOMString id;
   [Pure]
   attribute AnimationEffect? effect;
-  // Bug 2016878. Drop BinaryName once we support ViewTimeline interface.
+  // Bug 1676794. Drop BinaryName once we support ScrollTimeline interface.
   [BinaryName="timelineFromJS"]
   attribute AnimationTimeline? timeline;
 
