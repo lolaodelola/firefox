@@ -157,6 +157,12 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(Event)
         inputEvent->mTargetRanges.Clear();
         break;
       }
+      case eAnimationEventClass:
+        tmp->mEvent->AsAnimationEvent()->mAnimation = nullptr;
+        break;
+      case eTransitionEventClass:
+        tmp->mEvent->AsTransitionEvent()->mAnimation = nullptr;
+        break;
       default:
         break;
     }
@@ -194,6 +200,14 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(Event)
         cb.NoteXPCOMChild(tmp->mEvent->AsEditorInputEvent()->mDataTransfer);
         NS_IMPL_CYCLE_COLLECTION_TRAVERSE(
             mEvent->AsEditorInputEvent()->mTargetRanges);
+        break;
+      case eAnimationEventClass:
+        NS_IMPL_CYCLE_COLLECTION_TRAVERSE(
+            mEvent->AsAnimationEvent()->mAnimation);
+        break;
+      case eTransitionEventClass:
+        NS_IMPL_CYCLE_COLLECTION_TRAVERSE(
+            mEvent->AsTransitionEvent()->mAnimation);
         break;
       default:
         break;
