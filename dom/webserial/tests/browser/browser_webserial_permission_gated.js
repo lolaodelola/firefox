@@ -114,7 +114,10 @@ add_task(async function testRequestPort() {
       return errorMessage;
     }
   );
-  is(rejectionMessage, "NotFoundError: No port selected");
+  is(
+    rejectionMessage,
+    "SecurityError: WebSerial requires a site permission add-on to activate"
+  );
 
   assertSitePermissionInstallTelemetryEvents(["site_warning", "cancelled"]);
 
@@ -164,8 +167,8 @@ add_task(async function testRequestPort() {
   );
   is(
     rejectionMessage,
-    "NotFoundError: No port selected",
-    "got expected error when rejecting add-on"
+    "SecurityError: WebSerial requires a site permission add-on to activate",
+    "got expected SecurityError when rejecting add-on"
   );
 
   assertSitePermissionInstallTelemetryEvents([
@@ -279,7 +282,7 @@ add_task(async function testRequestPort() {
       return errorMessage;
     }
   );
-  is(rejectionMessage, "NotFoundError", "requestPort was rejected");
+  is(rejectionMessage, "SecurityError", "requestPort was rejected");
 
   info("Request serial port access again");
   let denyIntervalStart = performance.now();
@@ -299,7 +302,7 @@ add_task(async function testRequestPort() {
   );
   is(
     rejectionMessage,
-    "NotFoundError",
+    "SecurityError",
     "requestPort was rejected without user prompt"
   );
   let denyIntervalElapsed = performance.now() - denyIntervalStart;
