@@ -70,7 +70,7 @@ mozilla::ipc::IPCResult RemoteDecoderParent::RecvInit(
           mManagerThread, __func__,
           [self](MediaDataDecoder::InitPromise::ResolveOrRejectValue&& aValue) {
             self->mInitRequest.Complete();
-            if (!self->CanRecv() || !self->mPendingInitResolver) {
+            if (!self->CanSend() || !self->mPendingInitResolver) {
               return;
             }
             auto resolver = std::move(*self->mPendingInitResolver);
@@ -111,7 +111,7 @@ void RemoteDecoderParent::DecodeNextSample(
     MediaDataDecoder::DecodedData&& aOutput) {
   MOZ_ASSERT(OnManagerThread());
 
-  if (!CanRecv() || !mPendingDecodeResolver) {
+  if (!CanSend() || !mPendingDecodeResolver) {
     return;
   }
 
@@ -245,7 +245,7 @@ mozilla::ipc::IPCResult RemoteDecoderParent::RecvDrain(
             auto resolver = std::move(*mPendingDrainResolver);
             mPendingDrainResolver.reset();
             ReleaseAllBuffers();
-            if (!self->CanRecv()) {
+            if (!self->CanSend()) {
               resolver(MediaResult(NS_ERROR_DOM_MEDIA_CANCELED, __func__));
               return;
             }
