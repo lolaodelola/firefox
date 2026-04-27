@@ -542,51 +542,6 @@ skip-if = [
   "os == 'mac' && os_version == '15.30' && arch == 'aarch64'", # bug 1570474
 ]
 
-["browser_urlbar_telemetry.js"]
-tags = "search-telemetry"
-support-files = [
-  "urlbarTelemetrySearchSuggestions.sjs",
-  "urlbarTelemetrySearchSuggestions.xml",
-]
-
-["browser_urlbar_telemetry_autofill.js"]
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_extension.js"]
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_handoff.js"]
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_heuristic.js"]
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_persisted.js"]
-tags = "search-telemetry"
-skip-if = [
-  "os == 'linux' && os_version == '24.04' && arch == 'x86_64' && display == 'x11' && opt && a11y_checks && swgl", # Bug 1934362
-]
-
-["browser_urlbar_telemetry_places.js"]
-https_first_disabled = true
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_remotetab.js"]
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_searchmode.js"]
-tags = "search-telemetry"
-support-files = [
-  "urlbarTelemetrySearchSuggestions.sjs",
-  "urlbarTelemetrySearchSuggestions.xml",
-]
-
-["browser_urlbar_telemetry_tabtosearch.js"]
-tags = "search-telemetry"
-
-["browser_urlbar_telemetry_zeroPrefix.js"]
-tags = "search-telemetry"
-
 ["browser_userTypedValue.js"]
 support-files = ["file_userTypedValue.html"]
 
