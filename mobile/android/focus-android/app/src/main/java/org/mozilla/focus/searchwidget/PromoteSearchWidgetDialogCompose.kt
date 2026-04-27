@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.constraintlayout.compose.ConstraintLayout
+import mozilla.components.compose.base.button.IconButton
 import mozilla.components.ui.colors.PhotonColors
 import org.mozilla.focus.R
 import org.mozilla.focus.ui.theme.FocusTheme
@@ -196,6 +196,7 @@ private fun CloseButton(
             onDismiss()
             openState.value = false
         },
+        contentDescription = stringResource(id = R.string.promote_search_widget_dialog_content_description),
         modifier = Modifier
             .background(
                 colorResource(id = R.color.promote_search_widget_dialog_close_button_background),
@@ -206,7 +207,7 @@ private fun CloseButton(
     ) {
         Icon(
             painter = painterResource(iconsR.drawable.mozac_ic_cross_24),
-            contentDescription = stringResource(id = R.string.promote_search_widget_dialog_content_description),
+            contentDescription = null,
             tint = focusColors.closeIcon,
         )
     }
