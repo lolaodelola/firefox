@@ -16,6 +16,10 @@
 
 using namespace mozilla;
 
+// This reads the '% Processor Performance' performance counter from 'Processor
+// Information' and multiplies that by the value of the nominal frequency
+// obtained from "HARDWARE\DESCRIPTION\System\CentralProcessor\~MHz"
+
 ProfilerCPUFreq::ProfilerCPUFreq() {
   // Query the size of the text data so you can allocate the buffer.
   DWORD dwBufferSize = 0;
