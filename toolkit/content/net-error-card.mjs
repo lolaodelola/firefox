@@ -654,6 +654,7 @@ export class NetErrorCard extends MozLitElement {
       whatCanYouDoItems: customNetError.whatCanYouDoItems,
       learnMoreL10nId: customNetError.learnMoreL10nId,
       learnMoreSupportPage: customNetError.learnMoreSupportPage,
+      errorCode: customNetError.showErrorCode ? config.errorCode : null,
       buttons: {
         tryAgain: config.buttons?.showTryAgain,
         goBack: config.buttons?.showGoBack && window.self === window.top,
@@ -713,6 +714,7 @@ export class NetErrorCard extends MozLitElement {
       whatCanYouDoItems,
       learnMoreL10nId,
       learnMoreSupportPage,
+      errorCode,
       buttons = {},
       useAdvancedSection,
     } = params;
@@ -781,6 +783,12 @@ export class NetErrorCard extends MozLitElement {
               target="_blank"
             ></a>
           </p>`
+        : null}
+      ${errorCode
+        ? html`<p
+            data-l10n-id="fp-cert-error-code"
+            data-l10n-args=${JSON.stringify({ error: errorCode })}
+          ></p>`
         : null}
       ${tryAgain
         ? html`<moz-button-group>
