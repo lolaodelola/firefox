@@ -592,23 +592,6 @@ support-files = ["file_userTypedValue.html"]
 
 ["browser_valueOnTabSwitch.js"]
 
-["browser_view_emptyResultSet.js"]
-
-["browser_view_removedSelectedElement.js"]
-
-["browser_view_resultDisplay.js"]
-
-["browser_view_resultTypes_display.js"]
-support-files = [
-  "print_postdata.sjs",
-  "searchSuggestionEngine.xml",
-  "searchSuggestionEngine.sjs",
-]
-
-["browser_view_reusable.js"]
-
-["browser_view_selectionByMouse.js"]
-
 ["browser_waitForLoadStartOrTimeout.js"]
 https_first_disabled = true
 
