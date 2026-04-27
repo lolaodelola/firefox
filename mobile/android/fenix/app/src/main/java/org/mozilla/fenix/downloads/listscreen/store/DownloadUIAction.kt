@@ -151,11 +151,6 @@ sealed interface DownloadUIAction : Action {
     data class ResumeDownload(val downloadId: String) : DownloadUIAction
 
     /**
-     * [DownloadUIAction] to cancel an incomplete download file.
-     */
-    data class CancelDownload(val downloadId: String) : DownloadUIAction
-
-    /**
      * [DownloadUIAction] to retry a failed download file.
      */
     data class RetryDownload(val downloadId: String) : DownloadUIAction
@@ -171,9 +166,19 @@ sealed interface DownloadUIAction : Action {
     object NavigationIconClicked : DownloadUIAction
 
     /**
-     * [DownloadUIAction] fired when the user clicks the delete icon for one or more items.
+     * [DownloadUIAction] fired when the user clicks the delete icon for multiple items.
      */
-    data class RequestDelete(val items: Set<FileItem>) : DownloadUIAction
+    data class RequestDeleteMultiple(val items: Set<FileItem>) : DownloadUIAction
+
+    /**
+     * [DownloadUIAction] fired when the user clicks the delete icon for one item.
+     */
+    data class RequestDelete(val item: FileItem) : DownloadUIAction
+
+    /**
+     * [DownloadUIAction] to cancel an incomplete download file.
+     */
+    data class CancelDownload(val downloadId: String) : DownloadUIAction
 
     /**
      * [DownloadUIAction] to set the items currently pending confirmation in the dialog.

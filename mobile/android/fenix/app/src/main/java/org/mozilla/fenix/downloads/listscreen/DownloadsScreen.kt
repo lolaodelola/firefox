@@ -210,7 +210,7 @@ fun DownloadsScreen(
                             toolbarConfig = toolbarConfig,
                             onItemDeleteClick = {
                                 downloadsStore.dispatch(
-                                    DownloadUIAction.RequestDelete(
+                                    DownloadUIAction.RequestDeleteMultiple(
                                         uiState.mode.selectedItems,
                                     ),
                                 )
@@ -270,11 +270,7 @@ fun DownloadsScreen(
                 downloadsStore.dispatch(DownloadUIAction.RetryDownload(downloadId = it))
             },
             onDeleteClick = { item ->
-                if (item.status is FileItem.Status.Completed) {
-                    downloadsStore.dispatch(DownloadUIAction.RequestDelete(setOf(item)))
-                } else {
-                    downloadsStore.dispatch(DownloadUIAction.CancelDownload(downloadId = item.id))
-                }
+                downloadsStore.dispatch(DownloadUIAction.RequestDelete(item))
             },
             onShareUrlClick = { downloadsStore.dispatch(DownloadUIAction.ShareUrlClicked(it.url)) },
             onShareFileClick = {
