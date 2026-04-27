@@ -14,7 +14,6 @@ browser.jar:
    content/browser/preferences/privacy.js
    content/browser/preferences/containers.js
    content/browser/preferences/sync.js
-   content/browser/preferences/experimental.js
    content/browser/preferences/moreFromMozilla.js
    content/browser/preferences/fxaPairDevice.xhtml
    content/browser/preferences/fxaPairDevice.js
@@ -32,6 +31,7 @@ browser.jar:
    content/browser/preferences/config/account-sync.mjs                  (config/account-sync.mjs)
    content/browser/preferences/config/accessibility.mjs                 (config/accessibility.mjs)
    content/browser/preferences/config/aiFeatures.mjs                    (config/aiFeatures.mjs)
+   content/browser/preferences/config/firefoxLabs.mjs                    (config/firefoxLabs.mjs)
    content/browser/preferences/config/block-ai-confirmation-dialog.css  (config/block-ai-confirmation-dialog.css)
    content/browser/preferences/config/home-startup.mjs                  (config/home-startup.mjs)
    content/browser/preferences/config/search.mjs                        (config/search.mjs)
