@@ -9,7 +9,7 @@
 #include "mozilla/dom/SerialPlatformService.h"
 #include "nsTHashMap.h"
 
-#if defined(XP_LINUX) && defined(MOZ_ENABLE_DBUS)
+#ifdef XP_LINUX
 #  include <glib.h>
 
 #  include "mozilla/UdevLib.h"
