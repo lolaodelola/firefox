@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.mozilla.fenix.compose
+package mozilla.components.compose.base
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import org.mozilla.fenix.theme.FirefoxTheme
+import mozilla.components.compose.base.theme.AcornTheme
 
 /**
  * An horizontally laid out indicator for a [HorizontalPager] with the ability to leave the trail of
@@ -83,7 +83,7 @@ fun PagerIndicator(
 @PreviewLightDark
 @Composable
 private fun PagerIndicatorPreview() {
-    FirefoxTheme {
+    AcornTheme {
         Surface {
             Column(
                 modifier = Modifier.padding(32.dp),
@@ -91,7 +91,7 @@ private fun PagerIndicatorPreview() {
             ) {
                 Text(
                     text = "Without trail",
-                    style = FirefoxTheme.typography.caption,
+                    style = AcornTheme.typography.caption,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -106,7 +106,7 @@ private fun PagerIndicatorPreview() {
 
                 Text(
                     text = "With trail",
-                    style = FirefoxTheme.typography.caption,
+                    style = AcornTheme.typography.caption,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -122,7 +122,7 @@ private fun PagerIndicatorPreview() {
 
                 Text(
                     text = "Default colors",
-                    style = FirefoxTheme.typography.caption,
+                    style = AcornTheme.typography.caption,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
