@@ -566,8 +566,6 @@ run-sequentially = [
 
 ["test_cookies_partition_migration.js"]
 
-["test_cookies_validation_epoch.js"]
-
 ["test_cookies_privatebrowsing.js"]
 
 ["test_cookies_profile_close.js"]
@@ -587,6 +585,8 @@ skip-if = [
 requesttimeoutfactor = 2  # Slow on macOS
 
 ["test_cookies_upgrade_10.js"]
+
+["test_cookies_validation_epoch.js"]
 
 ["test_cors_preflight_dns_cache.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
@@ -624,6 +624,8 @@ skip-if = [
 
 ["test_dns_disabled.js"]
 
+["test_dns_drain_loop.js"]
+
 ["test_dns_localredirect.js"]
 
 ["test_dns_offline.js"]
@@ -655,8 +657,6 @@ skip-if = [
 
 ["test_dns_stress.js"]
 
-["test_dns_drain_loop.js"]
-
 ["test_domain_eviction.js"]
 
 ["test_dooh.js"]
@@ -677,6 +677,13 @@ run-sequentially = ["true"] # node server exceptions dont replay well
 
 ["test_ech_grease.js"]
 firefox-appdir = "browser"
+
+["test_eof_retry.js"]
+prefs = [
+  "security.tls.version.min=4",
+  "security.tls.version.max=4",
+  "network.http.speculative-parallel-limit=0",
+]
 
 ["test_essential_domain_fallback.js"]
 run-if = [
@@ -709,7 +716,16 @@ skip-if = [
 ["test_h2proxy_connection_limit.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
 
-["test_happy_eyeballs_tcp_fallback.js"]
+["test_happy_eyeballs_cancel_and_reuse.js"]
+skip-if = [
+  "os == 'android'",
+  "os == 'win' && msix",
+]
+
+["test_happy_eyeballs_concurrent_channels.js"]
+run-sequentially = ["true"]
+
+["test_happy_eyeballs_conn_failure.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
 skip-if = [
   "os == 'android'",
@@ -730,24 +746,15 @@ skip-if = [
   "os == 'win'",
 ]
 
-["test_happy_eyeballs_concurrent_channels.js"]
-run-sequentially = ["true"]
-
-["test_happy_eyeballs_cancel_and_reuse.js"]
-skip-if = [
-  "os == 'android'",
-  "os == 'win' && msix",
-]
-
-["test_happy_eyeballs_conn_failure.js"]
-run-sequentially = ["true"] # node server exceptions dont replay well
-skip-if = [
-  "os == 'android'",
-  "os == 'win' && msix",
-]
-
 ["test_happy_eyeballs_ip_preference.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well
+
+["test_happy_eyeballs_tcp_fallback.js"]
+run-sequentially = ["true"] # node server exceptions dont replay well
+skip-if = [
+  "os == 'android'",
+  "os == 'win' && msix",
+]
 
 ["test_happy_eyeballs_timings.js"]
 run-sequentially = ["true"] # node server exceptions dont replay well

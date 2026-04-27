@@ -169,10 +169,8 @@ nsresult ErrorAccordingToNSPR(PRErrorCode errorCode) {
       break;
     case PR_CONNECT_ABORTED_ERROR:
     case PR_CONNECT_RESET_ERROR:
+    case PR_END_OF_FILE_ERROR:  // unexpected EOF is treated the same as reset
       rv = NS_ERROR_NET_RESET;
-      break;
-    case PR_END_OF_FILE_ERROR:  // XXX document this correlation
-      rv = NS_ERROR_NET_INTERRUPT;
       break;
     case PR_CONNECT_REFUSED_ERROR:
     // We lump the following NSPR codes in with PR_CONNECT_REFUSED_ERROR. We
