@@ -1,3 +1,18 @@
+commit 27fefb23c136b92631e1097dc8ee78583816fd0b
+Merge: 6dd753184b 1daa8265e0
+Author: Ashley Hale <ahale@mozilla.com>
+Date:   Wed Apr 22 13:39:19 2026 -0700
+
+    Merge pull request #31 from teoxoy/add-break
+    
+    break out of loop early
+
+commit 1daa8265e00604b7e4dd52c65b9bf8cdd17c179f
+Author: teoxoy <28601907+teoxoy@users.noreply.github.com>
+Date:   Wed Apr 22 18:57:59 2026 +0200
+
+    break out of loop early
+
 commit 6dd753184b4d098d47aae79b0a1654fa69f6ea7b
 Merge: 65ee3a6a5a 978f620487
 Author: Ashley Hale <ahale@mozilla.com>
