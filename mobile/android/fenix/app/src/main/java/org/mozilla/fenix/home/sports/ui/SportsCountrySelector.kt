@@ -44,16 +44,8 @@ import org.mozilla.fenix.R
 import org.mozilla.fenix.compose.BottomSheetHandle
 import org.mozilla.fenix.home.sports.Country
 import org.mozilla.fenix.home.sports.Region
-import org.mozilla.fenix.home.sports.displayName
 import org.mozilla.fenix.home.sports.regionGrouping
 import org.mozilla.fenix.theme.FirefoxTheme
-
-@Composable
-private fun countryDisplayName(country: Country): String = when (country.countryCode) {
-    "GB-ENG" -> stringResource(R.string.sports_widget_country_england)
-    "GB-SCT" -> stringResource(R.string.sports_widget_country_scotland)
-    else -> country.displayName()
-}
 
 /**
  * A bottom sheet that displays a country selector for the sports tournament.
@@ -197,7 +189,7 @@ private fun CountryFlagItem(
         Spacer(modifier = Modifier.height(FirefoxTheme.layout.space.static50))
 
         Text(
-            text = countryDisplayName(country),
+            text = country.countryCode,
             style = FirefoxTheme.typography.caption.copy(
                 fontWeight = FontWeight.W700,
             ),
