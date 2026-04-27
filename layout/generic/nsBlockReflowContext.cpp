@@ -413,20 +413,10 @@ bool nsBlockReflowContext::PlaceBlock(const ReflowInput& aReflowInput,
   // mMetrics.BSize() appear to go beyond the available block size.
   if (!empty && !aForceFit &&
       mSpace.BSize(mWritingMode) != NS_UNCONSTRAINEDSIZE) {
-    const nscoord bSize = mMetrics.BSize(mWritingMode);
-    const nscoord bEnd = mBCoord - backupContainingBlockAdvance + bSize;
+    nscoord bEnd =
+        mBCoord - backupContainingBlockAdvance + mMetrics.BSize(mWritingMode);
     if (bEnd > mSpace.BEnd(mWritingMode)) {
       // didn't fit, we must acquit.
-      mFrame->DidReflow(mPresContext, &aReflowInput);
-      return false;
-    }
-    if (bSize == 0 && aReflowStatus.IsIncomplete()) {
-      // Reject a zero-height fragment of an incomplete block. Per CSS
-      // Fragmentation spec, a Class C break point exists only when there is a
-      // non-zero gap between the content edge of a block container box and the
-      // outer edges of its child content. A zero-height fragment means there is
-      // no such gap, so we push the block to the next fragmentainer.
-      // https://www.w3.org/TR/css-break-3/#end-block
       mFrame->DidReflow(mPresContext, &aReflowInput);
       return false;
     }
