@@ -557,6 +557,14 @@ export var UITour = {
         break;
       }
 
+      case "pinToTaskbar": {
+        let shell = window.getShellService();
+        if (shell) {
+          shell.pinToTaskbar().catch(console.error);
+        }
+        break;
+      }
+
       case "setTreatmentTag": {
         let name = data.name;
         let value = data.value;
@@ -1627,6 +1635,38 @@ export var UITour = {
           lazy.ResetProfile.resetSupported()
         );
         break;
+      case "aiControls":
+        this.sendPageCallback(aBrowser, aCallbackID, {
+          default: Services.prefs.getStringPref(
+            "browser.ai.control.default",
+            "available"
+          ),
+          translations: Services.prefs.getStringPref(
+            "browser.ai.control.translations",
+            "default"
+          ),
+          pdfjsAltText: Services.prefs.getStringPref(
+            "browser.ai.control.pdfjsAltText",
+            "default"
+          ),
+          smartTabGroups: Services.prefs.getStringPref(
+            "browser.ai.control.smartTabGroups",
+            "default"
+          ),
+          linkPreviewKeyPoints: Services.prefs.getStringPref(
+            "browser.ai.control.linkPreviewKeyPoints",
+            "default"
+          ),
+          sidebarChatbot: Services.prefs.getStringPref(
+            "browser.ai.control.sidebarChatbot",
+            "default"
+          ),
+          smartWindow: Services.prefs.getStringPref(
+            "browser.ai.control.smartWindow",
+            "default"
+          ),
+        });
+        break;
       default:
         lazy.log.error(
           "getConfiguration: Unknown configuration requested: " + aConfiguration
@@ -1783,6 +1823,13 @@ export var UITour = {
         }
       } catch (e) {}
       appinfo.defaultBrowser = isDefaultBrowser;
+
+      try {
+        let shell = aWindow.getShellService();
+        if (shell) {
+          appinfo.needsPin = await shell.doesAppNeedPin();
+        }
+      } catch (e) {}
 
       let canSetDefaultBrowserInBackground = true;
       if (AppConstants.platform == "win" || AppConstants.platform == "macosx") {
