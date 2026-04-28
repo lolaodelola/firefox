@@ -15,7 +15,7 @@
 #include "States.h"
 #include "TextLeafAccessible.h"
 
-#include "nsContentList.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/HTMLInputElement.h"
 #include "mozilla/dom/HTMLMeterElement.h"
 #include "mozilla/dom/HTMLTextAreaElement.h"
@@ -114,7 +114,7 @@ Relation HTMLRadioButtonAccessible::ComputeGroupAttributes(
   nsAutoString name;
   mContent->AsElement()->GetAttr(nsGkAtoms::name, name);
 
-  RefPtr<nsContentList> inputElms;
+  RefPtr<ContentList> inputElms;
 
   if (dom::Element* formElm =
           nsIFormControl::FromNode(mContent)->GetFormInternal()) {

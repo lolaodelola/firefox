@@ -3021,7 +3021,7 @@ pub unsafe extern "C" fn Servo_SelectorList_QueryFirst(
 pub unsafe extern "C" fn Servo_SelectorList_QueryAll(
     node: &RawGeckoNode,
     selectors: &SelectorList,
-    content_list: *mut structs::nsSimpleContentList,
+    content_list: *mut structs::SimpleContentList,
     may_use_invalidation: bool,
 ) {
     use style::dom_apis::{self, MayUseInvalidation, QueryAll};
@@ -3058,7 +3058,7 @@ pub unsafe extern "C" fn Servo_SelectorList_QueryAllWithScope(
     node: &RawGeckoNode,
     rules: &nsTArray<&LockedStyleRule>,
     scope_rules: &nsTArray<ScopeRuleData>,
-    content_list: *mut structs::nsSimpleContentList,
+    content_list: *mut structs::SimpleContentList,
 ) {
     let root = GeckoNode(node);
     let quirks_mode = root.owner_doc().quirks_mode();

@@ -73,7 +73,7 @@ class CSSStyleRule final : public css::GroupRule {
                            const nsAString& aPseudo, bool aRelevantLinkVisited);
   DeclarationBlock& GetDeclarationBlock() const;
   void GetSelectorWarnings(nsTArray<SelectorWarning>& aResult) const;
-  already_AddRefed<nsINodeList> QuerySelectorAll(nsINode& aRoot);
+  already_AddRefed<NodeList> QuerySelectorAll(nsINode& aRoot);
 
   // WebIDL interface
   StyleCssRuleType Type() const final;

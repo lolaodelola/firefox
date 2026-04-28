@@ -41,7 +41,6 @@ class nsIContent;
 class nsCSSPropertyIDSet;
 class nsPresContext;
 class nsStaticAtom;
-class nsSimpleContentList;
 class imgRequestProxy;
 struct nsCSSValueSharedList;
 struct AnchorPosResolutionParams;
@@ -140,11 +139,14 @@ enum SheetParsingMode : uint8_t;
 namespace dom {
 enum class IterationCompositeOperation : uint8_t;
 enum class CallerType : uint32_t;
+class SimpleContentList;
 
 class Element;
 class Document;
 
 }  // namespace dom
+
+using StyleSimpleContentList = dom::SimpleContentList;
 
 // Replacement for a Rust Box<T> for a non-dynamically-sized-type.
 //

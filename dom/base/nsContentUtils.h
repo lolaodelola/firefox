@@ -71,7 +71,6 @@ class imgRequestProxy;
 class nsAtom;
 class nsAttrValue;
 class nsAutoScriptBlockerSuppressNodeRemoved;
-class nsContentList;
 class nsCycleCollectionTraversalCallback;
 class nsDocShell;
 class nsGlobalWindowInner;
@@ -166,6 +165,7 @@ class BrowserParent;
 class BrowsingContext;
 class BrowsingContextGroup;
 class ContentChild;
+class ContentList;
 class ContentFrameMessageManager;
 class ContentParent;
 struct CustomElementDefinition;
@@ -2143,7 +2143,7 @@ class nsContentUtils {
       TextContentDiscoverMode aDiscoverMode = eDontRecurseIntoChildren);
 
   /**
-   * Delete strings allocated for nsContentList matches
+   * Delete strings allocated for ContentList matches
    */
   static void DestroyMatchString(void* aData);
 
@@ -2528,7 +2528,7 @@ class nsContentUtils {
    * Utility method for getElementsByClassName.  aRootNode is the node (either
    * document or element), which getElementsByClassName was called on.
    */
-  static already_AddRefed<nsContentList> GetElementsByClassName(
+  static already_AddRefed<mozilla::dom::ContentList> GetElementsByClassName(
       nsINode* aRootNode, const nsAString& aClasses);
 
   /**

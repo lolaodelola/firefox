@@ -154,6 +154,7 @@
 #include "mozilla/dom/CloseWatcherManager.h"
 #include "mozilla/dom/Comment.h"
 #include "mozilla/dom/ContentChild.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/CustomElementRegistry.h"
 #include "mozilla/dom/CustomEvent.h"
 #include "mozilla/dom/DOMImplementation.h"
@@ -206,6 +207,7 @@
 #include "mozilla/dom/NetErrorInfoBinding.h"
 #include "mozilla/dom/NodeInfo.h"
 #include "mozilla/dom/NodeIterator.h"
+#include "mozilla/dom/NodeList.h"
 #include "mozilla/dom/PContentChild.h"
 #include "mozilla/dom/PWindowGlobalChild.h"
 #include "mozilla/dom/PageLoadEventUtils.h"
@@ -307,7 +309,6 @@
 #include "nsCommandParams.h"
 #include "nsComponentManagerUtils.h"
 #include "nsContentCreatorFunctions.h"
-#include "nsContentList.h"
 #include "nsContentPermissionHelper.h"
 #include "nsContentSecurityUtils.h"
 #include "nsContentUtils.h"
@@ -369,7 +370,6 @@
 #include "nsIFileChannel.h"
 #include "nsIFrame.h"
 #include "nsIGlobalObject.h"
-#include "nsIHTMLCollection.h"
 #include "nsIHttpChannel.h"
 #include "nsIHttpChannelInternal.h"
 #include "nsIIOService.h"
@@ -382,7 +382,6 @@
 #include "nsIMutationObserver.h"
 #include "nsINSSErrorsService.h"
 #include "nsINamed.h"
-#include "nsINodeList.h"
 #include "nsIObjectLoadingContent.h"
 #include "nsIObserverService.h"
 #include "nsIParentalControlsService.h"
@@ -551,7 +550,7 @@ static nsresult GetHttpChannelHelper(nsIChannel* aChannel,
 
 }  // namespace dom
 
-#define NAME_NOT_VALID ((nsSimpleContentList*)1)
+#define NAME_NOT_VALID ((SimpleContentList*)1)
 
 IdentifierMapEntry::IdentifierMapEntry(
     const IdentifierMapEntry::DependentAtomOrString* aKey)
@@ -561,12 +560,13 @@ void IdentifierMapEntry::Traverse(
     nsCycleCollectionTraversalCallback* aCallback) {
   NS_CYCLE_COLLECTION_NOTE_EDGE_NAME(*aCallback,
                                      "mIdentifierMap mNameContentList");
-  aCallback->NoteXPCOMChild(static_cast<nsINodeList*>(mNameContentList));
+  aCallback->NoteXPCOMChild(
+      static_cast<mozilla::dom::NodeList*>(mNameContentList));
 
   NS_CYCLE_COLLECTION_NOTE_EDGE_NAME(*aCallback,
                                      "mIdentifierMap mDocumentNameContentList");
   aCallback->NoteXPCOMChild(
-      static_cast<nsINodeList*>(mDocumentNameContentList));
+      static_cast<mozilla::dom::NodeList*>(mDocumentNameContentList));
 
   if (mImageElement) {
     NS_CYCLE_COLLECTION_NOTE_EDGE_NAME(*aCallback,
@@ -680,93 +680,6 @@ void IdentifierMapEntry::ClearAndNotify() {
   }
   mChangeCallbacks = nullptr;
 }
-
-namespace dom {
-
-class SimpleHTMLCollection final : public nsSimpleContentList,
-                                   public nsIHTMLCollection {
- public:
-  explicit SimpleHTMLCollection(nsINode* aRoot) : nsSimpleContentList(aRoot) {}
-
-  NS_DECL_ISUPPORTS_INHERITED
-
-  virtual nsINode* GetParentObject() override {
-    return nsSimpleContentList::GetParentObject();
-  }
-  virtual uint32_t Length() override { return nsSimpleContentList::Length(); }
-  virtual Element* GetElementAt(uint32_t aIndex) override {
-    if (nsIContent* content = mElements.SafeElementAt(aIndex)) {
-      return content->AsElement();
-    }
-    return nullptr;
-  }
-
-  virtual Element* GetFirstNamedElement(const nsAString& aName,
-                                        bool& aFound) override {
-    aFound = false;
-    RefPtr<nsAtom> name = NS_Atomize(aName);
-    for (uint32_t i = 0; i < mElements.Length(); i++) {
-      MOZ_DIAGNOSTIC_ASSERT(mElements[i]);
-      Element* element = mElements[i]->AsElement();
-      if (element->GetID() == name ||
-          (element->HasName() &&
-           element->GetParsedAttr(nsGkAtoms::name)->GetAtomValue() == name)) {
-        aFound = true;
-        return element;
-      }
-    }
-    return nullptr;
-  }
-
-  virtual void GetSupportedNames(nsTArray<nsString>& aNames) override {
-    AutoTArray<nsAtom*, 8> atoms;
-    for (uint32_t i = 0; i < mElements.Length(); i++) {
-      MOZ_DIAGNOSTIC_ASSERT(mElements[i]);
-      Element* element = mElements[i]->AsElement();
-
-      nsAtom* id = element->GetID();
-      MOZ_ASSERT(id != nsGkAtoms::_empty);
-      if (id && !atoms.Contains(id)) {
-        atoms.AppendElement(id);
-      }
-
-      if (element->HasName()) {
-        nsAtom* name = element->GetParsedAttr(nsGkAtoms::name)->GetAtomValue();
-        MOZ_ASSERT(name && name != nsGkAtoms::_empty);
-        if (name && !atoms.Contains(name)) {
-          atoms.AppendElement(name);
-        }
-      }
-    }
-
-    nsString* names = aNames.AppendElements(atoms.Length());
-    for (uint32_t i = 0; i < atoms.Length(); i++) {
-      atoms[i]->ToString(names[i]);
-    }
-  }
-
-  virtual JSObject* GetWrapperPreserveColorInternal() override {
-    return nsWrapperCache::GetWrapperPreserveColor();
-  }
-  virtual void PreserveWrapperInternal(
-      nsISupports* aScriptObjectHolder) override {
-    nsWrapperCache::PreserveWrapper(aScriptObjectHolder);
-  }
-  virtual JSObject* WrapObject(JSContext* aCx,
-                               JS::Handle<JSObject*> aGivenProto) override {
-    return HTMLCollection_Binding::Wrap(aCx, this, aGivenProto);
-  }
-
-  using nsBaseContentList::Item;
-
- private:
-  virtual ~SimpleHTMLCollection() = default;
-};
-
-NS_IMPL_ISUPPORTS_INHERITED(SimpleHTMLCollection, nsSimpleContentList,
-                            nsIHTMLCollection)
-
-}  // namespace dom
 
 void IdentifierMapEntry::AddNameElement(nsINode* aNode, Element* aElement) {
   if (!mNameContentList) {
@@ -4455,7 +4368,7 @@ void Document::RemoveFromDocumentNameTable(nsGenericHTMLElement* aElement,
 
   if (IdentifierMapEntry* entry = mIdentifierMap.GetEntry(aName)) {
     entry->RemoveDocumentNameElement(aElement);
-    nsBaseContentList* list = entry->GetDocumentNameContentList();
+    BaseContentList* list = entry->GetDocumentNameContentList();
     if (!list || list->Length() == 0) {
       IncrementExpandoGeneration(*this);
     }
@@ -9292,9 +9205,8 @@ void Document::DoResolveScheduledPresAttrs() {
   mLazyPresElements.Clear();
 }
 
-already_AddRefed<nsSimpleContentList> Document::BlockedNodesByClassifier()
-    const {
-  RefPtr<nsSimpleContentList> list = new nsSimpleContentList(nullptr);
+already_AddRefed<SimpleContentList> Document::BlockedNodesByClassifier() const {
+  RefPtr list = new SimpleContentList(nullptr);
 
   for (const nsWeakPtr& weakNode : mBlockedNodesByClassifier) {
     if (nsCOMPtr<nsIContent> node = do_QueryReferent(weakNode)) {
@@ -10151,18 +10063,18 @@ void Document::SetDir(const nsAString& aDirection) {
   }
 }
 
-nsIHTMLCollection* Document::Images() {
+HTMLCollection* Document::Images() {
   if (!mImages) {
-    mImages = new nsContentList(this, kNameSpaceID_XHTML, nsGkAtoms::img,
-                                nsGkAtoms::img);
+    mImages = new ContentList(this, kNameSpaceID_XHTML, nsGkAtoms::img,
+                              nsGkAtoms::img);
   }
   return mImages;
 }
 
-nsIHTMLCollection* Document::Embeds() {
+HTMLCollection* Document::Embeds() {
   if (!mEmbeds) {
-    mEmbeds = new nsContentList(this, kNameSpaceID_XHTML, nsGkAtoms::embed,
-                                nsGkAtoms::embed);
+    mEmbeds = new ContentList(this, kNameSpaceID_XHTML, nsGkAtoms::embed,
+                              nsGkAtoms::embed);
   }
   return mEmbeds;
 }
@@ -10173,34 +10085,34 @@ static bool MatchLinks(Element* aElement, int32_t aNamespaceID, nsAtom* aAtom,
          aElement->HasAttr(nsGkAtoms::href);
 }
 
-nsIHTMLCollection* Document::Links() {
+HTMLCollection* Document::Links() {
   if (!mLinks) {
-    mLinks = new nsContentList(this, MatchLinks, nullptr, nullptr);
+    mLinks = new ContentList(this, MatchLinks, nullptr, nullptr);
   }
   return mLinks;
 }
 
-nsIHTMLCollection* Document::Forms() {
+HTMLCollection* Document::Forms() {
   if (!mForms) {
     // Please keep this in sync with nsHTMLDocument::GetFormsAndFormControls.
-    mForms = new nsContentList(this, kNameSpaceID_XHTML, nsGkAtoms::form,
-                               nsGkAtoms::form);
+    mForms = new ContentList(this, kNameSpaceID_XHTML, nsGkAtoms::form,
+                             nsGkAtoms::form);
   }
 
   return mForms;
 }
 
-nsIHTMLCollection* Document::Scripts() {
+HTMLCollection* Document::Scripts() {
   if (!mScripts) {
-    mScripts = new nsContentList(this, kNameSpaceID_XHTML, nsGkAtoms::script,
-                                 nsGkAtoms::script);
+    mScripts = new ContentList(this, kNameSpaceID_XHTML, nsGkAtoms::script,
+                               nsGkAtoms::script);
   }
   return mScripts;
 }
 
-nsIHTMLCollection* Document::Applets() {
+HTMLCollection* Document::Applets() {
   if (!mApplets) {
-    mApplets = new nsEmptyContentList(this);
+    mApplets = new EmptyContentList(this);
   }
   return mApplets;
 }
@@ -10211,9 +10123,9 @@ static bool MatchAnchors(Element* aElement, int32_t aNamespaceID, nsAtom* aAtom,
          aElement->HasAttr(nsGkAtoms::name);
 }
 
-nsIHTMLCollection* Document::Anchors() {
+HTMLCollection* Document::Anchors() {
   if (!mAnchors) {
-    mAnchors = new nsContentList(this, MatchAnchors, nullptr, nullptr);
+    mAnchors = new ContentList(this, MatchAnchors, nullptr, nullptr);
   }
   return mAnchors;
 }
@@ -11927,7 +11839,7 @@ void Document::Sanitize() {
   // First locate all input elements, regardless of whether they are
   // in a form, and reset the password and autocomplete=off elements.
 
-  RefPtr<nsContentList> nodes = GetElementsByTagName(u"input"_ns);
+  RefPtr<ContentList> nodes = GetElementsByTagName(u"input"_ns);
 
   nsAutoString value;
 
@@ -12537,7 +12449,7 @@ void Document::OnPageShow(bool aPersisted, EventTarget* aDispatchStartTarget,
   Element* root = GetRootElement();
   if (aPersisted && root) {
     // Send out notifications that our <link> elements are attached.
-    RefPtr<nsContentList> links =
+    RefPtr<ContentList> links =
         NS_GetContentList(root, kNameSpaceID_XHTML, u"link"_ns);
 
     uint32_t linkCount = links->Length(true);
@@ -14384,12 +14296,11 @@ void Document::SetNavigationTiming(nsDOMNavigationTiming* aTiming) {
   }
 }
 
-nsContentList* Document::ImageMapList() {
+ContentList* Document::ImageMapList() {
   if (!mImageMaps) {
-    mImageMaps = new nsContentList(this, kNameSpaceID_XHTML, nsGkAtoms::map,
-                                   nsGkAtoms::map);
+    mImageMaps = new ContentList(this, kNameSpaceID_XHTML, nsGkAtoms::map,
+                                 nsGkAtoms::map);
   }
-
   return mImageMaps;
 }
 
@@ -15173,11 +15084,11 @@ void Document::EvaluateMediaQueriesAndReportChanges() {
   }
 }
 
-nsIHTMLCollection* Document::Children() {
+HTMLCollection* Document::Children() {
   if (!mChildrenCollection) {
     mChildrenCollection =
-        new nsContentList(this, kNameSpaceID_Wildcard, nsGkAtoms::_asterisk,
-                          nsGkAtoms::_asterisk, false);
+        new ContentList(this, kNameSpaceID_Wildcard, nsGkAtoms::_asterisk,
+                        nsGkAtoms::_asterisk, false);
   }
 
   return mChildrenCollection;

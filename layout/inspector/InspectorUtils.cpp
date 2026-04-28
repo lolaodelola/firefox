@@ -29,6 +29,7 @@
 #include "mozilla/dom/CSSStyleRule.h"
 #include "mozilla/dom/CanonicalBrowsingContext.h"
 #include "mozilla/dom/CharacterData.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/DocumentInlines.h"
 #include "mozilla/dom/Element.h"
@@ -48,7 +49,6 @@
 #include "nsCSSValue.h"
 #include "nsColor.h"
 #include "nsComputedDOMStyle.h"
-#include "nsContentList.h"
 #include "nsFieldSetFrame.h"
 #include "nsGlobalWindowInner.h"
 #include "nsGridContainerFrame.h"
@@ -1120,7 +1120,7 @@ static bool IsFrameOutsideOfAncestor(const nsIFrame* aFrame,
 static void AddOverflowingChildrenOfElement(const nsIFrame* aFrame,
                                             const nsIFrame* aAncestorFrame,
                                             const nsRect& aRect,
-                                            nsSimpleContentList& aList) {
+                                            SimpleContentList& aList) {
   MOZ_ASSERT(aFrame, "we assume the passed-in frame is non-null");
   for (const auto& childList : aFrame->ChildLists()) {
     for (const nsIFrame* child : childList.mList) {
@@ -1156,9 +1156,9 @@ static void AddOverflowingChildrenOfElement(const nsIFrame* aFrame,
   }
 }
 
-already_AddRefed<nsINodeList> InspectorUtils::GetOverflowingChildrenOfElement(
+already_AddRefed<dom::NodeList> InspectorUtils::GetOverflowingChildrenOfElement(
     GlobalObject& aGlobal, Element& aElement) {
-  auto list = MakeRefPtr<nsSimpleContentList>(&aElement);
+  auto list = MakeRefPtr<SimpleContentList>(&aElement);
   const ScrollContainerFrame* scrollContainerFrame =
       aElement.GetScrollContainerFrame();
   // Element must be a ScrollContainerFrame.

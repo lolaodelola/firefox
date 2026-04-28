@@ -32,6 +32,7 @@
 #include "mozilla/dom/Animation.h"
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/dom/BlobBinding.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/DOMCollectedFramesBinding.h"
 #include "mozilla/dom/DOMRect.h"
 #include "mozilla/dom/DocumentInlines.h"
@@ -52,7 +53,6 @@
 #include "nsCaret.h"
 #include "nsCharsetSource.h"
 #include "nsComputedDOMStyle.h"
-#include "nsContentList.h"
 #include "nsContentUtils.h"
 #include "nsDeviceContext.h"
 #include "nsError.h"
@@ -1365,12 +1365,11 @@ nsDOMWindowUtils::NodesFromRect(float aX, float aY, float aTopSize,
                                 float aRightSize, float aBottomSize,
                                 float aLeftSize, bool aIgnoreRootScrollFrame,
                                 bool aFlushLayout, bool aOnlyVisible,
-                                float aVisibleThreshold,
-                                nsINodeList** aReturn) {
+                                float aVisibleThreshold, NodeList** aReturn) {
   RefPtr<Document> doc = GetDocument();
   NS_ENSURE_STATE(doc);
 
-  auto list = MakeRefPtr<nsSimpleContentList>(doc);
+  auto list = MakeRefPtr<SimpleContentList>(doc);
 
   // The visible threshold was omitted or given a zero value (which makes no
   // sense), so give a reasonable default.

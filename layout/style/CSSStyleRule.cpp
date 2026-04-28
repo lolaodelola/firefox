@@ -12,6 +12,7 @@
 #include "mozilla/ServoBindings.h"
 #include "mozilla/dom/CSSScopeRule.h"
 #include "mozilla/dom/CSSStyleRuleBinding.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/ShadowRoot.h"
 #include "mozilla/dom/StylePropertyMap.h"
 #include "nsISupports.h"
@@ -386,11 +387,11 @@ void CSSStyleRule::GetSelectorWarnings(
   }
 }
 
-already_AddRefed<nsINodeList> CSSStyleRule::QuerySelectorAll(nsINode& aRoot) {
+already_AddRefed<NodeList> CSSStyleRule::QuerySelectorAll(nsINode& aRoot) {
   AutoTArray<const StyleLockedStyleRule*, 8> rules;
   AutoTArray<StyleScopeRuleData, 1> scopes;
   CollectStyleRules(*this, /* aDesugared = */ true, rules, &scopes);
-  auto contentList = MakeRefPtr<nsSimpleContentList>(&aRoot);
+  auto contentList = MakeRefPtr<SimpleContentList>(&aRoot);
   if (scopes.IsEmpty()) {
     StyleSelectorList* list = Servo_StyleRule_GetSelectorList(&rules);
     Servo_SelectorList_QueryAll(&aRoot, list, contentList.get(),

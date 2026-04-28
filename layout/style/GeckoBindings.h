@@ -22,7 +22,6 @@
 
 class nsAtom;
 class nsIURI;
-class nsSimpleContentList;
 struct nsFont;
 class ServoComputedData;
 
@@ -44,6 +43,7 @@ class LoaderReusableStyleSheets;
 }
 namespace dom {
 enum class CompositeOperationOrAuto : uint8_t;
+class SimpleContentList;
 }  // namespace dom
 }  // namespace mozilla
 
@@ -552,7 +552,7 @@ void Gecko_ReportUnexpectedCSSError(
     uint32_t selectorsLen, uint32_t lineNumber, uint32_t colNumber);
 
 // DOM APIs.
-void Gecko_ContentList_AppendAll(nsSimpleContentList* aContentList,
+void Gecko_ContentList_AppendAll(mozilla::dom::SimpleContentList* aContentList,
                                  const mozilla::dom::Element** aElements,
                                  size_t aLength);
 
