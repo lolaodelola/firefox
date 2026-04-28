@@ -194,4 +194,15 @@ sealed class PreferenceFileInformation(
         categoryHeaderResourceId = R.string.preferences_category_general,
         fragmentId = R.id.aiControlsFragment,
     )
+
+    /**
+     * Represents the "Page summaries" settings screen.
+     * This screen is compose-based and has no backing XML preference file.
+     */
+    object PageSummariesPreferences : PreferenceFileInformation(
+        xmlResourceId = R.id.pageSummariesSettingsFragment,
+        topBreadcrumbResourceId = R.string.preferences_page_summaries,
+        categoryHeaderResourceId = R.string.preferences_category_general,
+        fragmentId = R.id.pageSummariesSettingsFragment,
+    )
 }
