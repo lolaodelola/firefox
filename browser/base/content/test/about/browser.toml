@@ -66,6 +66,8 @@ support-files = [
   "blank_page.sjs",
 ]
 
+["browser_aboutNetError_connectionFailure.js"]
+
 ["browser_aboutNetError_contentEncodingError.js"]
 support-files = [
   "invalid_content_encoding.sjs",
