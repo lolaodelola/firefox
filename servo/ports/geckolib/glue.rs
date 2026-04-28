@@ -3393,6 +3393,7 @@ pub extern "C" fn Servo_PageRule_SetSelectorText(
             /* namespaces = */ Default::default(),
             None,
             None,
+            /* attr_taint */ Default::default(),
         );
 
         match parser.parse_entirely(|i| PageSelectors::parse(&context, i)) {
@@ -3927,6 +3928,7 @@ pub extern "C" fn Servo_FontFaceRule_SetDescriptor(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     write_locked_arc_worker(rule, |rule: &mut FontFaceRule| {
@@ -4277,6 +4279,7 @@ pub extern "C" fn Servo_CounterStyleRule_SetDescriptor(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     write_locked_arc(rule, |rule: &mut CounterStyleRule| {
@@ -4998,6 +5001,7 @@ pub extern "C" fn Servo_ParseEasing(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     let easing = easing.to_string();
     let mut input = ParserInput::new(&easing);
@@ -5688,6 +5692,7 @@ pub extern "C" fn Servo_NumericDeclaration_Parse(text: &nsACString) -> *mut Nume
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let string = unsafe { text.as_str_unchecked() };
@@ -5867,6 +5872,7 @@ pub unsafe extern "C" fn Servo_MediaList_SetText(
         // TODO(emilio): Looks like error reporting could be useful here?
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     write_locked_arc(list, |list: &mut MediaList| {
@@ -5913,6 +5919,7 @@ pub extern "C" fn Servo_MediaList_AppendMedium(list: &LockedMediaList, new_mediu
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     write_locked_arc(list, |list: &mut MediaList| {
         list.append_medium(&context, new_medium);
@@ -5935,6 +5942,7 @@ pub extern "C" fn Servo_MediaList_DeleteMedium(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     write_locked_arc(list, |list: &mut MediaList| {
         list.delete_medium(&context, old_medium)
@@ -6654,6 +6662,7 @@ pub unsafe extern "C" fn Servo_DeclarationBlock_SetFontFamily(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     let result = FontFamily::parse(&context, &mut parser);
     if let Ok(family) = result {
@@ -6689,8 +6698,9 @@ pub unsafe extern "C" fn Servo_DeclarationBlock_SetBackgroundImage(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
-    let url = SpecifiedUrl::parse_from_string(string.into(), &context, CorsMode::None);
+    let url = SpecifiedUrl::new_from_untainted_string(string.into(), &context, CorsMode::None);
     let decl = PropertyDeclaration::BackgroundImage(BackgroundImage(vec![Image::Url(url)].into()));
     write_locked_arc(declarations, |decls: &mut PropertyDeclarationBlock| {
         decls.push(decl, Importance::Normal);
@@ -6789,6 +6799,7 @@ pub extern "C" fn Servo_CSSSupports(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     cond.eval(&context)
@@ -6811,6 +6822,7 @@ pub extern "C" fn Servo_CSSSupportsForImport(after_rule: &nsACString) -> bool {
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let (_layer, supports) = ImportRule::parse_layer_and_supports(&mut input, &mut context);
@@ -9007,6 +9019,7 @@ pub unsafe extern "C" fn Servo_IsValidCSSColor(value: &nsACString) -> bool {
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     specified::Color::is_valid(&context, &mut input)
 }
@@ -9038,6 +9051,7 @@ unsafe fn compute_color(
         /* namespaces = */ Default::default(),
         reporter.as_ref().map(|e| e as &dyn ParseErrorReporter),
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let data;
@@ -9137,6 +9151,7 @@ pub unsafe extern "C" fn Servo_ColorTo(
         /* namespaces = */ Default::default(),
         reporter.as_ref().map(|e| e as &dyn ParseErrorReporter),
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let specified = match specified::Color::parse(&context, &mut input) {
@@ -9245,6 +9260,7 @@ pub unsafe extern "C" fn Servo_IntersectionObserverMargin_Parse(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let margin = parser.parse_entirely(|p| IntersectionObserverMargin::parse(&context, p));
@@ -9286,6 +9302,7 @@ pub extern "C" fn Servo_ParseTransformIntoMatrix(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let transform = match parser.parse_entirely(|t| transform::parse(&context, t)) {
@@ -9325,6 +9342,7 @@ pub extern "C" fn Servo_ParseFilters(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let mut filters = vec![];
@@ -9390,6 +9408,7 @@ pub unsafe extern "C" fn Servo_ParseFontShorthandForMatching(
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     let font = match parser.parse_entirely(|f| font::parse_value(&context, f)) {
@@ -9488,6 +9507,7 @@ pub unsafe extern "C" fn Servo_SourceSizeList_Parse(value: &nsACString) -> *mut 
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
 
     // NB: Intentionally not calling parse_entirely.
@@ -9777,6 +9797,7 @@ pub extern "C" fn Servo_GenericFontFamily_Parse(input: &nsACString) -> GenericFo
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     let value = input.to_utf8();
     let mut input = ParserInput::new(&value);
@@ -9797,6 +9818,7 @@ pub extern "C" fn Servo_ColorScheme_Parse(input: &nsACString, out: &mut u8) -> b
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     let input = unsafe { input.as_str_unchecked() };
     let mut input = ParserInput::new(&input);
@@ -9951,6 +9973,7 @@ where
         /* namespaces = */ Default::default(),
         None,
         None,
+        /* attr_taint */ Default::default(),
     );
     let mut input = ParserInput::new(string);
     Parser::new(&mut input)
@@ -10215,6 +10238,7 @@ pub unsafe extern "C" fn Servo_Value_Matches_Syntax(
         url_data,
         None,
         AllowComputationallyDependent::Yes,
+        /* attr_taint */ Default::default(),
     )
     .is_ok()
 }

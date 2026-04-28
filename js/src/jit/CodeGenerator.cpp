@@ -10948,6 +10948,13 @@ void CodeGenerator::visitWasmDerivedIndexPointer(
                                output);
 }
 
+#if JS_CODEGEN_ARM64
+template <typename T>
+static inline bool IsWasmStoreRefValueNull(T* ins) {
+  return ins->mirRaw()->getOperand(T::ValueIndex)->isWasmNullConstant();
+}
+#endif
+
 void CodeGenerator::visitWasmStoreRef(LWasmStoreRef* ins) {
   Register instance = ToRegister(ins->instance());
   Register valueBase = ToRegister(ins->valueBase());
@@ -10965,7 +10972,13 @@ void CodeGenerator::visitWasmStoreRef(LWasmStoreRef* ins) {
     masm.bind(&skipPreBarrier);
   }
 
-  FaultingCodeOffset fco = masm.storePtr(value, Address(valueBase, offset));
+#if JS_CODEGEN_ARM64
+  Register storeVal =
+      IsWasmStoreRefValueNull(ins) ? Register::FromCode(Registers::xzr) : value;
+#else
+  Register storeVal = value;
+#endif
+  FaultingCodeOffset fco = masm.storePtr(storeVal, Address(valueBase, offset));
   EmitSignalNullCheckTrapSite(masm, ins, fco,
                               wasm::TrapMachineInsnForStoreWord());
   // The postbarrier is handled separately.
@@ -10989,7 +11002,13 @@ void CodeGenerator::visitWasmStoreElementRef(LWasmStoreElementRef* ins) {
     masm.bind(&skipPreBarrier);
   }
 
-  FaultingCodeOffset fco = masm.storePtr(value, addr);
+#if JS_CODEGEN_ARM64
+  Register storeVal =
+      IsWasmStoreRefValueNull(ins) ? Register::FromCode(Registers::xzr) : value;
+#else
+  Register storeVal = value;
+#endif
+  FaultingCodeOffset fco = masm.storePtr(storeVal, addr);
   EmitSignalNullCheckTrapSite(masm, ins, fco,
                               wasm::TrapMachineInsnForStoreWord());
   // The postbarrier is handled separately.

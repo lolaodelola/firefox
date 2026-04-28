@@ -89,4 +89,18 @@ sealed interface TabGroupAction : TabsTrayAction {
      * @property group The [TabsTrayItem.TabGroup] to be edited.
      */
     data class EditTabGroupClicked(val group: TabsTrayItem.TabGroup) : TabGroupAction
+
+    /**
+     * Invoked when the user clicks to open a tab group from tab groups page.
+     *
+     * @property group The [TabsTrayItem.TabGroup] to be opened.
+     */
+    data class OpenTabGroupClicked(val group: TabsTrayItem.TabGroup) : TabGroupAction, TabsStorageAction
+
+    /**
+     * Invoked when the user clicks to close a tab group.
+     *
+     * @property group The [TabsTrayItem.TabGroup] to be closed.
+     */
+    data class CloseTabGroupClicked(val group: TabsTrayItem.TabGroup) : TabGroupAction, TabsStorageAction
 }

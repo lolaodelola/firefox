@@ -34,7 +34,7 @@ import org.mozilla.fenix.R
 import org.mozilla.fenix.components.FindInPageIntegration
 import org.mozilla.fenix.components.toolbar.BottomToolbarContainerView
 import org.mozilla.fenix.components.toolbar.BrowserNavigationBar
-import org.mozilla.fenix.components.toolbar.BrowserToolbarView
+import org.mozilla.fenix.components.toolbar.BrowserToolbarComposable
 import org.mozilla.fenix.components.toolbar.ToolbarContainerView
 import org.mozilla.fenix.components.toolbar.ToolbarPosition
 import org.mozilla.fenix.ext.components
@@ -596,7 +596,7 @@ class BaseBrowserFragmentTest {
 
     @Test
     fun `WHEN asked to expand the browser view THEN hide all toolbars and show only the browser view`() {
-        val browserToolbarView = mockk<BrowserToolbarView>(relaxed = true)
+        val browserToolbarView = mockk<BrowserToolbarComposable>(relaxed = true)
         val toolbarContainerView = mockk<ToolbarContainerView>(relaxed = true)
         val bottomToolbarContainerView = mockk<BottomToolbarContainerView>()
         val browserNavigationBar = mockk<BrowserNavigationBar>(relaxed = true)
@@ -624,7 +624,7 @@ class BaseBrowserFragmentTest {
     fun `GIVEN toolbars should be visible WHEN asked to collapse the browser view THEN reinitialize the browser view and show the toolbars`() {
         fragment.webAppToolbarShouldBeVisible = true
         every { fragment.reinitializeEngineView() } just Runs
-        val browserToolbarView = mockk<BrowserToolbarView>(relaxed = true)
+        val browserToolbarView = mockk<BrowserToolbarComposable>(relaxed = true)
         val toolbarContainerView = mockk<ToolbarContainerView>(relaxed = true)
         val bottomToolbarContainerView = mockk<BottomToolbarContainerView>()
         val browserNavigationBar = mockk<BrowserNavigationBar>(relaxed = true)
@@ -646,7 +646,7 @@ class BaseBrowserFragmentTest {
     fun `GIVEN toolbars should not be visible WHEN asked to collapse the browser view THEN don't do anything`() {
         fragment.webAppToolbarShouldBeVisible = false
         every { fragment.reinitializeEngineView() } just Runs
-        val browserToolbarView = mockk<BrowserToolbarView>(relaxed = true)
+        val browserToolbarView = mockk<BrowserToolbarComposable>(relaxed = true)
         val toolbarContainerView = mockk<ToolbarContainerView>(relaxed = true)
         val bottomToolbarContainerView = mockk<BottomToolbarContainerView>()
         every { bottomToolbarContainerView.toolbarContainerView } returns toolbarContainerView

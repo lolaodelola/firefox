@@ -38,9 +38,9 @@ import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.components.metrics.MetricsUtils
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.helpers.FenixGleanTestRule
-import org.mozilla.fenix.search.SearchDialogFragmentStore
 import org.mozilla.fenix.search.SearchFragmentAction.SearchDefaultEngineSelected
 import org.mozilla.fenix.search.SearchFragmentAction.SearchHistoryEngineSelected
+import org.mozilla.fenix.search.SearchFragmentStore
 import org.mozilla.fenix.search.fixtures.EMPTY_SEARCH_FRAGMENT_STATE
 import org.mozilla.fenix.telemetry.ACTION_SEARCH_ENGINE_SELECTOR_CLICKED
 import org.mozilla.fenix.telemetry.SOURCE_ADDRESS_BAR
@@ -51,7 +51,7 @@ import java.util.UUID
 @RunWith(RobolectricTestRunner::class)
 class SearchSelectorToolbarActionTest {
 
-    private lateinit var store: SearchDialogFragmentStore
+    private lateinit var store: SearchFragmentStore
 
     @RelaxedMockK
     private lateinit var menu: SearchSelectorMenu
@@ -67,7 +67,7 @@ class SearchSelectorToolbarActionTest {
     @Before
     fun setup() {
         MockKAnnotations.init(this)
-        store = SearchDialogFragmentStore(testSearchFragmentState)
+        store = SearchFragmentStore(testSearchFragmentState)
 
         every { testContext.settings() } returns settings
     }

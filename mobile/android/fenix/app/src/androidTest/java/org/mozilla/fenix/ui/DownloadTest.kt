@@ -110,6 +110,7 @@ class DownloadTest {
 
     // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/2298616
     @SkipLeaks(reasons = ["https://bugzilla.mozilla.org/show_bug.cgi?id=2006672"])
+    @Ignore("https://bugzilla.mozilla.org/show_bug.cgi?id=1999369")
     @Test
     fun verifyDownloadCompleteNotificationTest() {
         downloadRobot(composeTestRule) {

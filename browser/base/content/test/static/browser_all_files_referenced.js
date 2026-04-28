@@ -242,6 +242,12 @@ var allowlist = [
   // File from the ipp-activator add-on
   { file: "resource://builtin-addons/ipp-activator/breakages/tab.json" },
 
+  // Referenced by devtools/client/themes/toolbox.css and
+  // devtools/client/debugger/src/components/PrimaryPanes/Tracer.css. The test
+  // splits devtools and non-devtools passes, so the non-devtools pass can't
+  // see those cross-domain references.
+  { file: "chrome://global/skin/icons/experiments.svg" },
+
   // Starting from here, files in the allowlist are bugs that need fixing.
   // Bug 1339424 (wontfix?)
   {

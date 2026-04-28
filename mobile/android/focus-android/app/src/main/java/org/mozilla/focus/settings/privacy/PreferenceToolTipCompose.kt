@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
+import mozilla.components.compose.base.button.IconButton
 import org.mozilla.focus.R
 import org.mozilla.focus.databinding.FocusPreferenceComposeLayoutBinding
 import org.mozilla.focus.ext.settings
@@ -121,13 +121,14 @@ fun ToolTipContent(onDismissButton: () -> Unit) {
                 }
                 IconButton(
                     onClick = onDismissButton,
+                    contentDescription = stringResource(R.string.tool_tip_dismiss_button_content_description),
                     modifier = Modifier.align(
                         Alignment.TopEnd,
                     ),
                 ) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.tool_tip_dismiss_button_content_description),
+                        contentDescription = null,
                         tint = focusColors.privacySecuritySettingsToolTip,
                     )
                 }

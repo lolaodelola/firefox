@@ -145,9 +145,15 @@ void PdfStructTreeBuilder::InitInternal(
   dom::CanonicalBrowsingContext* cbc = aBrowsingContext->Canonical();
   if (dom::BrowserParent* bp = cbc->GetBrowserParent()) {
     // Request the accessibility tree for each descendant out-of-process
-    // iframe.
+    // iframe. While all of the direct children should be reachable, some of the
+    // deeper descendants might not be yet, so we also traverse the descendants
+    // for each OOP iframe when InitInternal is called for it , skipping any
+    // that have already been requested. We could instead walk only the direct
+    // children, but walking descendants means we benefit from greater
+    // parallelism in the case that deeper descendants *are* already reachable.
     bp->VisitAllDescendants([this](dom::BrowserParent* descBp) {
-      if (!descBp->GetTopLevelDocAccessible()) {
+      if (mRequestedBrowserParentIds.EnsureInserted(descBp->GetTabId())) {
+        MOZ_ASSERT(!descBp->GetTopLevelDocAccessible());
         (void)descBp->SendRequestDocAccessibleForPrint();
         ++mPendingOopIframes;
       }

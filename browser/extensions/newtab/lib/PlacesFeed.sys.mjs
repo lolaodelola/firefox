@@ -426,10 +426,15 @@ export class PlacesFeed {
         lazy.NewTabUtils.activityStreamLinks.deleteBookmark(action.data);
         break;
       case at.DELETE_HISTORY_URL: {
-        const { url, forceBlock, pocket_id } = action.data;
-        lazy.NewTabUtils.activityStreamLinks.deleteHistoryEntry(url);
+        const { url, forceBlock, pocket_id, original_url } = action.data;
+        lazy.NewTabUtils.activityStreamLinks.deleteHistoryEntry(
+          original_url || url
+        );
         if (forceBlock) {
-          lazy.NewTabUtils.activityStreamLinks.blockURL({ url, pocket_id });
+          lazy.NewTabUtils.activityStreamLinks.blockURL({
+            url: original_url || url,
+            pocket_id,
+          });
         }
         break;
       }

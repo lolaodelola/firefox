@@ -1145,7 +1145,7 @@ function IteratorZip(iterables, options = undefined) {
         ThrowTypeError(
           JSMSG_ITERATOR_ZIP_INVALID_OPTION_TYPE,
           "padding",
-          padding === null ? "null" : typeof padding
+          paddingOption === null ? "null" : typeof paddingOption
         );
       }
     }
@@ -1307,7 +1307,7 @@ function IteratorZipKeyed(iterables, options = undefined) {
         ThrowTypeError(
           JSMSG_ITERATOR_ZIP_INVALID_OPTION_TYPE,
           "padding",
-          padding === null ? "null" : typeof padding
+          paddingOption === null ? "null" : typeof paddingOption
         );
       }
     }

@@ -163,6 +163,33 @@ add_task(async function test_open_non_private_tab_from_only_private_window() {
   await BrowserTestUtils.closeWindow(privateWindow);
 });
 
+add_task(async function test_open_ai_window() {
+  await SpecialPowers.pushPrefEnv({
+    set: [["browser.smartwindow.enabled", true]],
+  });
+  const waitForWindowPromise = BrowserTestUtils.waitForNewWindow();
+  const contentBrowser = await new Promise(resolveOnContentBrowserCreated =>
+    openWebLinkIn(EXAMPLE_URL, "window", {
+      resolveOnContentBrowserCreated,
+      aiWindow: true,
+    })
+  );
+
+  const win = await waitForWindowPromise;
+  ok(
+    win.document.documentElement.hasAttribute("ai-window"),
+    "The new window is a smart window."
+  );
+  is(
+    contentBrowser,
+    win.gBrowser.selectedBrowser,
+    "We get the content browser for the newly opened smart window."
+  );
+
+  await BrowserTestUtils.closeWindow(win);
+  await SpecialPowers.popPrefEnv();
+});
+
 add_task(async function test_open_ai_window_tab_in_ai_window() {
   await SpecialPowers.pushPrefEnv({
     set: [["browser.smartwindow.enabled", true]],

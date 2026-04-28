@@ -7,118 +7,8 @@
         errorLine1="import androidx.compose.material3.IconButton"
         errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/org/mozilla/fenix/bookmarks/BookmarksScreen.kt"
-            line="44"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/home/ui/CollectionsPlaceholder.kt"
-            line="17"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
             file="src/main/java/org/mozilla/fenix/translations/preferences/downloadlanguages/DownloadLanguagesPreference.kt"
             line="23"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/downloads/listscreen/ui/DownloadSearchField.kt"
-            line="20"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/downloads/listscreen/DownloadsScreen.kt"
-            line="30"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/downloads/listscreen/DownloadsTopAppBar.kt"
-            line="10"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabgroups/ExpandedTabGroup.kt"
-            line="18"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/downloads/listscreen/ui/FileListItem.kt"
-            line="16"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/debugsettings/gleandebugtools/GleanDebugToolsFragment.kt"
-            line="17"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/inactivetabs/InactiveTabs.kt"
-            line="21"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/inactivetabs/InactiveTabs.kt"
-            line="26"
             column="1"/>
     </issue>
 
@@ -139,162 +29,8 @@
         errorLine1="import androidx.compose.material3.IconButton"
         errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/org/mozilla/fenix/components/menu/compose/MenuBanner.kt"
-            line="20"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/components/menu/compose/MenuItem.kt"
-            line="28"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/components/menu/share/QRCodeDialogFragment.kt"
-            line="24"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/tabitems/SharedTabItemUi.kt"
-            line="18"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/components/menu/compose/header/SubmenuHeader.kt"
-            line="17"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/tabitems/TabGridTabItem.kt"
-            line="25"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/tabitems/TabListTabItem.kt"
-            line="19"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/fab/TabManagerFloatingToolbar.kt"
-            line="24"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/tabsearch/TabSearchScreen.kt"
-            line="24"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
             file="src/main/java/org/mozilla/fenix/browser/tabstrip/TabStrip.kt"
             line="33"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/tabstray/ui/banner/TabsTrayBanner.kt"
-            line="19"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/translations/TranslationOptionsDialog.kt"
-            line="19"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/translations/TranslationToolbar.kt"
-            line="13"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/translations/TranslationsDialogBottomSheet.kt"
-            line="20"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="ComposeIconButtonUsage"
-        message="Use mozilla.components.compose.base.button.IconButton instead of androidx.compose.material3.IconButton"
-        errorLine1="import androidx.compose.material3.IconButton"
-        errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/mozilla/fenix/webcompat/ui/WebCompatReporter.kt"
-            line="25"
             column="1"/>
     </issue>
 
@@ -844,7 +580,7 @@
         errorLine2="  ^">
         <location
             file="src/main/res/values-zh-rTW/strings.xml"
-            line="1877"
+            line="1881"
             column="3"/>
     </issue>
 
@@ -1438,8 +1174,19 @@
         errorLine2="                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-vi/strings.xml"
-            line="4202"
+            line="4226"
             column="62"/>
+    </issue>
+
+    <issue
+        id="TypographyFractions"
+        message="Use fraction character ¼ (&amp;#188;) instead of 1/4?"
+        errorLine1="  &lt;string name=&quot;sports_widget_quarter_final&quot;>1/4 финала&lt;/string>"
+        errorLine2="                                             ~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ru/strings.xml"
+            line="4462"
+            column="46"/>
     </issue>
 
     <issue

@@ -9,6 +9,7 @@ import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
+import org.mozilla.fenix.tabstray.redux.state.Page
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.redux.state.initializeTabGroupForm
 import kotlin.collections.plus
@@ -102,6 +103,15 @@ object TabGroupActionReducer {
                     formState = action.group.initializeTabGroupForm(),
                 ),
                 backStack = state.navigateToEditTabGroup(),
+            )
+
+            is TabGroupAction.OpenTabGroupClicked -> state.copy(
+                selectedPage = Page.NormalTabs,
+                backStack = state.backStack + ExpandedTabGroup(group = action.group.copy(closed = false)),
+            )
+
+            is TabGroupAction.CloseTabGroupClicked -> state.copy(
+                backStack = listOf(TabManagerNavDestination.Root),
             )
         }
     }

@@ -1,0 +1,39 @@
+schema: 1
+
+bugzilla:
+  product: Core
+  component: Graphics
+
+origin:
+  name: Cairo
+
+  description: "Cairo: Multi-platform 2D graphics library"
+
+  url: https://www.cairographics.org
+
+  release: 48d9d472e9153b3a2bdc8bf8bfc7da947cc3aa7e (Mon Apr 27 15:06:59 2026 -0700).
+  revision: 48d9d472e9153b3a2bdc8bf8bfc7da947cc3aa7e
+
+  license: 'MPL-1.1'
+  license-file: 'COPYING-MPL-1.1'
+
+updatebot:
+  maintainer-phab: "#gfx-reviewers"
+  maintainer-bz: "jimb@mozilla.com"
+
+vendoring:
+  url: https://github.com/FirefoxGraphics/cairo
+  source-hosting: github
+  vendor-directory: gfx/cairo/cairo
+
+  exclude:
+    - boilerplate
+    - build
+    - doc
+    - ".git*"
+    - "meson*"
+    - "src/meson*"
+    - perf
+    - subprojects
+    - test
+    - util

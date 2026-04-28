@@ -1,68 +1,49 @@
 Snapshots of cairo and glitz for mozilla usage.
 
-We only include the relevant parts of each release (generally, src/*.[ch]),
-as we have Makefile.in's that integrate into the Mozilla build system.  For
-documentation and similar, please see the official tarballs at
-http://www.cairographics.org/.
+We only include the relevant parts of each release (generally, src/*.[ch]), as
+we have moz.build files used by the Mozilla build system. For documentation and
+similar, please see the official tarballs at http://www.cairographics.org/.
 
 VERSIONS:
 
   cairo (1.18.4)
   pixman (0.46.4)
 
-==== Local cairo patches ====
+==== Updating and Patching Cairo ====
 
-00-cairo_public.patch: allow cairo_public to be predefined
+To change Cairo in Mozilla Central, do not simply commit changes to
+`gfx/cairo/cairo`, or they will be overwritten the next time Cairo is
+revendored. First, commit your changes to the `firefox` branch at
+`github.com/FirefoxGraphics/cairo`. Then, run this command at the top of the
+Firefox source tree:
 
-01-xlib-xrender-private.patch: xrender build fix
+    mach vendor gfx/cairo/moz.yaml -r firefox
 
-02-cplusplus-no-register.patch: 'register' keyword not allowed when cairo.h is included by C++ code
+That checks out the `firefox` branch, makes our standard adjustments, and then
+updates `gfx/cairo/cairo` accordingly. See `gfx/cairo/moz.yaml` for details.
 
-03-expose-lcd-filter.patch: expose the LCD filter settings as public API
+To vendor in a new release of Cairo:
 
-04-subpixel-aa-api.patch: add API for setting subpixel-AA
+- Push appropriate branches and tags from the upstream Cairo repo to
+  `github.com/FirefoxGraphics/cairo`.
 
-05-ft-font-synth-flags-api.patch: enable client to control whether FreeType synthetic styles are allowed
+- Rebase the `firefox` branch on the Cairo release you'd like to use
+  as the base for Firefox.
 
-06-shared-ft-face.patch: integrate with Gecko SharedFTFace
+- At the top of the Firefox source tree, run:
 
-07-ft-variations-runtime-check.patch: runtime check for FreeType variation support
+      mach vendor gfx/cairo/moz.yaml -r firefox
 
-08-quartz-surface-additions.patch: add cairo_quartz_surface_get_image
+  This should change the vendored Cairo sources in `gfx/cairo/cairo` to match
+  what you have committed to the `firefox` branch.
 
-09-quartz-surface-tags.patch: support for LINK tags in the quartz-surface backend
+Note: Do not try to simply push all upstream tags and branches to
+`github.com/FirefoxGraphics/cairo`. Some prior releases of Cairo seem to have
+malformed commit blobs, and you'll get errors like this:
 
-10-quartz-named-destination.patch: support for named destinations in quartz-surface
+    missingSpaceBeforeDate: invalid author/committer line - missing space before date
 
-11-quartz-prefer-named-dest-over-uri.patch: prefer named destinations over URI links in quartz-surface
-
-12-active-edges-crash.patch: avoid potential crash in active_edges
-
-13-quartz-granular-ifdefs.patch: build fixes for iOS
-
-14-ft-color-ifdef.patch: guard FT_COLOR_H and related FreeType/fontconfig symbols for builds targeting older FreeType
-
-15-ios-colorspace.patch: iOS doesn't support per-display color spaces
-
-16-quartz-surface-leak.patch: fix DataSourceSurfaceRawData leak on quartz surface
-
-17-windows-build-fix.patch: build fix for Windows/non-mingw
-
-18-win32-api-additions.patch: Windows API additions for gecko
-
-19-quartz-surface-mask.patch: don't apply clip to CGContext for quartz surface mask
-
-20-windows-sdk-26100.patch: fix build bustage with Windows SDK 26100
-
-21-win32-vertical-glyph-advance-direction.patch: fix sign of glyph y-advance for ExtTextOut
-
-22-tor-scan-converter-polygon.patch: protect add_polygon with setjmp to avoid crash on jmp_buf corruption
-
-23-cff-subroutine-offset.patch: add bounds check in cff_index_read to avoid out-of-bounds read
-
-24-cff-fdselect-range-check.patch: add bounds check in cff_fdselect_read to avoid out-of-bounds read
-
-25-quartz-revert-to-pre-1.18.0.patch: revert cairo-quartz-*.[ch] to the pre-1.18.0 Mozilla state (Bug 1901043 + Bug 1908587 + Bug 1970983); must be applied last, on top of all earlier patches (00-24)
+Instead, just push the tags/branches you actually need.
 
 ==== pixman patches ====
 

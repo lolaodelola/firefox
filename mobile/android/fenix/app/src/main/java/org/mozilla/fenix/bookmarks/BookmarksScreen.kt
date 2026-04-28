@@ -39,7 +39,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -104,6 +103,7 @@ import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.compose.base.annotation.FlexibleWindowLightDarkPreview
 import mozilla.components.compose.base.button.FilledButton
 import mozilla.components.compose.base.button.FloatingActionButton
+import mozilla.components.compose.base.button.IconButton
 import mozilla.components.compose.base.button.OutlinedButton
 import mozilla.components.compose.base.button.TextButton
 import mozilla.components.compose.base.menu.DropdownMenu
@@ -157,7 +157,6 @@ private const val MATERIAL_DESIGN_SCRIM = "#52000000"
  * @param toolbarStore [BrowserToolbarStore] controlling the search toolbar.
  * @param searchStore [SearchFragmentStore] controlling how search results are displayed.
  * @param bookmarksSearchEngine [SearchEngine] the default search engine to use when searching bookmarks.
- * @param useNewSearchUX Whether to use the new integrated search UX or navigate to a separate search screen.
  * @param profiler app profiler used to access firefox profile features.
  * @param startDestination the screen on which to initialize [BookmarksScreen] with.
  */
@@ -169,7 +168,6 @@ internal fun BookmarksScreen(
     toolbarStore: BrowserToolbarStore,
     searchStore: SearchFragmentStore,
     bookmarksSearchEngine: SearchEngine?,
-    useNewSearchUX: Boolean = false,
     profiler: Profiler? = components.core.engine.profiler,
     startDestination: String = BookmarksDestinations.LIST,
 ) {
@@ -200,7 +198,6 @@ internal fun BookmarksScreen(
                 searchStore = searchStore,
                 bookmarksSearchEngine = bookmarksSearchEngine,
                 profiler = profiler,
-                useNewSearchUX = useNewSearchUX,
             )
         }
         composable(route = BookmarksDestinations.ADD_FOLDER) {
@@ -244,7 +241,6 @@ private fun BookmarksList(
     searchStore: SearchFragmentStore,
     bookmarksSearchEngine: SearchEngine?,
     profiler: Profiler?,
-    useNewSearchUX: Boolean = false,
 ) {
     val state by store.stateFlow.collectAsState()
     val searchState = searchStore.observeAsComposableState { it }.value
@@ -315,11 +311,7 @@ private fun BookmarksList(
         }
     }
 
-    LaunchedEffect(state.isSearching, useNewSearchUX) {
-        if (!useNewSearchUX) {
-            return@LaunchedEffect
-        }
-
+    LaunchedEffect(state.isSearching) {
         when (state.isSearching) {
             true -> {
                 if (!appStore.state.searchState.isSearchActive) {
@@ -375,7 +367,7 @@ private fun BookmarksList(
             }
         },
         topBar = {
-            if (useNewSearchUX && state.isSearching) {
+            if (state.isSearching) {
                 BrowserToolbar(toolbarStore)
             } else {
                 BookmarksListTopBar(store = store)
@@ -467,14 +459,15 @@ private fun BookmarksList(
                             Box {
                                 IconButton(
                                     onClick = { showMenu = true },
+                                    contentDescription = stringResource(
+                                        R.string.bookmark_item_menu_button_content_description,
+                                        item.title,
+                                    ),
                                     modifier = Modifier.size(24.dp),
                                 ) {
                                     Icon(
                                         painter = painterResource(iconsR.drawable.mozac_ic_ellipsis_vertical_24),
-                                        contentDescription = stringResource(
-                                            R.string.bookmark_item_menu_button_content_description,
-                                            item.title,
-                                        ),
+                                        contentDescription = null,
                                     )
                                 }
 
@@ -521,14 +514,15 @@ private fun BookmarksList(
                         Box {
                             IconButton(
                                 onClick = { showMenu = true },
+                                contentDescription = stringResource(
+                                    R.string.bookmark_item_menu_button_content_description,
+                                    item.title,
+                                ),
                                 modifier = Modifier.size(24.dp),
                             ) {
                                 Icon(
                                     painter = painterResource(iconsR.drawable.mozac_ic_ellipsis_vertical_24),
-                                    contentDescription = stringResource(
-                                        R.string.bookmark_item_menu_button_content_description,
-                                        item.title,
-                                    ),
+                                    contentDescription = null,
                                 )
                             }
 
@@ -546,7 +540,7 @@ private fun BookmarksList(
             }
         }
 
-        if (useNewSearchUX && state.isSearching && searchState.searchSuggestionsProviders.isNotEmpty()) {
+        if (state.isSearching && searchState.searchSuggestionsProviders.isNotEmpty()) {
             val activity = LocalActivity.current
             val deleteHistoryDelegate = remember(activity?.getRootView(), searchStore) {
                 activity?.getRootView()?.let {
@@ -631,12 +625,7 @@ private fun BookmarksListTopBar(
     } else {
         MaterialTheme.colorScheme.onPrimary
     }
-
-    val iconColor = if (selectedItems.isEmpty()) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onPrimary
-    }
+    val iconColor = textColor
 
     Box {
         TopAppBar(
@@ -660,10 +649,13 @@ private fun BookmarksListTopBar(
                 )
             },
             navigationIcon = {
-                IconButton(onClick = { store.dispatch(BackClicked) }) {
+                IconButton(
+                    onClick = { store.dispatch(BackClicked) },
+                    contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+                ) {
                     Icon(
                         painter = painterResource(iconsR.drawable.mozac_ic_back_24),
-                        contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+                        contentDescription = null,
                         tint = iconColor,
                     )
                 }
@@ -737,28 +729,37 @@ private fun BookmarksListTopBarActionsSelections(
     showMenu: Boolean,
 ) {
     if (selectedItems.size == 1) {
-        IconButton(onClick = { store.dispatch(BookmarksListMenuAction.MultiSelect.EditClicked) }) {
+        IconButton(
+            onClick = { store.dispatch(BookmarksListMenuAction.MultiSelect.EditClicked) },
+            contentDescription = stringResource(R.string.bookmark_menu_edit_button),
+        ) {
             Icon(
                 painter = painterResource(iconsR.drawable.mozac_ic_edit_24),
-                contentDescription = stringResource(R.string.bookmark_menu_edit_button),
+                contentDescription = null,
                 tint = iconColor,
             )
         }
     }
-    IconButton(onClick = { store.dispatch(BookmarksListMenuAction.MultiSelect.MoveClicked) }) {
+    IconButton(
+        onClick = { store.dispatch(BookmarksListMenuAction.MultiSelect.MoveClicked) },
+        contentDescription = stringResource(R.string.bookmark_menu_move_button),
+    ) {
         Icon(
             painter = painterResource(iconsR.drawable.mozac_ic_folder_arrow_right_24),
-            contentDescription = stringResource(R.string.bookmark_menu_move_button),
+            contentDescription = null,
             tint = iconColor,
         )
     }
     Box {
-        IconButton(onClick = { onShowMenuChanged(true) }) {
+        IconButton(
+            onClick = { onShowMenuChanged(true) },
+            contentDescription = stringResource(
+                R.string.content_description_menu,
+            ),
+        ) {
             Icon(
                 painter = painterResource(iconsR.drawable.mozac_ic_ellipsis_vertical_24),
-                contentDescription = stringResource(
-                    R.string.content_description_menu,
-                ),
+                contentDescription = null,
                 tint = iconColor,
             )
         }
@@ -778,10 +779,13 @@ private fun BookmarksListTopBarActionsFolderSelections(
     onShowMenuChanged: (Boolean) -> Unit,
     showMenu: Boolean,
 ) {
-    IconButton(onClick = { store.dispatch(BookmarksListMenuAction.MultiSelect.MoveClicked) }) {
+    IconButton(
+        onClick = { store.dispatch(BookmarksListMenuAction.MultiSelect.MoveClicked) },
+        contentDescription = stringResource(R.string.bookmark_menu_move_button),
+    ) {
         Icon(
             painter = painterResource(iconsR.drawable.mozac_ic_folder_arrow_right_24),
-            contentDescription = stringResource(R.string.bookmark_menu_move_button),
+            contentDescription = null,
             tint = iconColor,
         )
     }
@@ -790,21 +794,25 @@ private fun BookmarksListTopBarActionsFolderSelections(
         onClick = {
             store.dispatch(BookmarksListMenuAction.MultiSelect.DeleteClicked)
         },
+        contentDescription = stringResource(R.string.bookmark_menu_delete_button),
     ) {
         Icon(
             painter = painterResource(iconsR.drawable.mozac_ic_delete_24),
-            contentDescription = stringResource(R.string.bookmark_menu_delete_button),
+            contentDescription = null,
             tint = iconColor,
         )
     }
 
     Box {
-        IconButton(onClick = { onShowMenuChanged(true) }) {
+        IconButton(
+            onClick = { onShowMenuChanged(true) },
+            contentDescription = stringResource(
+                R.string.content_description_menu,
+            ),
+        ) {
             Icon(
                 painter = painterResource(iconsR.drawable.mozac_ic_ellipsis_vertical_24),
-                contentDescription = stringResource(
-                    R.string.content_description_menu,
-                ),
+                contentDescription = null,
                 tint = iconColor,
             )
         }
@@ -830,12 +838,13 @@ private fun BookmarksListTopBarActionsNoSelection(
             onClick = {
                 store.dispatch(BookmarksListMenuAction.SortMenu.SortMenuButtonClicked)
             },
+            contentDescription = stringResource(
+                R.string.bookmark_sort_menu_content_desc,
+            ),
         ) {
             Icon(
                 painter = painterResource(iconsR.drawable.mozac_ic_sort_24),
-                contentDescription = stringResource(
-                    R.string.bookmark_sort_menu_content_desc,
-                ),
+                contentDescription = null,
                 tint = iconColor,
             )
         }
@@ -852,33 +861,42 @@ private fun BookmarksListTopBarActionsNoSelection(
     if (isCurrentFolderDesktopRoot) {
         Unit
     } else {
-        IconButton(onClick = { store.dispatch(AddFolderClicked) }) {
+        IconButton(
+            onClick = { store.dispatch(AddFolderClicked) },
+            contentDescription = stringResource(
+                R.string.bookmark_add_new_folder_button_content_description,
+            ),
+        ) {
             Icon(
                 painter = painterResource(iconsR.drawable.mozac_ic_folder_add_24),
-                contentDescription = stringResource(
-                    R.string.bookmark_add_new_folder_button_content_description,
-                ),
+                contentDescription = null,
                 tint = iconColor,
             )
         }
     }
 
     if (!isCurrentFolderMobileRoot) {
-        IconButton(onClick = { store.dispatch(CloseClicked) }) {
+        IconButton(
+            onClick = { store.dispatch(CloseClicked) },
+            contentDescription = stringResource(
+                R.string.bookmark_close_button_content_description,
+            ),
+        ) {
             Icon(
                 painter = painterResource(iconsR.drawable.mozac_ic_cross_24),
-                contentDescription = stringResource(
-                    R.string.bookmark_close_button_content_description,
-                ),
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }
     } else if (store.state.showBookmarksImport) {
         Box {
-            IconButton(onClick = { store.dispatch(RootOverflowMenuClicked) }) {
+            IconButton(
+                onClick = { store.dispatch(RootOverflowMenuClicked) },
+                contentDescription = stringResource(R.string.bookmark_import_bookmarks_button_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_ellipsis_vertical_24),
-                    contentDescription = stringResource(R.string.bookmark_import_bookmarks_button_content_description),
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
@@ -1117,24 +1135,30 @@ private fun FolderListItem(
                 when (folder.expansionState) {
                     is SelectFolderExpansionState.None -> Spacer(modifier = Modifier.size(width = 48.dp, height = 0.dp))
                     is SelectFolderExpansionState.Open -> {
-                        IconButton(onClick = onChevronClick) {
+                        IconButton(
+                            onClick = onChevronClick,
+                            contentDescription = stringResource(
+                                R.string.bookmark_select_folder_close_folder_content_description,
+                                folder.title,
+                            ),
+                        ) {
                             Icon(
                                 painter = painterResource(iconsR.drawable.mozac_ic_chevron_down_24),
-                                contentDescription = stringResource(
-                                    R.string.bookmark_select_folder_close_folder_content_description,
-                                    folder.title,
-                                ),
+                                contentDescription = null,
                             )
                         }
                     }
                     is SelectFolderExpansionState.Closed -> {
-                        IconButton(onClick = onChevronClick) {
+                        IconButton(
+                            onClick = onChevronClick,
+                            contentDescription = stringResource(
+                                R.string.bookmark_select_folder_expand_folder_content_description,
+                                folder.title,
+                            ),
+                        ) {
                             Icon(
                                 painter = painterResource(iconsR.drawable.mozac_ic_chevron_right_24),
-                                contentDescription = stringResource(
-                                    R.string.bookmark_select_folder_expand_folder_content_description,
-                                    folder.title,
-                                ),
+                                contentDescription = null,
                             )
                         }
                     }
@@ -1182,63 +1206,82 @@ private fun SelectFolderTopBar(store: BookmarksStore) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = { store.dispatch(BackClicked) }) {
+            IconButton(
+                onClick = { store.dispatch(BackClicked) },
+                contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_back_24),
-                    contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+                    contentDescription = null,
                 )
             }
         },
         actions = {
-            Box {
-                IconButton(onClick = {
-                    store.dispatch(BookmarksListMenuAction.SortMenu.SortMenuButtonClicked)
-                }) {
-                    Icon(
-                        painter = painterResource(iconsR.drawable.mozac_ic_sort_24),
-                        contentDescription = stringResource(
-                            R.string.bookmark_sort_menu_content_desc,
-                        ),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-
-                SelectFolderSortOverflowMenu(store = store)
-            }
-
-            // TODO https://bugzilla.mozilla.org/show_bug.cgi?id=2006505
-            if (Config.channel.isDebug) {
-                IconButton(
-                    onClick = {
-                        store.dispatch(SelectFolderAction.SearchClicked)
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(iconsR.drawable.mozac_ic_search_24),
-                        contentDescription = stringResource(
-                            R.string.select_bookmark_search_button_content_description,
-                        ),
-                    )
-                }
-            }
-
-            if (onNewFolderClick != null) {
-                IconButton(onClick = { onNewFolderClick() }) {
-                    Icon(
-                        painter = painterResource(iconsR.drawable.mozac_ic_folder_add_24),
-                        contentDescription = stringResource(
-                            R.string.bookmark_add_new_folder_button_content_description,
-                        ),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
+            SelectFolderTopBarActions(
+                store = store,
+                onNewFolderClick = onNewFolderClick,
+            )
         },
         windowInsets = WindowInsets(
             top = 0.dp,
             bottom = 0.dp,
         ),
     )
+}
+
+@Composable
+private fun SelectFolderTopBarActions(
+    store: BookmarksStore,
+    onNewFolderClick: (() -> Unit)?,
+) {
+    Box {
+        IconButton(
+            onClick = {
+                store.dispatch(BookmarksListMenuAction.SortMenu.SortMenuButtonClicked)
+            },
+            contentDescription = stringResource(
+                R.string.bookmark_sort_menu_content_desc,
+            ),
+        ) {
+            Icon(
+                painter = painterResource(iconsR.drawable.mozac_ic_sort_24),
+                contentDescription = null,
+            )
+        }
+
+        SelectFolderSortOverflowMenu(store = store)
+    }
+
+    // TODO https://bugzilla.mozilla.org/show_bug.cgi?id=2006505
+    if (Config.channel.isDebug) {
+        IconButton(
+            onClick = {
+                store.dispatch(SelectFolderAction.SearchClicked)
+            },
+            contentDescription = stringResource(
+                R.string.select_bookmark_search_button_content_description,
+            ),
+        ) {
+            Icon(
+                painter = painterResource(iconsR.drawable.mozac_ic_search_24),
+                contentDescription = null,
+            )
+        }
+    }
+
+    if (onNewFolderClick != null) {
+        IconButton(
+            onClick = { onNewFolderClick() },
+            contentDescription = stringResource(
+                R.string.bookmark_add_new_folder_button_content_description,
+            ),
+        ) {
+            Icon(
+                painter = painterResource(iconsR.drawable.mozac_ic_folder_add_24),
+                contentDescription = null,
+            )
+        }
+    }
 }
 
 @Composable
@@ -1704,18 +1747,24 @@ private fun EditFolderTopBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
+            IconButton(
+                onClick = onBackClick,
+                contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_back_24),
-                    contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+                    contentDescription = null,
                 )
             }
         },
         actions = {
-            IconButton(onClick = onDeleteClick) {
+            IconButton(
+                onClick = onDeleteClick,
+                contentDescription = stringResource(R.string.bookmark_delete_folder_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_delete_24),
-                    contentDescription = stringResource(R.string.bookmark_delete_folder_content_description),
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
@@ -1792,10 +1841,13 @@ private fun AddFolderTopBar(onBackClick: () -> Unit) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
+            IconButton(
+                onClick = onBackClick,
+                contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_back_24),
-                    contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+                    contentDescription = null,
                 )
             }
         },
@@ -1969,18 +2021,24 @@ private fun EditBookmarkTopBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
+            IconButton(
+                onClick = onBackClick,
+                contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_back_24),
-                    contentDescription = stringResource(R.string.bookmark_navigate_back_button_content_description),
+                    contentDescription = null,
                 )
             }
         },
         actions = {
-            IconButton(onClick = onDeleteClicked) {
+            IconButton(
+                onClick = onDeleteClicked,
+                contentDescription = stringResource(R.string.bookmark_delete_bookmark_content_description),
+            ) {
                 Icon(
                     painter = painterResource(iconsR.drawable.mozac_ic_delete_24),
-                    contentDescription = stringResource(R.string.bookmark_delete_bookmark_content_description),
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }

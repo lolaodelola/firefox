@@ -7,7 +7,6 @@ package org.mozilla.fenix.ui
 import android.util.Log
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mozilla.fenix.customannotations.SmokeTest
@@ -128,7 +127,6 @@ class SponsoredShortcutsTest {
     }
 
     // TestRail link: https://mozilla.testrail.io/index.php?/cases/view/1729336
-    @Ignore("Failing, see https://bugzilla.mozilla.org/show_bug.cgi?id=2028550")
     @Test
     fun openSponsoredShortcutsSettingsOptionTest() {
         homeScreen(composeTestRule) {

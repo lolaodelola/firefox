@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +36,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.RadioCheckmark
+import mozilla.components.compose.base.button.IconButton
 import mozilla.components.support.base.utils.MAX_URI_LENGTH
 import org.mozilla.fenix.R
 import org.mozilla.fenix.compose.DismissibleItemBackground
@@ -191,16 +191,17 @@ private fun TabListIcon(
     if (!selectionState.multiSelectEnabled) {
         IconButton(
             onClick = { onCloseClick(tab) },
+            contentDescription = stringResource(
+                id = R.string.close_tab_title,
+                tab.title,
+            ),
             modifier = Modifier
                 .size(size = 48.dp)
                 .testTag(TabsTrayTestTag.TAB_ITEM_CLOSE),
         ) {
             Icon(
                 painter = painterResource(id = iconsR.drawable.mozac_ic_cross_24),
-                contentDescription = stringResource(
-                    id = R.string.close_tab_title,
-                    tab.title,
-                ),
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
             )
         }

@@ -15,9 +15,6 @@ import org.mozilla.fenix.components.toolbar.ToolbarMenu
  * want to respond to user interaction on the browser toolbar.
  */
 interface BrowserToolbarInteractor {
-    fun onBrowserToolbarPaste(text: String)
-    fun onBrowserToolbarPasteAndGo(text: String)
-    fun onBrowserToolbarClicked()
     fun onBrowserToolbarMenuItemTapped(item: ToolbarMenu.Item)
     fun onTabCounterClicked()
     fun onTabCounterMenuItemTapped(item: TabCounterMenu.Item)
@@ -84,18 +81,6 @@ class DefaultBrowserToolbarInteractor(
 
     override fun onTabCounterMenuItemTapped(item: TabCounterMenu.Item) {
         browserToolbarController.handleTabCounterItemInteraction(item)
-    }
-
-    override fun onBrowserToolbarPaste(text: String) {
-        browserToolbarController.handleToolbarPaste(text)
-    }
-
-    override fun onBrowserToolbarPasteAndGo(text: String) {
-        browserToolbarController.handleToolbarPasteAndGo(text)
-    }
-
-    override fun onBrowserToolbarClicked() {
-        browserToolbarController.handleToolbarClick()
     }
 
     override fun onBrowserToolbarMenuItemTapped(item: ToolbarMenu.Item) {

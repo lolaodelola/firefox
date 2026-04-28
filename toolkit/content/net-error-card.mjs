@@ -64,6 +64,7 @@ export class NetErrorCard extends MozLitElement {
     certErrorText: "#certificateErrorText",
     viewCertificate: "#viewCertificate",
     errorTitle: "#error-title",
+    responseStatusLabel: "#response-status-label",
     returnButton: "#returnButton",
     learnMoreLink: "#error-learn-more-link",
     whatCanYouDo: "#whatCanYouDo",
@@ -364,6 +365,8 @@ export class NetErrorCard extends MozLitElement {
       mitmName: this.errorInfo?.issuerCommonName ?? "",
       offline: gOffline,
       filePath: getFilePath(),
+      showOSXPermissionWarning:
+        !gIsCertError && RPMShowOSXLocalNetworkPermissionWarning(),
     });
 
     if (errorConfig.checkClockSkew && gIsCertError) {
@@ -643,6 +646,7 @@ export class NetErrorCard extends MozLitElement {
   mapCustomNetErrorConfigToParams(customNetError, config) {
     const params = {
       titleL10nId: customNetError.titleL10nId,
+      showResponseStatus: customNetError.showResponseStatus,
       whyDangerousL10nId: customNetError.whyDangerousL10nId,
       whyDangerousL10nArgs: customNetError.whyDangerousL10nArgs,
       whyDidThisHappenL10nId: customNetError.whyDidThisHappenL10nId,
@@ -652,6 +656,7 @@ export class NetErrorCard extends MozLitElement {
       whatCanYouDoItems: customNetError.whatCanYouDoItems,
       learnMoreL10nId: customNetError.learnMoreL10nId,
       learnMoreSupportPage: customNetError.learnMoreSupportPage,
+      errorCode: customNetError.showErrorCode ? config.errorCode : null,
       buttons: {
         tryAgain: config.buttons?.showTryAgain,
         goBack: config.buttons?.showGoBack && window.self === window.top,
@@ -701,6 +706,7 @@ export class NetErrorCard extends MozLitElement {
   customNetErrorSectionTemplate(params) {
     const {
       titleL10nId,
+      showResponseStatus,
       whyDangerousL10nId,
       whyDangerousL10nArgs,
       whyDidThisHappenL10nId,
@@ -710,6 +716,7 @@ export class NetErrorCard extends MozLitElement {
       whatCanYouDoItems,
       learnMoreL10nId,
       learnMoreSupportPage,
+      errorCode,
       buttons = {},
       useAdvancedSection,
     } = params;
@@ -779,6 +786,12 @@ export class NetErrorCard extends MozLitElement {
             ></a>
           </p>`
         : null}
+      ${errorCode
+        ? html`<p
+            data-l10n-id="fp-cert-error-code"
+            data-l10n-args=${JSON.stringify({ error: errorCode })}
+          ></p>`
+        : null}
       ${tryAgain
         ? html`<moz-button-group>
             ${this.tryAgainButtonTemplate()}
@@ -802,6 +815,16 @@ export class NetErrorCard extends MozLitElement {
 
     return html`<h1 id="error-title" data-l10n-id=${titleL10nId}></h1>
       ${this.introContentTemplate()}
+      ${showResponseStatus && this.errorInfo?.responseStatus >= 400
+        ? html`<p
+            id="response-status-label"
+            data-l10n-id="neterror-response-status-code"
+            data-l10n-args=${JSON.stringify({
+              responsestatus: this.errorInfo.responseStatus,
+              responsestatustext: this.errorInfo.responseStatusText ?? "",
+            })}
+          ></p>`
+        : null}
       ${useAdvancedSection
         ? html`<moz-button-group>
             ${goBack ? this.returnButtonTemplate() : null}

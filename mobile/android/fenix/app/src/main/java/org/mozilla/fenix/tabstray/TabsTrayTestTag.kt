@@ -50,7 +50,7 @@ internal object TabsTrayTestTag {
     const val TAB_ITEM_THUMBNAIL = "$TAB_ITEM_ROOT.thumbnail"
 
     // Group Items
-    private const val TAB_GROUP_ROOT = "$TABS_TRAY.tabGroups"
+    const val TAB_GROUP_ROOT = "$TABS_TRAY.tabGroups"
     private const val TAB_GROUP_THUMBNAIL_ROOT = "$TAB_GROUP_ROOT.thumbnail"
     const val TAB_GROUP_THUMBNAIL_FIRST = "$TAB_GROUP_THUMBNAIL_ROOT.1"
     const val TAB_GROUP_THUMBNAIL_SECOND = "$TAB_GROUP_THUMBNAIL_ROOT.2"

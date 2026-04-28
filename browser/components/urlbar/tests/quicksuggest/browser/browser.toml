@@ -47,6 +47,10 @@ tags = "search-telemetry"
 ["browser_quicksuggest_realtime_yelp.js"]
 
 ["browser_quicksuggest_sports.js"]
+support-files = [
+  "moz.png",
+  "moz-flipped.png",
+]
 
 ["browser_quicksuggest_yelp.js"]
 

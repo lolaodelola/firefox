@@ -190,7 +190,19 @@ class TabStorageMiddleware(
                 }
             }
 
+            is TabGroupAction.OpenTabGroupClicked -> {
+                scope.launch {
+                    tabGroupRepository.openTabGroup(tabGroupId = action.group.id)
+                }
+            }
+
             is TabGroupAction.DeleteConfirmed -> handleDeleteClicked(action.group)
+
+            is TabGroupAction.CloseTabGroupClicked -> {
+                scope.launch {
+                    tabGroupRepository.closeTabGroup(tabGroupId = action.group.id)
+                }
+            }
         }
     }
 

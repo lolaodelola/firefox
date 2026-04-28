@@ -407,16 +407,12 @@ export let URICountListener = {
     }
 
     if (!(flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT)) {
-      lazy.SearchSERPTelemetry.updateTrackingStatus(
-        browser,
-        uriSpec,
-        webProgress.loadType
-      );
+      lazy.SearchSERPTelemetry.updateTrackingStatus(browser, uri, webProgress);
     } else {
       lazy.SearchSERPTelemetry.updateTrackingSinglePageApp(
         browser,
         uriSpec,
-        webProgress.loadType,
+        webProgress,
         flags
       );
     }

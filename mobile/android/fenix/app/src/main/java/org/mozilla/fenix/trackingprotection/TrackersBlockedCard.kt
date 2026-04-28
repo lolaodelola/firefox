@@ -4,6 +4,7 @@
 
 package org.mozilla.fenix.trackingprotection
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,19 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -32,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import org.mozilla.fenix.R
 import org.mozilla.fenix.home.sessioncontrol.TrackingProtectionInteractor
 import org.mozilla.fenix.theme.FirefoxTheme
-import mozilla.components.ui.icons.R as iconsR
 
 /**
  * A card that displays the number of trackers blocked.
@@ -51,34 +44,19 @@ fun TrackersBlockedCard(
     Row(
         modifier = modifier
             .background(
-                color = FirefoxTheme.colors.layer2,
+                color = MaterialTheme.colorScheme.secondaryContainer,
                 shape = shape,
             )
             .clip(shape)
             .clickable { interactor.onPrivacyReportTapped() }
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val gradientStart = colorResource(R.color.privacy_gradient_start)
-        val gradientEnd = colorResource(R.color.privacy_gradient_end)
-        Icon(
-            painter = painterResource(iconsR.drawable.mozac_ic_shield_checkmark_24),
+        Image(
+            painter = painterResource(R.drawable.firefox_pictorgram_shield_rgb),
             contentDescription = null,
-            modifier = Modifier
-                .size(20.dp)
-                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(gradientStart, gradientEnd),
-                            ),
-                            blendMode = BlendMode.SrcAtop,
-                        )
-                    }
-                },
+            modifier = Modifier.size(20.dp),
         )
 
         Text(

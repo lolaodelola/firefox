@@ -47,7 +47,9 @@ class nsJXLDecoder final : public Decoder {
 
   JxlDecoderStatus ProcessInput(const uint8_t** aData, size_t* aLength);
   FrameOutputResult HandleFrameOutput();
-  ProcessResult ProcessAvailableData();
+  /// @aData and @aLength are in/out: on return they point to and describe the
+  /// unconsumed remainder of the input.
+  ProcessResult ProcessAvailableData(const uint8_t** aData, size_t* aLength);
 
   LexerResult ScanForFrameCount(SourceBufferIterator& aIterator,
                                 IResumable* aOnResume);
@@ -69,9 +71,6 @@ class nsJXLDecoder final : public Decoder {
   Maybe<SurfacePipe> mCurrentPipe;
 
   bool mIteratorComplete = false;
-
-  Vector<uint8_t> mBufferedData;
-  size_t mBytesConsumed = 0;
 };
 
 }  // namespace mozilla::image

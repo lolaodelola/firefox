@@ -36,15 +36,17 @@ import org.mozilla.fenix.theme.FirefoxTheme
  *
  * @param groups The list of tab groups to display.
  * @param modifier: The Modifier applied to the tab group list.
- * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
- * @param editTabGroupClick Invoked when the user clicks to edit the tab group.
+ * @param onTabGroupClick Invoked when the user clicks on a tab group.
+ * @param onDeleteTabGroupClick Invoked when the user clicks on delete tab group.
+ * @param onEditTabGroupClick Invoked when the user clicks to edit the tab group.
  */
 @Composable
 fun TabGroupList(
     groups: List<TabsTrayItem.TabGroup>,
     modifier: Modifier = Modifier,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -74,9 +76,7 @@ fun TabGroupList(
 
                 TabGroupRow(
                     tabGroup = group,
-                    onClick = {
-                        // Bug 2033481
-                    },
+                    onClick = { onTabGroupClick(group) },
                     modifier = Modifier
                         .clip(itemShape)
                         .background(MaterialTheme.colorScheme.surfaceContainerLowest),
@@ -85,8 +85,10 @@ fun TabGroupList(
                             LocalContentColor provides MaterialTheme.colorScheme.secondary,
                         ) {
                             TabGroupMenuButton(
-                                onDeleteTabGroup = { onDeleteTabGroup(group) },
-                                editTabGroupClick = { editTabGroupClick(group) },
+                                includeCloseOption = false,
+                                onDeleteTabGroupClick = { onDeleteTabGroupClick(group) },
+                                onEditTabGroupClick = { onEditTabGroupClick(group) },
+                                onCloseTabGroupClick = {},
                             )
                         }
                     },
@@ -126,8 +128,9 @@ private fun TabGroupListPreview() {
                     tabs = secondGroupTabs,
                 ),
             ),
-            onDeleteTabGroup = {},
-            editTabGroupClick = {},
+            onTabGroupClick = {},
+            onDeleteTabGroupClick = {},
+            onEditTabGroupClick = {},
         )
     }
 }

@@ -91,13 +91,6 @@
     <dimen name="browser_fragment_display_toolbar_padding" tools:ignore="UnusedResources">16dp</dimen>
     <dimen name="mozac_browser_toolbar_button_width" tools:ignore="UnusedResources">48dp</dimen>
 
-    <!-- Search Fragment -->
-    <dimen name="search_fragment_clipboard_item_height">56dp</dimen>
-    <dimen name="search_fragment_clipboard_item_horizontal_margin">8dp</dimen>
-    <dimen name="search_fragment_clipboard_item_title_margin_start">8dp</dimen>
-
-    <dimen name="search_fragment_clipboard_title_text_size">15sp</dimen>
-
     <!-- About Fragment -->
     <dimen name="about_list_item_height">56dp</dimen>
     <dimen name="about_list_item_text_padding">8dp</dimen>

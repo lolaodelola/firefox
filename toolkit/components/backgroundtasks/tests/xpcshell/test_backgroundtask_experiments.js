@@ -450,6 +450,25 @@ add_task(async function test_backgroundtask_Messaging_targeting() {
   }
 });
 
+// Verify that the background task emits color scheme and motion preference
+// values for use by ToastNotification's image variant selection. The exact
+// values depend on the user's default profile prefs and OS settings, so we
+// only assert that they are present and have the correct type.
+add_task(async function test_backgroundtask_system_color_scheme_and_motion() {
+  let { infoMap } = await doMessage({});
+
+  Assert.equal(
+    typeof infoMap.chromeColorSchemeIsDark,
+    "boolean",
+    "Background task emits boolean chromeColorSchemeIsDark"
+  );
+  Assert.equal(
+    typeof infoMap.prefersReducedMotion,
+    "boolean",
+    "Background task emits boolean prefersReducedMotion"
+  );
+});
+
 // Verify that `RemoteSettingsClient.sync` is invoked before any
 // `RemoteSettingsClient.get` invocations.  This ensures the Remote Settings
 // recipe collection is not allowed to go stale.

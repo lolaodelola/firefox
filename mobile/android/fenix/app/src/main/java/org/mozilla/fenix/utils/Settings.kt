@@ -1860,8 +1860,7 @@ class Settings(
     )
 
     /**
-     * Used in [SearchDialogFragment.kt], [SearchFragment.kt] (deprecated), and [PairFragment.kt]
-     * to see if we need to check for camera permissions before using the QR code scanner.
+     * Tracks whether we need to check for camera permissions before using the QR code scanner.
      */
     var shouldShowCameraPermissionPrompt by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_camera_permissions_needed),
@@ -2339,8 +2338,6 @@ class Settings(
         default = true,
     )
 
-    val shouldUseComposableToolbar = true
-
     var shouldUseMinimalBottomToolbarWhenEnteringText by booleanPreference(
         key = appContext.getPreferenceKey(R.string.pref_key_use_minimal_bottom_toolbar_while_entering_text),
         default = { FxNimbus.features.minimalAddressbar.value().atBottomWhileEnteringText },
@@ -2705,22 +2702,18 @@ class Settings(
      * Returns the height of the browser toolbar height.
      */
     val browserToolbarHeight: Int
-        get() = appContext.pixelSizeFor(
-            when (shouldUseComposableToolbar) {
-                true -> {
-                    val isTallWindow = appContext.resources.configuration.screenHeightDp > TALL_SCREEN_HEIGHT_DP
-                    val isWideWindow = appContext.resources.configuration.screenWidthDp > WIDE_SCREEN_WIDTH_DP
-                    when (
-                        toolbarPosition == ToolbarPosition.BOTTOM && shouldUseExpandedToolbar &&
-                                isTallWindow && !isWideWindow
-                    ) {
-                        true -> R.dimen.composable_browser_toolbar_height_small
-                        false -> R.dimen.composable_browser_toolbar_height
-                    }
-                }
-                false -> R.dimen.browser_toolbar_height
-            },
-        )
+        get() {
+            val isTallWindow = appContext.resources.configuration.screenHeightDp > TALL_SCREEN_HEIGHT_DP
+            val isWideWindow = appContext.resources.configuration.screenWidthDp > WIDE_SCREEN_WIDTH_DP
+            val isBottomExpandedOnTallNarrowWindow = toolbarPosition == ToolbarPosition.BOTTOM &&
+                shouldUseExpandedToolbar && isTallWindow && !isWideWindow
+            val dimen = if (isBottomExpandedOnTallNarrowWindow) {
+                R.dimen.composable_browser_toolbar_height_small
+            } else {
+                R.dimen.composable_browser_toolbar_height
+            }
+            return appContext.pixelSizeFor(dimen)
+        }
 
     /**
      * Indicates if the microsurvey feature is enabled.

@@ -5,7 +5,6 @@
 package org.mozilla.fenix.components.toolbar
 
 import androidx.navigation.NavController
-import mozilla.components.browser.state.action.ContentAction
 import mozilla.components.browser.state.ext.getUrl
 import mozilla.components.browser.state.selector.findCustomTabOrSelectedTab
 import mozilla.components.browser.state.selector.findTab
@@ -16,10 +15,8 @@ import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.EngineView
 import mozilla.components.concept.engine.prompt.ShareData
 import mozilla.components.feature.tabs.TabsUseCases
-import mozilla.components.support.ktx.kotlin.isUrl
 import mozilla.components.ui.tabcounter.TabCounterMenu
 import mozilla.telemetry.glean.private.NoExtras
-import org.mozilla.fenix.GleanMetrics.Events
 import org.mozilla.fenix.GleanMetrics.ReaderMode
 import org.mozilla.fenix.GleanMetrics.Toolbar
 import org.mozilla.fenix.GleanMetrics.Translations
@@ -35,12 +32,9 @@ import org.mozilla.fenix.components.menu.MenuAccessPoint
 import org.mozilla.fenix.components.share.createPdfShareAction
 import org.mozilla.fenix.components.toolbar.interactor.BrowserToolbarInteractor
 import org.mozilla.fenix.components.usecases.FenixBrowserUseCases
-import org.mozilla.fenix.ext.components
-import org.mozilla.fenix.ext.nav
 import org.mozilla.fenix.ext.navigateSafe
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.home.HomeScreenViewModel
-import org.mozilla.fenix.home.toolbar.ToolbarNavOptionsHelper
 import org.mozilla.fenix.telemetry.ACTION_ADD_NEW_TAB
 import org.mozilla.fenix.telemetry.ACTION_ADD_NEW_TAB_LONG_CLICKED
 import org.mozilla.fenix.telemetry.ACTION_HOME_CLICKED
@@ -52,9 +46,6 @@ import org.mozilla.fenix.utils.Settings
  */
 interface BrowserToolbarController {
     fun handleScroll(offset: Int)
-    fun handleToolbarPaste(text: String)
-    fun handleToolbarPasteAndGo(text: String)
-    fun handleToolbarClick()
     fun handleTabCounterClick()
     fun handleTabCounterItemInteraction(item: TabCounterMenu.Item)
     fun handleReaderModePressed(enabled: Boolean)
@@ -113,57 +104,6 @@ class DefaultBrowserToolbarController(
 
     private val currentSession
         get() = store.state.findCustomTabOrSelectedTab(customTabSessionId)
-
-    override fun handleToolbarPaste(text: String) {
-        navController.nav(
-            R.id.browserFragment,
-            BrowserFragmentDirections.actionGlobalSearchDialog(
-                sessionId = currentSession?.id,
-                pastedText = text,
-            ),
-            ToolbarNavOptionsHelper.getToolbarNavOptions(activity),
-        )
-    }
-
-    override fun handleToolbarPasteAndGo(text: String) {
-        if (text.isUrl()) {
-            store.updateSearchTermsOfSelectedSession("")
-            activity.components.useCases.sessionUseCases.loadUrl(text)
-            return
-        }
-
-        store.updateSearchTermsOfSelectedSession(text)
-        activity.components.useCases.searchUseCases.defaultSearch.invoke(
-            text,
-            sessionId = store.state.selectedTabId,
-        )
-    }
-
-    override fun handleToolbarClick() {
-        Events.searchBarTapped.record(Events.SearchBarTappedExtra("BROWSER"))
-        // If we're displaying awesomebar search results, Home screen will not be visible (it's
-        // covered up with the search results). So, skip the navigation event in that case.
-        // If we don't, there's a visual flickr as we navigate to Home and then display search
-        // results on top it.
-        if (currentSession?.content?.searchTerms.isNullOrBlank()) {
-            navController.navigate(
-                BrowserFragmentDirections.actionGlobalHome(),
-            )
-            navController.navigate(
-                BrowserFragmentDirections.actionGlobalSearchDialog(
-                    currentSession?.id,
-                ),
-                ToolbarNavOptionsHelper.getToolbarNavOptions(activity),
-            )
-        } else {
-            navController.navigate(
-                BrowserFragmentDirections.actionGlobalSearchDialog(
-                    currentSession?.id,
-                ),
-                ToolbarNavOptionsHelper.getToolbarNavOptions(activity),
-            )
-        }
-    }
 
     override fun handleTabCounterClick() {
         onTabCounterClicked.invoke()
@@ -299,17 +239,4 @@ class DefaultBrowserToolbarController(
             ),
         )
     }
-}
-
-private fun BrowserStore.updateSearchTermsOfSelectedSession(
-    searchTerms: String,
-) {
-    val selectedTabId = state.selectedTabId ?: return
-
-    dispatch(
-        ContentAction.UpdateSearchTermsAction(
-            selectedTabId,
-            searchTerms,
-        ),
-    )
 }

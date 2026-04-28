@@ -5,7 +5,6 @@
 package org.mozilla.fenix.components.toolbar
 
 import androidx.navigation.NavController
-import androidx.navigation.NavOptions
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.every
@@ -16,7 +15,6 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import mozilla.components.browser.state.action.BrowserAction
-import mozilla.components.browser.state.action.ContentAction
 import mozilla.components.browser.state.action.ShareResourceAction
 import mozilla.components.browser.state.action.TabListAction
 import mozilla.components.browser.state.state.BrowserState
@@ -25,8 +23,6 @@ import mozilla.components.browser.state.state.createTab
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.EngineView
 import mozilla.components.concept.engine.prompt.ShareData
-import mozilla.components.feature.search.SearchUseCases
-import mozilla.components.feature.session.SessionUseCases
 import mozilla.components.feature.tabs.TabsUseCases
 import mozilla.components.feature.top.sites.TopSitesUseCases
 import mozilla.components.support.test.middleware.CaptureActionsMiddleware
@@ -44,7 +40,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mozilla.fenix.GleanMetrics.Events
 import org.mozilla.fenix.GleanMetrics.ReaderMode
 import org.mozilla.fenix.GleanMetrics.Toolbar
 import org.mozilla.fenix.GleanMetrics.Translations
@@ -85,12 +80,6 @@ class DefaultBrowserToolbarControllerTest {
     private lateinit var engineView: EngineView
 
     @RelaxedMockK
-    private lateinit var searchUseCases: SearchUseCases
-
-    @RelaxedMockK
-    private lateinit var sessionUseCases: SessionUseCases
-
-    @RelaxedMockK
     private lateinit var tabsUseCases: TabsUseCases
 
     @RelaxedMockK
@@ -119,8 +108,6 @@ class DefaultBrowserToolbarControllerTest {
     fun setUp() {
         MockKAnnotations.init(this)
 
-        every { activity.components.useCases.sessionUseCases } returns sessionUseCases
-        every { activity.components.useCases.searchUseCases } returns searchUseCases
         every { activity.components.useCases.topSitesUseCase } returns topSitesUseCase
         every { navController.currentDestination } returns mockk {
             every { id } returns R.id.browserFragment
@@ -143,68 +130,6 @@ class DefaultBrowserToolbarControllerTest {
     @After
     fun tearDown() {
         captureMiddleware.reset()
-    }
-
-    @Test
-    fun handleBrowserToolbarPaste() {
-        val pastedText = "Mozilla"
-        val controller = createController()
-        controller.handleToolbarPaste(pastedText)
-
-        val directions = BrowserFragmentDirections.actionGlobalSearchDialog(
-            sessionId = "1",
-            pastedText = pastedText,
-        )
-
-        verify { navController.navigate(directions, any<NavOptions>()) }
-    }
-
-    @Test
-    fun handleBrowserToolbarPaste_useNewSearchExperience() {
-        val pastedText = "Mozilla"
-        val controller = createController()
-        controller.handleToolbarPaste(pastedText)
-
-        val directions = BrowserFragmentDirections.actionGlobalSearchDialog(
-            sessionId = "1",
-            pastedText = pastedText,
-        )
-
-        verify { navController.navigate(directions, any<NavOptions>()) }
-    }
-
-    @Test
-    fun handleBrowserToolbarPasteAndGoSearch() {
-        val pastedText = "Mozilla"
-
-        val controller = createController()
-        controller.handleToolbarPasteAndGo(pastedText)
-
-        verify {
-            searchUseCases.defaultSearch.invoke(pastedText, "1")
-        }
-
-        captureMiddleware.assertFirstAction(ContentAction.UpdateSearchTermsAction::class) { action ->
-            assertEquals("1", action.sessionId)
-            assertEquals(pastedText, action.searchTerms)
-        }
-    }
-
-    @Test
-    fun handleBrowserToolbarPasteAndGoUrl() {
-        val pastedText = "https://mozilla.org"
-
-        val controller = createController()
-        controller.handleToolbarPasteAndGo(pastedText)
-
-        verify {
-            sessionUseCases.loadUrl(pastedText)
-        }
-
-        captureMiddleware.assertFirstAction(ContentAction.UpdateSearchTermsAction::class) { action ->
-            assertEquals("1", action.sessionId)
-            assertEquals("", action.searchTerms)
-        }
     }
 
     @Test
@@ -239,59 +164,6 @@ class DefaultBrowserToolbarControllerTest {
         verify { readerModeController.hideReaderView() }
         assertNotNull(ReaderMode.closed.testGetValue())
         assertNull(ReaderMode.closed.testGetValue()!!.single().extra)
-    }
-
-    @Test
-    fun handleToolbarClick() {
-        val controller = createController()
-        assertNull(Events.searchBarTapped.testGetValue())
-
-        controller.handleToolbarClick()
-
-        val homeDirections = BrowserFragmentDirections.actionGlobalHome()
-        val searchDialogDirections = BrowserFragmentDirections.actionGlobalSearchDialog(
-            sessionId = "1",
-        )
-
-        assertNotNull(Events.searchBarTapped.testGetValue())
-        val snapshot = Events.searchBarTapped.testGetValue()!!
-        assertEquals(1, snapshot.size)
-        assertEquals("BROWSER", snapshot.single().extra?.getValue("source"))
-
-        verify {
-            // shows the home screen "behind" the search dialog
-            navController.navigate(homeDirections)
-            navController.navigate(searchDialogDirections, any<NavOptions>())
-        }
-    }
-
-    @Test
-    fun handleToolbackClickWithSearchTerms() {
-        val searchResultsTab = createTab("https://google.com?q=mozilla+website", searchTerms = "mozilla website")
-        store.dispatch(TabListAction.AddTabAction(searchResultsTab, select = true))
-
-        assertNull(Events.searchBarTapped.testGetValue())
-
-        val controller = createController()
-        controller.handleToolbarClick()
-
-        val homeDirections = BrowserFragmentDirections.actionGlobalHome()
-        val searchDialogDirections = BrowserFragmentDirections.actionGlobalSearchDialog(
-            sessionId = searchResultsTab.id,
-        )
-
-        assertNotNull(Events.searchBarTapped.testGetValue())
-        val snapshot = Events.searchBarTapped.testGetValue()!!
-        assertEquals(1, snapshot.size)
-        assertEquals("BROWSER", snapshot.single().extra?.getValue("source"))
-
-        // Does not show the home screen "behind" the search dialog if the current session has search terms.
-        verify(exactly = 0) {
-            navController.navigate(homeDirections)
-        }
-        verify {
-            navController.navigate(searchDialogDirections, any<NavOptions>())
-        }
     }
 
     @Test

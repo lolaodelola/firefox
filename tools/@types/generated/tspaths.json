@@ -28,6 +28,9 @@
       "chrome://browser/content/aiwindow/components/ai-website-chip.mjs": [
         "../../../browser/components/aiwindow/ui/components/ai-website-chip/ai-website-chip.mjs"
       ],
+      "chrome://browser/content/aiwindow/components/ai-website-select.mjs": [
+        "../../../browser/components/aiwindow/ui/components/ai-website-select/ai-website-select.mjs"
+      ],
       "chrome://browser/content/aiwindow/components/applied-memories-button.mjs": [
         "../../../browser/components/aiwindow/ui/components/ai-chat-content/chat-assistant-footer/applied-memories-button.mjs"
       ],
@@ -6234,6 +6237,9 @@
       ],
       "resource://gre/modules/SandboxUtils.sys.mjs": [
         "../../../security/sandbox/common/SandboxUtils.sys.mjs"
+      ],
+      "resource://gre/modules/ScheduledTask.sys.mjs": [
+        "../../../toolkit/modules/ScheduledTask.sys.mjs"
       ],
       "resource://gre/modules/Schemas.sys.mjs": [
         "../../../toolkit/components/extensions/Schemas.sys.mjs"

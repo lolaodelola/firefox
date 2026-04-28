@@ -28,7 +28,7 @@ class ToolbarsIntegrationTest {
     private val context: Context = mockk(relaxed = true)
     private val browserLayout: ViewGroup = mockk(relaxed = true)
     private val engineView: EngineView = mockk(relaxed = true)
-    private val toolbar: FenixBrowserToolbarView = mockk(relaxed = true)
+    private val toolbar: BrowserToolbarComposable = mockk(relaxed = true)
     private val navbar: BrowserNavigationBar = mockk(relaxed = true)
     private val onToolbarsReset: () -> Unit = mockk(relaxed = true)
 

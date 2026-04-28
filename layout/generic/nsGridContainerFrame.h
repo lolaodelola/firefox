@@ -497,6 +497,10 @@ class nsGridContainerFrame final : public nsContainerFrame,
      */
     bool mIsTopOfPage;
     /**
+     * Is there a Class C break opportunity at the start content edge?
+     */
+    bool mCanBreakAtStart;
+    /**
      * Is there a Class C break opportunity at the end content edge?
      */
     bool mCanBreakAtEnd;

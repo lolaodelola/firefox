@@ -67,6 +67,9 @@ support-files = [
 ]
 
 ["browser_aboutNetError_contentEncodingError.js"]
+support-files = [
+  "invalid_content_encoding.sjs",
+]
 
 ["browser_aboutNetError_csp_iframe.js"]
 https_first_disabled = true
@@ -94,6 +97,8 @@ support-files = [
 support-files = [
   "invalid_header.sjs",
 ]
+
+["browser_aboutNetError_netInterrupt.js"]
 
 ["browser_aboutNetError_server_error.js"]
 support-files = [

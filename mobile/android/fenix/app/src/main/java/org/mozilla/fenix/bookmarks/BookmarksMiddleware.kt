@@ -33,12 +33,10 @@ private const val WARN_OPEN_ALL_SIZE = 15
  * @param bookmarksStorage Storage layer for reading and writing bookmarks.
  * @param addNewTabUseCase For opening tabs from menus.
  * @param fenixBrowserUseCases [FenixBrowserUseCases] used for loading the bookmark URLs.
- * @param useNewSearchUX Whether to use the new integrated search UX or navigate to a separate search screen.
  * @param openBookmarksInNewTab Whether to load bookmark URLs in a new tab.
  * @param getNavController Fetch the NavController for navigating within the local Composable nav graph.
  * @param exitBookmarks Invoked when back is clicked while the navController's backstack is empty.
  * @param navigateToBrowser Invoked when handling [BookmarkClicked] to navigate to the browser.
- * @param navigateToSearch Navigate to search.
  * @param navigateToSignIntoSync Invoked when handling [SignIntoSyncClicked].
  * @param navigateToImportDialog Invoked to navigate to the import bookmarks dialog.
  * @param shareBookmarks Invoked when the share option is selected from a menu. Allows sharing of
@@ -60,12 +58,10 @@ internal class BookmarksMiddleware(
     private val bookmarksStorage: BookmarksStorage,
     private val addNewTabUseCase: TabsUseCases.AddNewTabUseCase,
     private val fenixBrowserUseCases: FenixBrowserUseCases,
-    private val useNewSearchUX: Boolean,
     private val openBookmarksInNewTab: Boolean,
     private val getNavController: () -> NavController,
     private val exitBookmarks: () -> Unit,
     private val navigateToBrowser: () -> Unit,
-    private val navigateToSearch: () -> Unit,
     private val navigateToSignIntoSync: () -> Unit,
     private val navigateToImportDialog: () -> Unit,
     private val shareBookmarks: (List<BookmarkItem.Bookmark>) -> Unit = {},
@@ -156,9 +152,6 @@ internal class BookmarksMiddleware(
             is FolderLongClicked,
             -> {
                 store.tryDispatchReceivedRecursiveCountUpdate()
-            }
-            SearchClicked -> if (!useNewSearchUX) {
-                navigateToSearch()
             }
             AddFolderClicked -> getNavController().navigate(BookmarksDestinations.ADD_FOLDER)
             CloseClicked -> exitBookmarks()
@@ -390,6 +383,7 @@ internal class BookmarksMiddleware(
             ImportAction.ImportFailed -> {
                 store.dispatch(SnackbarAction.ImportFailed)
             }
+            SearchClicked,
             RootOverflowMenuClicked,
             RootOverflowMenuDismissed,
             SelectFolderAction.SearchClicked,

@@ -2185,6 +2185,50 @@ const MESSAGES = () => [
     frequency: { lifetime: 3 },
   },
   {
+    id: "TEST_TOAST_NOTIFICATION_DYNAMIC_IMAGE",
+    weight: 100,
+    template: "toast_notification",
+    content: {
+      title: "Dynamic image toast",
+      body: "This notification shows different images based on dark mode and reduced motion settings.",
+      image_url:
+        "chrome://browser/content/asrouter/assets/tabgroups/hort-animated-light.svg",
+      dark_mode_image_url:
+        "chrome://browser/content/asrouter/assets/tabgroups/hort-animated-dark.svg",
+      reduced_motion_image_url:
+        "chrome://browser/content/asrouter/assets/tabgroups/hort-static-light.svg",
+      dark_mode_reduced_motion_image_url:
+        "chrome://browser/content/asrouter/assets/tabgroups/hort-static-dark.svg",
+      tag: "test_toast_notification_dynamic_image",
+    },
+    groups: ["panel-test-provider"],
+    targeting: "!hasActiveEnterprisePolicies",
+    trigger: { id: "backgroundTaskMessage" },
+    frequency: { lifetime: 3 },
+  },
+  {
+    id: "TEST_TOAST_NOTIFICATION_DYNAMIC_IMAGE_GIF",
+    weight: 100,
+    template: "toast_notification",
+    content: {
+      title: "Dynamic image toast (animated GIF)",
+      body: "Each variant (dark mode, reduced motion) shows a different animated GIF.",
+      image_url:
+        "chrome://activity-stream/content/data/content/assets/fox-doodle-waving.gif",
+      dark_mode_image_url:
+        "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/ms-images/de2349f0-3853-454e-a7c6-100679604cab.gif",
+      reduced_motion_image_url:
+        "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/ms-images/8dc86aae-17d1-4803-b7cc-5369210a9cf8.gif",
+      dark_mode_reduced_motion_image_url:
+        "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/ms-images/94615589-5b64-4028-99d0-5b34f20331c4.gif",
+      tag: "test_toast_notification_dynamic_image_gif",
+    },
+    groups: ["panel-test-provider"],
+    targeting: "!hasActiveEnterprisePolicies",
+    trigger: { id: "backgroundTaskMessage" },
+    frequency: { lifetime: 3 },
+  },
+  {
     id: "MR2022_BACKGROUND_UPDATE_TOAST_NOTIFICATION",
     weight: 100,
     template: "toast_notification",

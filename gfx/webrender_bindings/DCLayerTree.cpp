@@ -1918,7 +1918,10 @@ void DCSwapChain::Present(const wr::DeviceIntRect* aDirtyRects,
 
       hr = mSwapChain->Present1(0, flags, &params);
       if (FAILED(hr) && hr != DXGI_STATUS_OCCLUDED) {
-        gfxCriticalNote << "Present1 failed: " << gfx::hexa(hr);
+        auto* device = mDCLayerTree->GetDevice();
+        auto reason = device->GetDeviceRemovedReason();
+        gfxCriticalNote << "Present1 failed: " << gfx::hexa(hr) << " reason "
+                        << gfx::hexa(reason);
       }
     }
   } else {

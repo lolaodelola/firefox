@@ -54,12 +54,6 @@
         app:launchSingleTop="true" />
 
     <action
-        android:id="@+id/action_global_search_dialog"
-        app:destination="@id/searchDialogFragment"
-        app:popUpTo="@id/searchDialogFragment"
-        app:popUpToInclusive="true" />
-
-    <action
         android:id="@+id/action_global_recently_closed"
         app:destination="@id/recentlyClosedFragment" />
 
@@ -334,36 +328,6 @@
             android:name="surface"
             app:argType="org.mozilla.fenix.termsofuse.store.Surface"
             app:nullable="false" />
-    </dialog>
-
-    <dialog
-        android:id="@+id/searchDialogFragment"
-        android:name="org.mozilla.fenix.search.SearchDialogFragment"
-        tools:layout="@layout/fragment_search_dialog">
-        <argument
-            android:name="session_id"
-            app:argType="string"
-            app:nullable="true" />
-        <argument
-            android:name="pastedText"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
-        <argument
-            android:name="search_access_point"
-            android:defaultValue="NONE"
-            app:argType="org.mozilla.fenix.components.metrics.MetricsUtils$Source" />
-        <argument
-            android:name="search_engine"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
-        <action
-            android:id="@+id/action_gleanDebugToolsFragment"
-            app:destination="@id/gleanDebugToolsFragment" />
-        <action
-            android:id="@+id/action_crashListFragment"
-            app:destination="@id/crashListFragment" />
     </dialog>
 
     <fragment

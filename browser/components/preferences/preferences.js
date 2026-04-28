@@ -9,7 +9,6 @@
 /* import-globals-from containers.js */
 /* import-globals-from privacy.js */
 /* import-globals-from sync.js */
-/* import-globals-from experimental.js */
 /* import-globals-from moreFromMozilla.js */
 /* import-globals-from findInPage.js */
 /* import-globals-from /browser/base/content/utilityOverlay.js */
@@ -250,6 +249,12 @@ const CONFIG_PANES = Object.freeze({
     l10nId: "pane-general-title",
     groupIds: [],
   },
+  experimental: {
+    l10nId: "settings-pane-labs-header",
+    iconSrc: "chrome://browser/skin/labs-16.svg",
+    groupIds: ["firefoxLabsFeatures"],
+    module: "chrome://browser/content/preferences/config/firefoxLabs.mjs",
+  },
   history: {
     parent: "privacy",
     l10nId: "history-header2",
@@ -413,17 +418,16 @@ function init_all() {
   register_module("panePrivacy", gPrivacyPane);
   register_module("paneContainers", gContainersPane);
 
+  // Restore the cached Firefox Labs nav button visibility so it shows
+  // immediately when recipes are expected to be available, before
+  // firefoxLabs.mjs loads on first navigation. The module itself updates
+  // this cache when features are (un)available.
   if (ExperimentAPI.labsEnabled) {
-    // Set hidden based on previous load's hidden value or if Nimbus is
-    // disabled.
     document.getElementById("category-experimental").hidden =
       Services.prefs.getBoolPref(
         "browser.preferences.experimental.hidden",
         false
       );
-    register_module("paneExperimental", gExperimentalPane);
-  } else {
-    document.getElementById("category-experimental").hidden = true;
   }
 
   NimbusFeatures.moreFromMozilla.recordExposureEvent({ once: true });

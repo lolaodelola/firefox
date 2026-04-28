@@ -6,6 +6,8 @@
 #define mozilla_ContentEvents_h_
 
 #include "mozilla/BasicEvents.h"
+#include "mozilla/dom/CSSAnimation.h"
+#include "mozilla/dom/CSSTransition.h"
 #include "mozilla/dom/DataTransfer.h"
 #include "mozilla/dom/EventTarget.h"
 #include "nsCOMPtr.h"
@@ -247,6 +249,7 @@ class InternalTransitionEvent final : public WidgetEvent {
   nsString mPropertyName;
   nsString mPseudoElement;
   float mElapsedTime;
+  RefPtr<dom::CSSTransition> mAnimation;
 
   void AssignTransitionEventData(const InternalTransitionEvent& aEvent,
                                  bool aCopyTargets) {
@@ -255,6 +258,7 @@ class InternalTransitionEvent final : public WidgetEvent {
     mPropertyName = aEvent.mPropertyName;
     mElapsedTime = aEvent.mElapsedTime;
     mPseudoElement = aEvent.mPseudoElement;
+    mAnimation = aEvent.mAnimation;
   }
 };
 
@@ -294,6 +298,7 @@ class InternalAnimationEvent final : public WidgetEvent {
   nsString mAnimationName;
   nsString mPseudoElement;
   float mElapsedTime;
+  RefPtr<dom::CSSAnimation> mAnimation;
 
   void AssignAnimationEventData(const InternalAnimationEvent& aEvent,
                                 bool aCopyTargets) {
@@ -302,6 +307,7 @@ class InternalAnimationEvent final : public WidgetEvent {
     mAnimationName = aEvent.mAnimationName;
     mElapsedTime = aEvent.mElapsedTime;
     mPseudoElement = aEvent.mPseudoElement;
+    mAnimation = aEvent.mAnimation;
   }
 };
 

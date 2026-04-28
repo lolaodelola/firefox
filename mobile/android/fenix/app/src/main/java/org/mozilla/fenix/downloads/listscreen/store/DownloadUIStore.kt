@@ -114,6 +114,7 @@ private fun downloadStateReducer(
         is DownloadUIAction.NavigationIconClicked -> state
         is DownloadUIAction.SettingsIconClicked -> state
 
+        is DownloadUIAction.RequestDeleteMultiple -> state
         is DownloadUIAction.RequestDelete -> state
         is DownloadUIAction.ShowDeleteDialog ->
             state.copy(dialogState = DownloadUIState.DialogState.DeleteConfirmation(action.items))

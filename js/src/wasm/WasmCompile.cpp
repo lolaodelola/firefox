@@ -1039,7 +1039,7 @@ bool wasm::CompileCompleteTier2(const ShareableBytes* codeSection,
   const CodeMetadata& codeMeta = module.codeMeta();
   ModuleGenerator mg(codeMeta, compilerEnv, CompileState::EagerTier2, cancelled,
                      error, warnings);
-  if (!mg.initializeCompleteTier()) {
+  if (!mg.initializeCompleteTier(nullptr, &module.codeTailMeta())) {
     return false;
   }
 

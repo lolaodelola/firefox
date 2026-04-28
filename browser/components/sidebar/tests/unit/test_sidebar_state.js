@@ -28,7 +28,10 @@ const mockGlobal = {
 };
 const mockController = {
   _box: mockElement,
+  _enableLauncherDragging: sinon.stub(),
+  _disableLauncherDragging: sinon.stub(),
   hide: sinon.stub(),
+  launcherSplitter: { toggleAttribute: sinon.stub() },
   showInitially: sinon.stub(),
   sidebarContainer: { ownerGlobal: mockGlobal },
   sidebarMain: mockLitElement,

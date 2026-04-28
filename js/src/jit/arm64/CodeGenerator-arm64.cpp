@@ -2478,15 +2478,23 @@ void CodeGenerator::visitWasmLoad(LWasmLoad* lir) {
 void CodeGenerator::visitWasmStore(LWasmStore* lir) {
   const MWasmStore* mir = lir->mir();
 
+  AnyRegister value;
+  if (lir->value()->isConstant()) {
+    // Lowering only produces i32.const 0 here (Int64 uses useRegisterAtStart).
+    MOZ_ASSERT(ToInt32(lir->value()) == 0 && mir->access().byteSize() <= 4);
+    value = AnyRegister(Register::FromCode(Registers::xzr));
+  } else {
+    value = ToAnyRegister(lir->value());
+  }
+
   if (Maybe<uint64_t> absAddr = IsAbsoluteAddress(lir->ptr(), mir->access())) {
-    masm.wasmStoreAbsolute(mir->access(), ToAnyRegister(lir->value()),
-                           Register64::Invalid(), ToRegister(lir->memoryBase()),
-                           absAddr.value());
+    masm.wasmStoreAbsolute(mir->access(), value, Register64::Invalid(),
+                           ToRegister(lir->memoryBase()), absAddr.value());
     return;
   }
 
-  masm.wasmStore(mir->access(), ToAnyRegister(lir->value()),
-                 ToRegister(lir->memoryBase()), ToRegister(lir->ptr()));
+  masm.wasmStore(mir->access(), value, ToRegister(lir->memoryBase()),
+                 ToRegister(lir->ptr()));
 }
 
 void CodeGenerator::visitWasmSelect(LWasmSelect* lir) {
@@ -3749,6 +3757,28 @@ void CodeGenerator::visitWasmReplaceLaneSimd128(LWasmReplaceLaneSimd128* ins) {
   FloatRegister lhsDest = ToFloatRegister(ins->lhs());
   const LAllocation* rhs = ins->rhs();
   uint32_t laneIndex = ins->mir()->laneIndex();
+
+  if (MOZ_UNLIKELY(rhs->isConstant())) {
+    // Lowering only produces i32.const 0 here (I64x2 uses useRegister).
+    MOZ_ASSERT(ToInt32(rhs) == 0);
+    switch (ins->mir()->simdOp()) {
+      case wasm::SimdOp::I8x16ReplaceLane:
+        masm.replaceLaneInt8x16(laneIndex, Register::FromCode(Registers::xzr),
+                                lhsDest);
+        break;
+      case wasm::SimdOp::I16x8ReplaceLane:
+        masm.replaceLaneInt16x8(laneIndex, Register::FromCode(Registers::xzr),
+                                lhsDest);
+        break;
+      case wasm::SimdOp::I32x4ReplaceLane:
+        masm.replaceLaneInt32x4(laneIndex, Register::FromCode(Registers::xzr),
+                                lhsDest);
+        break;
+      default:
+        MOZ_CRASH();
+    }
+    return;
+  }
 
   switch (ins->mir()->simdOp()) {
     case wasm::SimdOp::I8x16ReplaceLane:

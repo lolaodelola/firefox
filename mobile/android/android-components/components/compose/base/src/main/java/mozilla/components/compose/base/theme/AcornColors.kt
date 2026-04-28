@@ -31,8 +31,6 @@ class AcornColors(
     layerWarning: Color,
     layerCritical: Color,
     layerInformation: Color,
-    actionWarning: Color,
-    actionCritical: Color,
     actionInformation: Color,
     formDefault: Color,
     textOnColorPrimary: Color,
@@ -89,14 +87,6 @@ class AcornColors(
         private set
 
     // Actions
-
-    // Warning button
-    var actionWarning by mutableStateOf(actionWarning)
-        private set
-
-    // Error button
-    var actionCritical by mutableStateOf(actionCritical)
-        private set
 
     // Info button
     var actionInformation by mutableStateOf(actionInformation)
@@ -202,8 +192,6 @@ class AcornColors(
         layerWarning = other.layerWarning
         layerCritical = other.layerCritical
         layerInformation = other.layerInformation
-        actionWarning = other.actionWarning
-        actionCritical = other.actionCritical
         actionInformation = other.actionInformation
         formDefault = other.formDefault
         textOnColorPrimary = other.textOnColorPrimary
@@ -236,8 +224,6 @@ class AcornColors(
         layerWarning: Color = this.layerWarning,
         layerCritical: Color = this.layerCritical,
         layerInformation: Color = this.layerInformation,
-        actionWarning: Color = this.actionWarning,
-        actionCritical: Color = this.actionCritical,
         actionInformation: Color = this.actionInformation,
         formDefault: Color = this.formDefault,
         textOnColorPrimary: Color = this.textOnColorPrimary,
@@ -264,8 +250,6 @@ class AcornColors(
         layerWarning = layerWarning,
         layerCritical = layerCritical,
         layerInformation = layerInformation,
-        actionWarning = actionWarning,
-        actionCritical = actionCritical,
         actionInformation = actionInformation,
         formDefault = formDefault,
         textOnColorPrimary = textOnColorPrimary,
@@ -295,8 +279,6 @@ val darkColorPalette = AcornColors(
     layerWarning = PhotonColors.Yellow70A77,
     layerCritical = PhotonColors.Pink80,
     layerInformation = PhotonColors.Blue50,
-    actionWarning = PhotonColors.Yellow40A41,
-    actionCritical = PhotonColors.Pink70A69,
     actionInformation = PhotonColors.Blue60,
     formDefault = PhotonColors.LightGrey05,
     textOnColorPrimary = PhotonColors.LightGrey05,
@@ -325,8 +307,6 @@ val lightColorPalette = AcornColors(
     layerWarning = PhotonColors.Yellow20,
     layerCritical = PhotonColors.Red10,
     layerInformation = PhotonColors.Blue50A44,
-    actionWarning = PhotonColors.Yellow60A40,
-    actionCritical = PhotonColors.Red30,
     actionInformation = PhotonColors.Blue50,
     formDefault = PhotonColors.DarkGrey90,
     textOnColorPrimary = PhotonColors.LightGrey05,

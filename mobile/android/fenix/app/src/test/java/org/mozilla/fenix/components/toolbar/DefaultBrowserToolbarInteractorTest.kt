@@ -45,28 +45,6 @@ class DefaultBrowserToolbarInteractorTest {
     }
 
     @Test
-    fun onBrowserToolbarPaste() {
-        val pastedText = "Mozilla"
-        interactor.onBrowserToolbarPaste(pastedText)
-        verify { browserToolbarController.handleToolbarPaste(pastedText) }
-    }
-
-    @Test
-    fun onBrowserToolbarPasteAndGo() {
-        val pastedText = "Mozilla"
-
-        interactor.onBrowserToolbarPasteAndGo(pastedText)
-        verify { browserToolbarController.handleToolbarPasteAndGo(pastedText) }
-    }
-
-    @Test
-    fun onBrowserToolbarClicked() {
-        interactor.onBrowserToolbarClicked()
-
-        verify { browserToolbarController.handleToolbarClick() }
-    }
-
-    @Test
     fun onBrowserToolbarMenuItemTapped() {
         val item: ToolbarMenu.Item = mockk()
 

@@ -82,8 +82,9 @@ const val BOTTOM_END_THUMBNAIL_INDEX = 3
  * @param clickHandler: Handler for all click-handling inputs (long click, click, etc)
  * @param modifier: The Modifier
  * @param interactionState The tab item's interaction state (hover, drag, etc)
- * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
- * @param editTabGroupClick Invoked when the user clicks to edit the tab group.
+ * @param onDeleteTabGroupClick Invoked when the user clicks on delete tab group.
+ * @param onEditTabGroupClick Invoked when the user clicks to edit the tab group.
+ * @param onCloseTabGroupClick Invoked when the user clicks to close the tab group.
  */
 @Composable
 fun TabGroupCard(
@@ -92,8 +93,9 @@ fun TabGroupCard(
     clickHandler: TabsTrayItemClickHandler,
     modifier: Modifier = Modifier,
     interactionState: TabItemInteractionState,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: () -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: () -> Unit,
+    onCloseTabGroupClick: () -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -144,8 +146,9 @@ fun TabGroupCard(
 
                         TabGroupOptionButton(
                             selectionState = selectionState,
-                            onDeleteTabGroup = { onDeleteTabGroup(group) },
-                            editTabGroupClick = editTabGroupClick,
+                            onDeleteTabGroupClick = { onDeleteTabGroupClick(group) },
+                            onEditTabGroupClick = onEditTabGroupClick,
+                            onCloseTabGroupClick = onCloseTabGroupClick,
                         )
                     }
                 }
@@ -182,8 +185,9 @@ fun TabGroupCard(
 @Composable
 private fun TabGroupOptionButton(
     selectionState: TabsTrayItemSelectionState,
-    onDeleteTabGroup: () -> Unit,
-    editTabGroupClick: () -> Unit,
+    onDeleteTabGroupClick: () -> Unit,
+    onEditTabGroupClick: () -> Unit,
+    onCloseTabGroupClick: () -> Unit,
 ) {
     if (selectionState.multiSelectEnabled) {
         MultiSelectTabButton(
@@ -194,8 +198,9 @@ private fun TabGroupOptionButton(
         TabGroupMenuButton(
             modifier = Modifier.size(TabHeaderIconTouchTargetSize),
             includeCloseOption = true,
-            onDeleteTabGroup = onDeleteTabGroup,
-            editTabGroupClick = editTabGroupClick,
+            onDeleteTabGroupClick = onDeleteTabGroupClick,
+            onEditTabGroupClick = onEditTabGroupClick,
+            onCloseTabGroupClick = onCloseTabGroupClick,
         )
     }
 }
@@ -531,8 +536,9 @@ private fun TabGroupCardPreview(
                 ),
                 modifier = Modifier.weight(1f),
                 interactionState = tabGroupCardState.interactionState,
-                onDeleteTabGroup = {},
-                editTabGroupClick = {},
+                onDeleteTabGroupClick = {},
+                onEditTabGroupClick = {},
+                onCloseTabGroupClick = {},
             )
         }
     }

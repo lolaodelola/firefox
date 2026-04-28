@@ -140,8 +140,9 @@ private val TabListPadding = 16.dp
  * @param onItemClick Invoked when the user clicks on a tab.
  * @param onItemLongClick Invoked when the user long clicks a tab.
  * @param onTabDragStart Invoked when starting to drag a tab.
- * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
- * @param editTabGroupClick Invoked when the user clicks to edit a tab group.
+ * @param onDeleteTabGroupClick Invoked when the user clicks on delete tab group.
+ * @param onEditTabGroupClick Invoked when the user clicks to edit a tab group.
+ * @param onCloseTabGroupClick Invoked when the user clicks to close a tab group.
  * @param header Optional layout to display before [tabs].
  * @param contentPadding Optional PaddingValues to pad the tab's content.
  */
@@ -159,8 +160,9 @@ fun TabLayout(
     onItemClick: (TabsTrayItem) -> Unit,
     onItemLongClick: (TabsTrayItem) -> Unit,
     onTabDragStart: () -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onCloseTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
     header: (@Composable () -> Unit)? = null,
     contentPadding: PaddingValues = defaultTabLayoutContentPadding(),
 ) {
@@ -176,8 +178,9 @@ fun TabLayout(
                 onItemLongClick = onItemLongClick,
                 tabInteractionHandler = tabInteractionHandler,
                 onTabDragStart = onTabDragStart,
-                onDeleteTabGroup = onDeleteTabGroup,
-                editTabGroupClick = editTabGroupClick,
+                onDeleteTabGroupClick = onDeleteTabGroupClick,
+                onEditTabGroupClick = onEditTabGroupClick,
+                onCloseTabGroupClick = onCloseTabGroupClick,
                 header = header,
                 contentPadding = contentPadding,
             )
@@ -192,8 +195,9 @@ fun TabLayout(
                 onItemLongClick = onItemLongClick,
                 tabInteractionHandler = tabInteractionHandler,
                 onTabDragStart = onTabDragStart,
-                onDeleteTabGroup = onDeleteTabGroup,
-                editTabGroupClick = editTabGroupClick,
+                onDeleteTabGroupClick = onDeleteTabGroupClick,
+                onEditTabGroupClick = onEditTabGroupClick,
+                onCloseTabGroupClick = onCloseTabGroupClick,
                 header = header,
                 contentPadding = contentPadding,
             )
@@ -237,13 +241,13 @@ private fun TabLayoutScrollHelper(
 
         snapshotFlow { calculateScrollDimensions(state) }
             .filterNotNull()
-            .first()
+            .first { (viewportHeight, itemHeight) ->
+                viewportHeight > 0 && itemHeight > 0
+            }
             .let { (viewportHeight, itemHeight) ->
-                if (viewportHeight > 0 && itemHeight > 0) {
-                    val offset = -(viewportHeight - itemHeight - bottomPaddingPx)
-                    withFrameNanos { }
-                    scrollToItem(targetIndex, offset)
-                }
+                val offset = -(viewportHeight - itemHeight - bottomPaddingPx)
+                withFrameNanos { }
+                scrollToItem(targetIndex, offset)
             }
     }
 }
@@ -281,8 +285,9 @@ private fun ReorderableTabGrid(
     onItemLongClick: (TabsTrayItem) -> Unit,
     tabInteractionHandler: TabInteractionHandler,
     onTabDragStart: () -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onCloseTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
     header: (@Composable () -> Unit)? = null,
 ) {
     val gridState = rememberLazyGridState()
@@ -357,8 +362,9 @@ private fun ReorderableTabGrid(
                     gridState = gridState,
                     onTabClose = onTabClose,
                     onItemClick = onItemClick,
-                    onDeleteTabGroup = onDeleteTabGroup,
-                    editTabGroupClick = editTabGroupClick,
+                    onDeleteTabGroupClick = onDeleteTabGroupClick,
+                    onEditTabGroupClick = onEditTabGroupClick,
+                    onCloseTabGroupClick = onCloseTabGroupClick,
                 )
             }
 
@@ -383,8 +389,9 @@ private fun InteractableTabGrid(
     onItemClick: (TabsTrayItem) -> Unit,
     onItemLongClick: (TabsTrayItem) -> Unit,
     onTabDragStart: () -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onCloseTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
     header: (@Composable () -> Unit)? = null,
 ) {
     val gridState = rememberLazyGridState()
@@ -468,8 +475,9 @@ private fun InteractableTabGrid(
                     gridState = gridState,
                     onTabClose = onTabClose,
                     onItemClick = onItemClick,
-                    onDeleteTabGroup = onDeleteTabGroup,
-                    editTabGroupClick = editTabGroupClick,
+                    onDeleteTabGroupClick = onDeleteTabGroupClick,
+                    onEditTabGroupClick = onEditTabGroupClick,
+                    onCloseTabGroupClick = onCloseTabGroupClick,
                 )
             }
 
@@ -493,8 +501,9 @@ private fun LazyGridItemScope.ReorderableTabGridItemContent(
     gridState: LazyGridState,
     onTabClose: (TabsTrayItem.Tab) -> Unit,
     onItemClick: (TabsTrayItem) -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onCloseTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     val decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay()
     val density = LocalDensity.current
@@ -542,8 +551,9 @@ private fun LazyGridItemScope.ReorderableTabGridItemContent(
                     selectionState = selectionState,
                     clickHandler = TabsTrayItemClickHandler(onClick = onItemClick),
                     interactionState = interactionState,
-                    onDeleteTabGroup = onDeleteTabGroup,
-                    editTabGroupClick = { editTabGroupClick(tabsTrayItem) },
+                    onDeleteTabGroupClick = onDeleteTabGroupClick,
+                    onEditTabGroupClick = { onEditTabGroupClick(tabsTrayItem) },
+                    onCloseTabGroupClick = { onCloseTabGroupClick(tabsTrayItem) },
                 )
             }
         }
@@ -563,8 +573,9 @@ private fun LazyGridItemScope.InteractableTabGridItemContent(
     gridState: LazyGridState,
     onTabClose: (TabsTrayItem.Tab) -> Unit,
     onItemClick: (TabsTrayItem) -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onCloseTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     val decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay()
     val density = LocalDensity.current
@@ -612,8 +623,9 @@ private fun LazyGridItemScope.InteractableTabGridItemContent(
                     selectionState = selectionState,
                     clickHandler = TabsTrayItemClickHandler(onClick = onItemClick),
                     interactionState = interactionState,
-                    onDeleteTabGroup = onDeleteTabGroup,
-                    editTabGroupClick = { editTabGroupClick(tabsTrayItem) },
+                    onDeleteTabGroupClick = onDeleteTabGroupClick,
+                    onEditTabGroupClick = { onEditTabGroupClick(tabsTrayItem) },
+                    onCloseTabGroupClick = { onCloseTabGroupClick(tabsTrayItem) },
                 )
             }
         }
@@ -869,8 +881,9 @@ private fun TabListPreview(
                 onItemClick = {},
                 onItemLongClick = {},
                 onTabDragStart = {},
-                onDeleteTabGroup = {},
-                editTabGroupClick = {},
+                onDeleteTabGroupClick = {},
+                onEditTabGroupClick = {},
+                onCloseTabGroupClick = {},
             )
         }
     }
@@ -901,8 +914,9 @@ private fun TabGridPreview(
             onItemClick = {},
             onItemLongClick = {},
             onTabDragStart = {},
-            onDeleteTabGroup = {},
-            editTabGroupClick = {},
+            onDeleteTabGroupClick = {},
+            onEditTabGroupClick = {},
+            onCloseTabGroupClick = {},
         )
     }
 }
@@ -977,8 +991,9 @@ private fun MultiSelectPreview(
             },
             onItemLongClick = {},
             onTabDragStart = {},
-            onDeleteTabGroup = {},
-            editTabGroupClick = {},
+            onDeleteTabGroupClick = {},
+            onEditTabGroupClick = {},
+            onCloseTabGroupClick = {},
         )
     }
 }

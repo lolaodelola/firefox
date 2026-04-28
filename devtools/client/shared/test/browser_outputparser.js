@@ -564,161 +564,683 @@ function testParseShape(doc, parser) {
 
   const tests = [
     {
-      desc: "Polygon shape",
+      desc: "simple polygon()",
+      definition: "polygon(0px 0px, 10px 10px, 10px 20px)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `polygon(` +
+            `<span class="inspector-shape-point" data-point="0">` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="x">0px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="y">0px</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="1">` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="x">10px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="y">10px</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="2">` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="x">10px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="y">20px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "polygon() with fill rule",
+      definition: "polygon(nonzero, 0px 0px, 10px 10px, 10px 20px)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `polygon(nonzero, ` +
+            `<span class="inspector-shape-point" data-point="0">` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="x">0px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="y">0px</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="1">` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="x">10px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="y">10px</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="2">` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="x">10px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="y">20px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "complex polygon()",
       definition:
         "polygon(evenodd, 0px 0px, 10%200px,30%30% , calc(250px - 10px) 0 ,\n " +
         "12em var(--variable), 100% 100%) margin-box",
-      spanCount: 18,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `polygon(` +
+            `evenodd, ` +
+            `<span class="inspector-shape-point" data-point="0">` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="x">0px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="y">0px</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="1">` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="x">10%</span>` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="y">200px</span>` +
+            `</span>` +
+            `,` +
+            `<span class="inspector-shape-point" data-point="2">` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="x">30%</span>` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="y">30%</span>` +
+              ` ` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="3">` +
+              `<span class="inspector-shape-point" data-point="3" data-pair="x">calc(250px - 10px)</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="3" data-pair="y">0</span>` +
+              ` ` +
+            `</span>` +
+            `,\n ` +
+            `<span class="inspector-shape-point" data-point="4">` +
+              `<span class="inspector-shape-point" data-point="4" data-pair="x">12em</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="4" data-pair="y">var(--variable)</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="5">` +
+              `<span class="inspector-shape-point" data-point="5" data-pair="x">100%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="5" data-pair="y">100%</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>` +
+        ` margin-box`,
     },
     {
-      desc: "POLYGON()",
+      desc: "complex POLYGON()",
       definition:
         "POLYGON(evenodd, 0px 0px, 10%200px,30%30% , calc(250px - 10px) 0 ,\n " +
         "12em var(--variable), 100% 100%) margin-box",
-      spanCount: 18,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `POLYGON(` +
+            `evenodd, ` +
+            `<span class="inspector-shape-point" data-point="0">` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="x">0px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="0" data-pair="y">0px</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="1">` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="x">10%</span>` +
+              `<span class="inspector-shape-point" data-point="1" data-pair="y">200px</span>` +
+            `</span>` +
+            `,` +
+            `<span class="inspector-shape-point" data-point="2">` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="x">30%</span>` +
+              `<span class="inspector-shape-point" data-point="2" data-pair="y">30%</span>` +
+              ` ` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="3">` +
+              `<span class="inspector-shape-point" data-point="3" data-pair="x">calc(250px - 10px)</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="3" data-pair="y">0</span>` +
+              ` ` +
+            `</span>` +
+            `,\n ` +
+            `<span class="inspector-shape-point" data-point="4">` +
+              `<span class="inspector-shape-point" data-point="4" data-pair="x">12em</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="4" data-pair="y">var(--variable)</span>` +
+            `</span>` +
+            `, ` +
+            `<span class="inspector-shape-point" data-point="5">` +
+              `<span class="inspector-shape-point" data-point="5" data-pair="x">100%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="5" data-pair="y">100%</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>` +
+        ` margin-box`,
     },
     {
       desc: "Invalid polygon shape",
       definition: "polygon(0px 0px 100px 20px, 20% 20%)",
-      spanCount: 0,
-      hasShapeWatch: false,
+      markup: "polygon(0px 0px 100px 20px, 20% 20%)",
     },
     {
       desc: "Circle shape with all arguments",
       definition: "circle(25% at\n 30% 200px) border-box",
-      spanCount: 4,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">25%</span>` +
+            ` at\n ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">30%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">200px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>` +
+        ` border-box`,
     },
     {
       desc: "Circle shape with only one center",
       definition: "circle(25em at 40%)",
-      spanCount: 3,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">25em</span>` +
+            ` at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">40%</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Circle shape with no radius",
       definition: "circle(at 30% 40%)",
-      spanCount: 3,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">30%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">40%</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Circle shape with no radius and keyword position",
+      definition: "circle(at right center)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">right</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">center</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Circle shape with no radius and 4 positions",
+      definition: "circle(at left 10px top 15px)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">left</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">10px</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">top</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">15px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Circle shape with no center",
       definition: "circle(12em)",
-      spanCount: 1,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">12em</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Circle shape with no center and keyword radius size",
+      definition: "circle(farthest-side)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">farthest-side</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Circle shape with no center and computed radius size",
+      definition: "circle(calc(10% + 12em))",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">calc(10% + 12em)</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Circle shape with computed position",
+      definition: "circle(25% at calc(30% + 1px) calc(200px - 10%))",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">25%</span>` +
+            ` at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">calc(30% + 1px)</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">calc(200px - 10%)</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Circle shape with no arguments",
       definition: "circle()",
-      spanCount: 0,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle()` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Circle shape with no space before at",
       definition: "circle(25%at 30% 30%)",
-      spanCount: 4,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `circle(` +
+            `<span class="inspector-shape-point" data-point="radius">25%</span>` +
+            `at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">30%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">30%</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "CIRCLE",
       definition: "CIRCLE(12em)",
-      spanCount: 1,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `CIRCLE(` +
+            `<span class="inspector-shape-point" data-point="radius">12em</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Invalid circle shape",
       definition: "circle(25%at30%30%)",
-      spanCount: 0,
-      hasShapeWatch: false,
+      markup: "circle(25%at30%30%)",
     },
     {
       desc: "Ellipse shape with all arguments",
       definition: "ellipse(200px 10em at 25% 120px) content-box",
-      spanCount: 5,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse(` +
+            `<span class="inspector-shape-point" data-point="rx">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point" data-point="ry">10em</span>` +
+            ` at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">25%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">120px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>` +
+        ` content-box`,
     },
     {
       desc: "Ellipse shape with only one center",
       definition: "ellipse(200px 10% at 120px)",
-      spanCount: 4,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse(` +
+            `<span class="inspector-shape-point" data-point="rx">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point" data-point="ry">10%</span>` +
+            ` at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">120px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Ellipse shape with no radius",
       definition: "ellipse(at 25% 120px)",
-      spanCount: 3,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse(` +
+            `at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">25%</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">120px</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Ellipse shape with no center",
       definition: "ellipse(200px\n10em)",
-      spanCount: 2,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse(` +
+            `<span class="inspector-shape-point" data-point="rx">200px</span>` +
+            `\n` +
+            `<span class="inspector-shape-point" data-point="ry">10em</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Ellipse shape with no center and keyword radii",
+      definition: "ellipse(farthest-side closest-side)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse(` +
+            `<span class="inspector-shape-point" data-point="rx">farthest-side</span>` +
+            ` ` +
+            `<span class="inspector-shape-point" data-point="ry">closest-side</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Ellipse shape with computed position and radiis",
+      definition:
+        "ellipse(calc(25% + 1px) calc(50% - 2px) at calc(30% + 1px) calc(200px - 10%))",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse(` +
+            `<span class="inspector-shape-point" data-point="rx">calc(25% + 1px)</span>` +
+            ` ` +
+            `<span class="inspector-shape-point" data-point="ry">calc(50% - 2px)</span>` +
+            ` at ` +
+            `<span class="inspector-shape-point" data-point="center">` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="x">calc(30% + 1px)</span>` +
+              ` ` +
+              `<span class="inspector-shape-point" data-point="center" data-pair="y">calc(200px - 10%)</span>` +
+            `</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Ellipse shape with no arguments",
       definition: "ellipse()",
-      spanCount: 0,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ellipse()` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "ELLIPSE()",
       definition: "ELLIPSE(200px 10em)",
-      spanCount: 2,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `ELLIPSE(` +
+            `<span class="inspector-shape-point" data-point="rx">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point" data-point="ry">10em</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Invalid ellipse shape",
       definition: "ellipse(200px100px at 30$ 20%)",
-      spanCount: 0,
-      hasShapeWatch: false,
+      markup: "ellipse(200px100px at 30$ 20%)",
     },
     {
       desc: "Inset shape with 4 arguments",
       definition: "inset(200px 100px\n 30%15%)",
-      spanCount: 4,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point right">100px</span>` +
+            `\n ` +
+            `<span class="inspector-shape-point bottom">30%</span>` +
+            `<span class="inspector-shape-point left">15%</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Inset shape with 3 arguments",
       definition: "inset(200px 100px 15%)",
-      spanCount: 3,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point right left">100px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point bottom">15%</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Inset shape with 2 arguments",
       definition: "inset(200px 100px)",
-      spanCount: 2,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top bottom">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point right left">100px</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Inset shape with 1 argument",
       definition: "inset(200px)",
-      spanCount: 1,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top right bottom left">200px</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "Inset shape with 0 arguments",
       definition: "inset()",
-      spanCount: 0,
-      hasShapeWatch: false,
+      markup: "inset()",
     },
     {
       desc: "INSET()",
       definition: "INSET(200px)",
-      spanCount: 1,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `INSET(` +
+            `<span class="inspector-shape-point top right bottom left">200px</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
     {
       desc: "offset-path property with inset shape value",
       property: "offset-path",
       definition: "inset(200px)",
-      spanCount: 1,
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top right bottom left">200px</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Inset shape with nested function",
+      definition: "inset(200px calc(100px + 10%) 15%)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top">200px</span>` +
+            ` ` +
+            `<span class="inspector-shape-point right left">calc(100px + 10%)</span>` +
+            ` ` +
+            `<span class="inspector-shape-point bottom">15%</span>` +
+            `)` +
+          `</span>` +
+        `</span>`,
+    },
+    {
+      desc: "Inset shape with round keyword",
+      definition: "inset(4rem round 1rem 2rem 3rem 4rem)",
+      markup:
+        // prettier-ignore
+        `<span>` +
+          `<button class="inspector-shape-swatch"></button>` +
+          `<span class="inspector-shape">` +
+            `inset(` +
+            `<span class="inspector-shape-point top right bottom left">4rem</span>` +
+            ` round 1rem 2rem 3rem 4rem` +
+            `)` +
+          `</span>` +
+        `</span>`,
     },
   ];
 
-  for (const {
-    desc,
-    definition,
-    property = "clip-path",
-    spanCount,
-    hasShapeWatch = true,
-  } of tests) {
+  for (const { desc, definition, property = "clip-path", markup } of tests) {
     info(desc);
     const frag = parser.parseCssProperty(property, definition, {
       shapeClass: "inspector-shape",
       shapeSwatchClass: "inspector-shape-swatch",
     });
-    const spans = frag.querySelectorAll(".inspector-shape-point");
-    is(spans.length, spanCount, desc + " span count");
-    is(frag.textContent, definition, desc + " text content");
-    is(
-      frag.querySelectorAll("button.inspector-shape-swatch").length,
-      hasShapeWatch ? 1 : 0,
-      `${desc} ${hasShapeWatch ? "has" : "does not have"} a swatch button when shapeSwatchClass option is passed`
-    );
+    const el = frag.ownerDocument.createElement("span");
+    el.append(frag);
+    is(el.innerHTML, markup, desc + " markup");
+    is(el.textContent, definition, desc + " text content");
 
     const swatchlessFrag = parser.parseCssProperty(property, definition, {
       shapeClass: "inspector-shape",

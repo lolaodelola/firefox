@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import mozilla.components.compose.base.button.IconButton
 import mozilla.components.compose.base.theme.AcornTheme
 import mozilla.components.concept.llm.LlmProvider
 import mozilla.components.feature.summarize.R
@@ -83,12 +83,13 @@ internal fun SummarizationHeader(
 
         IconButton(
             onClick = onSettingsClicked,
+            contentDescription = stringResource(
+                id = R.string.mozac_summarize_settings_button_content_description,
+            ),
         ) {
             Icon(
                 painter = painterResource(id = iconsR.drawable.mozac_ic_settings_24),
-                contentDescription = stringResource(
-                    id = R.string.mozac_summarize_settings_button_content_description,
-                ),
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }

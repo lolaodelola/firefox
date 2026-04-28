@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -37,6 +38,7 @@ import mozilla.components.browser.state.state.createTab
 import mozilla.components.compose.base.theme.surfaceDimVariant
 import org.mozilla.fenix.R
 import org.mozilla.fenix.compose.TabThumbnailImageData
+import org.mozilla.fenix.tabstray.TabsTrayTestTag
 import org.mozilla.fenix.tabstray.data.TabGroupTheme
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.theme.FirefoxTheme
@@ -72,6 +74,7 @@ fun TabGroupRow(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .testTag(TabsTrayTestTag.TAB_GROUP_ROOT)
             .padding(
                 if (trailingContent == null) {
                     PaddingValues(
@@ -99,45 +102,53 @@ fun TabGroupRow(
             modifier = Modifier
                 .size(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
                 .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.surfaceDimVariant,
-                        shape = ROUNDED_CORNER_SHAPE,
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.surfaceDimVariant,
+                    shape = ROUNDED_CORNER_SHAPE,
                 ),
         )
 
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TabGroupThemeDot(tabGroup.theme)
+        TabGroupTextContent(tabGroup = tabGroup, modifier = Modifier.weight(1f))
 
-                Spacer(modifier = Modifier.width(4.dp))
+        trailingContent?.invoke()
+    }
+}
 
-                Text(
-                    text = tabGroup.title,
-                    modifier = Modifier.clearAndSetSemantics { },
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = FirefoxTheme.typography.body1,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+@Composable
+private fun TabGroupTextContent(
+    tabGroup: TabsTrayItem.TabGroup,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TabGroupThemeDot(tabGroup.theme)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.width(4.dp))
 
             Text(
-                text = pluralStringResource(
-                    id = R.plurals.tab_group_tabs_count_subtitle,
-                    count = tabGroup.tabs.size,
-                    tabGroup.tabs.size,
-                ),
+                text = tabGroup.title,
                 modifier = Modifier.clearAndSetSemantics { },
-                color = MaterialTheme.colorScheme.secondary,
-                style = FirefoxTheme.typography.caption,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = FirefoxTheme.typography.body1,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
 
-        trailingContent?.invoke()
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = pluralStringResource(
+                id = R.plurals.tab_group_tabs_count_subtitle,
+                count = tabGroup.tabs.size,
+                tabGroup.tabs.size,
+            ),
+            modifier = Modifier.clearAndSetSemantics { },
+            color = MaterialTheme.colorScheme.secondary,
+            style = FirefoxTheme.typography.caption,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

@@ -17,8 +17,7 @@ class ContentSharingMockServerClass {
   #requests = [];
   #originalServerUrl = null;
   #mockResponse = { url: MOCK_SHARE_URL };
-  #mockResponseStatus = 200;
-
+  #mockResponseStatus = 201;
   get url() {
     return this.#url;
   }
@@ -91,7 +90,7 @@ class ContentSharingMockServerClass {
   reset() {
     this.#requests = [];
     this.#mockResponse = { url: MOCK_SHARE_URL };
-    this.#mockResponseStatus = 200;
+    this.#mockResponseStatus = 201;
   }
 
   #handleRequest(httpRequest, httpResponse) {

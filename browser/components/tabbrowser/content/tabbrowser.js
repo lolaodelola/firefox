@@ -866,6 +866,7 @@
       }
 
       for (const tab of unchangedRemoteness) {
+        ReducedProtectionNotification.markUserReload(tab.linkedBrowser);
         reloadBrowser(tab);
       }
 

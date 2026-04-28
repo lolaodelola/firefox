@@ -1321,7 +1321,7 @@ export class DomainToCategoriesStore {
                   TEXT PRIMARY KEY NOT NULL,
                 categories
                   TEXT
-              );
+              ) WITHOUT ROWID;
             `;
         await this.#connection.execute(createDomainToCategoriesTable);
         await this.#connection.execute(`DELETE FROM moz_meta`);

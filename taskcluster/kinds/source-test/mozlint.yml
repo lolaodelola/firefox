@@ -449,7 +449,7 @@ python-sites:
 test-manifest:
     description: lint test manifests
     treeherder:
-        symbol: misc(tm)
+        symbol: tests(test-manifest)
     run:
         mach: lint -v -l test-manifest-toml -f treeherder -f json:/builds/worker/mozlint.json .
     when:
@@ -463,7 +463,7 @@ test-manifest:
 wptlint-gecko:
     description: web-platform-tests linter
     treeherder:
-        symbol: misc(W)
+        symbol: tests(web-platform)
     run:
         mach: lint -v -l wpt -f treeherder -f json:/builds/worker/mozlint.json .
     when:

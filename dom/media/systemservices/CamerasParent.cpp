@@ -1086,7 +1086,7 @@ ipc::IPCResult CamerasParent::RecvGetCaptureCapability(
             auto webrtcCaps = aValue.ResolveValue();
             VideoCaptureCapability capCap(
                 webrtcCaps.width, webrtcCaps.height, webrtcCaps.maxFPS,
-                static_cast<int>(webrtcCaps.videoType), webrtcCaps.interlaced);
+                webrtcCaps.videoType, webrtcCaps.interlaced);
             LOG("Capability: %u %u %u %d %d", webrtcCaps.width,
                 webrtcCaps.height, webrtcCaps.maxFPS,
                 static_cast<int>(webrtcCaps.videoType), webrtcCaps.interlaced);

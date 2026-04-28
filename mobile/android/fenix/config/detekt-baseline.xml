@@ -108,8 +108,6 @@
     <ID>ForbiddenSuppress:ReorderableList.kt$ListReorderState$@Suppress("CognitiveComplexMethod")</ID>
     <ID>ForbiddenSuppress:ReviewPromptMiddleware.kt$ReviewPromptMiddleware$@Suppress("CognitiveComplexMethod")</ID>
     <ID>ForbiddenSuppress:SavedLoginsScreen.kt$@Suppress("LongMethod", "CognitiveComplexMethod")</ID>
-    <ID>ForbiddenSuppress:SearchDialogFragment.kt$SearchDialogFragment$@SuppressWarnings("LongMethod")</ID>
-    <ID>ForbiddenSuppress:SearchDialogFragment.kt$SearchDialogFragment$@SuppressWarnings("LongMethod", "CognitiveComplexMethod")</ID>
     <ID>ForbiddenSuppress:SearchEngineFragment.kt$SearchEngineFragment$@Suppress("LongMethod")</ID>
     <ID>ForbiddenSuppress:SearchEngineShortcuts.kt$@Suppress("LongMethod")</ID>
     <ID>ForbiddenSuppress:SearchFragmentStore.kt$@Suppress("LongMethod", "CognitiveComplexMethod")</ID>
@@ -329,8 +327,6 @@
     <ID>UndocumentedPublicClass:RecentlyClosedFragmentView.kt$RecentlyClosedInteractor : SelectionInteractor</ID>
     <ID>UndocumentedPublicClass:RecentlyClosedItemViewHolder.kt$RecentlyClosedItemViewHolder : ViewHolder</ID>
     <ID>UndocumentedPublicClass:SaveCollectionListAdapter.kt$CollectionViewHolder : ViewHolder</ID>
-    <ID>UndocumentedPublicClass:SearchDialogController.kt$SearchDialogController : SearchController</ID>
-    <ID>UndocumentedPublicClass:SearchDialogFragment.kt$SearchDialogFragment : AppCompatDialogFragmentUserInteractionHandler</ID>
     <ID>UndocumentedPublicClass:SearchEngineMenu.kt$SearchEngineMenu</ID>
     <ID>UndocumentedPublicClass:SearchEngineMenu.kt$SearchEngineMenu$Item</ID>
     <ID>UndocumentedPublicClass:SearchEngineMenu.kt$SearchEngineMenu.Item$Delete : Item</ID>
@@ -434,13 +430,7 @@
     <ID>UndocumentedPublicFunction:BrowserToolbarController.kt$BrowserToolbarController$fun handleScroll(offset: Int)</ID>
     <ID>UndocumentedPublicFunction:BrowserToolbarController.kt$BrowserToolbarController$fun handleTabCounterClick()</ID>
     <ID>UndocumentedPublicFunction:BrowserToolbarController.kt$BrowserToolbarController$fun handleTabCounterItemInteraction(item: TabCounterMenu.Item)</ID>
-    <ID>UndocumentedPublicFunction:BrowserToolbarController.kt$BrowserToolbarController$fun handleToolbarClick()</ID>
-    <ID>UndocumentedPublicFunction:BrowserToolbarController.kt$BrowserToolbarController$fun handleToolbarPaste(text: String)</ID>
-    <ID>UndocumentedPublicFunction:BrowserToolbarController.kt$BrowserToolbarController$fun handleToolbarPasteAndGo(text: String)</ID>
-    <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onBrowserToolbarClicked()</ID>
     <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onBrowserToolbarMenuItemTapped(item: ToolbarMenu.Item)</ID>
-    <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onBrowserToolbarPaste(text: String)</ID>
-    <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onBrowserToolbarPasteAndGo(text: String)</ID>
     <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onReaderModePressed(enabled: Boolean)</ID>
     <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onScrolled(offset: Int)</ID>
     <ID>UndocumentedPublicFunction:BrowserToolbarInteractor.kt$BrowserToolbarInteractor$fun onTabCounterClicked()</ID>
@@ -573,17 +563,6 @@
     <ID>UndocumentedPublicFunction:RecentlyClosedItemViewHolder.kt$RecentlyClosedItemViewHolder$fun bind(item: TabState)</ID>
     <ID>UndocumentedPublicFunction:RecentlyVisitedItem.kt$fun RecentHistoryGroup.lastUpdated(): Long</ID>
     <ID>UndocumentedPublicFunction:SaveCollectionListAdapter.kt$CollectionViewHolder$fun bind(collection: TabCollection)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleCameraPermissionsNeeded()</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleClickSearchEngineSettings()</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleEditingCancelled()</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleExistingSessionSelected(tabId: String)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleSearchEngineSuggestionClicked(searchEngine: SearchEngine)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleSearchShortcutEngineSelected(searchEngine: SearchEngine)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleSearchTermsTapped(searchTerms: String)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleTextChanged(text: String)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleUrlCommitted(url: String, fromHomeScreen: Boolean = false)</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogController.kt$SearchController$fun handleUrlTapped(url: String, flags: LoadUrlFlags = LoadUrlFlags.none())</ID>
-    <ID>UndocumentedPublicFunction:SearchDialogInteractor.kt$SearchDialogInteractor$fun onCameraPermissionsNeeded()</ID>
     <ID>UndocumentedPublicFunction:SearchStringValidator.kt$SearchStringValidator$fun isSearchStringValid(client: Client, searchString: String): Result</ID>
     <ID>UndocumentedPublicFunction:Settings.kt$Settings$@VisibleForTesting(otherwise = PRIVATE) fun setStrictETP()</ID>
     <ID>UndocumentedPublicFunction:Settings.kt$Settings$fun amoCollectionOverrideConfigured(): Boolean</ID>

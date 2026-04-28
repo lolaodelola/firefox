@@ -8,6 +8,7 @@
 #include "mozilla/HashTable.h"
 #include "mozilla/MozPromise.h"
 #include "mozilla/PairHash.h"
+#include "nsTHashSet.h"
 
 class nsIFrame;
 namespace SkPDF {
@@ -88,6 +89,9 @@ class PdfStructTreeBuilder {
   uint64_t mRootBrowsingContextId;
   // The number of out-of-process iframes we are waiting for.
   size_t mPendingOopIframes = 0;
+  // Tracks BrowserParents to which we've sent RequestDocAccessibleForPrint,
+  // to avoid sending it more than once to the same BrowserParent.
+  nsTHashSet<uint64_t> mRequestedBrowserParentIds;
   RefPtr<ReadyPromise::Private> mReadyPromise;
   int mLastPdfId = 0;
   // Maps {browsingContextId, accessibleId} to SkPDF id.

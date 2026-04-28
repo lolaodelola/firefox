@@ -212,8 +212,6 @@ fuzzy-if(winWidget,0-1,0-5) == grid-fragmentation-027.html grid-fragmentation-02
 == grid-fragmentation-029.html grid-fragmentation-029-ref.html
 == grid-fragmentation-030.html grid-fragmentation-030-ref.html
 == grid-fragmentation-031.html grid-fragmentation-031-ref.html
-# bug 2020239
-fails == grid-fragmentation-break-before.html grid-fragmentation-break-before-ref.html
 
 # Fragmentation tests that does dynamic content removal/insertions.
 # They should give the same result as the corresponding static test.
@@ -275,10 +273,6 @@ pref(layout.abspos.fragmentainer-aware-positioning.enabled,true) == grid-fragmen
 == grid-fragmentation-dyn2-029.html grid-fragmentation-029-ref.html
 == grid-fragmentation-dyn2-030.html grid-fragmentation-030-ref.html
 == grid-fragmentation-dyn2-031.html grid-fragmentation-031-ref.html
-# bug 2020239
-fails == grid-fragmentation-dyn1-break-before.html grid-fragmentation-break-before-ref.html
-# bug 2020239
-fails == grid-fragmentation-dyn2-break-before.html grid-fragmentation-break-before-ref.html
 
 == bug1306106.html bug1306106-ref.html
 == bug1349571.html bug1349571-ref.html

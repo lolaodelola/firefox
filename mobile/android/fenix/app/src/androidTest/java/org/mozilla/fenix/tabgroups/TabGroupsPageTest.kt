@@ -33,14 +33,42 @@ class TabGroupsPageTest {
             FirefoxTheme {
                 TabGroupsPage(
                     groups = emptyList(),
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {},
+                    onTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
 
         composeTestRule.onNodeWithTag(TabsTrayTestTag.EMPTY_TAB_GROUPS_LIST)
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun verifyTabGroupClick() {
+        val group = createTabGroup(title = "Group 1")
+        var groupClicked = false
+        var clickedGroup: TabsTrayItem.TabGroup? = null
+
+        composeTestRule.setContent {
+            FirefoxTheme {
+                TabGroupsPage(
+                    groups = listOf(group),
+                    onTabGroupClick = {
+                        groupClicked = true
+                        clickedGroup = it
+                    },
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.TAB_GROUP_ROOT)
+            .performClick()
+
+        assertTrue(groupClicked)
+        assertEquals(group, clickedGroup)
     }
 
     @Test
@@ -53,11 +81,12 @@ class TabGroupsPageTest {
             FirefoxTheme {
                 TabGroupsPage(
                     groups = listOf(group),
-                    onDeleteTabGroup = {
+                    onTabGroupClick = {},
+                    onDeleteTabGroupClick = {
                         deleteClicked = true
                         clickedGroup = it
                     },
-                    editTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -81,8 +110,9 @@ class TabGroupsPageTest {
             FirefoxTheme {
                 TabGroupsPage(
                     groups = listOf(group),
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {
+                    onTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {
                         editClicked = true
                         clickedGroup = it
                     },

@@ -27,6 +27,33 @@ class TabGroupListTest {
     val composeTestRule = createComposeRule()
 
     @Test
+    fun verifyTabGroupClick() {
+        val group = createTabGroup(title = "Group 1")
+        var groupClicked = false
+        var clickedGroup: TabsTrayItem.TabGroup? = null
+
+        composeTestRule.setContent {
+            FirefoxTheme {
+                TabGroupList(
+                    groups = listOf(group),
+                    onTabGroupClick = {
+                        groupClicked = true
+                        clickedGroup = it
+                    },
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.TAB_GROUP_ROOT)
+            .performClick()
+
+        assertTrue(groupClicked)
+        assertEquals(group, clickedGroup)
+    }
+
+    @Test
     fun verifyDeleteTabGroupClick() {
         val group = createTabGroup(title = "Group 1")
         var deleteClicked = false
@@ -36,11 +63,12 @@ class TabGroupListTest {
             FirefoxTheme {
                 TabGroupList(
                     groups = listOf(group),
-                    onDeleteTabGroup = {
+                    onTabGroupClick = {},
+                    onDeleteTabGroupClick = {
                         deleteClicked = true
                         clickedGroup = it
                     },
-                    editTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -64,8 +92,9 @@ class TabGroupListTest {
             FirefoxTheme {
                 TabGroupList(
                     groups = listOf(group),
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {
+                    onTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {
                         editClicked = true
                         clickedGroup = it
                     },

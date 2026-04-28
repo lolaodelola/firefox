@@ -39,14 +39,16 @@ private val EmptyPageWidth = 225.dp
 @Composable
 internal fun TabGroupsPage(
     groups: List<TabsTrayItem.TabGroup>,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     if (groups.isNotEmpty()) {
         TabGroupList(
-            groups,
-            onDeleteTabGroup = onDeleteTabGroup,
-            editTabGroupClick = editTabGroupClick,
+            groups = groups,
+            onTabGroupClick = onTabGroupClick,
+            onDeleteTabGroupClick = onDeleteTabGroupClick,
+            onEditTabGroupClick = onEditTabGroupClick,
         )
     } else {
         EmptyTabGroupsPage()
@@ -142,8 +144,9 @@ private fun TabGroupsPagePreview(
     FirefoxTheme {
         TabGroupsPage(
             groups = groups,
-            onDeleteTabGroup = {},
-            editTabGroupClick = {},
+            onTabGroupClick = {},
+            onDeleteTabGroupClick = {},
+            onEditTabGroupClick = {},
         )
     }
 }

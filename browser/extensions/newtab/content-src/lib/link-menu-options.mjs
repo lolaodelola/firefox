@@ -216,6 +216,7 @@ export const LinkMenuOptions = {
               url: site.url,
               pocket_id: site.pocket_id,
               forceBlock: site.bookmarkGuid,
+              original_url: site.original_url,
             },
           }),
           ac.UserEvent(

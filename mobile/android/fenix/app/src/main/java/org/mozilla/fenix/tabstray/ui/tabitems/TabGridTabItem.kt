@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import mozilla.components.browser.state.state.TabSessionState
+import mozilla.components.compose.base.button.IconButton
 import mozilla.components.concept.engine.utils.ABOUT_HOME_URL
 import mozilla.components.support.base.utils.MAX_URI_LENGTH
 import org.mozilla.fenix.R
@@ -288,19 +288,20 @@ private fun CloseButton(
     onCloseClick: (TabsTrayItem.Tab) -> Unit,
 ) {
     IconButton(
-        modifier = Modifier
-            .size(TabHeaderIconTouchTargetSize)
-            .testTag(TabsTrayTestTag.TAB_ITEM_CLOSE),
         onClick = {
             onCloseClick(tab)
         },
+        contentDescription = stringResource(
+            id = R.string.close_tab_title,
+            tab.title,
+        ),
+        modifier = Modifier
+            .size(TabHeaderIconTouchTargetSize)
+            .testTag(TabsTrayTestTag.TAB_ITEM_CLOSE),
     ) {
         Icon(
             painter = painterResource(id = iconsR.drawable.mozac_ic_cross_20),
-            contentDescription = stringResource(
-                id = R.string.close_tab_title,
-                tab.title,
-            ),
+            contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface,
         )
     }

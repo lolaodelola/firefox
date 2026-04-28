@@ -12,6 +12,7 @@
 #include "mozilla/Components.h"
 #include "mozilla/ErrorNames.h"
 #include "mozilla/FileUtils.h"
+#include "mozilla/ProfilerMarkers.h"
 #include "mozilla/StaticPrefs_network.h"
 #include "mozilla/glean/NetwerkMetrics.h"
 #include "mozilla/ScopeExit.h"
@@ -2070,47 +2071,50 @@ UniquePtr<CookieStruct> CookiePersistentStorage::GetCookieFromRow(
 void CookiePersistentStorage::EnsureInitialized() {
   MOZ_ASSERT(NS_IsMainThread());
 
-  bool isAccumulated = false;
+  TimeStamp startBlockTime;
 
   if (!mInitialized) {
-    TimeStamp startBlockTime = TimeStamp::Now();
+    startBlockTime = TimeStamp::Now();
     MonitorAutoLock lock(mMonitor);
 
     while (!mInitialized) {
       mMonitor.Wait();
     }
-    TimeStamp endBlockTime = TimeStamp::Now();
-    mozilla::glean::networking::sqlite_cookies_block_main_thread
-        .AccumulateRawDuration(endBlockTime - startBlockTime);
-    mozilla::glean::networking::sqlite_cookies_time_to_block_main_thread
-        .AccumulateRawDuration(TimeDuration::Zero());
-    isAccumulated = true;
   } else if (!mEndInitDBConn.IsNull()) {
     // We didn't block main thread, and here comes the first cookie request.
     // Collect how close we're going to block main thread.
     TimeStamp now = TimeStamp::Now();
     mozilla::glean::networking::sqlite_cookies_time_to_block_main_thread
         .AccumulateRawDuration(now - mEndInitDBConn);
-    // Nullify the timestamp so wo don't accumulate this telemetry probe again.
+    PROFILER_MARKER_UNTYPED("sqlite_cookies_time_to_block_main_thread", NETWORK,
+                            MarkerTiming::Interval(mEndInitDBConn, now));
+    // Nullify the timestamp so we don't accumulate this telemetry probe again.
     mEndInitDBConn = TimeStamp();
-    isAccumulated = true;
-  } else if (!mInitializedDBConn) {
+    return;
+  } else if (mInitializedDBConn) {
+    // Already fully initialized; telemetry was recorded on a prior call.
+    return;
+  } else {
     // A request comes while we finished cookie thread task and InitDBConn is
-    // on the way from cookie thread to main thread. We're very close to block
-    // main thread.
-    mozilla::glean::networking::sqlite_cookies_time_to_block_main_thread
-        .AccumulateRawDuration(TimeDuration::Zero());
-    isAccumulated = true;
+    // on the way from cookie thread to main thread. We run it synchronously
+    // below, blocking the main thread.
+    startBlockTime = TimeStamp::Now();
   }
 
-  if (!mInitializedDBConn) {
-    InitDBConn();
-    if (isAccumulated) {
-      // Nullify the timestamp so wo don't accumulate this telemetry probe
-      // again.
-      mEndInitDBConn = TimeStamp();
-    }
-  }
+  // Main thread is blocked: either we just waited on the monitor or the
+  // dispatched InitDBConn runnable hasn't fired yet. Run it synchronously
+  // (the dispatched runnable will no-op via InitDBConn's own guard) and
+  // record the full blocking duration.
+  InitDBConn();
+  mEndInitDBConn = TimeStamp();
+
+  TimeStamp endBlockTime = TimeStamp::Now();
+  mozilla::glean::networking::sqlite_cookies_block_main_thread
+      .AccumulateRawDuration(endBlockTime - startBlockTime);
+  mozilla::glean::networking::sqlite_cookies_time_to_block_main_thread
+      .AccumulateRawDuration(TimeDuration::Zero());
+  PROFILER_MARKER_UNTYPED("sqlite_cookies_block_main_thread", NETWORK,
+                          MarkerTiming::Interval(startBlockTime, endBlockTime));
 }
 
 void CookiePersistentStorage::InitDBConn() {
@@ -2122,6 +2126,13 @@ void CookiePersistentStorage::InitDBConn() {
   if (!mInitialized || mInitializedDBConn) {
     return;
   }
+
+  TimeStamp startInitDBConn = TimeStamp::Now();
+  auto markerGuard = MakeScopeExit([&] {
+    PROFILER_MARKER_UNTYPED(
+        "CookiePersistentStorage::InitDBConn", NETWORK,
+        MarkerTiming::IntervalUntilNowFrom(startInitDBConn));
+  });
 
   // Cookies rejected during Read() on the Cookie thread (invalid hostname or
   // invalid CHIPS attribution) need to be removed from the DB now that the

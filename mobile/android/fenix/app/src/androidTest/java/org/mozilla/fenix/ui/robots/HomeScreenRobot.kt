@@ -945,8 +945,6 @@ private fun homeScreenList() =
             .scrollable(true),
     ).setAsVerticalList()
 
-private fun threeDotButton() = onView(allOf(withId(R.id.menuButton)))
-
 private fun saveTabsToCollectionButton(composeTestRule: ComposeTestRule) =
     composeTestRule.onNodeWithText(getStringResource(R.string.tabs_menu_save_to_collection1))
 

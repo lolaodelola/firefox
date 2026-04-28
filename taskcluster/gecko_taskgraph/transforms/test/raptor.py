@@ -494,6 +494,8 @@ def setup_lull_schedule(config, tasks):
 def setup_autoland_retriggers(config, tasks):
 
     def _allow_task_duplicates(label):
+        if "android" in label:
+            return False
         if any(sp3_test in label for sp3_test in SP3_CRITICAL_TESTS):
             return True
         return False

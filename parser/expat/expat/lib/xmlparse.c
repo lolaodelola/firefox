@@ -115,6 +115,8 @@
 #include "expat.h"
 #include "siphash.h"
 
+/* BEGIN MOZILLA CHANGE (we already set a salt through XML_SetHashSalt16Bytes) */
+#if 0
 #if defined(HAVE_ARC4RANDOM)
 #  include "random_arc4random.h"
 #endif /* defined(HAVE_ARC4RANDOM) */
@@ -138,6 +140,8 @@
 #if defined(_WIN32)
 #  include "random_rand_s.h"
 #endif /* defined(_WIN32) */
+#endif
+/* END MOZILLA CHANGE */
 
 #if ! defined(HAVE_GETRANDOM) && ! defined(HAVE_SYSCALL_GETRANDOM)             \
     && ! defined(HAVE_ARC4RANDOM_BUF) && ! defined(HAVE_ARC4RANDOM)            \

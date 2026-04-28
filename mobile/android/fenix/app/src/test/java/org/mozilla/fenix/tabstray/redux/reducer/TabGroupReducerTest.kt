@@ -10,11 +10,13 @@ import org.mozilla.fenix.tabstray.data.TabGroupTheme
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTab
 import org.mozilla.fenix.tabstray.data.createTabGroup
+import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.AddToTabGroup
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.EditTabGroup
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
+import org.mozilla.fenix.tabstray.redux.state.Page
 import org.mozilla.fenix.tabstray.redux.state.TabGroupFormState
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState.Mode
@@ -167,6 +169,28 @@ class TabGroupReducerTest {
         )
 
         assertEquals(expectedBackStack, resultState.backStack)
+    }
+
+    @Test
+    fun `WHEN open tab group is clicked from tab groups page THEN switch to normal tabs, reopen group, and show expanded sheet`() {
+        val tabGroup = createTabGroup(closed = true)
+        val initialState = TabsTrayState(
+            selectedPage = Page.TabGroups,
+            backStack = TabsTrayState().backStack,
+        )
+
+        val resultState = TabGroupActionReducer.reduce(
+            state = initialState,
+            action = TabGroupAction.OpenTabGroupClicked(group = tabGroup),
+        )
+
+        val expectedState = initialState.copy(
+            selectedPage = Page.NormalTabs,
+            mode = Mode.Normal,
+            backStack = initialState.backStack + ExpandedTabGroup(group = tabGroup.copy(closed = false)),
+        )
+
+        assertEquals(expectedState, resultState)
     }
 
     @Test
@@ -531,6 +555,28 @@ class TabGroupReducerTest {
                 selectedTabs = setOf(tabs[0]),
                 selectedTabGroups = emptySet(),
             ),
+        )
+
+        assertEquals(expectedState, resultState)
+    }
+
+    @Test
+    fun `WHEN the user closes a tab group THEN navigate back to the root`() {
+        val tabs = List(size = 20) { createTab(url = "") }
+        val tabGroup = createTabGroup(
+            tabs = MutableList(size = 20) { createTab(url = "") },
+        )
+        val initialState = TabsTrayState(
+            normalTabsState = TabsTrayState.NormalTabsState(items = tabs + tabGroup),
+            tabGroupState = TabsTrayState.TabGroupState(groups = listOf(tabGroup)),
+            backStack = listOf(TabManagerNavDestination.Root, ExpandedTabGroup(group = tabGroup)),
+        )
+        val resultState = TabsTrayReducer.reduce(
+            state = initialState,
+            action = TabGroupAction.CloseTabGroupClicked(group = tabGroup),
+        )
+        val expectedState = initialState.copy(
+            backStack = listOf(TabManagerNavDestination.Root),
         )
 
         assertEquals(expectedState, resultState)

@@ -3442,10 +3442,6 @@ pref("cookiebanners.ui.desktop.showCallout", false);
   pref("telemetry.fog.artifact_build", true);
 #endif
 
-#ifdef NIGHTLY_BUILD
-  pref("dom.security.credentialmanagement.identity.enabled", true);
-#endif
-
 pref("ui.new-webcompat-reporter.enabled", true);
 
 #if defined(EARLY_BETA_OR_EARLIER)

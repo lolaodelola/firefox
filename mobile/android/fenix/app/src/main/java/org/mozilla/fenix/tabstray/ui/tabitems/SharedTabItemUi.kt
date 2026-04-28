@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +47,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.RadioCheckmark
 import mozilla.components.compose.base.RadioCheckmarkColors
+import mozilla.components.compose.base.button.IconButton
 import mozilla.components.compose.base.menu.DropdownMenu
 import mozilla.components.compose.base.menu.MenuItem
 import mozilla.components.compose.base.modifier.thenConditional
@@ -176,21 +176,24 @@ val gridItemAspectRatio: Float
  * Renders the three dot button and its menu items for [org.mozilla.fenix.tabstray.data.TabsTrayItem.TabGroup] views.
  * @param modifier: The Modifier parameter
  * @param includeCloseOption: Whether to include the "Close" dropdown item in the menu item list.
- * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
- * @param editTabGroupClick Invoked when the user clicks to edit the selected tab group.
+ * @param onDeleteTabGroupClick Invoked when the user clicks on delete tab group.
+ * @param onEditTabGroupClick Invoked when the user clicks to edit the selected tab group.
+ * @param onCloseTabGroupClick Invoked when the user clicks to close the tab group.
  */
 @Composable
 fun TabGroupMenuButton(
     modifier: Modifier = Modifier,
     includeCloseOption: Boolean = false,
-    onDeleteTabGroup: () -> Unit,
-    editTabGroupClick: () -> Unit,
+    onDeleteTabGroupClick: () -> Unit,
+    onEditTabGroupClick: () -> Unit,
+    onCloseTabGroupClick: () -> Unit,
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
     IconButton(
         onClick = {
             showDropdownMenu = true
         },
+        contentDescription = PLACEHOLDER_THREE_DOT_MENU_CONTENT_DESCRIPTION,
         modifier = modifier
             .testTag(TabsTrayTestTag.TAB_GROUP_THREE_DOT_BUTTON),
         colors = IconButtonDefaults.iconButtonColors(
@@ -199,16 +202,16 @@ fun TabGroupMenuButton(
     ) {
         Icon(
             painter = painterResource(id = iconsR.drawable.mozac_ic_ellipsis_vertical_24),
-            contentDescription = PLACEHOLDER_THREE_DOT_MENU_CONTENT_DESCRIPTION,
+            contentDescription = null,
         )
 
         DropdownMenu(
             expanded = showDropdownMenu,
             onDismissRequest = { showDropdownMenu = false },
             menuItems = generateTabGroupMenuItems(
-                editTabGroup = editTabGroupClick,
-                closeTabGroup = {}, // handle close
-                deleteTabGroup = onDeleteTabGroup,
+                editTabGroup = onEditTabGroupClick,
+                closeTabGroup = onCloseTabGroupClick,
+                deleteTabGroup = onDeleteTabGroupClick,
                 includeCloseOption = includeCloseOption,
             ),
         )
@@ -226,14 +229,12 @@ private fun generateTabGroupMenuItems(
         drawableRes = iconsR.drawable.mozac_ic_edit_24,
         testTag = TabsTrayTestTag.EDIT_TAB_GROUP,
         onClick = editTabGroup,
-        enabled = true,
     )
     val closeItem = MenuItem.IconItem(
         text = Text.String(PLACEHOLDER_CLOSE),
         drawableRes = iconsR.drawable.mozac_ic_tab_group_close_24,
         testTag = TabsTrayTestTag.CLOSE_TAB_GROUP,
         onClick = closeTabGroup,
-        enabled = false,
     )
     val deleteItem = MenuItem.IconItem(
         text = Text.String(PLACEHOLDER_DELETE),
@@ -241,7 +242,6 @@ private fun generateTabGroupMenuItems(
         testTag = TabsTrayTestTag.DELETE_TAB_GROUP,
         onClick = deleteTabGroup,
         level = MenuItem.FixedItem.Level.Critical,
-        enabled = true,
     )
     return if (includeCloseOption) {
         listOf(editItem, closeItem, deleteItem)

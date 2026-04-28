@@ -29,7 +29,6 @@ import org.mozilla.fenix.home.recenttabs.RecentTab
 import org.mozilla.fenix.home.recentvisits.RecentlyVisitedItem
 import org.mozilla.fenix.home.topsites.TopSiteColors
 import org.mozilla.fenix.home.ui.getAttr
-import org.mozilla.fenix.search.SearchDialogFragment
 import org.mozilla.fenix.termsofuse.store.PrivacyNoticeBannerState
 import org.mozilla.fenix.utils.Settings
 
@@ -355,12 +354,11 @@ internal sealed class HeaderState {
 }
 
 /**
- * Returns whether the search bar should be shown. Only show if the search dialog
- * [SearchDialogFragment] is not visible, and the user does not have their toolbar set to be on the
- * bottom, and the screen is not in landscape mode. This is in addition to logic in the view layer
- * which hides the middle search bar when the users scrolls down. This is separate from the middle
- * search bar being enabled in settings since the toolbar address bar needs to react to the middle
- * search bar's visibility.
+ * Returns whether the search bar should be shown. Only show if search is not active, and the user
+ * does not have their toolbar set to be on the bottom, and the screen is not in landscape mode.
+ * This is in addition to logic in the view layer which hides the middle search bar when the users
+ * scrolls down. This is separate from the middle search bar being enabled in settings since the
+ * toolbar address bar needs to react to the middle search bar's visibility.
  */
 private fun shouldShowSearchBar(appState: AppState) =
     !appState.searchState.isSearchActive

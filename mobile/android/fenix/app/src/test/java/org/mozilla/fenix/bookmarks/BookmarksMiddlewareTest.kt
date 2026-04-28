@@ -22,7 +22,6 @@ import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
 import mozilla.components.concept.storage.BookmarksStorage
 import mozilla.components.feature.tabs.TabsUseCases
-import mozilla.components.support.test.middleware.CaptureActionsMiddleware
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -43,7 +42,6 @@ class BookmarksMiddlewareTest {
     private lateinit var navController: NavController
     private lateinit var exitBookmarks: () -> Unit
     private lateinit var navigateToBrowser: () -> Unit
-    private lateinit var navigateToSearch: () -> Unit
     private lateinit var navigateToSignIntoSync: () -> Unit
     private lateinit var navigateToImportDialog: () -> Unit
     private lateinit var shareBookmarks: (List<BookmarkItem.Bookmark>) -> Unit
@@ -97,7 +95,6 @@ class BookmarksMiddlewareTest {
         every { navController.popBackStack() } returns true
         exitBookmarks = { }
         navigateToBrowser = { }
-        navigateToSearch = { }
         navigateToSignIntoSync = { }
         navigateToImportDialog = { }
         shareBookmarks = { }
@@ -533,34 +530,17 @@ class BookmarksMiddlewareTest {
         }
 
     @Test
-    fun `WHEN search button is clicked THEN navigate to search`() = runTest {
+    fun `WHEN search button is clicked THEN no navigation callback fires`() = runTest {
         var navigated = false
-        navigateToSearch = { navigated = true }
+        navigateToBrowser = { navigated = true }
         val middleware = buildMiddleware(this)
         val store = middleware.makeStore()
         testScheduler.advanceUntilIdle()
 
         store.dispatch(SearchClicked)
 
-        assertTrue(navigated)
+        assertFalse(navigated)
     }
-
-    @Test
-    fun `GIVEN new search UX is used WHEN search button is clicked THEN don't navigate to search`() =
-        runTest {
-            var navigated = false
-            navigateToSearch = { navigated = true }
-            val middleware = buildMiddleware(this, useNewSearchUX = true)
-            val captorMiddleware = CaptureActionsMiddleware<BookmarksState, BookmarksAction>()
-            val store = BookmarksStore(
-                initialState = BookmarksState.default,
-                middleware = listOf(middleware, captorMiddleware),
-            )
-
-            store.dispatch(SearchClicked)
-
-            assertFalse(navigated)
-        }
 
     @Test
     fun `WHEN add folder button is clicked THEN navigate to folder screen`() = runTest {
@@ -3338,19 +3318,16 @@ class BookmarksMiddlewareTest {
 
     private fun buildMiddleware(
         scope: CoroutineScope,
-        useNewSearchUX: Boolean = false,
         openBookmarksInNewTab: Boolean = false,
         reportResultGlobally: (BookmarksGlobalResultReport) -> Unit = {},
     ) = BookmarksMiddleware(
         bookmarksStorage = bookmarksStorage,
         addNewTabUseCase = addNewTabUseCase,
         fenixBrowserUseCases = fenixBrowserUseCases,
-        useNewSearchUX = useNewSearchUX,
         openBookmarksInNewTab = openBookmarksInNewTab,
         getNavController = { navController },
         exitBookmarks = exitBookmarks,
         navigateToBrowser = navigateToBrowser,
-        navigateToSearch = navigateToSearch,
         navigateToSignIntoSync = navigateToSignIntoSync,
         navigateToImportDialog = navigateToImportDialog,
         shareBookmarks = shareBookmarks,

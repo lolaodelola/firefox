@@ -8,6 +8,7 @@ const lazy = {};
 ChromeUtils.defineESModuleGetters(lazy, {
   JsonSchema: "resource://gre/modules/JsonSchema.sys.mjs",
   PlacesUtils: "resource://gre/modules/PlacesUtils.sys.mjs",
+  setTimeout: "resource://gre/modules/Timer.sys.mjs",
 });
 XPCOMUtils.defineLazyPreferenceGetter(
   lazy,
@@ -23,7 +24,9 @@ XPCOMUtils.defineLazyPreferenceGetter(
 );
 
 const MAX_ITEM_COUNT = 30;
-
+// Delay for server retries. Lower in testing so the test doesn't time out.
+const BASE_DELAY = Cu.isInAutomation ? 100 : 1000;
+const MAX_REQUEST_ATTEMPTS = 5;
 const SCHEMA_MAP = new Map();
 async function loadContentSharingSchema() {
   if (SCHEMA_MAP.has("CONTENT_SHARING_SCHEMA")) {
@@ -41,6 +44,12 @@ async function loadContentSharingSchema() {
   SCHEMA_MAP.set("CONTENT_SHARING_SCHEMA", schema);
   return schema;
 }
+
+const ERRORS = Object.freeze({
+  GENERIC: "generic-error",
+  MAX_RETRY_ATTEMPTS: "max-retry-attempts-error",
+  UNAUTHORIZED: "unauthorized-error",
+});
 
 /**
  * Class for interacting with Content Sharing features, such as sharing bookmarks, tab groups, and tabs.
@@ -300,24 +309,89 @@ class ContentSharingUtilsClass {
     await window.gDialogBox?.open(url, args);
   }
 
-  async createShareableLink(share) {
-    await this.validateSchema(share);
-
+  /**
+   * This function will attempt to send a post request to the content sharing
+   * server to create a share. If the request is unsuccessful, this function
+   * will attempt to retry the request if possible using randomized exponential
+   * backoff. It still unsuccessful, an error will be thrown. If successful,
+   * the successful response is returned.
+   *
+   * @param {object} share The share object to send to the server
+   * @returns {Promise<object>} An object containing the share url on success
+   * or errors on failure
+   */
+  async #doRequest(share) {
     if (!this.serverURL) {
       throw new Error("Content Sharing Server URL is not set");
     }
 
-    let response = await fetch(this.serverURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(share),
-    });
+    const maxDelay = 30 * BASE_DELAY;
+    let canRetry = true;
+    let attempts = 0;
+    let response;
+    let result = {};
+    while (canRetry) {
+      if (attempts >= MAX_REQUEST_ATTEMPTS) {
+        console.error("Tried to request the server the maximum number times");
+        result.error = ERRORS.MAX_REQUEST_ATTEMPTS;
+        break;
+      }
 
-    let { url } = await response.json();
+      if (attempts > 0) {
+        const random = Math.random() * (5 * BASE_DELAY); // add up to 5 seconds of random jitter
+        const delay =
+          Math.min(maxDelay, Math.pow(2, attempts) * BASE_DELAY) + random;
+        await new Promise(resolve => lazy.setTimeout(resolve, delay));
+      }
 
-    return url;
+      try {
+        response = await fetch(this.serverURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(share),
+        });
+
+        if (!response.ok && response.status >= 500) {
+          canRetry = true;
+        } else if (!response.ok && response.status >= 400) {
+          canRetry = false;
+          if (response.status === 401) {
+            // Bug 2033911
+            result.error = ERRORS.UNAUTHORIZED;
+          } else {
+            result.error = ERRORS.GENERIC;
+          }
+        } else if (response.ok && response.status === 201) {
+          // Success!
+          break;
+        }
+      } catch (error) {
+        console.error(error);
+        canRetry = false;
+        result.error = ERRORS.GENERIC;
+      }
+
+      attempts += 1;
+    }
+
+    try {
+      let { url } = await response.json();
+      return { url };
+    } catch (error) {
+      console.error(error);
+      result.error = ERRORS.GENERIC;
+    }
+    return result;
+  }
+
+  async createShareableLink(share) {
+    await this.validateSchema(share);
+
+    const result = await this.#doRequest(share);
+
+    return result.url;
   }
 
   countItems(share) {

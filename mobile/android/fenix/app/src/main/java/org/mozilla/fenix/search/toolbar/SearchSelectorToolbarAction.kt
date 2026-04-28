@@ -28,7 +28,7 @@ import mozilla.components.support.ktx.android.view.toScope
 import org.mozilla.fenix.R
 import org.mozilla.fenix.ext.pixelSizeFor
 import org.mozilla.fenix.ext.settings
-import org.mozilla.fenix.search.SearchDialogFragmentStore
+import org.mozilla.fenix.search.SearchFragmentStore
 import org.mozilla.fenix.telemetry.ACTION_SEARCH_ENGINE_SELECTOR_CLICKED
 import org.mozilla.fenix.telemetry.SOURCE_ADDRESS_BAR
 import org.mozilla.fenix.GleanMetrics.Toolbar as GleanMetricsToolbar
@@ -36,14 +36,14 @@ import org.mozilla.fenix.GleanMetrics.Toolbar as GleanMetricsToolbar
 /**
  * A [Toolbar.Action] implementation that shows a [SearchSelector].
  *
- * @param store [SearchDialogFragmentStore] containing the complete state of the search dialog.
+ * @param store [SearchFragmentStore] containing the complete state of the search UX.
  * @param defaultSearchEngine The user selected or default [SearchEngine].
  * @param menu An instance of [SearchSelectorMenu] to display a popup menu for the search
  * selections.
  * @param mainDispatcher [CoroutineDispatcher] to be used for the view scope.
  */
 class SearchSelectorToolbarAction(
-    private val store: SearchDialogFragmentStore,
+    private val store: SearchFragmentStore,
     private val defaultSearchEngine: SearchEngine?,
     private val menu: SearchSelectorMenu,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,

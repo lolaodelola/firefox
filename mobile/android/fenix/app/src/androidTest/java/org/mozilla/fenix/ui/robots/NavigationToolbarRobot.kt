@@ -751,14 +751,12 @@ private fun pressImeActionOnAwesomeBar() {
     }
 }
 private fun threeDotButton() = onView(withId(toolbarR.id.mozac_browser_toolbar_menu))
-private fun tabTrayButton() = onView(withId(R.id.tab_button))
 private fun tabsCounter() = onView(
     allOf(
         withId(tabcounterR.id.counter_root),
         withEffectiveVisibility(Visibility.VISIBLE),
     ),
 )
-private fun fillLinkButton() = onView(withId(R.id.fill_link_from_clipboard))
 private fun clearAddressBarButton() = itemWithResId("$packageName:id/mozac_browser_toolbar_clear_view")
 private fun readerViewToggle() =
     itemWithDescription(getStringResource(R.string.browser_menu_read))

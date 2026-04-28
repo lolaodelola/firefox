@@ -121,19 +121,4 @@ class RecentTabControllerTest {
 
         assertNotNull(RecentTabs.showAllClicked.testGetValue())
     }
-
-    @Test
-    fun handleRecentTabShowAllClickedFromSearchDialog() {
-        assertNull(RecentTabs.showAllClicked.testGetValue())
-
-        controller.handleRecentTabShowAllClicked()
-
-        verify {
-            navController.navigate(
-                match<NavDirections> { it.actionId == R.id.action_global_tabManagementFragment },
-            )
-        }
-
-        assertNotNull(RecentTabs.showAllClicked.testGetValue())
-    }
 }
