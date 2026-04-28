@@ -339,6 +339,9 @@ this.trackingProtection = class extends ExtensionAPI {
               id: "smartblock-placeholder-button-text",
               args: { websitehost: websiteHost },
             },
+            {
+              id: "smartblock-placeholder-content-header",
+            },
           ];
 
           return document.l10n.formatValues(fluentArgs);

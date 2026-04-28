@@ -89,7 +89,7 @@ const embedHelperLib = (() => {
       shimId
     );
 
-    const [titleString, descriptionString, buttonString] =
+    const [titleString, descriptionString, buttonString, contentHeaderString] =
       await sendMessageToAddon("smartblockGetFluentString", shimId);
 
     if (!embedContainers.length) {
@@ -343,7 +343,7 @@ const embedHelperLib = (() => {
 
         // Add explanatory header
         const explanationDiv = document.createElement("div");
-        explanationDiv.textContent = "Content from blocked embed:";
+        explanationDiv.textContent = contentHeaderString;
         explanationDiv.style.cssText = `
           font-size: 12px;
           font-weight: 600;
