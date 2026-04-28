@@ -4,9 +4,9 @@
 
 use crate::LockstoreError;
 use kvstore::{Database, GetOptions, Key, Store};
-use nss_gk_api::aead::{Aead, AeadAlgorithms, Mode};
-use nss_gk_api::p11;
-use nss_gk_api::SymKey;
+use nss_rs::aead::{Aead, AeadAlgorithms, Mode};
+use nss_rs::p11;
+use nss_rs::SymKey;
 use serde::{Deserialize, Serialize};
 
 pub const DEFAULT_CIPHER_SUITE: CipherSuite = CipherSuite::Aes256Gcm;
@@ -80,12 +80,18 @@ fn cipher_suite_from_id(id: u8) -> Option<CipherSuite> {
     }
 }
 
+fn random_bytes(size: usize) -> Vec<u8> {
+    let mut buf = vec![0u8; size];
+    p11::randomize(&mut buf);
+    buf
+}
+
 pub fn generate_random_key(cipher_suite: CipherSuite) -> Vec<u8> {
-    p11::random(cipher_suite.key_size())
+    random_bytes(cipher_suite.key_size())
 }
 
 pub fn generate_random_nonce(cipher_suite: CipherSuite) -> Vec<u8> {
-    p11::random(cipher_suite.nonce_size())
+    random_bytes(cipher_suite.nonce_size())
 }
 
 /// Encrypts data using AEAD with a SymKey handle.
@@ -104,7 +110,7 @@ pub fn encrypt_with_symkey(
         .map_err(|e| LockstoreError::Encryption(format!("Failed to create AEAD: {}", e)))?;
 
     let ciphertext = aead
-        .seal(&[], plaintext)
+        .encrypt(&[], plaintext)
         .map_err(|e| LockstoreError::Encryption(format!("Encryption failed: {}", e)))?;
 
     let mut result = Vec::with_capacity(1 + nonce.len() + ciphertext.len());
@@ -145,7 +151,7 @@ pub fn decrypt_with_symkey(ciphertext: &[u8], key: &SymKey) -> Result<Vec<u8>, L
         .map_err(|e| LockstoreError::Decryption(format!("Failed to create AEAD: {}", e)))?;
 
     let plaintext = aead
-        .open(&[], 0, actual_ciphertext)
+        .decrypt(&[], 0, actual_ciphertext)
         .map_err(|e| LockstoreError::Decryption(format!("Decryption failed: {}", e)))?;
 
     Ok(plaintext)

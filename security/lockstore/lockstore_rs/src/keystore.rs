@@ -7,9 +7,9 @@ use crate::utils;
 use crate::{LockstoreError, SecurityLevel, KEK_REF_PREFIX};
 
 use kvstore::{Database, GetOptions, Key, Store, StorePath};
-use nss_gk_api::aead::Aead;
-use nss_gk_api::p11;
-use nss_gk_api::SymKey;
+use nss_rs::aead::Aead;
+use nss_rs::p11;
+use nss_rs::SymKey;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ pub struct LockstoreKeystore {
 impl LockstoreKeystore {
     pub fn new(path: PathBuf) -> Result<Self, LockstoreError> {
         let store = Arc::new(Store::new(StorePath::OnDisk(path)));
-        nss_gk_api::init();
+        nss_rs::init().map_err(|e| LockstoreError::NssInitialization(e.to_string()))?;
         Ok(Self {
             store,
             in_memory: false,
@@ -50,7 +50,7 @@ impl LockstoreKeystore {
 
     pub fn new_in_memory() -> Result<Self, LockstoreError> {
         let store = Arc::new(Store::new(StorePath::for_in_memory()));
-        nss_gk_api::init();
+        nss_rs::init().map_err(|e| LockstoreError::NssInitialization(e.to_string()))?;
         Ok(Self {
             store,
             in_memory: true,
@@ -338,8 +338,9 @@ impl LockstoreKeystore {
         let pkcs11_uri_str = kek_ref.strip_prefix(KEK_REF_PREFIX).ok_or_else(|| {
             LockstoreError::InvalidKekRef(format!("Invalid kek_ref format: {}", kek_ref))
         })?;
-        let uri = nss_gk_api::pkcs11_uri::parse(pkcs11_uri_str)
-            .map_err(|_| LockstoreError::InvalidKekRef(format!("Invalid PKCS#11 URI: {}", kek_ref)))?;
+        let uri = nss_rs::pk11_utils::parse(pkcs11_uri_str).map_err(|_| {
+            LockstoreError::InvalidKekRef(format!("Invalid PKCS#11 URI: {}", kek_ref))
+        })?;
         let slot = self.resolve_pkcs11_slot(&uri)?;
 
         slot.authenticate()
@@ -359,7 +360,7 @@ impl LockstoreKeystore {
 
     fn resolve_pkcs11_slot(
         &self,
-        uri: &nss_gk_api::pkcs11_uri::Pkcs11Uri,
+        uri: &nss_rs::pk11_utils::Pkcs11Uri,
     ) -> Result<p11::Slot, LockstoreError> {
         let token_name = uri.token.as_deref().ok_or_else(|| {
             LockstoreError::InvalidKekRef("PKCS#11 URI missing token attribute".into())
@@ -371,8 +372,7 @@ impl LockstoreKeystore {
             return Ok(internal_slot);
         }
 
-        let slots = p11::all_token_slots(p11::CKM_AES_KEY_GEN.into())
-            .map_err(|e| LockstoreError::TokenError(e.to_string()))?;
+        let slots = p11::all_token_slots(p11::CKM_AES_KEY_GEN.into());
         for slot in slots {
             if slot.token_name() == token_name {
                 return Ok(slot);

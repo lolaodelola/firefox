@@ -15,7 +15,7 @@ pub use keystore::LockstoreKeystore;
 pub use utils::{bytes_to_value, value_to_bytes};
 
 use kvstore::{DatabaseError, StoreError};
-use nss_gk_api::Error as NssError;
+use nss_rs::Error as NssError;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -54,6 +54,8 @@ pub enum LockstoreError {
     TokenError(String),
     #[error("Invalid kek_ref: {0}")]
     InvalidKekRef(String),
+    #[error("NSS initialization failed: {0}")]
+    NssInitialization(String),
 }
 
 impl From<serde_json::Error> for LockstoreError {
