@@ -71,7 +71,7 @@ class MenuDialogMiddlewareTest {
         spyk(AddBookmarksUseCase(storage = bookmarksStorage))
 
     private val addonManager: AddonManager = mockk(relaxed = true)
-    private val onDeleteAndQuit: () -> Unit = mockk()
+    private val onDeleteAndQuit: () -> Unit = { error("onDeleteAndQuit should not be invoked") }
 
     private lateinit var alertDialogBuilder: MaterialAlertDialogBuilder
     private lateinit var pinnedSiteStorage: PinnedSiteStorage

@@ -8,6 +8,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import mozilla.components.service.nimbus.messaging.Message
 import mozilla.components.support.test.robolectric.testContext
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,7 +38,8 @@ class MicrosurveyMessageControllerTest {
     private val message: Message = mockk(relaxed = true)
     private lateinit var microsurveyMessageController: MicrosurveyMessageController
     private val appStore: AppStore = mockk(relaxed = true)
-    private val openUrlInBrowser: (String) -> Unit = mockk(relaxed = true)
+    private val openUrlInBrowserCalls = mutableListOf<String>()
+    private val openUrlInBrowser: (String) -> Unit = { openUrlInBrowserCalls.add(it) }
 
     @Before
     fun setup() {
@@ -65,7 +67,7 @@ class MicrosurveyMessageControllerTest {
         microsurveyMessageController.onPrivacyPolicyLinkClicked(message.id, "homepage")
 
         verify { appStore.dispatch(OnPrivacyNoticeTapped(message.id)) }
-        verify { openUrlInBrowser("$PRIVACY_POLICY_URL&utm_content=homepage") }
+        assertEquals(listOf("$PRIVACY_POLICY_URL&utm_content=homepage"), openUrlInBrowserCalls)
     }
 
     @Test
@@ -73,7 +75,7 @@ class MicrosurveyMessageControllerTest {
         microsurveyMessageController.onPrivacyPolicyLinkClicked(message.id)
 
         verify { appStore.dispatch(OnPrivacyNoticeTapped(message.id)) }
-        verify { openUrlInBrowser(PRIVACY_POLICY_URL) }
+        assertEquals(listOf(PRIVACY_POLICY_URL), openUrlInBrowserCalls)
     }
 
     @Test

@@ -69,7 +69,7 @@ class WallpapersUseCasesTest {
     }
 
     private val mockFolder: File by lazy { temporaryFolder.newFolder() }
-    private val downloadWallpaper: (Wallpaper) -> Wallpaper.ImageFileState = mockk(relaxed = true)
+    private val downloadWallpaper: (Wallpaper) -> Wallpaper.ImageFileState = { Wallpaper.ImageFileState.Downloaded }
 
     @Before
     fun setup() {

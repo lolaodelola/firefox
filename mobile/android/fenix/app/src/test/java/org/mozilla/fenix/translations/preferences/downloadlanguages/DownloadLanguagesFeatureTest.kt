@@ -11,6 +11,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import mozilla.components.support.test.robolectric.testContext
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,13 +21,13 @@ import org.mozilla.fenix.wifi.WifiConnectionMonitor
 class DownloadLanguagesFeatureTest {
     private lateinit var downloadLanguagesFeature: DownloadLanguagesFeature
     private lateinit var wifiConnectionMonitor: WifiConnectionMonitor
-    private lateinit var dataSaverAndWifiChanged: ((Boolean) -> Unit)
+    private val dataSaverAndWifiChangedCalls = mutableListOf<Boolean>()
+    private val dataSaverAndWifiChanged: (Boolean) -> Unit = { dataSaverAndWifiChangedCalls.add(it) }
     private lateinit var connectivityManager: ConnectivityManager
 
     @Before
     fun setUp() {
         wifiConnectionMonitor = mockk(relaxed = true)
-        dataSaverAndWifiChanged = mockk(relaxed = true)
         connectivityManager = mockk()
         downloadLanguagesFeature =
             DownloadLanguagesFeature(
@@ -77,7 +78,7 @@ class DownloadLanguagesFeatureTest {
 
         downloadLanguagesFeature.wifiConnectedListener(false)
 
-        verify { dataSaverAndWifiChanged.invoke(true) }
+        assertEquals(listOf(true), dataSaverAndWifiChangedCalls)
     }
 
     @Test
@@ -89,7 +90,7 @@ class DownloadLanguagesFeatureTest {
 
         downloadLanguagesFeature.wifiConnectedListener(false)
 
-        verify { dataSaverAndWifiChanged.invoke(true) }
+        assertEquals(listOf(true), dataSaverAndWifiChangedCalls)
     }
 
     @Test
@@ -101,7 +102,7 @@ class DownloadLanguagesFeatureTest {
 
         downloadLanguagesFeature.wifiConnectedListener(true)
 
-        verify { dataSaverAndWifiChanged.invoke(false) }
+        assertEquals(listOf(false), dataSaverAndWifiChangedCalls)
     }
 
     @Test
@@ -113,6 +114,6 @@ class DownloadLanguagesFeatureTest {
 
         downloadLanguagesFeature.wifiConnectedListener(true)
 
-        verify { dataSaverAndWifiChanged.invoke(false) }
+        assertEquals(listOf(false), dataSaverAndWifiChangedCalls)
     }
 }

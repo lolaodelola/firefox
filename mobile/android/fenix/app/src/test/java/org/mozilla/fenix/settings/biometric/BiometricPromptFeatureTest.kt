@@ -97,8 +97,10 @@ class BiometricPromptFeatureTest {
 
     @Test
     fun `promptCallback fires feature callbacks`() {
-        val authSuccess: () -> Unit = mockk(relaxed = true)
-        val authFailure: () -> Unit = mockk(relaxed = true)
+        var authSuccessCount = 0
+        var authFailureCount = 0
+        val authSuccess: () -> Unit = { authSuccessCount++ }
+        val authFailure: () -> Unit = { authFailureCount++ }
         val feature = BiometricPromptFeature(testContext, fragment, authFailure, authSuccess)
         val callback = feature.PromptCallback()
         val prompt = BiometricPrompt(fragment, callback)
@@ -107,14 +109,14 @@ class BiometricPromptFeatureTest {
 
         callback.onAuthenticationError(0, "")
 
-        verify { authFailure.invoke() }
+        assertEquals(1, authFailureCount)
 
         callback.onAuthenticationFailed()
 
-        verify { authFailure.invoke() }
+        assertEquals(2, authFailureCount)
 
         callback.onAuthenticationSucceeded(mockk())
 
-        verify { authSuccess.invoke() }
+        assertEquals(1, authSuccessCount)
     }
 }

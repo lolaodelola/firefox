@@ -22,6 +22,7 @@ import mozilla.components.concept.engine.webextension.WebExtensionInstallExcepti
 import mozilla.components.feature.addons.Addon
 import mozilla.components.support.ktx.android.content.appVersionName
 import mozilla.components.support.test.robolectric.testContext
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -41,7 +42,10 @@ class WebExtensionPromptFeatureTest {
     private lateinit var webExtensionPromptFeature: WebExtensionPromptFeature
     private lateinit var store: BrowserStore
 
-    private val onLinkClicked: (String, Boolean) -> Unit = spyk()
+    private val onLinkClickedCalls = mutableListOf<Pair<String, Boolean>>()
+    private val onLinkClicked: (String, Boolean) -> Unit = { url, isFirstParty ->
+        onLinkClickedCalls.add(url to isFirstParty)
+    }
     private val navController: NavController = mockk(relaxed = true)
 
     private val testDispatcher = StandardTestDispatcher()
@@ -127,10 +131,7 @@ class WebExtensionPromptFeatureTest {
 
         // Click the link, then verify.
         linkView.performClick()
-        verify {
-            onLinkClicked(expectedUrl, true)
-            dialog.dismiss()
-        }
+        assertEquals(listOf(expectedUrl to true), onLinkClickedCalls)
     }
 
     @Test
@@ -291,7 +292,7 @@ class WebExtensionPromptFeatureTest {
             permissions = listOf("tabs"),
             origins = emptyList(),
             dataCollectionPermissions = emptyList(),
-            onConfirm = mockk(),
+            onConfirm = { error("onConfirm should not be invoked when a permission dialog is shown") },
         )
 
         webExtensionPromptFeature.handleOptionalPermissionsRequest(addon = addon, promptRequest = promptRequest)
@@ -311,8 +312,8 @@ class WebExtensionPromptFeatureTest {
     @Test
     fun `WHEN calling handleOptionalPermissionsRequest with a permission that doesn't have a description THEN do not call showPermissionDialog`() = runTest(testDispatcher) {
         val addon: Addon = mockk(relaxed = true)
-        val onConfirm: ((Boolean) -> Unit) = mockk()
-        every { onConfirm(any()) } just runs
+        val onConfirmCalls = mutableListOf<Boolean>()
+        val onConfirm: (Boolean) -> Unit = { onConfirmCalls.add(it) }
         val promptRequest = WebExtensionPromptRequest.AfterInstallation.Permissions.Optional(
             extension = mockk(),
             // The "scripting" API permission doesn't have a description so we should not show a dialog for it.
@@ -327,14 +328,14 @@ class WebExtensionPromptFeatureTest {
         verify(exactly = 0) {
             webExtensionPromptFeature.showPermissionDialog(any(), any(), any(), any(), any(), any())
         }
-        verify(exactly = 1) { onConfirm(true) }
+        assertEquals(listOf(true), onConfirmCalls)
     }
 
     @Test
     fun `WHEN calling handleOptionalPermissionsRequest with host permissions along with permissions that don't have a description THEN call showPermissionDialog`() = runTest(testDispatcher) {
         val addon: Addon = mockk(relaxed = true)
-        val onConfirm: ((Boolean) -> Unit) = mockk()
-        every { onConfirm(any()) } just runs
+        val onConfirmCalls = mutableListOf<Boolean>()
+        val onConfirm: (Boolean) -> Unit = { onConfirmCalls.add(it) }
         val promptRequest = WebExtensionPromptRequest.AfterInstallation.Permissions.Optional(
             extension = mockk(),
             // The "scripting" API permission doesn't have a description so we should not show a dialog for it.
@@ -357,14 +358,14 @@ class WebExtensionPromptFeatureTest {
             )
         }
 
-        verify(exactly = 0) { onConfirm(true) }
+        assertTrue(onConfirmCalls.isEmpty())
     }
 
     @Test
     fun `WHEN calling handleOptionalPermissionsRequest with no permissions THEN do not call showPermissionDialog`() = runTest(testDispatcher) {
         val addon: Addon = mockk(relaxed = true)
-        val onConfirm: ((Boolean) -> Unit) = mockk()
-        every { onConfirm(any()) } just runs
+        val onConfirmCalls = mutableListOf<Boolean>()
+        val onConfirm: (Boolean) -> Unit = { onConfirmCalls.add(it) }
         val promptRequest = WebExtensionPromptRequest.AfterInstallation.Permissions.Optional(
             extension = mockk(),
             permissions = emptyList(),
@@ -378,7 +379,7 @@ class WebExtensionPromptFeatureTest {
         verify(exactly = 0) {
             webExtensionPromptFeature.showPermissionDialog(any(), any(), any(), any(), any(), any())
         }
-        verify(exactly = 1) { onConfirm(true) }
+        assertEquals(listOf(true), onConfirmCalls)
     }
 
     @Test
@@ -442,10 +443,7 @@ class WebExtensionPromptFeatureTest {
 
         // Click the link, then verify.
         linkView.performClick()
-        verify {
-            onLinkClicked(expectedUrl, true)
-            dialog.dismiss()
-        }
+        assertEquals(listOf(expectedUrl to true), onLinkClickedCalls)
     }
 
     @Test
@@ -470,7 +468,7 @@ class WebExtensionPromptFeatureTest {
             testContext,
             SupportUtils.SumoTopic.EXTENSION_PERMISSIONS,
         )
-        verify { onLinkClicked(expectedUrl, false) }
+        assertEquals(listOf(expectedUrl to false), onLinkClickedCalls)
     }
 
     @Test

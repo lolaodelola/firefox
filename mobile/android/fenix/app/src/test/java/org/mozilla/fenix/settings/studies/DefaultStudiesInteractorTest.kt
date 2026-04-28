@@ -11,12 +11,14 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import mozilla.components.service.nimbus.NimbusApi
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mozilla.experiments.nimbus.internal.EnrolledExperiment
 
 class DefaultStudiesInteractorTest {
-    private val openUrlInBrowser: (String) -> Unit = mockk(relaxed = true)
+    private val openUrlInBrowserCalls = mutableListOf<String>()
+    private val openUrlInBrowser: (String) -> Unit = { openUrlInBrowserCalls.add(it) }
 
     @RelaxedMockK
     private lateinit var experiments: NimbusApi
@@ -39,7 +41,7 @@ class DefaultStudiesInteractorTest {
         val url = ""
         interactor.openWebsite(url)
 
-        verify { openUrlInBrowser(url) }
+        assertEquals(listOf(url), openUrlInBrowserCalls)
     }
 
     @Test
