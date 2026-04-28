@@ -893,17 +893,17 @@ nsresult nsFormFillController::HandleFocus(Element* aElement) {
   bool shouldShowPopup = false;
 
   // If we have not seen a right click yet, just show the popup.
-  if (mControlledElement && !mAutoCompleteActive) {
-    if (mLastRightClickTimeStamp.IsNull()) {
-      if (HasBeenTypePassword(mControlledElement)) {
+  if (mControlledElement) {
+    if (HasBeenTypePassword(mControlledElement)) {
+      if (mLastRightClickTimeStamp.IsNull()) {
         mPasswordPopupAutomaticallyOpened = true;
-      }
-      shouldShowPopup = true;
-    } else {
-      uint64_t timeDiff =
-          (TimeStamp::Now() - mLastRightClickTimeStamp).ToMilliseconds();
-      if (timeDiff > mFocusAfterRightClickThreshold) {
         shouldShowPopup = true;
+      } else {
+        uint64_t timeDiff =
+            (TimeStamp::Now() - mLastRightClickTimeStamp).ToMilliseconds();
+        if (timeDiff > mFocusAfterRightClickThreshold) {
+          shouldShowPopup = true;
+        }
       }
     }
   }

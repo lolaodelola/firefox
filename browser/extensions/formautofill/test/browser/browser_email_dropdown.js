@@ -25,7 +25,6 @@ add_task(
       async function (browser) {
         const focusInput = "#email";
         await focusAndWaitForFieldsIdentified(browser, "#given-name");
-        await closePopup(browser);
         await openPopupOn(browser, focusInput);
         const item = getDisplayedPopupItems(browser)[0];
 
@@ -48,6 +47,7 @@ add_task(
       { gBrowser, url: PAGE_URL },
       async function (browser) {
         const focusInput = "#email";
+        await focusAndWaitForFieldsIdentified(browser, "#given-name");
         await openPopupOn(browser, focusInput);
         const item = getDisplayedPopupItems(browser)[0];
 
@@ -129,7 +129,6 @@ add_task(async function test_single_email_field_now_shows_address_autofill() {
 
       const focusInput = "#email";
       await focusAndWaitForFieldsIdentified(browser, "#given-name");
-      await closePopup(browser);
       await openPopupOn(browser, focusInput);
 
       const items = getDisplayedPopupItems(browser);
