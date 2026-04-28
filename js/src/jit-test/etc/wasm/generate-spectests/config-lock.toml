@@ -1,6 +1,6 @@
 [[repos]]
 name = 'spec'
-commit = '6e4c4bcaf'
+commit = 'f500d7fbb'
 
 [[repos]]
 name = 'threads'
@@ -8,11 +8,11 @@ commit = '3635ca51a'
 
 [[repos]]
 name = 'custom-page-sizes'
-commit = 'cad80dc2c'
+commit = '27e2a5fe6'
 
 [[repos]]
 name = 'compact-import-section'
-commit = 'bebcdeff9'
+commit = 'baa86dc09'
 
 [[repos]]
 name = 'stack-switching'

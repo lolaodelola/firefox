@@ -1,4 +1,3 @@
-// |jit-test| skip-if: !wasmRelaxedSimdEnabled()
 /* Copyright 2021 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,7 +150,7 @@ assert_return(
   ],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:75
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:76
 assert_return(
   () => invoke($0, `f64x2.relaxed_madd`, [
     f64x2([
@@ -175,7 +174,7 @@ assert_return(
   ],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:91
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:92
 assert_return(
   () => invoke($0, `f64x2.relaxed_madd`, [
     f64x2([1.0000000009313226, 1.0000000009313226]),
@@ -193,7 +192,7 @@ assert_return(
   ],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:98
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:99
 assert_return(
   () => invoke($0, `f64x2.relaxed_nmadd`, [
     f64x2([-1.0000000009313226, -1.0000000009313226]),
@@ -211,7 +210,7 @@ assert_return(
   ],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:105
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:106
 assert_return(
   () => invoke($0, `f64x2.relaxed_nmadd`, [
     f64x2([1.0000000009313226, 1.0000000009313226]),
@@ -229,7 +228,7 @@ assert_return(
   ],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:119
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:120
 assert_return(
   () => invoke($0, `f32x4.relaxed_madd_cmp`, [
     f32x4([
@@ -249,7 +248,7 @@ assert_return(
   [i32x4([0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:134
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:135
 assert_return(
   () => invoke($0, `f32x4.relaxed_madd_cmp`, [
     f32x4([1.0000002, 1.0000002, 1.0000002, 1.0000002]),
@@ -259,7 +258,7 @@ assert_return(
   [i32x4([0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:140
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:141
 assert_return(
   () => invoke($0, `f32x4.relaxed_nmadd_cmp`, [
     f32x4([-1.0000002, -1.0000002, -1.0000002, -1.0000002]),
@@ -269,7 +268,7 @@ assert_return(
   [i32x4([0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:146
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:147
 assert_return(
   () => invoke($0, `f32x4.relaxed_nmadd_cmp`, [
     f32x4([1.0000002, 1.0000002, 1.0000002, 1.0000002]),
@@ -279,7 +278,7 @@ assert_return(
   [i32x4([0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:157
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:159
 assert_return(
   () => invoke($0, `f64x2.relaxed_madd_cmp`, [
     f64x2([
@@ -295,7 +294,7 @@ assert_return(
   [i64x2([0xffffffffffffffffn, 0xffffffffffffffffn])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:172
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:174
 assert_return(
   () => invoke($0, `f64x2.relaxed_madd_cmp`, [
     f64x2([1.0000000009313226, 1.0000000009313226]),
@@ -305,7 +304,7 @@ assert_return(
   [i64x2([0xffffffffffffffffn, 0xffffffffffffffffn])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:178
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:180
 assert_return(
   () => invoke($0, `f64x2.relaxed_nmadd_cmp`, [
     f64x2([-1.0000000009313226, -1.0000000009313226]),
@@ -315,7 +314,7 @@ assert_return(
   [i64x2([0xffffffffffffffffn, 0xffffffffffffffffn])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:184
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:186
 assert_return(
   () => invoke($0, `f64x2.relaxed_nmadd_cmp`, [
     f64x2([1.0000000009313226, 1.0000000009313226]),
@@ -325,7 +324,7 @@ assert_return(
   [i64x2([0xffffffffffffffffn, 0xffffffffffffffffn])],
 );
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:205
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:207
 let $1 = instantiate(`(module
   (func (export "test-consistent-nondeterminism") (param v128 v128 v128) (result v128)
     (f32x4.eq
@@ -339,7 +338,7 @@ let $1 = instantiate(`(module
   )
 )`);
 
-// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:217
+// ./test/core/relaxed-simd/relaxed_madd_nmadd.wast:219
 assert_return(
   () => invoke($1, `test-consistent-nondeterminism`, [
     f32x4([
