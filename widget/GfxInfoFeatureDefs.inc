@@ -53,6 +53,8 @@ GFXINFO_FEATURE(WEBRTC_HW_ACCELERATION_H264, "webrtc.hw.acceleration.h264")
 GFXINFO_FEATURE(DIRECT3D_11_LAYERS, "layers.direct3d11")
 /* Whether hardware accelerated video decoding is supported, starting in 36. */
 GFXINFO_FEATURE(HARDWARE_VIDEO_DECODING, "hardwarevideodecoding")
+/* Whether Vulkan hardware video decoding is supported (Linux). */
+GFXINFO_FEATURE(HARDWARE_VIDEO_DECODING_VULKAN, "hardwarevideodecodingvulkan")
 /* Whether Direct3D 11 is supported for ANGLE, starting in 38. */
 GFXINFO_FEATURE(DIRECT3D_11_ANGLE, "direct3d11angle")
 /* Whether Webrtc Hardware acceleration is supported, starting in 42. */

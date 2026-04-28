@@ -22,6 +22,17 @@
 
 #include <mutex>
 
+#if defined(MOZ_WIDGET_GTK)
+// drm_fourcc.h defines DRM_FORMAT_MOD_INVALID without a guard; undef the
+// fallback from DMABufFormats.h first so the unified build doesn't see a
+// redefinition (same pattern as DMABufSurface.cpp).
+#  ifdef DRM_FORMAT_MOD_INVALID
+#    undef DRM_FORMAT_MOD_INVALID
+#  endif
+#  include <libdrm/drm_fourcc.h>
+#  include "GLContextEGL.h"
+#endif
+
 using namespace mozilla::gfx;
 
 #ifndef GBM_FORMAT_P010
@@ -29,10 +40,40 @@ using namespace mozilla::gfx;
     __gbm_fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cr:Cb plane */
 #endif
 
-// TODO: Provide fallback formats if beedback is not received yet
-// Get from display?
-
 namespace mozilla::widget {
+
+#if defined(MOZ_WIDGET_GTK)
+static void AppendDmaBufModifiersFromEGLIfEmpty(uint32_t aDrmFourcc,
+                                                nsTArray<uint64_t>& aOut) {
+  if (!aOut.IsEmpty()) {
+    return;
+  }
+  nsCString failureId;
+  const auto egl = gl::DefaultEglDisplay(&failureId);
+  if (!egl ||
+      !egl->IsExtensionSupported(
+          mozilla::gl::EGLExtension::EXT_image_dma_buf_import_modifiers)) {
+    return;
+  }
+  EGLint numMods = 0;
+  if (!egl->mLib->fQueryDmaBufModifiersEXT(egl->mDisplay,
+                                           static_cast<EGLint>(aDrmFourcc), 0,
+                                           nullptr, nullptr, &numMods) ||
+      numMods <= 0) {
+    return;
+  }
+  nsTArray<uint64_t> mods;
+  mods.SetLength(numMods);
+  EGLint n = numMods;
+  if (!egl->mLib->fQueryDmaBufModifiersEXT(egl->mDisplay,
+                                           static_cast<EGLint>(aDrmFourcc), n,
+                                           mods.Elements(), nullptr, &n) ||
+      n <= 0) {
+    return;
+  }
+  aOut.AppendElements(mods.Elements(), n);
+}
+#endif
 
 // Table of all supported DRM formats, every format is stored as
 // FOURCC format + modifier pair and
@@ -394,8 +435,10 @@ RefPtr<DMABufFormats> CreateDMABufFeedbackFormats(
 
 void GlobalDMABufFormats::SetModifiersToGfxVars() {
   RefPtr<DMABufFormats> formats;
+  bool isWaylandDisplay = false;
 #ifdef MOZ_WAYLAND
-  if (GdkIsWaylandDisplay()) {
+  isWaylandDisplay = GdkIsWaylandDisplay();
+  if (isWaylandDisplay) {
     formats = WaylandDisplayGet()->GetDMABufFormats();
   }
 #endif
@@ -415,16 +458,35 @@ void GlobalDMABufFormats::SetModifiersToGfxVars() {
   gfxVars::SetDMABufModifiersARGB(*format->GetModifiers());
 
   format = formats->GetFormat(GBM_FORMAT_P010);
+  nsTArray<uint64_t> modsP010;
   if (format) {
     LOGDMABUF(("GBM_FORMAT_P010 is directly composited"));
-    mFormatP010 = new DRMFormat(*format);
-    gfxVars::SetDMABufModifiersP010(*format->GetModifiers());
+    modsP010.Assign(*format->GetModifiers());
   }
+#if defined(MOZ_WIDGET_GTK)
+  if (!isWaylandDisplay) {
+    AppendDmaBufModifiersFromEGLIfEmpty(DRM_FORMAT_P010, modsP010);
+  }
+#endif
+  if (!modsP010.IsEmpty()) {
+    mFormatP010 = new DRMFormat(GBM_FORMAT_P010, modsP010);
+    gfxVars::SetDMABufModifiersP010(modsP010);
+  }
+
   format = formats->GetFormat(GBM_FORMAT_NV12);
+  nsTArray<uint64_t> modsNV12;
   if (format) {
     LOGDMABUF(("GBM_FORMAT_NV12 is directly composited"));
-    mFormatNV12 = new DRMFormat(*format);
-    gfxVars::SetDMABufModifiersNV12(*format->GetModifiers());
+    modsNV12.Assign(*format->GetModifiers());
+  }
+#if defined(MOZ_WIDGET_GTK)
+  if (!isWaylandDisplay) {
+    AppendDmaBufModifiersFromEGLIfEmpty(DRM_FORMAT_NV12, modsNV12);
+  }
+#endif
+  if (!modsNV12.IsEmpty()) {
+    mFormatNV12 = new DRMFormat(GBM_FORMAT_NV12, modsNV12);
+    gfxVars::SetDMABufModifiersNV12(modsNV12);
   }
   format = formats->GetFormat(GBM_FORMAT_YUV420);
   if (format) {
