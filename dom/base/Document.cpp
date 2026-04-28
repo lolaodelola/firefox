@@ -14571,6 +14571,16 @@ void Document::ObserveAutoSizesImage(HTMLImageElement& aElement) {
           for (const auto& entry : aEntries) {
             auto* element = HTMLImageElement::FromNode(entry->Target());
             MOZ_ASSERT(element);
+            // element may no longer allow auto-sizes because a previous
+            // ResizeObserver could have changed its sizes/loading attribute.
+            // See bug 2033652.
+            if (MOZ_UNLIKELY(!element->AllowsAutoSizes())) {
+              // Still, we should have unobserved the element when it stopped
+              // allowing auto-sizes.
+              MOZ_ASSERT(
+                  !element->OwnerDoc()->ObservesAutoSizesImage(*element));
+              continue;
+            }
             element->MaybeRecomputeAutoSizes(true);
           }
         });
@@ -14582,6 +14592,10 @@ void Document::UnobserveAutoSizesImage(HTMLImageElement& aElement) {
   if (mAutoSizeImageObserver) {
     mAutoSizeImageObserver->Unobserve(aElement);
   }
+}
+
+bool Document::ObservesAutoSizesImage(HTMLImageElement& aElement) const {
+  return mAutoSizeImageObserver && mAutoSizeImageObserver->Observes(aElement);
 }
 
 already_AddRefed<Touch> Document::CreateTouch(

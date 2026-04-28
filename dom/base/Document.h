@@ -3368,6 +3368,8 @@ class Document : public nsINode,
   // Observe loading=lazy sizes=auto image for size changes.
   void ObserveAutoSizesImage(HTMLImageElement& aElement);
   void UnobserveAutoSizesImage(HTMLImageElement& aElement);
+  // Returns whether we are observing |aElement| for sizes=auto size changes.
+  bool ObservesAutoSizesImage(HTMLImageElement& aElement) const;
 
   nsresult GetStateObject(JS::MutableHandle<JS::Value> aState);
 
