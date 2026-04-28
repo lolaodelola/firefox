@@ -20,10 +20,6 @@
 
 namespace mozilla::widget::filedialog {
 
-// The default Windows thread stack size of 1Mb may not be enough for some
-// DLLs that are added to the file dialog by 3rd party apps.  Try 4Mb.
-const size_t kWindowsFileDialogStackSize = 4 * 1024 * 1024;
-
 const char* Error::KindName(Error::Kind kind) {
   switch (kind) {
     case LocalError:
@@ -360,9 +356,8 @@ RefPtr<Promise<Res>> SpawnFileDialogThread(const char (&where)[N],
 
   RefPtr<nsIThread> thread;
   {
-    nsresult rv = NS_NewNamedThread(
-        "File Dialog", getter_AddRefs(thread), nullptr,
-        {.isUiThread = true, .stackSize = kWindowsFileDialogStackSize});
+    nsresult rv = NS_NewNamedThread("File Dialog", getter_AddRefs(thread),
+                                    nullptr, {.isUiThread = true});
     if (NS_FAILED(rv)) {
       return Promise<Res>::CreateAndReject(
           MOZ_FD_LOCAL_ERROR("NS_NewNamedThread", (HRESULT)rv), where);
