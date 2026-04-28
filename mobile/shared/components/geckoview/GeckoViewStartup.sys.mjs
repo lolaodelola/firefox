@@ -291,6 +291,10 @@ export class GeckoViewStartup {
           }
         );
 
+        // Initialize the cookie service early so the DB is loaded by
+        // the time we make the first HTTP request.
+        Services.cookies;
+
         GeckoViewUtils.addLazyGetter(this, "DownloadTracker", {
           module: "resource://gre/modules/GeckoViewWebExtension.sys.mjs",
           ged: ["GeckoView:WebExtension:DownloadChanged"],
