@@ -456,12 +456,6 @@ class TextPropertyEditor {
    * @return {Array<string>}
    */
   #getAnchorNames = async () => {
-    // @backward-compat { version 150 } This trait was added in 150, once we have it in
-    // release, we can remove this if block.
-    if (!this.ruleView.pageStyle.traits.hasGetAnchorNames) {
-      return [];
-    }
-
     const names = await this.ruleView.pageStyle.getAnchorNames(
       this.ruleView.inspector.selection.nodeFront
     );
