@@ -594,21 +594,45 @@ TEST(TestCookie, TestCookieMain)
   GetACookie(cookieService, "http://parser.test/", cookie);
   EXPECT_TRUE(CheckResult(cookie.get(), MUST_BE_NULL));
 
-  // test the handling of VALUE-only cookies (see bug 169091),
-  // i.e. "six" should assume an empty NAME, which allows other VALUE-only
-  // cookies to overwrite it
-  SetACookie(cookieService, "http://parser.test/", "six");
-  GetACookie(cookieService, "http://parser.test/", cookie);
-  EXPECT_TRUE(CheckResult(cookie.get(), MUST_EQUAL, "six"));
-  SetACookie(cookieService, "http://parser.test/", "seven");
-  GetACookie(cookieService, "http://parser.test/", cookie);
-  EXPECT_TRUE(CheckResult(cookie.get(), MUST_EQUAL, "seven"));
-  SetACookie(cookieService, "http://parser.test/", " =eight");
-  GetACookie(cookieService, "http://parser.test/", cookie);
-  EXPECT_TRUE(CheckResult(cookie.get(), MUST_EQUAL, "eight"));
-  SetACookie(cookieService, "http://parser.test/", "test=six");
-  GetACookie(cookieService, "http://parser.test/", cookie);
+  // test the handling of valueless cookies (no '=' in cookie string).
+  // With network.cookie.valueless_cookie=true (default), "six" is parsed as
+  // name="six", value="" and serialized as "six=". Each valueless cookie has a
+  // distinct name, so they don't overwrite each other.
+  Preferences::SetBool("network.cookie.valueless_cookie", true);
+  SetACookie(cookieService, "http://valueless.parser.test/", "six");
+  GetACookie(cookieService, "http://valueless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "six="));
+  SetACookie(cookieService, "http://valueless.parser.test/", "seven");
+  GetACookie(cookieService, "http://valueless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "six="));
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "seven="));
+  // " =eight" parses as name="" value="eight" (nameless), which is rejected
+  // when valueless_cookie=true, so only the previous two cookies remain.
+  SetACookie(cookieService, "http://valueless.parser.test/", " =eight");
+  GetACookie(cookieService, "http://valueless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "six="));
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "seven="));
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_NOT_CONTAIN, "eight"));
+  SetACookie(cookieService, "http://valueless.parser.test/", "test=six");
+  GetACookie(cookieService, "http://valueless.parser.test/", cookie);
   EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "test=six"));
+
+  // With network.cookie.valueless_cookie=false (legacy), "six" is parsed as
+  // name="", value="six", so valueless cookies overwrite each other.
+  Preferences::SetBool("network.cookie.valueless_cookie", false);
+  SetACookie(cookieService, "http://nameless.parser.test/", "six");
+  GetACookie(cookieService, "http://nameless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_EQUAL, "six"));
+  SetACookie(cookieService, "http://nameless.parser.test/", "seven");
+  GetACookie(cookieService, "http://nameless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_EQUAL, "seven"));
+  SetACookie(cookieService, "http://nameless.parser.test/", " =eight");
+  GetACookie(cookieService, "http://nameless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_EQUAL, "eight"));
+  SetACookie(cookieService, "http://nameless.parser.test/", "test=six");
+  GetACookie(cookieService, "http://nameless.parser.test/", cookie);
+  EXPECT_TRUE(CheckResult(cookie.get(), MUST_CONTAIN, "test=six"));
+  Preferences::SetBool("network.cookie.valueless_cookie", true);
 
   // *** path ordering tests
 

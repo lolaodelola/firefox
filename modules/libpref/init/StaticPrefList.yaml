@@ -13977,6 +13977,13 @@
   value: true
   mirror: always
 
+# When true, cookies without '=' are parsed as valueless (name="foo", value="")
+# instead of nameless (name="", value="foo"), aligning with Safari's behavior.
+- name: network.cookie.valueless_cookie
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
 # A Enable a workaround for XPCShell tests to avoid setting the cookies via
 # HttpChannelParent actor
 - name: network.cookie.skip_browsing_context_check_in_parent_for_testing

@@ -10,6 +10,7 @@
 #include "ThirdPartyUtil.h"
 #include "mozilla/Components.h"
 #include "mozilla/ScopeExit.h"
+#include "mozilla/StaticPrefs_network.h"
 #include "mozilla/StorageAccess.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/Promise.h"
@@ -110,6 +111,11 @@ bool ValidateCookieNameAndValue(const nsAString& aName, const nsAString& aValue,
   if (aName.IsEmpty() && aValue.IsEmpty()) {
     aPromise->MaybeRejectWithTypeError(
         "Cookie name and value both cannot be empty");
+    return false;
+  }
+
+  if (aName.IsEmpty() && StaticPrefs::network_cookie_valueless_cookie()) {
+    aPromise->MaybeRejectWithTypeError("Cookie name cannot be empty");
     return false;
   }
 
