@@ -1332,6 +1332,16 @@ class TypeContext : public AtomicRefCounted<TypeContext> {
     return true;
   }
 
+  // Copy all recursion groups from another TypeContext into this one.
+  [[nodiscard]] bool clone(const TypeContext& other) {
+    for (const SharedRecGroup& rg : other.groups()) {
+      if (!addRecGroup(rg)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   template <typename T>
   [[nodiscard]] const TypeDef* addType(T&& type) {
     MutableRecGroup recGroup = startRecGroup(1);

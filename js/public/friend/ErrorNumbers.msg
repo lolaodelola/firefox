@@ -518,7 +518,6 @@ MSG_DEF(JSMSG_USE_ASM_DEPRECATED,                0, JSEXN_WARN, "asm.js is depre
 
 // JSPI
 MSG_DEF(JSMSG_JSPI_INVALID_STATE,      0, IF_WASM_JSPI(JSEXN_WASMSUSPENDERROR, JSEXN_WASMRUNTIMEERROR), "Invalid state")
-MSG_DEF(JSMSG_JSPI_ARG_TYPE,           0, JSEXN_TYPEERR, "Unsupported JSPI function argument type")
 MSG_DEF(JSMSG_JSPI_SUSPEND_ERROR,      0, IF_WASM_JSPI(JSEXN_WASMSUSPENDERROR, JSEXN_WASMRUNTIMEERROR), "No matching WebAssembly.promising for call to WebAssembly.Promising import.")
 
 // Proxy

@@ -2687,8 +2687,8 @@ bool Instance::init(JSContext* cx, const JSObjectVector& funcImports,
       // Compile suspending function Wasm wrapper.
       const FuncType& funcType = codeMeta().getFuncType(i);
       RootedObject wrapped(cx, suspendingObject);
-      RootedFunction wrapper(
-          cx, WasmSuspendingFunctionCreate(cx, wrapped, funcType));
+      RootedFunction wrapper(cx, WasmSuspendingFunctionCreate(
+                                     cx, wrapped, funcType, codeMeta().types));
       if (!wrapper) {
         return false;
       }
