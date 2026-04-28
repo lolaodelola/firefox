@@ -29,7 +29,6 @@
 #include "mozilla/ScopeExit.h"
 #include "mozilla/StaticPrefs_browser.h"
 #include "mozilla/StaticPrefs_fission.h"
-#include "mozilla/StaticPrefs_webgl.h"
 #include "mozilla/StaticPrefs_widget.h"
 #include "mozilla/glean/SecuritySandboxMetrics.h"
 #include "mozilla/Telemetry.h"
@@ -686,8 +685,6 @@ static bool Win32kRequirementsUnsatisfied(
          aStatus ==
              nsIXULRuntime::ContentWin32kLockdownState::MissingWebRender ||
          aStatus ==
-             nsIXULRuntime::ContentWin32kLockdownState::MissingRemoteWebGL ||
-         aStatus ==
              nsIXULRuntime::ContentWin32kLockdownState::DecodersArentRemote;
 }
 
@@ -775,12 +772,6 @@ nsIXULRuntime::ContentWin32kLockdownState GetLiveWin32kLockdownState() {
   if (!IsWin10FallCreatorsUpdateOrLater()) {
     return nsIXULRuntime::ContentWin32kLockdownState::
         OperatingSystemNotSupported;
-  }
-
-  // Win32k Lockdown requires Remote WebGL, but it may be disabled on
-  // certain hardware or virtual machines.
-  if (!gfx::gfxVars::AllowWebglOop() || !StaticPrefs::webgl_out_of_process()) {
-    return nsIXULRuntime::ContentWin32kLockdownState::MissingRemoteWebGL;
   }
 
   // Some (not sure exactly which) decoders are not compatible
