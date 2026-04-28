@@ -19,7 +19,7 @@
 #permission-popup,
 #trustpanel-popup,
 #protections-popup {
-  --panel-width: 30.81em;
+  --controlcenter-popup-content-width: 30.81em;
   /* Set default fill for icons in the identity popup.
      Individual icons can override this. */
   fill: currentColor;
@@ -30,7 +30,7 @@
 }
 
 #protections-popup[toast] {
-  --panel-width: 27.12em;
+  --controlcenter-popup-content-width: 27.12em;
 }
 
 #protections-popup[infoMessageShowing] {
@@ -94,8 +94,8 @@
 #trustpanel-popup-mainView,
 #trustpanel-blockerView,
 #protections-popup-mainView {
-  min-width: var(--panel-width);
-  max-width: var(--panel-width);
+  min-width: var(--controlcenter-popup-content-width);
+  max-width: var(--controlcenter-popup-content-width);
 }
 
 #protections-popup[toast] #protections-popup-mainView > :not(#protections-popup-mainView-panel-header-section),
@@ -147,7 +147,7 @@
 #permission-popup .panel-header > h1 > span,
 #identity-popup .panel-header > h1 > span {
   /* This is needed for the overflow-wrap to work correctly when the domain name is really long. */
-  max-width: calc(var(--panel-width) - 2 * var(--panel-menuitem-margin-inline));
+  max-width: calc(var(--controlcenter-popup-content-width) - 2 * var(--panel-menuitem-margin-inline));
   overflow-wrap: break-word;
 }
 
@@ -156,7 +156,7 @@
    * icon-full-width is included twice to compensate for the margin-inline-start of the text,
    * used to center it even if the header includes a info button. See .panel-header-with-info-button */
   /* prettier-ignore */
-  max-width: calc(var(--panel-width)
+  max-width: calc(var(--controlcenter-popup-content-width)
                   - var(--panel-menuitem-margin-inline) * 2
                   - var(--panel-header-info-icon-full-width) * 2);
 }
@@ -164,7 +164,7 @@
 #identity-popup .panel-header > .subviewbutton-back + h1 > span {
   /* Same idea as above, but in the identity popup when there's a back button. */
   /* prettier-ignore */
-  max-width: calc(var(--panel-width)
+  max-width: calc(var(--controlcenter-popup-content-width)
                   - var(--panel-menuitem-margin-inline) * 2
                   - var(--panel-header-back-icon-full-width) * 2);
 }
@@ -393,7 +393,7 @@
   }
 
   > tooltip {
-    max-width: var(--panel-width);
+    max-width: var(--controlcenter-popup-content-width);
   }
 }
 
