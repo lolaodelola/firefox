@@ -1102,6 +1102,10 @@ ${
       }
     }
 
+    if (lazy.UrlbarPrefs.get("unifiedSearchButton.always")) {
+      this.searchModeSwitcher?.updateSearchIcon();
+    }
+
     this.handleNavigation({ event });
   }
 
