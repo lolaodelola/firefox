@@ -788,8 +788,6 @@ class ScriptLoader final : public JS::loader::ScriptLoaderInterface {
    */
   void UpdateDiskCache();
 
-  void DispatchStopCollectingDelazifications();
-
   /**
    * Stop collecting any ongoing delazifications.
    */
