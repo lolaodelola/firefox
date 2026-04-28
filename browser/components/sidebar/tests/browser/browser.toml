@@ -47,6 +47,9 @@ skip-if = [
 ["browser_launcher_hidden_restore.js"]
 tags = "vertical-tabs"
 
+["browser_launcher_splitter_visibility.js"]
+tags = "vertical-tabs"
+
 ["browser_resize_sidebar.js"]
 skip-if = [
   "os == 'mac' && os_version == '10.15' && arch == 'x86_64'", # Bug 1946263
