@@ -26,6 +26,10 @@ url = "https://github.com/WebAssembly/threads"
 branch = "main"
 parent = "spec"
 excluded_tests = [
+  # These tests run very slowly and are a mess to handle in the harness anyway.
+  "^deeply_nested.wast.js",
+  "^nested.wast.js",
+
   # tests that are unrelated and out of date
   "^address.wast.js",
   "^align.wast.js",
