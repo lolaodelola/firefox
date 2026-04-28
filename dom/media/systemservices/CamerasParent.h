@@ -251,8 +251,8 @@ class CamerasParent : public PCamerasParent {
   // capture engine. Returns a nullptr in case capture engine failed to be
   // initialized. Video capture thread only.
   std::shared_ptr<webrtc::VideoCaptureModule::DeviceInfo> GetDeviceInfo(
-      int aEngine);
-  VideoEngine* EnsureInitialized(int aEngine);
+      CaptureEngine aEngine);
+  VideoEngine* EnsureInitialized(CaptureEngine aEngine);
 
   // Stops any ongoing capturing and releases resources. Called on
   // mVideoCaptureThread. Idempotent.

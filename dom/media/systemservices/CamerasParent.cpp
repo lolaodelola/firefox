@@ -854,7 +854,7 @@ void CamerasParent::CloseEngines() {
 }
 
 std::shared_ptr<webrtc::VideoCaptureModule::DeviceInfo>
-CamerasParent::GetDeviceInfo(int aEngine) {
+CamerasParent::GetDeviceInfo(CaptureEngine aEngine) {
   MOZ_ASSERT(mVideoCaptureThread->IsOnCurrentThread());
   LOG_VERBOSE("CamerasParent(%p)::%s", this, __func__);
 
@@ -873,21 +873,19 @@ CamerasParent::GetDeviceInfo(int aEngine) {
   return info;
 }
 
-VideoEngine* CamerasParent::EnsureInitialized(int aEngine) {
+VideoEngine* CamerasParent::EnsureInitialized(CaptureEngine aEngine) {
   MOZ_ASSERT(mVideoCaptureThread->IsOnCurrentThread());
   LOG_VERBOSE("CamerasParent(%p)::%s", this, __func__);
   if (mDestroyedCaptureThread) {
     return nullptr;
   }
 
-  CaptureEngine capEngine = static_cast<CaptureEngine>(aEngine);
-
-  if (VideoEngine* engine = mEngines->ElementAt(capEngine); engine) {
+  if (VideoEngine* engine = mEngines->ElementAt(aEngine); engine) {
     return engine;
   }
 
   CaptureDeviceType captureDeviceType = CaptureDeviceType::Camera;
-  switch (capEngine) {
+  switch (aEngine) {
     case ScreenEngine:
       captureDeviceType = CaptureDeviceType::Screen;
       break;
@@ -912,7 +910,7 @@ VideoEngine* CamerasParent::EnsureInitialized(int aEngine) {
     return nullptr;
   }
 
-  return mEngines->ElementAt(capEngine) = std::move(engine);
+  return mEngines->ElementAt(aEngine) = std::move(engine);
 }
 
 // Dispatch the runnable to do the camera operation on the
