@@ -7,10 +7,6 @@ mingw-capitalization:
     exclude:
         # We do not compile WebRTC with MinGW yet
         - media/webrtc
-    support-files:
-        - 'tools/lint/mozcheck/**'
-        - 'tools/lint/cpp/mingw-headers.txt'
     type: external
     level: error
-    payload: mozcheck:lint
-    check: mingw-capitalization
+    payload: cpp.mingw-capitalization:lint
