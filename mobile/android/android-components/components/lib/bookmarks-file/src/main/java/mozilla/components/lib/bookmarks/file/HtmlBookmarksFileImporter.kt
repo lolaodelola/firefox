@@ -4,37 +4,67 @@
 
 package mozilla.components.lib.bookmarks.file
 
-import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import mozilla.components.concept.bookmark.parser.BookmarksFileParser
 import mozilla.components.concept.bookmarks.file.BookmarksFileImporter
-import mozilla.components.concept.bookmarks.file.BookmarksFileImporter.NumberOfBookmarks
+import mozilla.components.concept.bookmarks.file.BookmarksFileImporter.ImportResult
+import mozilla.components.concept.storage.bookmarks.BookmarkInserter
+import mozilla.components.concept.storage.bookmarks.InsertableBookmarkTreeRoot
+import java.io.InputStream
 
 /**
- * A [BookmarksFileImporter] that parses bookmarks from Netscape HTML bookmark files.
+ * Creates a [BookmarksFileImporter] that imports bookmarks from Netscape HTML bookmark files.
  *
- * @param contentResolver Used to open an [java.io.InputStream] from the provided [Uri].
- * @param dispatcher The [CoroutineDispatcher] for performing I/O work.
+ * @param context Used to open an [InputStream] from the provided [Uri] via [Context.getContentResolver].
+ * @param parser Parses the [InputStream] into a bookmark tree.
+ * @param inserter Inserts the parsed bookmark tree into storage.
  */
-class HtmlBookmarksFileImporter(
-    private val contentResolver: ContentResolver,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-) : BookmarksFileImporter {
+fun BookmarksFileImporter.Companion.htmlImporter(
+    context: Context,
+    parentGuid: String,
+    parser: BookmarksFileParser,
+    inserter: BookmarkInserter,
+): BookmarksFileImporter = HtmlBookmarksFileImporter(
+    parentGuid = parentGuid,
+    uriOpener = UriOpener.make(context),
+    parser = parser,
+    inserter = inserter,
+)
 
-    override suspend fun importBookmarksFromUri(uri: Uri) = withContext(dispatcher) {
-        runCatching {
-            val html = requireNotNull(contentResolver.openInputStream(uri))
-                .use { it.bufferedReader().readText() }
-
-            NumberOfBookmarks(countBookmarks(html))
-        }
-    }
-
-    private fun countBookmarks(html: String): Int = ANCHOR_PATTERN.findAll(html).count()
+/**
+ * Opens an [InputStream] from a [Uri].
+ */
+internal fun interface UriOpener {
+    /**
+     * @param uri The [Uri] to open.
+     * @return A [Result] containing the opened [InputStream], or a failure if the stream could not be opened.
+     */
+    suspend fun open(uri: Uri): Result<InputStream>
 
     companion object {
-        private val ANCHOR_PATTERN = Regex("<a\\s", RegexOption.IGNORE_CASE)
+        /**
+         * Creates a [UriOpener] that uses the [Context.getContentResolver] to open the [Uri].
+         */
+        fun make(context: Context) = UriOpener { uri ->
+            runCatching { requireNotNull(context.contentResolver.openInputStream(uri)) }
+        }
+    }
+}
+
+internal class HtmlBookmarksFileImporter(
+    private val parentGuid: String,
+    private val uriOpener: UriOpener,
+    private val parser: BookmarksFileParser,
+    private val inserter: BookmarkInserter,
+) : BookmarksFileImporter {
+
+    override suspend fun importBookmarksFromUri(uri: Uri) = runCatching {
+            val inputStream = uriOpener.open(uri).getOrThrow()
+            val parseResult = inputStream.use { parser.parse(it) }.getOrThrow()
+            val tree = InsertableBookmarkTreeRoot(parentGuid = parentGuid, rootFolder = parseResult.folder)
+            val guid = inserter.insertTree(tree).getOrThrow()
+
+            ImportResult(guid, parseResult.bookmarksCount)
     }
 }

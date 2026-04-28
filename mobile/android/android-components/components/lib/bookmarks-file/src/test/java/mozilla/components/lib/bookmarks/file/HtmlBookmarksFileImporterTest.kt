@@ -5,50 +5,103 @@
 package mozilla.components.lib.bookmarks.file
 
 import android.net.Uri
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import mozilla.components.concept.bookmark.parser.BookmarksFileParser
+import mozilla.components.concept.storage.bookmarks.BookmarkInserter
+import mozilla.components.concept.storage.bookmarks.InsertableBookmarkTreeRoot
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
-import java.io.File
+import java.io.ByteArrayInputStream
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class HtmlBookmarksFileImporterTest {
-    private val testDispatcher = StandardTestDispatcher()
-    private lateinit var importer: HtmlBookmarksFileImporter
+    private val testUri = Uri.EMPTY
 
-    @Before
-    fun setup() {
-        importer = HtmlBookmarksFileImporter(
-            contentResolver = RuntimeEnvironment.getApplication().contentResolver,
-            dispatcher = testDispatcher,
+    @Test
+    fun `importBookmarksFromUri returns correct count`() = runTest {
+        val importer = createImporter()
+
+        val result = importer.importBookmarksFromUri(testUri).getOrThrow()
+
+        assertEquals(3, result.count)
+    }
+
+    @Test
+    fun `importBookmarksFromUri returns guid from inserter`() = runTest {
+        val importer = createImporter(inserter = fakeInserter(guid = "root-guid"))
+
+        val result = importer.importBookmarksFromUri(testUri).getOrThrow()
+
+        assertEquals("root-guid", result.guid)
+    }
+
+    @Test
+    fun `importBookmarksFromUri passes parsed tree to inserter`() = runTest {
+        var insertedTree: InsertableBookmarkTreeRoot? = null
+        val importer = createImporter(
+            inserter = fakeInserter { insertedTree = it },
         )
+
+        importer.importBookmarksFromUri(testUri).getOrThrow()
+
+        assertEquals("parentGuid", insertedTree!!.parentGuid)
     }
 
     @Test
-    fun `importBookmarksFromUri returns success with correct count`() = runTest(testDispatcher) {
-        val file = File.createTempFile("bookmarks", ".html").apply {
-            writeText(
-                """
-                <DT><A HREF="https://example.com">Example</A>
-                <DT><A HREF="https://mozilla.org">Mozilla</A>
-                """.trimIndent(),
-            )
-            deleteOnExit()
-        }
-        val result = importer.importBookmarksFromUri(Uri.fromFile(file)).getOrThrow()
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(2, result.count)
+    fun `importBookmarksFromUri returns failure when uriOpener fails`() = runTest {
+        val importer = createImporter(
+            uriOpener = { Result.failure(IOException("cannot open")) },
+        )
+
+        val result = importer.importBookmarksFromUri(testUri)
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IOException)
     }
 
     @Test
-    fun `importBookmarksFromUri returns failure for invalid uri`() = runTest(testDispatcher) {
-        val result = importer.importBookmarksFromUri(Uri.parse("file:///nonexistent/file.html"))
-        testDispatcher.scheduler.advanceUntilIdle()
+    fun `importBookmarksFromUri returns failure when parser fails`() = runTest {
+        val importer = createImporter(parser = BookmarksFileParser.fakeFailure())
+
+        val result = importer.importBookmarksFromUri(testUri)
+
         assertTrue(result.isFailure)
     }
+
+    @Test
+    fun `importBookmarksFromUri returns failure when inserter fails`() = runTest {
+        val importer = createImporter(
+            inserter = fakeInserter(result = Result.failure(RuntimeException("insert failed"))),
+        )
+
+        val result = importer.importBookmarksFromUri(testUri)
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is RuntimeException)
+    }
+
+    private fun fakeInserter(
+        guid: String = "guid",
+        result: Result<String>? = null,
+        onInsert: (InsertableBookmarkTreeRoot) -> Unit = {},
+    ) = BookmarkInserter { tree ->
+        onInsert(tree)
+        result ?: Result.success(guid)
+    }
+
+    private fun createImporter(
+        parentGuid: String = "parentGuid",
+        uriOpener: UriOpener = UriOpener { Result.success(ByteArrayInputStream(ByteArray(0))) },
+        parser: BookmarksFileParser = BookmarksFileParser.fakeSuccess(folder = null),
+        inserter: BookmarkInserter = fakeInserter(),
+    ) = HtmlBookmarksFileImporter(
+        parentGuid = parentGuid,
+        uriOpener = uriOpener,
+        parser = parser,
+        inserter = inserter,
+    )
 }

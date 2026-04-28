@@ -1907,6 +1907,8 @@ projects:
     publish: true
     upstream_dependencies:
     - components:concept-bookmarks-file
+    - components:concept-bookmarks-parser
+    - components:concept-storage-bookmarks
     - components:tooling-lint
   components:lib-crash:
     description: A generic crash reporter library that can report crashes to multiple

@@ -11,6 +11,8 @@ android {
 
 dependencies {
     api project(':components:concept-bookmarks-file')
+    api project(':components:concept-bookmarks-parser')
+    api project(':components:concept-storage-bookmarks')
     implementation libs.kotlinx.coroutines
 
     testImplementation platform(libs.junit.bom)
