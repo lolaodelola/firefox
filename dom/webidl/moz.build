@@ -911,6 +911,7 @@ WEBIDL_FILES = [
     "ScreenOrientation.webidl",
     "ScriptProcessorNode.webidl",
     "ScrollAreaEvent.webidl",
+    "ScrollTimeline.webidl",
     "Selection.webidl",
     "Serial.webidl",
     "SerialPort.webidl",

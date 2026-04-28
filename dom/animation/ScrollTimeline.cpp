@@ -15,6 +15,7 @@
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/DocumentInlines.h"
 #include "mozilla/dom/ElementInlines.h"
+#include "mozilla/dom/ScrollTimelineBinding.h"
 #include "nsIFrame.h"
 #include "nsLayoutUtils.h"
 #include "nsRefreshDriver.h"
@@ -40,6 +41,70 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMPL_ISUPPORTS_CYCLE_COLLECTION_INHERITED_0(ScrollTimeline,
                                                AnimationTimeline)
+
+JSObject* ScrollTimeline::WrapObject(JSContext* aCx,
+                                     JS::Handle<JSObject*> aGivenProto) {
+  return ScrollTimeline_Binding::Wrap(aCx, this, aGivenProto);
+}
+
+/* static */
+already_AddRefed<ScrollTimeline> ScrollTimeline::Constructor(
+    const GlobalObject& aGlobal, const ScrollTimelineOptions& aOptions,
+    ErrorResult& aRv) {
+  RefPtr<Document> doc =
+      AnimationUtils::GetCurrentRealmDocument(aGlobal.Context());
+  if (!doc) {
+    aRv.Throw(NS_ERROR_FAILURE);
+    return nullptr;
+  }
+
+  // Implements
+  // <https://drafts.csswg.org/scroll-animations-1/#dom-scrolltimeline-scrolltimeline>
+
+  // Step 2 -- get the source for the timeline.
+  Element* source = aOptions.mSource.WasPassed()
+                        ? aOptions.mSource.Value().get()
+                        : doc->GetScrollingElement();
+  ScrollerInfo scroller = ScrollerInfo::Anonymous(
+      ScrollerInfo::Type::Provided, source, PseudoStyleRequest::NotPseudo());
+
+  // Step 3 -- set the axis for the timeline.
+  StyleScrollAxis axis;
+  switch (aOptions.mAxis) {
+    case dom::ScrollAxis::Block:
+      axis = StyleScrollAxis::Block;
+      break;
+    case dom::ScrollAxis::Inline:
+      axis = StyleScrollAxis::Inline;
+      break;
+    case dom::ScrollAxis::X:
+      axis = StyleScrollAxis::X;
+      break;
+    case dom::ScrollAxis::Y:
+      axis = StyleScrollAxis::Y;
+      break;
+  }
+
+  // Step 1 -- create the new ScrollTimeline object.
+  return MakeAndAddRef<ScrollTimeline>(doc, scroller, axis);
+}
+
+Element* ScrollTimeline::GetSource() const { return SourceElement(); }
+
+dom::ScrollAxis ScrollTimeline::GetScrollAxis() const {
+  switch (mAxis) {
+    case StyleScrollAxis::Block:
+      return dom::ScrollAxis::Block;
+    case StyleScrollAxis::Inline:
+      return dom::ScrollAxis::Inline;
+    case StyleScrollAxis::X:
+      return dom::ScrollAxis::X;
+    case StyleScrollAxis::Y:
+      return dom::ScrollAxis::Y;
+  }
+  MOZ_ASSERT_UNREACHABLE("Unknown scroll axis");
+  return dom::ScrollAxis::Block;
+}
 
 ScrollTimeline::ScrollTimeline(Document* aDocument,
                                const ScrollerInfo& aScrollerInfo,
@@ -354,6 +419,7 @@ NonOwningAnimationTarget ScrollTimeline::ScrollerInfo::Source() const {
           FindNearestScroller(mTarget.mElement, mTarget.mPseudoRequest);
       return {const_cast<Element*>(element), pseudo};
     }
+    case Type::Provided:
     case Type::Self:
       return NonOwningAnimationTarget{mTarget};
     case Type::Root:
