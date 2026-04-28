@@ -4925,7 +4925,7 @@
 # scope-based checks in "in body" mode.
 - name: dom.lift_select_parser_restrictions.enabled
   type: RelaxedAtomicBool
-  value: false
+  value: @IS_NIGHTLY_BUILD@
   mirror: always
 
 - name: dom.send_after_paint_to_content
