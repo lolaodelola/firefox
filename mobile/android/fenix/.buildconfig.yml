@@ -29,6 +29,7 @@ projects:
     - components:concept-menu
     - components:concept-push
     - components:concept-storage
+    - components:concept-storage-bookmarks
     - components:concept-sync
     - components:concept-tabstray
     - components:concept-toolbar

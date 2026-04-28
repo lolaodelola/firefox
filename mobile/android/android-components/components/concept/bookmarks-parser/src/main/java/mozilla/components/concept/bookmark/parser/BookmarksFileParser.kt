@@ -53,7 +53,7 @@ data class BookmarksParseResult(
 
 /**
  * An abstract definition of a component that parses bookmark files into a tree of
- * [InsertableBookmarkNode]s.
+ * [InsertableBookmarkTreeNode]s.
  */
 fun interface BookmarksFileParser {
 
@@ -104,28 +104,25 @@ private class FakeSuccessParser(val returnedFolder: InsertableBookmarkTreeNode.F
             dateAddedTimestamp = 0L,
             lastModifiedTimestamp = 0L,
             children = listOf(
-                InsertableBookmarkNode.Folder(
-                    parentGuid = "1234",
+                InsertableBookmarkTreeNode.Folder(
                     title = "Subfolder",
                     position = 0u,
                     dateAddedTimestamp = 0L,
                     lastModifiedTimestamp = 0L,
                     children = listOf(
-                        InsertableBookmarkNode.Item(
-                            parentGuid = "12345",
+                        InsertableBookmarkTreeNode.Item(
                             title = "Example",
                             url = "https://example.com",
                             position = 1u,
                             dateAddedTimestamp = 0L,
                             lastModifiedTimestamp = 0L,
                         ),
-                        InsertableBookmarkNode.Separator(
+                        InsertableBookmarkTreeNode.Separator(
                             position = 2u,
                             dateAddedTimestamp = 0L,
                             lastModifiedTimestamp = 0L,
                         ),
-                        InsertableBookmarkNode.Item(
-                            parentGuid = "12345",
+                        InsertableBookmarkTreeNode.Item(
                             title = "Wikipedia",
                             url = "https://wikipedia.org",
                             position = 2u,
@@ -134,13 +131,12 @@ private class FakeSuccessParser(val returnedFolder: InsertableBookmarkTreeNode.F
                         ),
                     ),
                 ),
-                InsertableBookmarkNode.Item(
+                InsertableBookmarkTreeNode.Item(
                     title = "Mozilla",
                     url = "https://www.mozilla.org",
                     position = 1u,
                     dateAddedTimestamp = 0L,
                     lastModifiedTimestamp = 0L,
-                    parentGuid = "1234",
                 ),
             ),
         )

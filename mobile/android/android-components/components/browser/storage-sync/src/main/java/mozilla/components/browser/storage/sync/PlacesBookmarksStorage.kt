@@ -12,6 +12,7 @@ import mozilla.appservices.places.uniffi.PlacesApiException
 import mozilla.components.concept.storage.BookmarkInfo
 import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarksStorage
+import mozilla.components.concept.storage.bookmarks.InsertableBookmarkTreeRoot
 import mozilla.components.concept.sync.SyncableStore
 import mozilla.components.concept.toolbar.AutocompleteProvider
 import mozilla.components.concept.toolbar.AutocompleteResult
@@ -244,4 +245,12 @@ open class PlacesBookmarksStorage(
                 )
             }
         }
+
+    override suspend fun insertTree(tree: InsertableBookmarkTreeRoot): Result<String> {
+        return withContext(writeScope.coroutineContext) {
+            runCatching {
+                writer.insertBookmarkTree(tree.rootFolder.toPlacesItem(tree.parentGuid).f)
+            }
+        }
+    }
 }
