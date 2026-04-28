@@ -41,28 +41,30 @@
       href="locales-preview/smartWindow-aboutAddons.ftl"
     />
 
-    <!-- Import panel-list explicitly so it's ready before DOMContentLoaded.-->
+    <!-- Shared Reusable Components -->
+    <script
+      type="module"
+      src="chrome://global/content/elements/moz-five-star.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://global/content/elements/moz-message-bar.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://global/content/elements/moz-support-link.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://global/content/elements/moz-toggle.mjs"
+    ></script>
+    <!-- NOTE: Import panel-list explicitly so it's ready before DOMContentLoaded.-->
     <script
       type="module"
       src="chrome://global/content/elements/panel-list.mjs"
     ></script>
 
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/aboutaddons.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/addon-list.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/recommended-addon-list.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/recommended-addon-card.mjs"
-    ></script>
+    <!-- about:addons Domain-specific Components -->
     <script
       type="module"
       src="chrome://mozapps/content/extensions/components/addon-card.mjs"
@@ -70,6 +72,18 @@
     <script
       type="module"
       src="chrome://mozapps/content/extensions/components/addon-details.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/addon-list.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/addon-mlmodel-details.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/addon-options.mjs"
     ></script>
     <script
       type="module"
@@ -81,19 +95,11 @@
     ></script>
     <script
       type="module"
-      src="chrome://mozapps/content/extensions/components/inline-options-browser.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/addon-options.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/plugin-options.mjs"
-    ></script>
-    <script
-      type="module"
       src="chrome://mozapps/content/extensions/components/addon-permissions-list.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/addon-shortcuts.mjs"
     ></script>
     <script
       type="module"
@@ -101,23 +107,7 @@
     ></script>
     <script
       type="module"
-      src="chrome://mozapps/content/extensions/components/recommended-footer.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/recommended-themes-footer.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/recommended-extensions-section.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/recommended-themes-section.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/discovery-pane.mjs"
+      src="chrome://mozapps/content/extensions/components/addon-updates-message.mjs"
     ></script>
     <script
       type="module"
@@ -129,11 +119,15 @@
     ></script>
     <script
       type="module"
+      src="chrome://mozapps/content/extensions/components/colorway-removal-notice.mjs"
+    ></script>
+    <script
+      type="module"
       src="chrome://mozapps/content/extensions/components/discover-button.mjs"
     ></script>
     <script
       type="module"
-      src="chrome://mozapps/content/extensions/components/sidebar-footer.mjs"
+      src="chrome://mozapps/content/extensions/components/discovery-pane.mjs"
     ></script>
     <script
       type="module"
@@ -141,7 +135,7 @@
     ></script>
     <script
       type="module"
-      src="chrome://mozapps/content/extensions/components/addon-shortcuts.mjs"
+      src="chrome://mozapps/content/extensions/components/forced-colors-notice.mjs"
     ></script>
     <script
       type="module"
@@ -149,43 +143,7 @@
     ></script>
     <script
       type="module"
-      src="chrome://mozapps/content/extensions/components/search-addons.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/addon-updates-message.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/update-release-notes.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/proxy-context-menu.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/colorway-removal-notice.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/forced-colors-notice.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/smartwindow-themes-notice.mjs"
-    ></script>
-    <script
-      type="module"
-      src="chrome://mozapps/content/extensions/components/taar-notice.mjs"
-    ></script>
-    <script
-      src="chrome://mozapps/content/extensions/components/addon-mlmodel-details.mjs"
-      type="module"
-    ></script>
-    <script
-      src="chrome://mozapps/content/extensions/components/mlmodel-list-intro.mjs"
-      type="module"
+      src="chrome://mozapps/content/extensions/components/inline-options-browser.mjs"
     ></script>
     <script
       type="module"
@@ -197,19 +155,65 @@
     ></script>
     <script
       type="module"
-      src="chrome://global/content/elements/moz-message-bar.mjs"
+      src="chrome://mozapps/content/extensions/components/mlmodel-list-intro.mjs"
     ></script>
     <script
       type="module"
-      src="chrome://global/content/elements/moz-toggle.mjs"
+      src="chrome://mozapps/content/extensions/components/plugin-options.mjs"
     ></script>
     <script
       type="module"
-      src="chrome://global/content/elements/moz-support-link.mjs"
+      src="chrome://mozapps/content/extensions/components/proxy-context-menu.mjs"
     ></script>
     <script
       type="module"
-      src="chrome://global/content/elements/moz-five-star.mjs"
+      src="chrome://mozapps/content/extensions/components/recommended-addon-card.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-addon-list.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-extensions-section.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-footer.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-themes-footer.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/recommended-themes-section.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/search-addons.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/sidebar-footer.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/smartwindow-themes-notice.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/taar-notice.mjs"
+    ></script>
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/components/update-release-notes.mjs"
+    ></script>
+
+    <!-- about:addons page Entry Point module -->
+    <script
+      type="module"
+      src="chrome://mozapps/content/extensions/aboutaddons.mjs"
     ></script>
   </head>
   <body>
