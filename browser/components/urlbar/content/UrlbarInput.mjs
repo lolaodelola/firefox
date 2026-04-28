@@ -175,9 +175,7 @@ ${
         </html:div>
         <menupopup class="urlbarView-result-menu"
                    consumeoutsideclicks="false"/>
-        <html:div class="search-one-offs"
-              includecurrentengine="true"
-              disabletab="true"/>
+        <html:moz-urlbar-slot name="search-one-offs" />
    </html:div>`;
   }
 
