@@ -3,8 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 pub use lockstore_rs::LockstoreDatastore;
-use lockstore_rs::{LockstoreError, LockstoreKeystore, SecurityLevel, KEYSTORE_FILENAME};
-use nserror::{nsresult, NS_ERROR_FAILURE, NS_ERROR_INVALID_ARG, NS_ERROR_NOT_AVAILABLE, NS_OK};
+use lockstore_rs::{LockstoreError, LockstoreKeystore, KEYSTORE_FILENAME};
+use nserror::{
+    nsresult, NS_ERROR_ABORT, NS_ERROR_FAILURE, NS_ERROR_INVALID_ARG, NS_ERROR_NOT_AVAILABLE, NS_OK,
+};
 use nsstring::{nsACString, nsCString};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -29,25 +31,9 @@ fn error_to_nsresult(err: LockstoreError) -> nsresult {
         LockstoreError::NotFound(_) => NS_ERROR_NOT_AVAILABLE,
         LockstoreError::Serialization(_) => NS_ERROR_INVALID_ARG,
         LockstoreError::NotExtractable(_) => NS_ERROR_NOT_AVAILABLE,
+        LockstoreError::AuthenticationCancelled => NS_ERROR_ABORT,
+        LockstoreError::InvalidKekRef(_) => NS_ERROR_INVALID_ARG,
         _ => NS_ERROR_FAILURE,
-    }
-}
-
-// ============================================================================
-// Security Level FFI Type
-// ============================================================================
-
-#[repr(u32)]
-#[derive(Debug, Clone, Copy)]
-pub enum LockstoreSecurityLevel {
-    LocalKey = 0,
-}
-
-impl From<LockstoreSecurityLevel> for SecurityLevel {
-    fn from(level: LockstoreSecurityLevel) -> Self {
-        match level {
-            LockstoreSecurityLevel::LocalKey => SecurityLevel::LocalKey,
-        }
     }
 }
 
@@ -87,19 +73,20 @@ pub unsafe extern "C" fn lockstore_keystore_open(
 pub extern "C" fn lockstore_keystore_create_dek(
     handle: &LockstoreKeystoreHandle,
     collection: &nsACString,
-    security_level: LockstoreSecurityLevel,
+    kek_ref: &nsACString,
     extractable: bool,
 ) -> nsresult {
-    if collection.is_empty() {
-        log::error!("Collection cannot be empty");
+    if collection.is_empty() || kek_ref.is_empty() {
+        log::error!("Collection and kek_ref cannot be empty");
         return NS_ERROR_INVALID_ARG;
     }
 
     let coll_str = collection.to_utf8();
+    let kek_ref_str = kek_ref.to_utf8();
 
     match handle
         .keystore
-        .create_dek(&coll_str, security_level.into(), extractable)
+        .create_dek(&coll_str, &kek_ref_str, extractable)
     {
         Ok(_) => NS_OK,
         Err(e) => error_to_nsresult(e),
@@ -110,17 +97,18 @@ pub extern "C" fn lockstore_keystore_create_dek(
 pub extern "C" fn lockstore_keystore_get_dek(
     handle: &LockstoreKeystoreHandle,
     collection: &nsACString,
-    security_level: LockstoreSecurityLevel,
+    kek_ref: &nsACString,
     ret_dek: &mut ThinVec<u8>,
 ) -> nsresult {
-    if collection.is_empty() {
-        log::error!("Collection cannot be empty");
+    if collection.is_empty() || kek_ref.is_empty() {
+        log::error!("Collection and kek_ref cannot be empty");
         return NS_ERROR_INVALID_ARG;
     }
 
     let coll_str = collection.to_utf8();
+    let kek_ref_str = kek_ref.to_utf8();
 
-    match handle.keystore.get_dek(&coll_str, security_level.into()) {
+    match handle.keystore.get_dek(&coll_str, &kek_ref_str) {
         Ok((dek_bytes, _cipher_suite)) => {
             *ret_dek = dek_bytes.into();
             NS_OK
@@ -168,17 +156,19 @@ pub extern "C" fn lockstore_keystore_list_collections(
 pub extern "C" fn lockstore_keystore_add_security_level(
     handle: &LockstoreKeystoreHandle,
     collection: &nsACString,
-    from_level: LockstoreSecurityLevel,
-    to_level: LockstoreSecurityLevel,
+    from_kek_ref: &nsACString,
+    to_kek_ref: &nsACString,
 ) -> nsresult {
-    if collection.is_empty() {
-        log::error!("Collection cannot be empty");
+    if collection.is_empty() || from_kek_ref.is_empty() || to_kek_ref.is_empty() {
+        log::error!("Collection, from_kek_ref and to_kek_ref cannot be empty");
         return NS_ERROR_INVALID_ARG;
     }
     let coll_str = collection.to_utf8();
+    let from_str = from_kek_ref.to_utf8();
+    let to_str = to_kek_ref.to_utf8();
     match handle
         .keystore
-        .add_security_level(&coll_str, from_level.into(), to_level.into())
+        .add_security_level(&coll_str, &from_str, &to_str)
     {
         Ok(()) => NS_OK,
         Err(e) => error_to_nsresult(e),
@@ -189,16 +179,17 @@ pub extern "C" fn lockstore_keystore_add_security_level(
 pub extern "C" fn lockstore_keystore_remove_security_level(
     handle: &LockstoreKeystoreHandle,
     collection: &nsACString,
-    level: LockstoreSecurityLevel,
+    kek_ref: &nsACString,
 ) -> nsresult {
-    if collection.is_empty() {
-        log::error!("Collection cannot be empty");
+    if collection.is_empty() || kek_ref.is_empty() {
+        log::error!("Collection and kek_ref cannot be empty");
         return NS_ERROR_INVALID_ARG;
     }
     let coll_str = collection.to_utf8();
+    let kek_ref_str = kek_ref.to_utf8();
     match handle
         .keystore
-        .remove_security_level(&coll_str, level.into())
+        .remove_security_level(&coll_str, &kek_ref_str)
     {
         Ok(()) => NS_OK,
         Err(e) => error_to_nsresult(e),
@@ -221,21 +212,22 @@ pub unsafe extern "C" fn lockstore_keystore_close(
 pub unsafe extern "C" fn lockstore_datastore_open(
     keystore_handle: &LockstoreKeystoreHandle,
     collection: &nsACString,
-    security_level: LockstoreSecurityLevel,
+    kek_ref: &nsACString,
     ret_handle: &mut *mut LockstoreDatastore,
 ) -> nsresult {
-    if collection.is_empty() {
-        log::error!("Collection cannot be empty");
+    if collection.is_empty() || kek_ref.is_empty() {
+        log::error!("Collection and kek_ref cannot be empty");
         return NS_ERROR_INVALID_ARG;
     }
 
     let coll_str = collection.to_utf8();
+    let kek_ref_str = kek_ref.to_utf8();
 
     let datastore = match LockstoreDatastore::new(
         keystore_handle.profile_path.clone(),
         coll_str.to_string(),
         keystore_handle.keystore.clone(),
-        security_level.into(),
+        &kek_ref_str,
     ) {
         Ok(d) => d,
         Err(e) => return error_to_nsresult(e),

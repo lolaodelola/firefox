@@ -48,6 +48,12 @@ pub enum LockstoreError {
     InvalidConfiguration(String),
     #[error("DEK is not extractable: {0}")]
     NotExtractable(String),
+    #[error("Authentication cancelled")]
+    AuthenticationCancelled,
+    #[error("Token error: {0}")]
+    TokenError(String),
+    #[error("Invalid kek_ref: {0}")]
+    InvalidKekRef(String),
 }
 
 impl From<serde_json::Error> for LockstoreError {
@@ -62,44 +68,51 @@ impl From<NssError> for LockstoreError {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub const KEK_REF_PREFIX: &str = "lockstore::kek::";
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SecurityLevel {
+    #[default]
     #[serde(rename = "local")]
-    LocalKey, // Key stored unprotected in the local keystore file
+    LocalKey,
+    #[serde(rename = "pkcs11token")]
+    Pkcs11Token,
     #[cfg(test)]
     #[serde(rename = "test")]
     TestLevel,
-}
-
-impl Default for SecurityLevel {
-    fn default() -> Self {
-        SecurityLevel::LocalKey
-    }
 }
 
 impl SecurityLevel {
     pub fn as_str(&self) -> &str {
         match self {
             SecurityLevel::LocalKey => "local",
+            SecurityLevel::Pkcs11Token => "pkcs11token",
             #[cfg(test)]
             SecurityLevel::TestLevel => "test",
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s {
             "local" => Some(SecurityLevel::LocalKey),
+            "pkcs11token" => Some(SecurityLevel::Pkcs11Token),
             #[cfg(test)]
             "test" => Some(SecurityLevel::TestLevel),
             _ => None,
         }
     }
 
-    pub fn storage_key(&self) -> &str {
-        match self {
-            SecurityLevel::LocalKey => "lockstore::kek::local",
+    pub fn from_kek_ref(kek_ref: &str) -> Result<Self, LockstoreError> {
+        if kek_ref == "lockstore::kek::local" {
+            Ok(SecurityLevel::LocalKey)
+        } else if kek_ref.starts_with("lockstore::kek::pkcs11:") {
+            Ok(SecurityLevel::Pkcs11Token)
+        } else {
             #[cfg(test)]
-            SecurityLevel::TestLevel => "lockstore::kek::test",
+            if kek_ref == "lockstore::kek::test" {
+                return Ok(SecurityLevel::TestLevel);
+            }
+            Err(LockstoreError::InvalidKekRef(kek_ref.to_string()))
         }
     }
 }
