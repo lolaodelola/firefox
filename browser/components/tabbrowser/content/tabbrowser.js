@@ -2404,6 +2404,7 @@
         policyContainer,
         userContextId,
         fromExternal,
+        newWindowLoad,
       } = {}
     ) {
       if (!aURIs.length) {
@@ -2470,6 +2471,9 @@
         }
         if (fromExternal) {
           loadFlags |= LOAD_FLAGS_FROM_EXTERNAL;
+        }
+        if (newWindowLoad) {
+          browser.initiatedFromNonWebControlled = true;
         }
         try {
           browser.fixupAndLoadURIString(aURIs[0], {
@@ -9381,16 +9385,17 @@
             // non-web-controlled blank page.
             if (
               this.mBrowser.browsingContext.sessionHistory?.count === 0 &&
-              BrowserUIUtils.checkEmptyPageOrigin(
-                this.mBrowser,
-                originalLocation
-              )
+              (this.mBrowser.initiatedFromNonWebControlled ||
+                BrowserUIUtils.checkEmptyPageOrigin(
+                  this.mBrowser,
+                  originalLocation
+                ))
             ) {
               gBrowser.setInitialTabTitle(this.mTab, originalLocation.spec, {
                 isURL: true,
               });
 
-              this.mBrowser.browsingContext.nonWebControlledBlankURI =
+              this.mBrowser.browsingContext.nonWebControlledLoadingURI =
                 originalLocation;
               if (this.mTab.selected && !gBrowser.userTypedValue) {
                 gURLBar.setURI();
@@ -9398,6 +9403,7 @@
             }
           }
           delete this.mBrowser.initialPageLoadedFromUserAction;
+          delete this.mBrowser.initiatedFromNonWebControlled;
           // If the browser is loading it must not be crashed anymore
           this.mTab.removeAttribute("crashed");
         }

@@ -750,6 +750,9 @@ skip-if = [
 
 ["browser_undo_close_tabs_at_start.js"]
 
+["browser_url_prefilled_on_startup.js"]
+support-files = ["startup-delayed-redirect.sjs"]
+
 ["browser_viewSourceInTabOnViewSource.js"]
 
 ["browser_viewsource_of_data_URI_in_file_process.js"]

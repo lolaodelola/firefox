@@ -150,11 +150,7 @@ var BrowserCommands = {
         if (isInitialPage(homePage)) {
           gBrowser.selectedBrowser.initialPageLoadedFromUserAction = homePage;
         }
-        loadOneOrMoreURIs(
-          homePage,
-          Services.scriptSecurityManager.getSystemPrincipal(),
-          null
-        );
+        loadOneOrMoreURIs(homePage);
         if (isBlankPageURL(homePage)) {
           gURLBar.select();
         } else {

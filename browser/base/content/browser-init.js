@@ -996,11 +996,9 @@ var gBrowserInit = {
       } else {
         // Note: loadOneOrMoreURIs *must not* be called if window.arguments.length >= 3.
         // Such callers expect that window.arguments[0] is handled as a single URI.
-        loadOneOrMoreURIs(
-          uriToLoad,
-          Services.scriptSecurityManager.getSystemPrincipal(),
-          null
-        );
+        loadOneOrMoreURIs(uriToLoad, {
+          newWindowLoad: true,
+        });
       }
     });
   },

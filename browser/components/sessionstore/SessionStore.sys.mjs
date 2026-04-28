@@ -1900,10 +1900,9 @@ var SessionStoreInternal = {
     if (listener) {
       let historychange =
         // If it is not the scheduled update (tab closed, window closed etc),
-        // try to store the loading non-web-controlled page opened in _blank
-        // first.
+        // try to store the loading non-web-controlled page first.
         (forStorage &&
-          lazy.SessionHistory.collectNonWebControlledBlankLoadingSession(
+          lazy.SessionHistory.collectNonWebControlledLoadingSession(
             browsingContext
           )) ||
         listener.collect(permanentKey, browsingContext, {
