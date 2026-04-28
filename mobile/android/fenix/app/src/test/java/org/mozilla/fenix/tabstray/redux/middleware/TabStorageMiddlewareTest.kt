@@ -42,6 +42,8 @@ import org.mozilla.fenix.tabstray.redux.state.TabGroupFormState
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState.Mode
 import org.mozilla.fenix.tabstray.redux.store.TabsTrayStore
+import kotlin.collections.map
+import kotlin.collections.toSet
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -1185,6 +1187,82 @@ class TabStorageMiddlewareTest {
         advanceUntilIdle()
 
         assertEquals(expectedTabList.map { it.id }, browserStore.state.tabs.map { it.id })
+    }
+
+    @Test
+    fun `WHEN a user has closed tab groups THEN the tab groups are not in the list of normal items`() = runTest {
+        val closedGroup = StoredTabGroup(
+            title = "Name",
+            theme = TabGroupTheme.Red.name,
+            lastModified = 0L,
+            closed = true,
+        )
+        val displayGroup = createTabGroup(
+            id = closedGroup.id,
+            title = closedGroup.title,
+            theme = TabGroupTheme.valueOf(closedGroup.theme),
+            closed = closedGroup.closed,
+        )
+        val store = createStore(
+            tabGroupsEnabled = true,
+            tabGroupRepository = createRepository(
+                tabGroupFlow = MutableStateFlow(listOf(closedGroup)),
+            ),
+            scope = backgroundScope,
+        )
+        val expectedState = TabsTrayState(
+            normalTabsState = TabsTrayState.NormalTabsState(),
+            tabGroupState = TabsTrayState.TabGroupState(
+                groups = listOf(displayGroup),
+            ),
+        )
+
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals(expectedState, store.state)
+    }
+
+    @Test
+    fun `WHEN a user closes a tab group THEN mark the group as closed in storage and update the UI`() = runTest {
+        val tabs = List(size = 20) { createTab(url = "$it") }
+        val openTabGroup = StoredTabGroup(
+            title = "Name",
+            theme = TabGroupTheme.Red.name,
+            lastModified = 0L,
+            closed = false,
+        )
+        val displayGroup = createTabGroup(
+            id = openTabGroup.id,
+            title = openTabGroup.title,
+            theme = TabGroupTheme.valueOf(openTabGroup.theme),
+            closed = openTabGroup.closed,
+            tabs = tabs.map { TabsTrayItem.Tab(tab = it) }.toMutableList(),
+        )
+        val store = createStore(
+            tabGroupsEnabled = true,
+            tabDataFlow = flowOf(TabData(tabs = tabs)),
+            tabGroupRepository = createRepository(
+                tabGroupFlow = MutableStateFlow(listOf(openTabGroup)),
+                tabGroupAssignmentFlow = MutableStateFlow(tabs.associate { it.id to openTabGroup.id }),
+            ),
+            scope = backgroundScope,
+        )
+        val expectedState = TabsTrayState(
+            normalTabsState = TabsTrayState.NormalTabsState(
+                tabCount = tabs.size,
+            ),
+            tabGroupState = TabsTrayState.TabGroupState(
+                groups = listOf(displayGroup.copy(closed = true)),
+            ),
+        )
+
+        store.dispatch(TabGroupAction.CloseTabGroupClicked(group = displayGroup))
+
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals(expectedState, store.state)
     }
 
     private fun createStore(

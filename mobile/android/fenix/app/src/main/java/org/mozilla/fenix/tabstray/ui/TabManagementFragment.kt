@@ -420,12 +420,17 @@ class TabManagementFragment : DialogFragment() {
                                     onTabClose = {
                                         tabManagerInteractor.onTabClosed(tab = it, source = TAB_MANAGER_FEATURE_NAME)
                                     },
-                                    onDeleteTabGroup = {
+                                    onDeleteTabGroupClick = {
                                         tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(expandedGroup))
                                     },
-                                    editTabGroupClick = {
+                                    onEditTabGroupClick = {
                                         tabsTrayStore.dispatch(
                                             action = TabGroupAction.EditTabGroupClicked(group = expandedGroup),
+                                        )
+                                    },
+                                    onCloseTabGroupClick = {
+                                        tabsTrayStore.dispatch(
+                                            action = TabGroupAction.CloseTabGroupClicked(group = expandedGroup),
                                         )
                                     },
                                 )

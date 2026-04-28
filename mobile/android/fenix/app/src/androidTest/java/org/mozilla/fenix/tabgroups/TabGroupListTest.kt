@@ -40,8 +40,8 @@ class TabGroupListTest {
                         groupClicked = true
                         clickedGroup = it
                     },
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -64,11 +64,11 @@ class TabGroupListTest {
                 TabGroupList(
                     groups = listOf(group),
                     onTabGroupClick = {},
-                    onDeleteTabGroup = {
+                    onDeleteTabGroupClick = {
                         deleteClicked = true
                         clickedGroup = it
                     },
-                    editTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -93,8 +93,8 @@ class TabGroupListTest {
                 TabGroupList(
                     groups = listOf(group),
                     onTabGroupClick = {},
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {
                         editClicked = true
                         clickedGroup = it
                     },

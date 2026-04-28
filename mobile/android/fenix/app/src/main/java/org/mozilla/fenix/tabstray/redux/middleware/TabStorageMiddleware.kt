@@ -197,6 +197,12 @@ class TabStorageMiddleware(
             }
 
             is TabGroupAction.DeleteConfirmed -> handleDeleteClicked(action.group)
+
+            is TabGroupAction.CloseTabGroupClicked -> {
+                scope.launch {
+                    tabGroupRepository.closeTabGroup(tabGroupId = action.group.id)
+                }
+            }
         }
     }
 

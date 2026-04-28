@@ -295,11 +295,14 @@ fun TabsTray(
                             onTabDragStart = {
                                 tabsTrayStore.dispatch(TabsTrayAction.ExitSelectMode)
                             },
-                            onDeleteTabGroup = { group ->
+                            onDeleteTabGroupClick = { group ->
                                 tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(group))
                             },
-                            editTabGroupClick = { group ->
+                            onEditTabGroupClick = { group ->
                                 tabsTrayStore.dispatch(TabGroupAction.EditTabGroupClicked(group = group))
+                            },
+                            onCloseTabGroupClick = { group ->
+                                tabsTrayStore.dispatch(TabGroupAction.CloseTabGroupClicked(group = group))
                             },
                         )
                     }
@@ -339,10 +342,10 @@ fun TabsTray(
                             onTabGroupClick = { group ->
                                 tabsTrayStore.dispatch(TabGroupAction.OpenTabGroupClicked(group))
                             },
-                            onDeleteTabGroup = { group ->
+                            onDeleteTabGroupClick = { group ->
                                 tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(group))
                             },
-                            editTabGroupClick = { group ->
+                            onEditTabGroupClick = { group ->
                                 tabsTrayStore.dispatch(TabGroupAction.EditTabGroupClicked(group = group))
                             },
                         )

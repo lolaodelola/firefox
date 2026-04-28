@@ -56,8 +56,9 @@ import mozilla.components.ui.icons.R as iconsR
  * @param group: [TabsTrayItem.TabGroup] item rendered by the card.
  * @param onItemClick Invoked when the user clicks on a [TabsTrayItem] in the group.
  * @param onTabClose Invoked when the user clicks to close a [TabsTrayItem.Tab] in the group.
- * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
- * @param editTabGroupClick Invoked when the user clicks to edit the [group].
+ * @param onDeleteTabGroupClick Invoked when the user clicks on delete tab group.
+ * @param onEditTabGroupClick Invoked when the user clicks to edit the [group].
+ * @param onCloseTabGroupClick Invoked when the user clicks to close a tab group.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,8 +66,9 @@ fun ExpandedTabGroup(
     group: TabsTrayItem.TabGroup,
     onItemClick: (TabsTrayItem) -> Unit,
     onTabClose: (TabsTrayItem.Tab) -> Unit,
-    onDeleteTabGroup: () -> Unit,
-    editTabGroupClick: () -> Unit,
+    onDeleteTabGroupClick: () -> Unit,
+    onEditTabGroupClick: () -> Unit,
+    onCloseTabGroupClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -82,8 +84,9 @@ fun ExpandedTabGroup(
             title = group.title,
             groupTheme = group.theme,
             groupTabsSize = group.tabs.size,
-            onDeleteTabGroup = onDeleteTabGroup,
-            editTabGroupClick = editTabGroupClick,
+            onDeleteTabGroupClick = onDeleteTabGroupClick,
+            onEditTabGroupClick = onEditTabGroupClick,
+            onCloseTabGroupClick = onCloseTabGroupClick,
         )
 
         TabLayout(
@@ -98,8 +101,9 @@ fun ExpandedTabGroup(
             onItemClick = onItemClick,
             onItemLongClick = { item -> }, // Ignore long click
             onTabDragStart = { }, // Ignore drags
-            onDeleteTabGroup = { }, // Ignore tab group deletes
-            editTabGroupClick = { editTabGroupClick() },
+            onDeleteTabGroupClick = { }, // Ignore tab group deletes
+            onEditTabGroupClick = { }, // Ignore tab group edits
+            onCloseTabGroupClick = { }, // Ignore tab group closes
             contentPadding = PaddingValues(0.dp), // TabLayout should not have its own content padding inside this view
         )
     }
@@ -110,8 +114,9 @@ private fun ViewTabGroupHeader(
     title: String,
     groupTabsSize: Int,
     groupTheme: TabGroupTheme,
-    onDeleteTabGroup: () -> Unit,
-    editTabGroupClick: () -> Unit,
+    onDeleteTabGroupClick: () -> Unit,
+    onEditTabGroupClick: () -> Unit,
+    onCloseTabGroupClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -186,8 +191,9 @@ private fun ViewTabGroupHeader(
 
         TabGroupMenuButton(
             includeCloseOption = true,
-            onDeleteTabGroup = onDeleteTabGroup,
-            editTabGroupClick = editTabGroupClick,
+            onDeleteTabGroupClick = onDeleteTabGroupClick,
+            onEditTabGroupClick = onEditTabGroupClick,
+            onCloseTabGroupClick = onCloseTabGroupClick,
         )
     }
 }
@@ -217,8 +223,9 @@ private fun ExpandedTabGroupPreview(
                     group = previewState.group,
                     onTabClose = {},
                     onItemClick = {},
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
+                    onCloseTabGroupClick = {},
                 )
             }
         }

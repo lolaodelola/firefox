@@ -37,16 +37,16 @@ import org.mozilla.fenix.theme.FirefoxTheme
  * @param groups The list of tab groups to display.
  * @param modifier: The Modifier applied to the tab group list.
  * @param onTabGroupClick Invoked when the user clicks on a tab group.
- * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
- * @param editTabGroupClick Invoked when the user clicks to edit the tab group.
+ * @param onDeleteTabGroupClick Invoked when the user clicks on delete tab group.
+ * @param onEditTabGroupClick Invoked when the user clicks to edit the tab group.
  */
 @Composable
 fun TabGroupList(
     groups: List<TabsTrayItem.TabGroup>,
     modifier: Modifier = Modifier,
     onTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -85,8 +85,10 @@ fun TabGroupList(
                             LocalContentColor provides MaterialTheme.colorScheme.secondary,
                         ) {
                             TabGroupMenuButton(
-                                onDeleteTabGroup = { onDeleteTabGroup(group) },
-                                editTabGroupClick = { editTabGroupClick(group) },
+                                includeCloseOption = false,
+                                onDeleteTabGroupClick = { onDeleteTabGroupClick(group) },
+                                onEditTabGroupClick = { onEditTabGroupClick(group) },
+                                onCloseTabGroupClick = {},
                             )
                         }
                     },
@@ -127,8 +129,8 @@ private fun TabGroupListPreview() {
                 ),
             ),
             onTabGroupClick = {},
-            onDeleteTabGroup = {},
-            editTabGroupClick = {},
+            onDeleteTabGroupClick = {},
+            onEditTabGroupClick = {},
         )
     }
 }

@@ -34,8 +34,8 @@ class TabGroupsPageTest {
                 TabGroupsPage(
                     groups = emptyList(),
                     onTabGroupClick = {},
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -58,8 +58,8 @@ class TabGroupsPageTest {
                         groupClicked = true
                         clickedGroup = it
                     },
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {},
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -82,11 +82,11 @@ class TabGroupsPageTest {
                 TabGroupsPage(
                     groups = listOf(group),
                     onTabGroupClick = {},
-                    onDeleteTabGroup = {
+                    onDeleteTabGroupClick = {
                         deleteClicked = true
                         clickedGroup = it
                     },
-                    editTabGroupClick = {},
+                    onEditTabGroupClick = {},
                 )
             }
         }
@@ -111,8 +111,8 @@ class TabGroupsPageTest {
                 TabGroupsPage(
                     groups = listOf(group),
                     onTabGroupClick = {},
-                    onDeleteTabGroup = {},
-                    editTabGroupClick = {
+                    onDeleteTabGroupClick = {},
+                    onEditTabGroupClick = {
                         editClicked = true
                         clickedGroup = it
                     },

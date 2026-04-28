@@ -10,6 +10,7 @@ import org.mozilla.fenix.tabstray.data.TabGroupTheme
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTab
 import org.mozilla.fenix.tabstray.data.createTabGroup
+import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.AddToTabGroup
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.EditTabGroup
@@ -554,6 +555,28 @@ class TabGroupReducerTest {
                 selectedTabs = setOf(tabs[0]),
                 selectedTabGroups = emptySet(),
             ),
+        )
+
+        assertEquals(expectedState, resultState)
+    }
+
+    @Test
+    fun `WHEN the user closes a tab group THEN navigate back to the root`() {
+        val tabs = List(size = 20) { createTab(url = "") }
+        val tabGroup = createTabGroup(
+            tabs = MutableList(size = 20) { createTab(url = "") },
+        )
+        val initialState = TabsTrayState(
+            normalTabsState = TabsTrayState.NormalTabsState(items = tabs + tabGroup),
+            tabGroupState = TabsTrayState.TabGroupState(groups = listOf(tabGroup)),
+            backStack = listOf(TabManagerNavDestination.Root, ExpandedTabGroup(group = tabGroup)),
+        )
+        val resultState = TabsTrayReducer.reduce(
+            state = initialState,
+            action = TabGroupAction.CloseTabGroupClicked(group = tabGroup),
+        )
+        val expectedState = initialState.copy(
+            backStack = listOf(TabManagerNavDestination.Root),
         )
 
         assertEquals(expectedState, resultState)

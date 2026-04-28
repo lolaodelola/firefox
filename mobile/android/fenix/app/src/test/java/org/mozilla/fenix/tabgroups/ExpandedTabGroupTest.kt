@@ -5,7 +5,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import junit.framework.TestCase.assertTrue
@@ -35,8 +34,9 @@ class ExpandedTabGroupTest {
                         group = fakeTabGroup(),
                         onItemClick = {},
                         onTabClose = {},
-                        onDeleteTabGroup = {},
-                        editTabGroupClick = {},
+                        onDeleteTabGroupClick = {},
+                        onEditTabGroupClick = {},
+                        onCloseTabGroupClick = {},
                     )
                 }
             }
@@ -62,8 +62,9 @@ class ExpandedTabGroupTest {
                         group = fakeTabGroup(),
                         onItemClick = {},
                         onTabClose = {},
-                        onDeleteTabGroup = {},
-                        editTabGroupClick = {},
+                        onDeleteTabGroupClick = {},
+                        onEditTabGroupClick = {},
+                        onCloseTabGroupClick = {},
                     )
                 }
             }
@@ -92,8 +93,9 @@ class ExpandedTabGroupTest {
                                 }
                             },
                             onTabClose = {},
-                            onDeleteTabGroup = {},
-                            editTabGroupClick = {},
+                            onDeleteTabGroupClick = {},
+                            onEditTabGroupClick = {},
+                            onCloseTabGroupClick = {},
                         )
                     }
                 }
@@ -123,8 +125,9 @@ class ExpandedTabGroupTest {
                                     itemClosed = true
                                 }
                             },
-                            onDeleteTabGroup = {},
-                            editTabGroupClick = {},
+                            onDeleteTabGroupClick = {},
+                            onEditTabGroupClick = {},
+                            onCloseTabGroupClick = {},
                         )
                     }
                 }
@@ -150,10 +153,11 @@ class ExpandedTabGroupTest {
                             group = group,
                             onItemClick = {},
                             onTabClose = {},
-                            onDeleteTabGroup = {
+                            onDeleteTabGroupClick = {
                                 deleteClicked = true
                             },
-                            editTabGroupClick = {},
+                            onEditTabGroupClick = {},
+                            onCloseTabGroupClick = {},
                         )
                     }
                 }
@@ -180,10 +184,11 @@ class ExpandedTabGroupTest {
                             group = fakeTabGroup(),
                             onItemClick = {},
                             onTabClose = {},
-                            onDeleteTabGroup = {},
-                            editTabGroupClick = {
+                            onDeleteTabGroupClick = {},
+                            onEditTabGroupClick = {
                                 editClicked = true
                             },
+                            onCloseTabGroupClick = {},
                         )
                     }
                 }
@@ -196,6 +201,35 @@ class ExpandedTabGroupTest {
             .performClick()
 
         assertTrue(editClicked)
+    }
+
+    @Test
+    fun verifyCloseTabGroupClick() {
+        var closeClicked = false
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalUnderTest provides true) {
+                FirefoxTheme(theme = Theme.Light) {
+                    Surface {
+                        ExpandedTabGroup(
+                            group = fakeTabGroup(),
+                            onItemClick = {},
+                            onTabClose = {},
+                            onDeleteTabGroupClick = {},
+                            onEditTabGroupClick = {},
+                            onCloseTabGroupClick = { closeClicked = true },
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.TAB_GROUP_THREE_DOT_BUTTON)
+            .performClick()
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.CLOSE_TAB_GROUP)
+            .performClick()
+
+        assertTrue(closeClicked)
     }
 
     private fun fakeTabGroup(

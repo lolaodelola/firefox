@@ -40,15 +40,15 @@ private val EmptyPageWidth = 225.dp
 internal fun TabGroupsPage(
     groups: List<TabsTrayItem.TabGroup>,
     onTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
-    onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
-    editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onDeleteTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
+    onEditTabGroupClick: (TabsTrayItem.TabGroup) -> Unit,
 ) {
     if (groups.isNotEmpty()) {
         TabGroupList(
-            groups,
+            groups = groups,
             onTabGroupClick = onTabGroupClick,
-            onDeleteTabGroup = onDeleteTabGroup,
-            editTabGroupClick = editTabGroupClick,
+            onDeleteTabGroupClick = onDeleteTabGroupClick,
+            onEditTabGroupClick = onEditTabGroupClick,
         )
     } else {
         EmptyTabGroupsPage()
@@ -145,8 +145,8 @@ private fun TabGroupsPagePreview(
         TabGroupsPage(
             groups = groups,
             onTabGroupClick = {},
-            onDeleteTabGroup = {},
-            editTabGroupClick = {},
+            onDeleteTabGroupClick = {},
+            onEditTabGroupClick = {},
         )
     }
 }

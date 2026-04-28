@@ -109,6 +109,10 @@ object TabGroupActionReducer {
                 selectedPage = Page.NormalTabs,
                 backStack = state.backStack + ExpandedTabGroup(group = action.group.copy(closed = false)),
             )
+
+            is TabGroupAction.CloseTabGroupClicked -> state.copy(
+                backStack = listOf(TabManagerNavDestination.Root),
+            )
         }
     }
 
