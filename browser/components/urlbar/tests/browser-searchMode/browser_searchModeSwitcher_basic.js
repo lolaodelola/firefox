@@ -968,3 +968,35 @@ add_task(async function open_with_alt_option_with_closed_view() {
   UrlbarTestUtils.searchModeSwitcherPopup(window).hide();
   await popupHidden;
 });
+
+add_task(async function change_engines_with_accel_updown() {
+  info("Navigate engines with Accel+Up/Down");
+
+  let win = await BrowserTestUtils.openNewBrowserWindow();
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window: win,
+    value: "",
+  });
+
+  EventUtils.synthesizeKey("KEY_ArrowDown", { accelKey: true }, win);
+
+  await BrowserTestUtils.waitForCondition(
+    () => !!win.gURLBar.searchMode,
+    "We entered searchmode"
+  );
+
+  let firstEngine = win.gURLBar.searchMode.engineName;
+  EventUtils.synthesizeKey("KEY_ArrowDown", { accelKey: true }, win);
+
+  await BrowserTestUtils.waitForCondition(
+    () => win.gURLBar.searchMode.engineName != firstEngine,
+    "We navigated to another engine"
+  );
+
+  await BrowserTestUtils.waitForCondition(() => {
+    EventUtils.synthesizeKey("KEY_ArrowDown", { accelKey: true }, win);
+    return win.gURLBar.searchMode?.engineName == firstEngine;
+  }, "We navigated back to first engine");
+  await UrlbarTestUtils.exitSearchMode(win);
+  await BrowserTestUtils.closeWindow(win);
+});

@@ -51,6 +51,13 @@ export class SearchModeSwitcher {
   /** @type {HTMLButtonElement} */
   #closebutton;
 
+  // Keep a cache of the engine list as the keyboard functionality
+  // needs sync access to them.
+  #engines = [];
+  // Keep track of the currently selected engine when the user is cycling
+  // through them with Accel+Up/Down.
+  #selectedIndex = 0;
+
   /**
    * @param {UrlbarInput} input
    */
@@ -139,6 +146,7 @@ export class SearchModeSwitcher {
   exitSearchMode(event) {
     event.preventDefault();
     this.#input.searchMode = null;
+    this.#selectedIndex = 0;
     // Update the result by the default engine.
     this.#input.startQuery();
   }
@@ -368,14 +376,56 @@ export class SearchModeSwitcher {
     if (
       (event.keyCode == KeyEvent.DOM_VK_UP ||
         event.keyCode == KeyEvent.DOM_VK_DOWN) &&
-      event.altKey
+      (event.altKey || event.getModifierState("Accel"))
     ) {
-      this.#panelList.show(event, this.#button);
+      if (event.altKey) {
+        this.#handleAltUpDown(event);
+      } else if (event.getModifierState("Accel")) {
+        this.#handleAccelUpDown(event);
+      }
       event.stopPropagation();
       event.preventDefault();
       return true;
     }
     return false;
+  }
+
+  #handleAltUpDown(event) {
+    this.#input.controller.focusOnUnifiedSearchButton();
+    this.#panelList.show(event, this.#button);
+  }
+
+  async #handleAccelUpDown(event) {
+    await this.#populateEngines();
+    this.#selectedIndex += event.keyCode == KeyEvent.DOM_VK_UP ? -1 : 1;
+    if (this.#selectedIndex > this.#engines.length - 1) {
+      this.#selectedIndex = 0;
+    }
+    if (this.#selectedIndex < 0) {
+      this.#selectedIndex = this.#engines.length - 1;
+    }
+    let selectedEngine = this.#engines[this.#selectedIndex];
+    this.#input.setSearchMode(
+      {
+        entry: "searchbutton",
+        isPreview: false,
+        source: selectedEngine?.source || lazy.UrlbarUtils.RESULT_SOURCE.SEARCH,
+        engineName: selectedEngine?.name,
+      },
+      this.#input.window.gBrowser.selectedBrowser
+    );
+  }
+
+  async #populateEngines() {
+    let searchEngines = (await lazy.SearchService.getVisibleEngines()).filter(
+      engine => !engine.hideOneOffButton
+    );
+    this.#engines = searchEngines.concat(
+      lazy.UrlbarUtils.LOCAL_SEARCH_MODES.filter(
+        engine =>
+          this.#input.sapName == "urlbar" && lazy.UrlbarPrefs.get(engine.pref)
+      )
+    );
   }
 
   async updateSearchIcon() {
@@ -495,39 +545,15 @@ export class SearchModeSwitcher {
       ".searchmode-switcher-panel-footer-separator"
     );
 
-    // Add installed engines.
-    /** @type {SearchEngine[]} */
-    let engines = [];
-    try {
-      engines = await lazy.SearchService.getVisibleEngines();
-    } catch {
-      console.error("Failed to fetch engines");
-    }
-
-    for (let engine of engines) {
-      if (engine.hideOneOffButton) {
-        continue;
+    await this.#populateEngines();
+    for (let engine of this.#engines) {
+      if (engine.source) {
+        footerSeparator.before(await this.#buildLocalSearchButton(engine));
+      } else if (engine.name) {
+        let menuitem = await this.#buildEngineSearchButton(engine);
+        installedEngineSeparator.before(menuitem);
       }
-      let icon = await engine.getIconURL();
-      let menuitem = this.#createButton(icon, engine.name);
-      menuitem.classList.add("searchmode-switcher-installed");
-      menuitem.setAttribute("label", engine.name);
-      menuitem.setAttribute("title", engine.name);
-      menuitem.setAttribute("closemenu", "none");
-
-      if (engine.isNew() && engine.isAppProvided) {
-        menuitem.setAttribute("badge-type", "new");
-      }
-
-      menuitem.dataset.engineId = engine.id;
-      // This attribute is for testing.
-      menuitem.dataset.engineName = engine.name;
-      menuitem.dataset.action = "searchmode";
-      this.#addCommandListeners(menuitem);
-      installedEngineSeparator.before(menuitem);
     }
-
-    await this.#buildLocalSearchModeList(footerSeparator);
     this.#buildSettingsButton();
 
     // Add engines that can be installed.
@@ -585,44 +611,6 @@ export class SearchModeSwitcher {
   }
 
   /**
-   * Adds local options to the popup.
-   *
-   * @param {Element} separator
-   */
-  async #buildLocalSearchModeList(separator) {
-    if (this.#input.sapName != "urlbar") {
-      return;
-    }
-
-    for (let { source, pref, restrict } of lazy.UrlbarUtils
-      .LOCAL_SEARCH_MODES) {
-      if (!lazy.UrlbarPrefs.get(pref)) {
-        continue;
-      }
-      let name = lazy.UrlbarUtils.getResultSourceName(source);
-      let { icon } = await this.#getDisplayedEngineDetails({
-        source,
-        pref,
-        restrict,
-      });
-      let menuitem = this.#createButton(icon);
-      menuitem.classList.add(
-        "searchmode-switcher-local",
-        `search-button-${name}`
-      );
-      menuitem.dataset.action = "localsearchmode";
-      menuitem.dataset.restrict = restrict;
-      this.#addCommandListeners(menuitem);
-      this.#input.document.l10n.setAttributes(
-        menuitem,
-        `urlbar-searchmode-${name}2`
-      );
-
-      separator.before(menuitem);
-    }
-  }
-
-  /**
    * Ideally the settings button would be in the markup because it never
    * changes but that causes an an assertion error in BindingUtils.cpp.
    */
@@ -639,6 +627,44 @@ export class SearchModeSwitcher {
     );
     this.#addCommandListeners(menuitem);
     this.#panelList.appendChild(menuitem);
+  }
+
+  async #buildEngineSearchButton(engine) {
+    let icon = await engine.getIconURL();
+    let menuitem = this.#createButton(icon, engine.name);
+    menuitem.classList.add("searchmode-switcher-installed");
+    menuitem.setAttribute("label", engine.name);
+    menuitem.setAttribute("title", engine.name);
+    menuitem.setAttribute("closemenu", "none");
+
+    if (engine.isNew() && engine.isAppProvided) {
+      menuitem.setAttribute("badge-type", "new");
+    }
+
+    menuitem.dataset.engineId = engine.id;
+    // This attribute is for testing.
+    menuitem.dataset.engineName = engine.name;
+    menuitem.dataset.action = "searchmode";
+    this.#addCommandListeners(menuitem);
+    return menuitem;
+  }
+
+  async #buildLocalSearchButton(mode) {
+    let name = lazy.UrlbarUtils.getResultSourceName(mode.source);
+    let { icon } = await this.#getDisplayedEngineDetails(mode);
+    let menuitem = this.#createButton(icon);
+    menuitem.classList.add(
+      "searchmode-switcher-local",
+      `search-button-${name}`
+    );
+    menuitem.dataset.action = "localsearchmode";
+    menuitem.dataset.restrict = mode.restrict;
+    this.#addCommandListeners(menuitem);
+    this.#input.document.l10n.setAttributes(
+      menuitem,
+      `urlbar-searchmode-${name}2`
+    );
+    return menuitem;
   }
 
   /**
