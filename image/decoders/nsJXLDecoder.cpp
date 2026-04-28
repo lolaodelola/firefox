@@ -67,47 +67,41 @@ LexerResult nsJXLDecoder::DoDecode(SourceBufferIterator& aIterator,
   }
 
   while (true) {
-    // Process buffered data before fetching more.
-    if (mBytesConsumed < mBufferedData.length()) {
-      ProcessResult result = ProcessAvailableData();
-      switch (result) {
-        case ProcessResult::Error:
-          return LexerResult(TerminalState::FAILURE);
-        case ProcessResult::YieldOutput:
-          return LexerResult(Yield::OUTPUT_AVAILABLE);
-        case ProcessResult::Complete:
-          return LexerResult(TerminalState::SUCCESS);
-        case ProcessResult::NeedMoreData:
-          if (mBytesConsumed >= mBufferedData.length()) {
-            mBufferedData.clear();
-            mBytesConsumed = 0;
-          }
-          break;
-      }
-    }
-
     if (mIteratorComplete) {
       return DrainFrames();
     }
 
-    SourceBufferIterator::State state =
-        aIterator.AdvanceOrScheduleResume(SIZE_MAX, aOnResume);
-    mIteratorComplete = (state == SourceBufferIterator::COMPLETE);
-
-    if (state == SourceBufferIterator::WAITING) {
-      return LexerResult(Yield::NEED_MORE_DATA);
+    if (!aIterator.IsReady() || aIterator.Length() == 0) {
+      SourceBufferIterator::State state =
+          aIterator.AdvanceOrScheduleResume(SIZE_MAX, aOnResume);
+      if (state == SourceBufferIterator::WAITING) {
+        return LexerResult(Yield::NEED_MORE_DATA);
+      }
+      if (state == SourceBufferIterator::COMPLETE) {
+        mIteratorComplete = true;
+        continue;
+      }
     }
 
-    if (state == SourceBufferIterator::READY) {
-      const uint8_t* chunkData =
-          reinterpret_cast<const uint8_t*>(aIterator.Data());
-      size_t chunkLength = aIterator.Length();
+    const uint8_t* data = reinterpret_cast<const uint8_t*>(aIterator.Data());
+    size_t length = aIterator.Length();
+    MOZ_ASSERT(length > 0);
+    const uint8_t* const chunkStart = data;
 
-      if (chunkLength > 0) {
-        if (!mBufferedData.append(chunkData, chunkLength)) {
-          return LexerResult(TerminalState::FAILURE);
-        }
-      }
+    // data and length are in/out: updated to reflect the unconsumed remainder.
+    ProcessResult result = ProcessAvailableData(&data, &length);
+
+    aIterator.MarkConsumed(static_cast<size_t>(data - chunkStart));
+
+    switch (result) {
+      case ProcessResult::Error:
+        return LexerResult(TerminalState::FAILURE);
+      case ProcessResult::Complete:
+        return LexerResult(TerminalState::SUCCESS);
+      case ProcessResult::NeedMoreData:
+        break;
+      case ProcessResult::YieldOutput:
+        return LexerResult(Yield::OUTPUT_AVAILABLE);
     }
   }
 }
@@ -206,12 +200,12 @@ LexerResult nsJXLDecoder::ScanForFrameCount(SourceBufferIterator& aIterator,
   }
 }
 
-nsJXLDecoder::ProcessResult nsJXLDecoder::ProcessAvailableData() {
-  const uint8_t* data = mBufferedData.begin() + mBytesConsumed;
-  size_t length = mBufferedData.length() - mBytesConsumed;
-
+// aData and aLength are in/out: on return they point to and describe the
+// unconsumed remainder of the input.
+nsJXLDecoder::ProcessResult nsJXLDecoder::ProcessAvailableData(
+    const uint8_t** aData, size_t* aLength) {
   while (true) {
-    JxlDecoderStatus status = ProcessInput(&data, &length);
+    JxlDecoderStatus status = ProcessInput(aData, aLength);
 
     switch (status) {
       case JxlDecoderStatus::Error:
@@ -221,15 +215,13 @@ nsJXLDecoder::ProcessResult nsJXLDecoder::ProcessAvailableData() {
         if (!HasAnimation() && !mPixelBuffer.empty() && mCurrentPipe) {
           FlushPartialFrame();
         }
-        mBytesConsumed = data - mBufferedData.begin();
         return ProcessResult::NeedMoreData;
 
       case JxlDecoderStatus::Ok: {
         if (mDecoderState == DecoderState::Initial) {
           JxlBasicInfo basicInfo = jxl_decoder_get_basic_info(mDecoder.get());
           if (!basicInfo.valid) {
-            if (length == 0) {
-              mBytesConsumed = mBufferedData.length();
+            if (*aLength == 0) {
               return ProcessResult::NeedMoreData;
             }
             continue;
@@ -278,7 +270,6 @@ nsJXLDecoder::ProcessResult nsJXLDecoder::ProcessAvailableData() {
           case FrameOutputResult::NoOutput:
             continue;
           case FrameOutputResult::FrameAdvanced:
-            mBytesConsumed = data - mBufferedData.begin();
             return ProcessResult::YieldOutput;
           case FrameOutputResult::DecodeComplete:
             return ProcessResult::Complete;

@@ -144,6 +144,18 @@ class SourceBufferIterator final {
    */
   State AdvanceOrScheduleResume(size_t aRequestedBytes, IResumable* aConsumer);
 
+  /**
+   * Records that only @aConsumed bytes of the current chunk have been
+   * processed. The iterator position advances by @aConsumed and
+   * mNextReadLength is set to the remaining bytes, so that Data()/Length()
+   * immediately reflect the unconsumed portion and IsReady() remains true.
+   * Once all remaining bytes are consumed and mNextReadLength reaches zero,
+   * the next AdvanceOrScheduleResume() will fetch the next chunk.
+   */
+  void MarkConsumed(size_t aConsumed);
+
+  bool IsReady() const { return mState == READY; }
+
   /// If at the end, returns the status passed to SourceBuffer::Complete().
   nsresult CompletionStatus() const {
     MOZ_ASSERT(mState == COMPLETE,
