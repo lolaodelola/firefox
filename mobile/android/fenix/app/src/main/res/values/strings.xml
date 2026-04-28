@@ -1603,15 +1603,6 @@
   <string name="delete_tab_group_confirmation_dialog_confirm">Delete group</string>
   <!-- Text shown on the cancel button in the Delete tab group confirmation dialog. -->
   <string name="delete_tab_group_confirmation_dialog_cancel">Cancel</string>
-  <!-- Title for the Close last tab and delete tab group confirmation dialog. -->
-  <string name="close_tab_and_delete_group_confirmation_dialog_title">Close tab and delete group?</string>
-  <!-- Text shown in the body of the Close last tab and delete tab group confirmation dialog. -->
-  <string name="close_tab_and_delete_group_confirmation_dialog_body">This deletes the group permanently.</string>
-  <!-- Text shown on the confirm button in the Close last tab and delete tab group confirmation dialog. -->
-  <string name="close_tab_and_delete_group_confirmation_dialog_confirm">Delete group</string>
-  <!-- Text shown on the cancel button in the Close last tab and delete tab group confirmation dialog. -->
-  <string name="close_tab_and_delete_group_confirmation_dialog_cancel">Cancel</string>
-
   <!-- Color labels for tab groups, used for accessibility and selection UI. -->
   <!-- Tab group color: Yellow -->
   <string name="tab_group_color_yellow">Yellow</string>
