@@ -430,6 +430,8 @@ var SidebarController = {
     this._switcherTarget = document.getElementById("sidebar-switcher-target");
     this._switcherArrow = document.getElementById("sidebar-switcher-arrow");
     this._hoverBlockerCount = 0;
+    this._escapedWhileHovered = false;
+    this._mouseLeftSinceEscape = false;
     if (
       Services.prefs.getBoolPref(
         "browser.tabs.allow_transparent_browser",
@@ -469,6 +471,12 @@ var SidebarController = {
           { global: "current" }
         );
       }
+      this._sidebarMainKeydownHandler = e => {
+        if (e.key === "Escape") {
+          this.collapseOnEscape();
+        }
+      };
+      window.addEventListener("keydown", this._sidebarMainKeydownHandler);
       this.revampComponentsLoaded = true;
       this._state.initializeState(this._showLauncherAfterInit);
       // clear the flag after we've used it
@@ -580,6 +588,11 @@ var SidebarController = {
       this.SidebarManager.setBackupState(currentState);
     }
 
+    if (this._sidebarMainKeydownHandler) {
+      window.removeEventListener("keydown", this._sidebarMainKeydownHandler);
+      this._sidebarMainKeydownHandler = null;
+    }
+    this._sidebarMainKeydownHandler = null;
     Services.obs.removeObserver(this, "intl:app-locales-changed");
     Services.obs.removeObserver(this, "tabstrip-orientation-change");
     Services.obs.removeObserver(this, "ai-window-state-changed");
@@ -2308,12 +2321,9 @@ var SidebarController = {
     this._mouseEnterDeferred.resolve();
   },
 
-  onMouseLeave() {
-    if (!this._state.launcherExpanded) {
-      return;
-    }
-    this.mouseEnterTask.disarm();
-    this._mouseEnterDeferred.resolve();
+  _collapseLauncher() {
+    this.mouseEnterTask?.disarm();
+    this._mouseEnterDeferred?.resolve();
     const contentArea = document.getElementById("tabbrowser-tabbox");
     this._box.toggleAttribute("sidebar-launcher-hovered", false);
     contentArea.toggleAttribute("sidebar-launcher-hovered", false);
@@ -2324,15 +2334,45 @@ var SidebarController = {
     this._state.launcherExpanded = false;
   },
 
+  collapseOnEscape() {
+    if (
+      this.sidebarRevampVisibility !== "expand-on-hover" ||
+      !this._state.launcherExpanded
+    ) {
+      return;
+    }
+    this._escapedWhileHovered = true;
+    this._mouseLeftSinceEscape = false;
+    this._collapseLauncher();
+  },
+
+  onMouseLeave() {
+    if (this._escapedWhileHovered) {
+      this._mouseLeftSinceEscape = true;
+      return;
+    }
+    if (!this._state.launcherExpanded) {
+      return;
+    }
+    this._collapseLauncher();
+  },
+
   onMouseEnter() {
     if (this._state.launcherExpanded) {
       return;
+    }
+    if (this._escapedWhileHovered) {
+      if (this._mouseLeftSinceEscape) {
+        this._escapedWhileHovered = false;
+        this._mouseLeftSinceEscape = false;
+      } else {
+        return;
+      }
     }
     this._mouseEnterDeferred = Promise.withResolvers();
     this.mouseEnterTask = new DeferredTask(
       () => {
         let isHovered = this._checkIsHoveredOverLauncher();
-
         // Only expand sidebar if mouse is still hovering over sidebar launcher
         if (isHovered) {
           this.debouncedMouseEnter();
