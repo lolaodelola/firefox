@@ -2166,7 +2166,70 @@ function* IteratorWindowsGenerator(iterator, nextMethod, windowSize, undersized)
  *  https://tc39.es/proposal-iterator-join/#sec-iterator.prototype.join
  */
 function IteratorJoin(separator) {
-	return false;
+  // Step 1. Let O be the this value.
+  var O = this;
+
+  // Step 2. If O is not an Object, throw a TypeError exception.
+  if (!IsObject(O)) {
+    ThrowTypeError(JSMSG_OBJECT_REQUIRED, O === null ? "null" : typeof O);
+  }
+
+  // Step 3. Let iterated be the Iterator Record
+  //         { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+
+  // Step 4. If separator is undefined, then
+  var sep;
+  if (separator === undefined) {
+    // Step 4.a. Let sep be ",".
+    sep = ",";
+  } else {
+    // Step 5. Else,
+    // Step 5.a. Let sep be Completion(ToString(separator)).
+    // Step 5.b. IfAbruptCloseIterator(sep, iterated).
+    try {
+      sep = ToString(separator);
+    } catch (e) {
+      try {
+        IteratorClose(O);
+      } catch {}
+      throw e;
+    }
+  }
+
+  // Step 6. Set iterated to ? GetIteratorDirect(O).
+  // (Inlined call to GetIteratorDirect.)
+  var nextMethod = O.next;
+
+  // Step 7. Let R be the empty String.
+  var R = "";
+
+  // Step 8. Let first be true.
+  var first = true;
+
+  // Step 9. Repeat,
+  // Step 9.a. Let value be ? IteratorStepValue(iterated).
+  for (var value of allowContentIterWithNext(O, nextMethod)) {
+    // Step 9.c. If first is true, then
+    if (first) {
+      // Step 9.c.i. Set first to false.
+      first = false;
+    } else {
+      // Step 9.d. Else,
+      // Step 9.d.i. Set R to the string-concatenation of R and sep.
+      R += sep;
+    }
+
+    // Step 9.e. If value is neither undefined nor null, then
+    if (value !== undefined && value !== null) {
+      // Step 9.e.i. Let S be Completion(ToString(value)).
+      // Step 9.e.ii. IfAbruptCloseIterator(S, iterated).
+      // Step 9.e.iii. Set R to the string-concatenation of R and S.
+      R += ToString(value);
+    }
+  }
+
+  // Step 9.b. If value is done, return R.
+  return R;
 }
 
 /**
