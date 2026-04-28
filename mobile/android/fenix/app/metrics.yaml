@@ -11278,7 +11278,8 @@ app_exit_info:
   process_exited:
     type: event
     description: |
-      A process has exited.
+      A process has exited. See https://developer.android.com/reference/android/app/ApplicationExitInfo
+      for additional support.
     extra_keys:
       date:
         type: string

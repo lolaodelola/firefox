@@ -86,6 +86,15 @@ object ApplicationExitInfoMetrics {
         for (historicalExit in historicalExitReasons) {
             // only record process exits happened after lastTimeHandled
             if (lastTimeHandled < historicalExit.timestamp) {
+                // We intentionally exclude recording the `historicalExit.description` and
+                // `historicalExit.status` values.
+                //
+                // - `description` was removed after prior analysis showed low value due to
+                // OEM-specific, non-standardized data that cannot be aggregated.
+                // - `status` (e.g., SIGNALED exits) was not useful for the metric’s goal.
+                //
+                // This metric focuses on actionable tab reload causes (e.g., low memory),
+                // while crashes/ANRs are covered by dedicated tooling.
                 AppExitInfo.processExited.record(
                     AppExitInfo.ProcessExitedExtra(
                         date = historicalExit.timestamp.toSimpleDateFormat(),
