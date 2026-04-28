@@ -291,6 +291,14 @@ export class GeckoViewStartup {
           }
         );
 
+        // Initialize the cookie service early so the DB is loaded by
+        // the time we make the first HTTP request. Skip in xpcshell tests,
+        // which expect to control when (and against which DB file) the
+        // cookie service first opens the database.
+        if (!Services.env.exists("XPCSHELL_TEST_PROFILE_DIR")) {
+          Services.cookies;
+        }
+
         GeckoViewUtils.addLazyGetter(this, "DownloadTracker", {
           module: "resource://gre/modules/GeckoViewWebExtension.sys.mjs",
           ged: ["GeckoView:WebExtension:DownloadChanged"],
