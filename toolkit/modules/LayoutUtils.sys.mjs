@@ -24,7 +24,7 @@ export var LayoutUtils = {
    * returns screen coordinates in screen units.
    */
   rectToScreenRect(win, rect) {
-    return win.windowUtils.toScreenRect(
+    return win.ownerGlobal.windowUtils.toScreenRect(
       rect.left,
       rect.top,
       rect.width,
@@ -37,7 +37,7 @@ export var LayoutUtils = {
    * units.
    */
   rectToTopLevelWidgetRect(win, rect) {
-    return win.windowUtils.toTopLevelWidgetRect(
+    return win.ownerGlobal.windowUtils.toTopLevelWidgetRect(
       rect.left,
       rect.top,
       rect.width,

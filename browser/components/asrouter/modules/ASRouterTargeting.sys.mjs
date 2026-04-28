@@ -889,10 +889,10 @@ const TargetingGetters = {
   },
   get hasPinnedTabs() {
     for (let win of Services.wm.getEnumerator("navigator:browser")) {
-      if (win.closed || !win.gBrowser) {
+      if (win.closed || !win.ownerGlobal.gBrowser) {
         continue;
       }
-      if (win.gBrowser.visibleTabs.filter(t => t.pinned).length) {
+      if (win.ownerGlobal.gBrowser.visibleTabs.filter(t => t.pinned).length) {
         return true;
       }
     }
