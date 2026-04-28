@@ -22,6 +22,8 @@ fun interface BookmarkInserter {
  */
 sealed interface InsertableBookmarkNode {
     val position: UInt?
+    val dateAddedTimestamp: Long
+    val lastModifiedTimestamp: Long
 
     /**
      * A bookmark item (e.g. a page).
@@ -37,8 +39,8 @@ sealed interface InsertableBookmarkNode {
         val parentGuid: String?,
         val title: String?,
         val url: String,
-        val dateAddedTimestamp: Long,
-        val lastModifiedTimestamp: Long,
+        override val dateAddedTimestamp: Long,
+        override val lastModifiedTimestamp: Long,
         override val position: UInt?,
     ) : InsertableBookmarkNode
 
@@ -55,8 +57,8 @@ sealed interface InsertableBookmarkNode {
     data class Folder(
         val parentGuid: String?,
         val title: String?,
-        val dateAddedTimestamp: Long,
-        val lastModifiedTimestamp: Long,
+        override val dateAddedTimestamp: Long,
+        override val lastModifiedTimestamp: Long,
         override val position: UInt?,
         val children: List<InsertableBookmarkNode>,
     ) : InsertableBookmarkNode
@@ -64,9 +66,13 @@ sealed interface InsertableBookmarkNode {
     /**
      * A bookmark separator.
      *
+     * @property dateAddedTimestamp The date added timestamp of the folder.
+     * @property lastModifiedTimestamp The last modified timestamp of the folder.
      * @property position The ordinal position within the parent.
      */
     data class Separator(
+        override val dateAddedTimestamp: Long,
+        override val lastModifiedTimestamp: Long,
         override val position: UInt?,
     ) : InsertableBookmarkNode
 }

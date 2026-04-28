@@ -1838,6 +1838,14 @@ projects:
     - components:support-base
     - components:support-test
     - components:tooling-lint
+  components:lib-bookmark-parser-jsoup:
+    description: A jsoup-based implementation of concept-bookmarks-parser
+    path: components/lib/bookmark-parser-jsoup
+    publish: true
+    upstream_dependencies:
+    - components:concept-bookmarks-parser
+    - components:concept-storage-bookmarks
+    - components:tooling-lint
   components:lib-bookmarks-file:
     description: A concrete implementation of concept-bookmarks-file-importer that
       parses Netscape HTML bookmark files.
