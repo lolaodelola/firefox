@@ -594,6 +594,7 @@ ImageTestCase TransparentAVIFTestCase();
 
 #ifdef MOZ_JXL
 ImageTestCase GreenJXLTestCase();
+ImageTestCase ProgressiveJXLTestCase();
 ImageTestCase DownscaledJXLTestCase();
 ImageTestCase LargeJXLTestCase();
 ImageTestCase TransparentJXLTestCase();

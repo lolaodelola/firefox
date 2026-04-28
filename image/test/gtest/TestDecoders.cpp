@@ -281,8 +281,9 @@ static void CheckDecoderDelayedChunk(const ImageTestCase& aTestCase) {
   });
 }
 
-static void CheckDecoderMultiChunk(const ImageTestCase& aTestCase,
-                                   uint64_t aChunkSize = 1) {
+template <typename Func>
+static void WithMultiChunkDecode(const ImageTestCase& aTestCase,
+                                 uint64_t aChunkSize, Func aResultChecker) {
   nsCOMPtr<nsIInputStream> inputStream = LoadFile(aTestCase.mPath);
   ASSERT_TRUE(inputStream != nullptr);
 
@@ -328,7 +329,65 @@ static void CheckDecoderMultiChunk(const ImageTestCase& aTestCase,
   sourceBuffer->Complete(NS_OK);
   SpinPendingEvents();
 
-  CheckDecoderResults(aTestCase, decoder);
+  aResultChecker(decoder);
+}
+
+static void CheckDecoderMultiChunk(const ImageTestCase& aTestCase,
+                                   uint64_t aChunkSize = 1) {
+  WithMultiChunkDecode(aTestCase, aChunkSize, [&](image::Decoder* aDecoder) {
+    CheckDecoderResults(aTestCase, aDecoder);
+  });
+}
+
+static uint32_t HashDecoderOutput(image::Decoder* aDecoder) {
+  RawAccessFrameRef frame = aDecoder->GetCurrentFrameRef();
+  if (!frame) {
+    return 0;
+  }
+  RefPtr<SourceSurface> surface = frame->GetSourceSurface();
+  if (!surface) {
+    return 0;
+  }
+  RefPtr<DataSourceSurface> dataSurface = surface->GetDataSurface();
+  if (!dataSurface) {
+    return 0;
+  }
+  DataSourceSurface::MappedSurface map;
+  if (!dataSurface->Map(DataSourceSurface::READ, &map)) {
+    return 0;
+  }
+  IntSize size = dataSurface->GetSize();
+  uint32_t hash = 5381;
+  for (int32_t y = 0; y < size.height; y++) {
+    // Use stride to calculate start of row location, but only include pixels
+    // up to the width in the hash in case there are unused pixels at the end
+    // of the row due to alignment.
+    const uint8_t* row = map.mData + y * map.mStride;
+    for (int32_t x = 0; x < size.width * 4; x++) {
+      hash = hash * 33 ^ row[x];
+    }
+  }
+  dataSurface->Unmap();
+  return hash;
+}
+
+static void CheckIncrementalDecodeMatchesOneShot(
+    const ImageTestCase& aTestCase) {
+  uint32_t singleChunkHash = 0;
+  WithSingleChunkDecode(aTestCase, Nothing(), false,
+                        [&](image::Decoder* aDecoder) {
+                          ASSERT_FALSE(aDecoder->HasError());
+                          singleChunkHash = HashDecoderOutput(aDecoder);
+                          ASSERT_NE(0u, singleChunkHash);
+                        });
+
+  uint32_t multiChunkHash = 0;
+  WithMultiChunkDecode(aTestCase, 1, [&](image::Decoder* aDecoder) {
+    ASSERT_FALSE(aDecoder->HasError());
+    multiChunkHash = HashDecoderOutput(aDecoder);
+  });
+
+  EXPECT_EQ(singleChunkHash, multiChunkHash);
 }
 
 static void CheckDownscaleDuringDecode(const ImageTestCase& aTestCase) {
@@ -1108,6 +1167,19 @@ TEST_F(ImageDecoders, AnimatedJXLWithFRAME_FIRST) {
 TEST_F(ImageDecoders, AnimatedJXLWithFRAME_CURRENT) {
   CheckDecoderFrameCurrent(GreenFirstFrameAnimatedJXLTestCase());
 }
+
+TEST_F(ImageDecoders, JXL_IncrementalDecodeMatchesOneShot) {
+  CheckIncrementalDecodeMatchesOneShot(GreenJXLTestCase());
+}
+
+TEST_F(ImageDecoders, JXLProgressive_IncrementalDecodeMatchesOneShot) {
+  CheckIncrementalDecodeMatchesOneShot(ProgressiveJXLTestCase());
+}
+
+TEST_F(ImageDecoders, AnimatedJXL_IncrementalDecodeMatchesOneShot) {
+  CheckIncrementalDecodeMatchesOneShot(GreenFirstFrameAnimatedJXLTestCase());
+}
+
 #endif
 
 TEST_F(ImageDecoders, AnimatedGIFWithExtraImageSubBlocks) {

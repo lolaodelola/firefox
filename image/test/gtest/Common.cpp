@@ -1044,6 +1044,10 @@ ImageTestCase GreenJXLTestCase() {
   return ImageTestCase("green.jxl", "image/jxl", IntSize(100, 100));
 }
 
+ImageTestCase ProgressiveJXLTestCase() {
+  return ImageTestCase("progressive.jxl", "image/jxl", IntSize(500, 375));
+}
+
 ImageTestCase DownscaledJXLTestCase() {
   return ImageTestCase("downscaled.jxl", "image/jxl", IntSize(100, 100),
                        IntSize(20, 20));
