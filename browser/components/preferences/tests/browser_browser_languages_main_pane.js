@@ -57,8 +57,8 @@ async function installLangpack(locale) {
   return install.addon;
 }
 
-async function openMainPane() {
-  await openPreferencesViaOpenPreferencesAPI("paneGeneral", {
+async function openPrefs() {
+  await openPreferencesViaOpenPreferencesAPI("paneLanguages", {
     leaveOpen: true,
   });
   return gBrowser.contentDocument;
@@ -181,7 +181,7 @@ add_task(async function testLangpacksAppearInMainPane() {
 
     // Install "pl" then "fr" so they need to be sorted.
     let addons = await Promise.all(["pl", "fr"].map(installLangpack));
-    let doc = await openMainPane();
+    let doc = await openPrefs();
     await waitForLanguageUI(doc, redesignEnabled);
 
     let locales = getAvailableLocales(doc, redesignEnabled);
@@ -217,7 +217,7 @@ add_task(async function testLanguageChangeShowsRestartConfirmation() {
     });
 
     let addon = await installLangpack("fr");
-    let doc = await openMainPane();
+    let doc = await openPrefs();
     await waitForLanguageUI(doc, redesignEnabled);
 
     assertRestartMessageHidden(doc, redesignEnabled);
@@ -261,7 +261,7 @@ add_task(async function testLanguageChangeLiveReload() {
     });
 
     let addon = await installLangpack("fr");
-    let doc = await openMainPane();
+    let doc = await openPrefs();
     await waitForLanguageUI(doc, redesignEnabled);
 
     await changeLocale(doc, "fr", redesignEnabled);
@@ -323,7 +323,7 @@ add_task(async function testInstalledLocalesWhileRemotePending() {
     ],
   });
 
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 
@@ -367,7 +367,7 @@ add_task(async function testRemoteLocalesAppearAfterSeparator() {
     ],
   });
 
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForRemoteSeparator(win);
 
@@ -428,7 +428,7 @@ add_task(async function testInstalledLocalesNotDuplicatedInRemoteSection() {
   });
 
   let addon = await installLangpack("fr");
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForRemoteSeparator(win);
 
@@ -479,7 +479,7 @@ add_task(
       ],
     });
 
-    let doc = await openMainPane();
+    let doc = await openPrefs();
     let win = doc.defaultView;
     await waitForRemoteSeparator(win);
     assertRestartMessageHidden(doc, true);
@@ -524,7 +524,7 @@ add_task(async function testFailedRemoteLocaleInstallResetsDropdown() {
     ],
   });
 
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForRemoteSeparator(win);
 
@@ -583,7 +583,7 @@ add_task(async function testSelectsDisabledDuringDownload() {
   });
 
   let addon = await installLangpack("de");
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForRemoteSeparator(win);
 
@@ -630,7 +630,7 @@ add_task(async function testFallbackHiddenWithSingleLanguage() {
 
   is(Services.locale.availableLocales.length, 1, "Only one language available");
 
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 
@@ -657,7 +657,7 @@ add_task(async function testFallbackVisibleWithMultipleLanguages() {
   });
 
   let addon = await installLangpack("fr");
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 
@@ -689,7 +689,7 @@ add_task(async function testFallbackHiddenWhenPreferredIsDefault() {
   });
 
   let addons = await Promise.all(["fr", "de"].map(installLangpack));
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 
@@ -721,7 +721,7 @@ add_task(async function testFallbackOnlyShowsInstalledLocales() {
   });
 
   let addon = await installLangpack("fr");
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 
@@ -759,7 +759,7 @@ add_task(async function testFallbackExcludesPreferredLanguage() {
   });
 
   let addons = await Promise.all(["fr", "de"].map(installLangpack));
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 
@@ -799,7 +799,7 @@ add_task(async function testFallbackChangeShowsRestart() {
   });
 
   let addons = await Promise.all(["fr", "de"].map(installLangpack));
-  let doc = await openMainPane();
+  let doc = await openPrefs();
   let win = doc.defaultView;
   await waitForLanguageUI(doc, true);
 

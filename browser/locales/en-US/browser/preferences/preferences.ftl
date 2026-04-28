@@ -82,6 +82,13 @@ category-ai-controls =
 pane-accessibility-title = Accessibility
   .title = { pane-accessibility-title }
 
+pane-languages-title = Languages
+category-languages =
+    .tooltiptext = { pane-languages-title }
+
+preferences-languages-header =
+    .heading = { pane-languages-title }
+
 settings-pane-labs-title = { -firefoxlabs-brand-name }
 settings-pane-labs-header =
     .heading = { -firefoxlabs-brand-name }

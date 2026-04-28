@@ -3816,9 +3816,25 @@ async function setupAboutPreferences(
 
   await loadNewPage(tab.linkedBrowser, "about:preferences");
 
+  // Load the Languages pane if SRD is enabled (moved from General)
+  const document = gBrowser.selectedBrowser.contentDocument;
+  let redesigned = Services.prefs.getBoolPref(
+    "browser.settings-redesign.enabled",
+    false
+  );
+  if (redesigned) {
+    let loaded = BrowserTestUtils.waitForEvent(document, "paneshown");
+    EventUtils.synthesizeMouseAtCenter(
+      document.getElementById("category-languages"),
+      {},
+      document.ownerGlobal
+    );
+    let event = await loaded;
+    is(event.detail.category, "paneLanguages", "Loaded the correct pane");
+  }
+
   const elements = await selectAboutPreferencesElements();
 
-  const document = gBrowser.selectedBrowser.contentDocument;
   const translationsSettingsTestUtils = new TranslationsSettingsTestUtils(
     document
   );

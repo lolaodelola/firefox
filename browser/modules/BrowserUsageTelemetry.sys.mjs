@@ -155,6 +155,7 @@ const PREFERENCES_PANES = [
   "paneMoreFromMozilla",
   "paneAi",
   "paneAccessibility",
+  "paneLanguages",
 ];
 
 const IGNORABLE_EVENTS = new WeakMap();

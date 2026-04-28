@@ -268,6 +268,18 @@ const CONFIG_PANES = Object.freeze({
     module: "chrome://browser/content/preferences/config/home-startup.mjs",
     replaces: "home",
   },
+  languages: {
+    l10nId: "preferences-languages-header",
+    iconSrc: "chrome://browser/skin/translations.svg",
+    groupIds: [
+      "browserLanguage",
+      "websiteLanguage",
+      "translations",
+      "spellCheck",
+    ],
+    module: "chrome://browser/content/preferences/config/languages.mjs",
+    visible: () => srdSectionEnabled("languages"),
+  },
   manageAddresses: {
     parent: "privacy",
     l10nId: "autofill-addresses-manage-addresses-title",
@@ -356,7 +368,7 @@ const CONFIG_PANES = Object.freeze({
     replaces: "sync",
   },
   translations: {
-    parent: "general",
+    parent: srdSectionEnabled("languages") ? "languages" : "general",
     l10nId: "settings-translations-subpage-header",
     groupIds: [
       "translationsAutomaticTranslation",
@@ -364,6 +376,7 @@ const CONFIG_PANES = Object.freeze({
     ],
     iconSrc: "chrome://browser/skin/translations.svg",
     module: "chrome://browser/content/preferences/config/translations.mjs",
+    visible: () => srdSectionEnabled("translations"),
   },
 });
 

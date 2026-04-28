@@ -73,6 +73,8 @@ run-if = [
   "os == 'mac'",
 ]
 
+["browser_languages_pane.js"]
+
 ["browser_languages_subdialog.js"]
 
 ["browser_no_id_collision_between_categories_and_mainPane.js"]
