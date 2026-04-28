@@ -39,6 +39,7 @@ class BrowserLanguageRestartMessage extends MozLitElement {
     setting: { type: Object },
     messageStrings: { type: Array, state: true },
     pendingLocale: { type: String, state: true },
+    showError: { type: Boolean, state: true },
   };
   static MESSAGE_L10N_ID = "confirm-browser-language-change-description";
   static BUTTON_L10N_ID = "confirm-browser-language-change-button";
@@ -53,10 +54,12 @@ class BrowserLanguageRestartMessage extends MozLitElement {
     this.messageStrings = [];
     /** @type {string | null} */
     this.pendingLocale = null;
+    this.showError = false;
   }
 
   willUpdate() {
-    let { pendingLocale } = this.browserLanguage;
+    let { pendingLocale, installError } = this.browserLanguage;
+    this.showError = installError;
     if (!pendingLocale) {
       this.pendingLocale = null;
       this.messageStrings = [];
@@ -111,7 +114,7 @@ class BrowserLanguageRestartMessage extends MozLitElement {
   }
 
   render() {
-    if (!this.messageStrings.length) {
+    if (!this.messageStrings.length && !this.showError) {
       return "";
     }
 
@@ -121,6 +124,14 @@ class BrowserLanguageRestartMessage extends MozLitElement {
         href="chrome://browser/content/preferences/widgets/browser-language-restart-message.css"
       />
       <div class="message-container">
+        ${this.showError
+          ? html`
+              <moz-message-bar
+                type="error"
+                data-l10n-id="browser-language-install-error"
+              ></moz-message-bar>
+            `
+          : ""}
         ${this.messageStrings.map(
           ([messageLabel, buttonLabel]) => html`
             <moz-message-bar .message=${messageLabel}>

@@ -134,7 +134,7 @@ async function waitForRestartMessage(doc, redesignEnabled) {
     );
   } else {
     let restartControl = getSettingControl(
-      "browserLanguageRestart",
+      "browserLanguageMessage",
       doc.defaultView
     );
     await BrowserTestUtils.waitForMutationCondition(
@@ -154,7 +154,7 @@ function assertRestartMessageHidden(doc, redesignEnabled) {
     );
   } else {
     let restartControl = getSettingControl(
-      "browserLanguageRestart",
+      "browserLanguageMessage",
       doc.defaultView
     );
     is(restartControl.hidden, true, "SRD restart control is hidden");
@@ -536,7 +536,20 @@ add_task(async function testFailedRemoteLocaleInstallResetsDropdown() {
     "en-US",
     "Dropdown resets to current locale after failed install"
   );
-  assertRestartMessageHidden(doc, true);
+
+  // An error message should be shown after a failed install.
+  let messageControl = getSettingControl("browserLanguageMessage", win);
+  await BrowserTestUtils.waitForMutationCondition(
+    messageControl,
+    { attributes: true, attributeFilter: ["hidden"] },
+    () => !messageControl.hidden
+  );
+  ok(
+    messageControl.controlEl.shadowRoot.querySelector(
+      "moz-message-bar[type=error]"
+    ),
+    "Error message bar is shown after failed install"
+  );
 
   sandbox.restore();
   BrowserTestUtils.removeTab(gBrowser.selectedTab);

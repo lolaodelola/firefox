@@ -458,6 +458,8 @@ browser-language-preferred-label =
 browser-language-fallback-label =
   .label = Fallback language
   .description = Used when preferred language localization is incomplete.
+browser-language-install-error =
+  .message = { -brand-short-name } can’t update your languages right now. Check that you are connected to the internet or try again.
 
 fx-translate-web-pages = { -translations-brand-name }
 
