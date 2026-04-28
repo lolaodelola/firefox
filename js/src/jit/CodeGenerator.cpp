@@ -3796,7 +3796,7 @@ void CodeGenerator::visitUnaryCache(LUnaryCache* lir) {
 }
 
 void CodeGenerator::visitModuleMetadata(LModuleMetadata* lir) {
-  pushArg(ImmPtr(lir->mir()->module()));
+  pushArg(ImmGCPtr(lir->mir()->module()));
 
   using Fn = JSObject* (*)(JSContext*, HandleObject);
   callVM<Fn, js::GetOrCreateModuleMetaObject>(lir);
@@ -9301,7 +9301,7 @@ void CodeGenerator::visitNewArrayObject(LNewArrayObject* lir) {
       ArgList(Imm32(arrayLength), Imm32(int32_t(allocKind)), Imm32(objectKind)),
       StoreRegisterTo(objReg));
 
-  masm.movePtr(ImmPtr(shape), shapeReg);
+  masm.movePtr(ImmGCPtr(shape), shapeReg);
   masm.createArrayWithFixedElements(
       objReg, shapeReg, temp0Reg, InvalidReg, arrayLength, arrayCapacity, 0, 0,
       allocKind, mir->initialHeap(), ool->entry(),
