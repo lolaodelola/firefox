@@ -171,6 +171,13 @@
   }
 
   &[splitview] {
+    /* Split-view panels without split-view-panel-active are dormant (a non-split-view
+       tab is selected). Hide them from the flex layout without stripping their sizing
+       attributes, so they re-enter at the correct size when reactivated. */
+    .split-view-panel:not(.split-view-panel-active) {
+      display: none;
+    }
+
     .split-view-panel.split-view-panel-active {
       margin: var(--space-xsmall);
       position: relative;
@@ -202,12 +209,14 @@
       }
     }
 
-    .browserContainer {
-      border-radius: var(--border-radius-medium);
-      overflow: clip;
+    .split-view-panel {
+      .browserContainer {
+        border-radius: var(--border-radius-medium);
+        overflow: clip;
+      }
 
       /* The selected panel's dialogs need to sit above the non-selected tab panels. */
-      .deck-selected > & {
+      &.deck-selected > .browserContainer {
         z-index: 1;
         outline: var(--focus-outline);
       }
