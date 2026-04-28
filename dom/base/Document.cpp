@@ -1293,7 +1293,6 @@ Document::Document(const char* aContentType,
       mLoadedAsData(aLoadedAsData == LoadedAsData::AsData),
       mRenderingSuppressedForViewTransitions(false),
       mBidiEnabled(false),
-      mMayNeedFontPrefsUpdate(true),
       mInitialAboutBlankLoadCompleting(false),
       mIgnoreDocGroupMismatches(false),
       mAddedToMemoryReportingAsDataDocument(false),
@@ -7283,7 +7282,6 @@ void Document::SetHeaderData(nsAtom* aHeaderField, const nsAString& aData) {
     } else {
       mContentLanguage = NS_AtomizeMainThread(aData);
     }
-    mMayNeedFontPrefsUpdate = true;
     if (auto* presContext = GetPresContext()) {
       presContext->ContentLanguageChanged();
     }
@@ -20274,23 +20272,9 @@ void Document::GetContentLanguageForBindings(DOMString& aString) const {
 }
 
 const LangGroupFontPrefs* Document::GetFontPrefsForLang(
-    nsAtom* aLanguage, bool* aNeedsToCache) const {
+    nsAtom* aLanguage) const {
   nsAtom* lang = aLanguage ? aLanguage : mLanguageFromCharset;
-  return StaticPresData::Get()->GetFontPrefsForLang(lang, aNeedsToCache);
-}
-
-void Document::DoCacheAllKnownLangPrefs() {
-  MOZ_ASSERT(mMayNeedFontPrefsUpdate);
-  RefPtr<nsAtom> lang = GetLanguageForStyle();
-  StaticPresData* data = StaticPresData::Get();
-  data->GetFontPrefsForLang(lang ? lang.get() : mLanguageFromCharset);
-  data->GetFontPrefsForLang(nsGkAtoms::x_math);
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1362599#c12
-  data->GetFontPrefsForLang(nsGkAtoms::Unicode);
-  for (const auto& key : mLanguagesUsed) {
-    data->GetFontPrefsForLang(key);
-  }
-  mMayNeedFontPrefsUpdate = false;
+  return StaticPresData::Get()->GetFontPrefsForLang(lang);
 }
 
 void Document::RecomputeLanguageFromCharset() {
@@ -20300,7 +20284,6 @@ void Document::RecomputeLanguageFromCharset() {
     return;
   }
 
-  mMayNeedFontPrefsUpdate = true;
   mLanguageFromCharset = language;
 }
 

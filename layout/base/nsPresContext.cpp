@@ -433,8 +433,6 @@ void nsPresContext::GetUserPreferences() {
     return;
   }
 
-  Document()->SetMayNeedFontPrefsUpdate();
-
   // * image animation
   nsAutoCString animatePref;
   Preferences::GetCString("image.animation_mode", animatePref);
@@ -606,7 +604,6 @@ void nsPresContext::PreferenceChanged(const char* aPrefName) {
 
   // Same, this just frees a bunch of memory.
   StaticPresData::Get()->InvalidateFontPrefs();
-  Document()->SetMayNeedFontPrefsUpdate();
 
   // Initialize our state from the user preferences.
   GetUserPreferences();

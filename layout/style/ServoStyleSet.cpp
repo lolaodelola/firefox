@@ -335,8 +335,6 @@ void ServoStyleSet::PreTraverseSync() {
 
   mDocument->ResolveScheduledPresAttrs();
 
-  mDocument->CacheAllKnownLangPrefs();
-
   if (gfxUserFontSet* userFontSet = mDocument->GetUserFontSet()) {
     nsPresContext* presContext = GetPresContext();
     MOZ_ASSERT(presContext,
