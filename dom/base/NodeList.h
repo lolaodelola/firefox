@@ -2,27 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef nsINodeList_h_
-#define nsINodeList_h_
+#ifndef mozilla_dom_NodeList_h_
+#define mozilla_dom_NodeList_h_
 
 #include "nsIContent.h"
 #include "nsISupports.h"
 #include "nsWrapperCache.h"
 
-// IID for the nsINodeList interface
-#define NS_INODELIST_IID \
-  {0xadb5e54c, 0x6e96, 0x4102, {0x8d, 0x40, 0xe0, 0x12, 0x3d, 0xcf, 0x48, 0x7a}}
-
 class nsIContent;
 class nsINode;
+
+namespace mozilla::dom {
 
 /**
  * An internal interface for a reasonably fast indexOf.
  */
-class nsINodeList : public nsISupports, public nsWrapperCache {
+class NodeList : public nsISupports, public nsWrapperCache {
  public:
-  NS_INLINE_DECL_STATIC_IID(NS_INODELIST_IID)
-
   /**
    * Get the index of the given node in the list.  Will return -1 if the node
    * is not in the list.
@@ -43,4 +39,6 @@ class nsINodeList : public nsISupports, public nsWrapperCache {
   }
 };
 
-#endif /* nsINodeList_h_ */
+}  // namespace mozilla::dom
+
+#endif  // mozilla_dom_NodeList_h_

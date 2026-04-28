@@ -331,8 +331,7 @@ bool ElementInternals::ReportValidity(ErrorResult& aRv) {
 }
 
 // https://html.spec.whatwg.org/#dom-elementinternals-labels
-already_AddRefed<nsINodeList> ElementInternals::GetLabels(
-    ErrorResult& aRv) const {
+already_AddRefed<NodeList> ElementInternals::GetLabels(ErrorResult& aRv) const {
   MOZ_ASSERT(mTarget);
 
   if (!mTarget->IsFormAssociatedElement()) {

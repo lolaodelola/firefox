@@ -76,6 +76,7 @@
 #include "mozilla/dom/CSPViolationData.h"
 #include "mozilla/dom/ChildIterator.h"
 #include "mozilla/dom/CloseWatcher.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/CustomElementRegistry.h"
 #include "mozilla/dom/DOMIntersectionObserver.h"
 #include "mozilla/dom/DOMRect.h"
@@ -139,7 +140,6 @@
 #include "nsCompatibility.h"
 #include "nsComputedDOMStyle.h"
 #include "nsContainerFrame.h"
-#include "nsContentList.h"
 #include "nsContentListDeclarations.h"
 #include "nsContentUtils.h"
 #include "nsCoord.h"
@@ -769,7 +769,7 @@ void Element::GetAttributeNames(nsTArray<nsString>& aResult) {
   }
 }
 
-already_AddRefed<nsIHTMLCollection> Element::GetElementsByTagName(
+already_AddRefed<HTMLCollection> Element::GetElementsByTagName(
     const nsAString& aLocalName) {
   return NS_GetContentList(this, kNameSpaceID_Unknown, aLocalName);
 }
@@ -2015,7 +2015,7 @@ already_AddRefed<Attr> Element::SetAttributeNodeNS(
   return attrMap->SetNamedItemNS(aNewAttr, aSubjectPrincipal, aError);
 }
 
-already_AddRefed<nsIHTMLCollection> Element::GetElementsByTagNameNS(
+already_AddRefed<HTMLCollection> Element::GetElementsByTagNameNS(
     const nsAString& aNamespaceURI, const nsAString& aLocalName,
     ErrorResult& aError) {
   int32_t nameSpaceId = kNameSpaceID_Wildcard;
@@ -2047,7 +2047,7 @@ bool Element::HasAttributeNS(const nsAString& aNamespaceURI,
   return HasAttr(nsid, name);
 }
 
-already_AddRefed<nsIHTMLCollection> Element::GetElementsByClassName(
+already_AddRefed<HTMLCollection> Element::GetElementsByClassName(
     const nsAString& aClassNames) {
   return nsContentUtils::GetElementsByClassName(this, aClassNames);
 }

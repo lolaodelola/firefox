@@ -27,6 +27,7 @@
 #include "mozilla/StaticPrefs_image.h"
 #include "mozilla/StaticPrefs_svg.h"
 #include "mozilla/dom/BindContext.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/Element.h"
 #include "mozilla/dom/FetchPriority.h"
@@ -42,7 +43,6 @@
 #include "mozilla/intl/LocaleService.h"
 #include "mozilla/net/UrlClassifierFeatureFactory.h"
 #include "mozilla/widget/TextRecognition.h"
-#include "nsContentList.h"
 #include "nsContentPolicyUtils.h"
 #include "nsContentUtils.h"
 #include "nsError.h"
@@ -1936,7 +1936,7 @@ Element* nsImageLoadingContent::FindImageMap() {
     return nullptr;  // useMap == "#"
   }
 
-  RefPtr<nsContentList> imageMapList;
+  RefPtr<ContentList> imageMapList;
   if (aElement->IsInUncomposedDoc()) {
     // Optimize the common case and use document level image map.
     imageMapList = aElement->OwnerDoc()->ImageMapList();
@@ -1945,9 +1945,9 @@ Element* nsImageLoadingContent::FindImageMap() {
     // so using SubtreeRoot() here.
     // Because this is a temporary list, we don't need to make it live.
     imageMapList =
-        new nsContentList(aElement->SubtreeRoot(), kNameSpaceID_XHTML,
-                          nsGkAtoms::map, nsGkAtoms::map, true, /* deep */
-                          false /* live */);
+        new ContentList(aElement->SubtreeRoot(), kNameSpaceID_XHTML,
+                        nsGkAtoms::map, nsGkAtoms::map, true, /* deep */
+                        false /* live */);
   }
 
   nsAutoString mapName(Substring(start, end));

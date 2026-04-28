@@ -40,10 +40,8 @@ class nsIContent;
 class nsIContentSecurityPolicy;
 class nsIFrame;
 class nsIFormControl;
-class nsIHTMLCollection;
 class nsMultiMutationObserver;
 class nsINode;
-class nsINodeList;
 class nsIPolicyContainer;
 class nsIPrincipal;
 class nsIURI;
@@ -64,6 +62,9 @@ class PresShell;
 class TextEditor;
 class WidgetEvent;
 namespace dom {
+class NodeList;
+class HTMLCollection;
+
 /**
  * @return true if aChar is what the WHATWG defines as a 'ascii whitespace'.
  * https://infra.spec.whatwg.org/#ascii-whitespace
@@ -1830,7 +1831,7 @@ class nsINode : public mozilla::dom::EventTarget {
     UnsetFlags(NODE_HAS_SCHEDULED_SELECTION_CHANGE_EVENT);
   }
 
-  nsINodeList* ChildNodes();
+  mozilla::dom::NodeList* ChildNodes();
 
   nsIContent* GetFirstChild() const { return mFirstChild; }
 
@@ -1892,8 +1893,8 @@ class nsINode : public mozilla::dom::EventTarget {
 
   mozilla::dom::Element* QuerySelector(const nsACString& aSelector,
                                        mozilla::ErrorResult& aResult);
-  already_AddRefed<nsINodeList> QuerySelectorAll(const nsACString& aSelector,
-                                                 mozilla::ErrorResult& aResult);
+  already_AddRefed<mozilla::dom::NodeList> QuerySelectorAll(
+      const nsACString& aSelector, mozilla::ErrorResult& aResult);
 
  protected:
   // Document and ShadowRoot override this with its own (faster) version.
@@ -2480,9 +2481,9 @@ class nsINode : public mozilla::dom::EventTarget {
   mozilla::dom::Element* GetFirstElementChild() const;
   mozilla::dom::Element* GetLastElementChild() const;
 
-  already_AddRefed<nsIHTMLCollection> GetElementsByAttribute(
+  already_AddRefed<mozilla::dom::HTMLCollection> GetElementsByAttribute(
       const nsAString& aAttribute, const nsAString& aValue);
-  already_AddRefed<nsIHTMLCollection> GetElementsByAttributeNS(
+  already_AddRefed<mozilla::dom::HTMLCollection> GetElementsByAttributeNS(
       const nsAString& aNamespaceURI, const nsAString& aAttribute,
       const nsAString& aValue, ErrorResult& aRv);
 

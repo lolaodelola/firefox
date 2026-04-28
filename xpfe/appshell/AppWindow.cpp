@@ -47,7 +47,7 @@
 #include "nsXULTooltipListener.h"
 #include "nsXULPopupManager.h"
 #include "nsFocusManager.h"
-#include "nsContentList.h"
+#include "mozilla/dom/ContentList.h"
 #include "nsIDOMWindowUtils.h"
 #include "nsServiceManagerUtils.h"
 
@@ -1786,7 +1786,7 @@ nsresult AppWindow::MaybeSaveEarlyWindowPersistentValues(
   settings.menubarShown = attributeValue.EqualsLiteral("false");
 
   ErrorResult err;
-  nsCOMPtr<nsIHTMLCollection> toolbarSprings = navbar->GetElementsByTagNameNS(
+  RefPtr<dom::HTMLCollection> toolbarSprings = navbar->GetElementsByTagNameNS(
       u"http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"_ns,
       u"toolbarspring"_ns, err);
   if (err.Failed()) {

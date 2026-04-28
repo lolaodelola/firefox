@@ -1622,7 +1622,7 @@ void Gecko_ReportUnexpectedCSSError(const uint64_t aWindowId, nsIURI* aURI,
   reporter.OutputError(selectorsValue, lineNumber + 1, colNumber, aURI);
 }
 
-void Gecko_ContentList_AppendAll(nsSimpleContentList* aList,
+void Gecko_ContentList_AppendAll(SimpleContentList* aList,
                                  const Element** aElements, size_t aLength) {
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(aElements);

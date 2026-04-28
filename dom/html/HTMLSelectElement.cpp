@@ -15,6 +15,7 @@
 #include "mozilla/PresState.h"
 #include "mozilla/StaticPrefs_ui.h"
 #include "mozilla/TextEvents.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/Element.h"
 #include "mozilla/dom/FormData.h"
@@ -27,7 +28,6 @@
 #include "nsComboboxControlFrame.h"
 #include "nsComputedDOMStyle.h"
 #include "nsContentCreatorFunctions.h"
-#include "nsContentList.h"
 #include "nsContentUtils.h"
 #include "nsError.h"
 #include "nsGkAtoms.h"
@@ -447,10 +447,10 @@ bool HTMLSelectElement::MatchSelectedOptions(Element* aElement,
   return option && option->Selected();
 }
 
-nsIHTMLCollection* HTMLSelectElement::SelectedOptions() {
+HTMLCollection* HTMLSelectElement::SelectedOptions() {
   if (!mSelectedOptions) {
-    mSelectedOptions = new nsContentList(this, MatchSelectedOptions, nullptr,
-                                         nullptr, /* deep */ true);
+    mSelectedOptions = new ContentList(this, MatchSelectedOptions, nullptr,
+                                       nullptr, /* deep */ true);
   }
   return mSelectedOptions;
 }

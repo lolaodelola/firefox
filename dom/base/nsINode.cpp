@@ -43,6 +43,7 @@
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/dom/CharacterData.h"
 #include "mozilla/dom/ChildIterator.h"
+#include "mozilla/dom/ContentList.h"
 #include "mozilla/dom/CustomElementRegistry.h"
 #include "mozilla/dom/DebuggerNotificationBinding.h"
 #include "mozilla/dom/Document.h"
@@ -77,7 +78,6 @@
 #include "nsCOMArray.h"
 #include "nsChildContentList.h"
 #include "nsContentCreatorFunctions.h"
-#include "nsContentList.h"
 #include "nsContentUtils.h"
 #include "nsCycleCollectionParticipant.h"
 #include "nsDOMAttributeMap.h"
@@ -783,7 +783,7 @@ nsFrameSelection* nsINode::GetFrameSelection() const {
   return const_cast<nsFrameSelection*>(presShell->ConstFrameSelection());
 }
 
-nsINodeList* nsINode::ChildNodes() {
+NodeList* nsINode::ChildNodes() {
   nsSlots* slots = Slots();
   if (!slots->mChildNodes) {
     slots->mChildNodes = IsAttr() ? new nsAttrChildContentList(this)
@@ -2271,17 +2271,17 @@ static bool MatchAttribute(Element* aElement, int32_t aNamespaceID,
   return false;
 }
 
-already_AddRefed<nsIHTMLCollection> nsINode::GetElementsByAttribute(
+already_AddRefed<HTMLCollection> nsINode::GetElementsByAttribute(
     const nsAString& aAttribute, const nsAString& aValue) {
   RefPtr<nsAtom> attrAtom(NS_Atomize(aAttribute));
-  RefPtr<nsContentList> list = new nsContentList(
+  RefPtr<ContentList> list = new ContentList(
       this, MatchAttribute, nsContentUtils::DestroyMatchString,
       new nsString(aValue), true, attrAtom, kNameSpaceID_Unknown);
 
   return list.forget();
 }
 
-already_AddRefed<nsIHTMLCollection> nsINode::GetElementsByAttributeNS(
+already_AddRefed<HTMLCollection> nsINode::GetElementsByAttributeNS(
     const nsAString& aNamespaceURI, const nsAString& aAttribute,
     const nsAString& aValue, ErrorResult& aRv) {
   RefPtr<nsAtom> attrAtom(NS_Atomize(aAttribute));
@@ -2296,9 +2296,9 @@ already_AddRefed<nsIHTMLCollection> nsINode::GetElementsByAttributeNS(
     }
   }
 
-  RefPtr<nsContentList> list = new nsContentList(
-      this, MatchAttribute, nsContentUtils::DestroyMatchString,
-      new nsString(aValue), true, attrAtom, nameSpaceId);
+  RefPtr<ContentList> list =
+      new ContentList(this, MatchAttribute, nsContentUtils::DestroyMatchString,
+                      new nsString(aValue), true, attrAtom, nameSpaceId);
   return list.forget();
 }
 
@@ -3424,12 +3424,12 @@ Element* nsINode::QuerySelector(const nsACString& aSelector,
       Servo_SelectorList_QueryFirst(this, list, useInvalidation));
 }
 
-already_AddRefed<nsINodeList> nsINode::QuerySelectorAll(
+already_AddRefed<NodeList> nsINode::QuerySelectorAll(
     const nsACString& aSelector, ErrorResult& aResult) {
   AUTO_PROFILER_LABEL_DYNAMIC_NSCSTRING_RELEVANT_FOR_JS(
       "querySelectorAll", LAYOUT_SelectorQuery, aSelector);
 
-  RefPtr<nsSimpleContentList> contentList = new nsSimpleContentList(this);
+  RefPtr<SimpleContentList> contentList = new SimpleContentList(this);
   const StyleSelectorList* list = ParseSelectorList(aSelector, aResult);
   if (!list) {
     return contentList.forget();

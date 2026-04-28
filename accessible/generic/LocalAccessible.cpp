@@ -19,6 +19,7 @@
 #include "nsMenuPopupFrame.h"
 #include "nsAccessibilityService.h"
 #include "ApplicationAccessible.h"
+#include "mozilla/dom/ContentList.h"
 #include "nsGenericHTMLElement.h"
 #include "NotificationController.h"
 #include "nsEventShell.h"
@@ -44,12 +45,12 @@
 #include "nsIDOMXULSelectCntrlEl.h"
 #include "nsIDOMXULSelectCntrlItemEl.h"
 #include "nsIMutationObserver.h"
-#include "nsINodeList.h"
 
 #include "mozilla/dom/Document.h"
 #include "mozilla/dom/HTMLAnchorElement.h"
 #include "mozilla/dom/HTMLFormElement.h"
 #include "mozilla/dom/HTMLInputElement.h"
+#include "mozilla/dom/NodeList.h"
 #include "mozilla/dom/PopoverData.h"
 #include "mozilla/gfx/Matrix.h"
 #include "nsIContent.h"
@@ -2409,7 +2410,7 @@ Relation LocalAccessible::RelationByType(RelationType aType) const {
         NS_ConvertUTF8toUTF16 hash16(Substring(hash, 1));
         if (dom::Element* elm = mContent->OwnerDoc()->GetElementById(hash16)) {
           rel.AppendTarget(mDoc->GetAccessibleOrContainer(elm));
-        } else if (nsCOMPtr<nsINodeList> list =
+        } else if (RefPtr<dom::NodeList> list =
                        mContent->OwnerDoc()->GetElementsByName(hash16)) {
           // Loop through the named nodes looking for the first anchor
           uint32_t length = list->Length();
@@ -2446,7 +2447,7 @@ Relation LocalAccessible::RelationByType(RelationType aType) const {
         dom::Document* doc = mContent->OwnerDoc();
         nsIContent* buttonEl = nullptr;
         if (doc->AllowXULXBL()) {
-          nsCOMPtr<nsIHTMLCollection> possibleDefaultButtons =
+          RefPtr<dom::HTMLCollection> possibleDefaultButtons =
               doc->GetElementsByAttribute(u"default"_ns, u"true"_ns);
           if (possibleDefaultButtons) {
             uint32_t length = possibleDefaultButtons->Length();
