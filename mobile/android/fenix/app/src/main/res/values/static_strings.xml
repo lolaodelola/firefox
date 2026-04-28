@@ -172,6 +172,8 @@
     <string name="content_description_take_photo">Take photo and send to Google Lens</string>`
     <!-- Image context menu entry that sends the long-pressed image to Google Lens -->
     <string name="context_menu_open_image_with_google_lens">Search with Google Lens</string>
+    <!-- Toast shown when the user denies the camera permission requested by the Lens camera screen -->
+    <string name="lens_camera_permission_denied">Permission denied</string>
 
     <!-- Label for toggling the Tab Search feature -->
     <string name="preferences_tab_search_feature" translatable="false">Enable Tab Search</string>

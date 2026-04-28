@@ -101,6 +101,10 @@ class BrowserFragment : BaseBrowserFragment(), UserInteractionHandler, SystemIns
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             lensFeature?.get()?.handleImageResult(result.resultCode, result.data)
         }
+    private val lensCameraPermissionLauncher: ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            lensFeature?.get()?.onCameraPermissionResult(isGranted)
+        }
 
     private val continuousOnboardingDefaultBrowserLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -302,7 +306,7 @@ class BrowserFragment : BaseBrowserFragment(), UserInteractionHandler, SystemIns
         initReaderModeUpdates(rootView.context, rootView)
         qrScanFenixFeature = QrScanFenixFeature.register(this, qrScanLauncher)
         voiceSearchFeature = VoiceSearchFeature.register(this, voiceSearchLauncher)
-        lensFeature = LensFeature.register(this, lensLauncher)
+        lensFeature = LensFeature.register(this, lensLauncher, lensCameraPermissionLauncher)
     }
 
     private fun initReaderModeUpdates(context: Context, view: View) {

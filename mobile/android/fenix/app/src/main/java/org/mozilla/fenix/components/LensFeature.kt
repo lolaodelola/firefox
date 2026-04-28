@@ -4,12 +4,16 @@
 
 package org.mozilla.fenix.components
 
+import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +26,7 @@ import mozilla.components.lib.state.ext.flowScoped
 import mozilla.components.support.base.feature.LifecycleAwareFeature
 import mozilla.components.support.base.feature.ViewBoundFeatureWrapper
 import mozilla.components.support.base.log.logger.Logger
+import org.mozilla.fenix.R
 import org.mozilla.fenix.components.appstate.AppAction.LensAction
 import org.mozilla.fenix.components.lens.LensCameraActivity
 import org.mozilla.fenix.ext.components
@@ -38,8 +43,10 @@ class LensFeature(
     private val context: Context,
     private val appStore: AppStore,
     private val lensLauncher: ActivityResultLauncher<Intent>,
+    private val cameraPermissionLauncher: ActivityResultLauncher<String>,
     private val uploader: LensImageUploader,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
+    private val permissionChecker: (Context, String) -> Int = ContextCompat::checkSelfPermission,
 ) : LifecycleAwareFeature {
 
     private val logger = Logger("LensFeature")
@@ -73,10 +80,32 @@ class LensFeature(
     }
 
     private fun launchCamera() {
+        if (permissionChecker(context, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            launchCameraActivity()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCameraActivity() {
         val intent = LensCameraActivity.newIntent(context)
         try {
             lensLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
+            appStore.dispatch(LensAction.LensDismissed)
+        }
+    }
+
+    /**
+     * Handles the result of the camera permission request initiated by [launchCamera].
+     */
+    fun onCameraPermissionResult(isGranted: Boolean) {
+        if (isGranted) {
+            launchCameraActivity()
+        } else {
+            Toast.makeText(context, R.string.lens_camera_permission_denied, Toast.LENGTH_SHORT).show()
             appStore.dispatch(LensAction.LensDismissed)
         }
     }
@@ -152,6 +181,7 @@ class LensFeature(
         fun register(
             fragment: Fragment,
             activityResultLauncher: ActivityResultLauncher<Intent>,
+            cameraPermissionLauncher: ActivityResultLauncher<String>,
         ): ViewBoundFeatureWrapper<LensFeature>? {
             if (!fragment.requireContext().settings().googleLensIntegrationEnabled) {
                 return null
@@ -164,6 +194,7 @@ class LensFeature(
                     context = fragment.requireContext(),
                     appStore = fragment.requireContext().components.appStore,
                     lensLauncher = activityResultLauncher,
+                    cameraPermissionLauncher = cameraPermissionLauncher,
                     uploader = LensImageUploader(
                         context = fragment.requireContext(),
                         client = fragment.requireContext().components.core.client,

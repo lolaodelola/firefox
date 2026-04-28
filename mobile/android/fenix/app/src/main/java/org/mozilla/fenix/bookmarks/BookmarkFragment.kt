@@ -80,6 +80,10 @@ class BookmarkFragment : Fragment(), SystemInsetsPaddedFragment {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             lensFeature?.get()?.handleImageResult(result.resultCode, result.data)
         }
+    private val lensCameraPermissionLauncher: ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            lensFeature?.get()?.onCameraPermissionResult(isGranted)
+        }
 
     private val importResultFlow = MutableSharedFlow<ImporterResult>(extraBufferCapacity = 1)
 
@@ -209,7 +213,7 @@ class BookmarkFragment : Fragment(), SystemInsetsPaddedFragment {
         super.onViewCreated(view, savedInstanceState)
         qrScanFenixFeature = QrScanFenixFeature.register(this, qrScanLauncher)
         voiceSearchFeature = VoiceSearchFeature.register(this, voiceSearchLauncher)
-        lensFeature = LensFeature.register(this, lensLauncher)
+        lensFeature = LensFeature.register(this, lensLauncher, lensCameraPermissionLauncher)
 
         childFragmentManager.setFragmentResultListener(
             ImportBookmarksDialogFragment.REQUEST_KEY,

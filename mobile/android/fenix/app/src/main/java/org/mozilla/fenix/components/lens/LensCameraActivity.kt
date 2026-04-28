@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
@@ -33,10 +34,14 @@ class LensCameraActivity : AppCompatActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { isGranted ->
+    ) { isGranted -> handlePermissionResult(isGranted) }
+
+    @VisibleForTesting
+    internal fun handlePermissionResult(isGranted: Boolean) {
         if (isGranted) {
             launchCameraFragment()
         } else {
+            Toast.makeText(this, R.string.lens_camera_permission_denied, Toast.LENGTH_SHORT).show()
             setResult(RESULT_CANCELED)
             finish()
         }
@@ -79,10 +84,11 @@ class LensCameraActivity : AppCompatActivity() {
             }
             finish()
         }
+    }
 
-        if (savedInstanceState == null) {
-            checkCameraPermission()
-        }
+    override fun onResume() {
+        super.onResume()
+        checkCameraPermission()
     }
 
     private fun checkCameraPermission() {

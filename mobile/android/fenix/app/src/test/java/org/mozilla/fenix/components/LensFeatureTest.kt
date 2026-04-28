@@ -4,9 +4,11 @@
 
 package org.mozilla.fenix.components
 
+import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import io.mockk.coEvery
@@ -32,13 +34,17 @@ class LensFeatureTest {
     private val testDispatcher = StandardTestDispatcher()
     private val appStore = spyk(AppStore())
     private val lensLauncher: ActivityResultLauncher<Intent> = mockk(relaxed = true)
+    private val cameraPermissionLauncher: ActivityResultLauncher<String> = mockk(relaxed = true)
     private val uploader: LensImageUploader = mockk()
+    private var cameraPermissionResult = PackageManager.PERMISSION_GRANTED
     private val feature = LensFeature(
         context = testContext,
         appStore = appStore,
         lensLauncher = lensLauncher,
+        cameraPermissionLauncher = cameraPermissionLauncher,
         uploader = uploader,
         mainDispatcher = testDispatcher,
+        permissionChecker = { _, _ -> cameraPermissionResult },
     )
 
     @Before
@@ -200,6 +206,33 @@ class LensFeatureTest {
         verify { lensLauncher.launch(any()) }
         coVerify(exactly = 0) { uploader.uploadFromUrl(any()) }
         verify { appStore.dispatch(LensAction.LensRequestConsumed) }
+    }
+
+    @Test
+    fun `GIVEN camera permission is not granted WHEN LensRequested is dispatched THEN the permission launcher is invoked and the camera activity is not launched`() = runTest(testDispatcher) {
+        cameraPermissionResult = PackageManager.PERMISSION_DENIED
+
+        appStore.dispatch(LensAction.LensRequested)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        verify { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }
+        verify(exactly = 0) { lensLauncher.launch(any()) }
+    }
+
+    @Test
+    fun `GIVEN onCameraPermissionResult is called with true THEN the camera activity is launched`() = runTest(testDispatcher) {
+        feature.onCameraPermissionResult(isGranted = true)
+
+        verify { lensLauncher.launch(any()) }
+        verify(exactly = 0) { appStore.dispatch(LensAction.LensDismissed) }
+    }
+
+    @Test
+    fun `GIVEN onCameraPermissionResult is called with false THEN LensDismissed is dispatched and the camera activity is not launched`() = runTest(testDispatcher) {
+        feature.onCameraPermissionResult(isGranted = false)
+
+        verify { appStore.dispatch(LensAction.LensDismissed) }
+        verify(exactly = 0) { lensLauncher.launch(any()) }
     }
 
     @Test
