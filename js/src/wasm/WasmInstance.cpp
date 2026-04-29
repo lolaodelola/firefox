@@ -923,13 +923,15 @@ static int32_t MemoryInit(JSContext* cx, Instance* instance,
     return -1;
   }
 
-  if (&srcTable == &dstTable && dstOffset > srcOffset) {
+  if (srcTable.get() == dstTable.get() && dstOffset == srcOffset) {
+    // No-op
+  } else if (dstOffset > srcOffset) {
+    // Copy backwards
     for (uint32_t i = len; i > 0; i--) {
       dstTable->copy(*srcTable, dstOffset + (i - 1), srcOffset + (i - 1));
     }
-  } else if (&srcTable == &dstTable && dstOffset == srcOffset) {
-    // No-op
   } else {
+    // Copy forwards
     for (uint32_t i = 0; i < len; i++) {
       dstTable->copy(*srcTable, dstOffset + i, srcOffset + i);
     }
