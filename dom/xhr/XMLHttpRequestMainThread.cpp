@@ -2252,41 +2252,11 @@ XMLHttpRequestMainThread::OnStopRequest(nsIRequest* request, nsresult status) {
 
   mXMLParserStreamListener = nullptr;
 
-  // If window.stop() or other aborts were issued, handle as an abort.
-  // Navigation-caused aborts suppress the abort event and only fire loadend,
-  // matching Chrome/Safari behavior (bug 1505389).
+  // If window.stop() or other aborts were issued, handle as an abort
   if (status == NS_BINDING_ABORTED) {
     mFlagParseBody = false;
-
-    nsAutoCString cancelReason;
-    if (mChannel) {
-      mChannel->GetCanceledReason(cancelReason);
-    }
-
-    if (cancelReason.EqualsLiteral("navigation")) {
-      CancelTimeoutTimer();
-      CancelSyncTimeoutTimer();
-      StopProgressEventTimer();
-
-      mState = XMLHttpRequest_Binding::DONE;
-      mFlagSend = false;
-      ResetResponse();
-
-      if (!mFlagDeleted) {
-        FireReadystatechangeEvent();
-        if (mUpload && !mUploadComplete) {
-          mUploadComplete = true;
-          if (mFlagHadUploadListenersOnSend) {
-            DispatchProgressEvent(mUpload, Events::loadend, 0, -1);
-          }
-        }
-        DispatchProgressEvent(this, Events::loadend, 0, -1);
-      }
-    } else {
-      IgnoredErrorResult rv;
-      RequestErrorSteps(Events::abort, NS_ERROR_DOM_ABORT_ERR, rv);
-    }
-
+    IgnoredErrorResult rv;
+    RequestErrorSteps(Events::abort, NS_ERROR_DOM_ABORT_ERR, rv);
     ChangeState(XMLHttpRequest_Binding::UNSENT, false);
     return NS_OK;
   }

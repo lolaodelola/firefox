@@ -4188,14 +4188,6 @@ nsresult nsDocShell::StopInternal(
     // XXXbz We could also pass |this| to nsIURILoader::Stop.  That will
     // just call Stop() on us as an nsIDocumentLoader... We need fewer
     // redundant apis!
-    if (aUnsetOngoingNavigation == UnsetOngoingNavigation::No && mLoadGroup) {
-      // Tag load group cancellation as navigation-caused so that XHR can
-      // suppress abort events (bug 1505389). SetCanceledReason is
-      // first-write-wins, so nsDocLoader::Stop's reason won't overwrite.
-
-      // XXX Consider using a flag on LoadGroup instead of CanceledReason
-      mLoadGroup->SetCanceledReason("navigation"_ns);
-    }
     Stop();
 
     // Clear out mChannelToDisconnectOnPageHide. This page won't go in the
