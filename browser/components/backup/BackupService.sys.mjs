@@ -1326,35 +1326,7 @@ export class BackupService extends EventTarget {
       }
     }, BackupService.REGENERATION_DEBOUNCE_RATE_MS);
     this.#postRecoveryPromise.then(() => {
-      const payload = {
-        is_restored:
-          !!Services.prefs.getIntPref(
-            "browser.backup.profile-restoration-date",
-            0
-          ) &&
-          !Services.prefs.getBoolPref("browser.profiles.profile-copied", false),
-      };
-      if (payload.is_restored) {
-        let backupMetadata = {};
-        try {
-          backupMetadata = JSON.parse(
-            Services.prefs.getStringPref(
-              RESTORED_BACKUP_METADATA_PREF_NAME,
-              "{}"
-            )
-          );
-        } catch {}
-        payload.backup_timestamp = backupMetadata.date
-          ? new Date(backupMetadata.date).getTime()
-          : null;
-        payload.backup_app_name = backupMetadata.appName || null;
-        payload.backup_app_version = backupMetadata.appVersion || null;
-        payload.backup_build_id = backupMetadata.buildID || null;
-        payload.backup_os_name = backupMetadata.osName || null;
-        payload.backup_os_version = backupMetadata.osVersion || null;
-        payload.backup_legacy_client_id = backupMetadata.legacyClientID || null;
-      }
-      Glean.browserBackup.restoredProfileData.set(payload);
+      this.#setRestoredProfileDataMetric();
     });
 
     this.#lastSeenArchiveStatus = this.archiveEnabledStatus;
@@ -1375,6 +1347,53 @@ export class BackupService extends EventTarget {
    */
   get postRecoveryComplete() {
     return this.#postRecoveryPromise;
+  }
+
+  /**
+   * Sets the Glean restored_profile_data object metric. Reads from the
+   * restored-backup-metadata pref if the profile was restored from a backup.
+   *
+   * @param {object} [backupMetadata=null]
+   *   If provided, uses this metadata directly instead of reading from the
+   *   pref. This is used by checkForPostRecovery on the first launch after
+   *   a restore, where the metadata is available before it's written to the
+   *   pref.
+   */
+  #setRestoredProfileDataMetric(backupMetadata = null) {
+    const payload = {
+      is_restored:
+        !!Services.prefs.getIntPref(
+          "browser.backup.profile-restoration-date",
+          0
+        ) &&
+        !Services.prefs.getBoolPref("browser.profiles.profile-copied", false),
+    };
+    if (payload.is_restored) {
+      if (!backupMetadata) {
+        try {
+          backupMetadata = JSON.parse(
+            Services.prefs.getStringPref(
+              RESTORED_BACKUP_METADATA_PREF_NAME,
+              "{}"
+            )
+          );
+        } catch {
+          backupMetadata = {};
+        }
+      }
+      payload.backup_timestamp = backupMetadata.date
+        ? new Date(backupMetadata.date).getTime()
+        : null;
+      payload.backup_app_name = backupMetadata.appName || null;
+      payload.backup_app_version = backupMetadata.appVersion || null;
+      payload.backup_build_id = backupMetadata.buildID || null;
+      payload.backup_os_name = backupMetadata.osName || null;
+      payload.backup_os_version = backupMetadata.osVersion || null;
+      payload.backup_legacy_client_id = backupMetadata.healthTelemetryEnabled
+        ? backupMetadata.legacyClientID || null
+        : null;
+    }
+    Glean.browserBackup.restoredProfileData.set(payload);
   }
 
   /**
@@ -3506,6 +3525,8 @@ export class BackupService extends EventTarget {
             osName: this.#_state.backupFileInfo.osName,
             osVersion: this.#_state.backupFileInfo.osVersion,
             legacyClientID: this.#_state.backupFileInfo.legacyClientID,
+            healthTelemetryEnabled:
+              this.#_state.backupFileInfo.healthTelemetryEnabled,
           },
         };
       } catch {}
@@ -3667,6 +3688,26 @@ export class BackupService extends EventTarget {
         postRecovery[
           DefaultBackupResources.SelectableProfileBackupResource.key
         ] = { themeId };
+      }
+
+      if (!copiedProfile) {
+        try {
+          postRecovery.backupServiceInternal = {
+            isProfileRestore: true,
+            restoreID: this.#_state.restoreID,
+            backupMetadata: {
+              date: this.#_state.backupFileInfo.date,
+              appName: this.#_state.backupFileInfo.appName,
+              appVersion: this.#_state.backupFileInfo.appVersion,
+              buildID: this.#_state.backupFileInfo.buildID,
+              osName: this.#_state.backupFileInfo.osName,
+              osVersion: this.#_state.backupFileInfo.osVersion,
+              legacyClientID: this.#_state.backupFileInfo.legacyClientID,
+              healthTelemetryEnabled:
+                this.#_state.backupFileInfo.healthTelemetryEnabled,
+            },
+          };
+        } catch {}
       }
 
       await this.#writePostRecoveryData(postRecovery, profile.path);
