@@ -3946,7 +3946,8 @@ bool CheckPreloadAttrs(const nsAttrValue& aAs, const nsAString& aType,
     return true;
   }
 
-  if (policyType == nsIContentPolicy::TYPE_INTERNAL_FETCH_PRELOAD) {
+  if (policyType == nsIContentPolicy::TYPE_INTERNAL_FETCH_PRELOAD ||
+      policyType == nsIContentPolicy::TYPE_TEXT) {
     return true;
   }
 
