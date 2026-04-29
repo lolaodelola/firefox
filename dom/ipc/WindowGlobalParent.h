@@ -477,8 +477,6 @@ class WindowGlobalParent final : public WindowContext,
   bool mShouldReportHasBlockedOpaqueResponse = false;
 };
 
-nsCString BFCacheStatusToString(uint32_t aFlags);
-
 }  // namespace dom
 }  // namespace mozilla
 
