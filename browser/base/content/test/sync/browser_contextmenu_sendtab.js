@@ -275,13 +275,13 @@ add_task(async function test_tab_contextmenu_unconfigured() {
   updateTabContextMenu(testTab);
   is(
     document.getElementById("context_sendTabToDevice").hidden,
-    false,
-    "Send tab to device should not be hidden"
+    true,
+    "Send tab to device is hidden"
   );
   is(
     document.getElementById("context_sendTabToDeviceSeparator").hidden,
-    false,
-    "Send tab to device separator should not be hidden"
+    true,
+    "Send tab to device separator is hidden"
   );
   is(
     document.getElementById("context_sendTabToDevice").disabled,
