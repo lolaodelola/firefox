@@ -219,6 +219,12 @@ export class BackupUIParent extends JSWindowActorParent {
          * TODO: (Bug 1905156) display a localized version of error in the restore dialog.
          */
       }
+    } else if (message.name == "FindBackupsInWellKnownLocations") {
+      let { source } = message.data;
+      await this.#bs.findBackupsInWellKnownLocations({
+        validateFile: true,
+        source,
+      });
     } else if (message.name == "RestoreFromBackupChooseFile") {
       const window = this.browsingContext.topChromeWindow;
       this.#bs.filePickerForRestore(window);

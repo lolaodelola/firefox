@@ -136,6 +136,8 @@ export class BackupUIChild extends JSWindowActorChild {
       this.sendAsyncMessage("FlushEmbeddedComponentPersistentData");
     } else if (event.type == "BackupUI:ErrorBarDismissed") {
       this.sendAsyncMessage("ErrorBarDismissed");
+    } else if (event.type == "BackupUI:FindBackupsInWellKnownLocations") {
+      this.sendAsyncMessage("FindBackupsInWellKnownLocations", event.detail);
     }
   }
 

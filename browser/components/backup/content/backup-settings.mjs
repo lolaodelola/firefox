@@ -249,6 +249,13 @@ export default class BackupSettings extends MozLitElement {
 
   handleShowRestoreDialog() {
     if (this.restoreFromBackupDialogEl) {
+      this.dispatchEvent(
+        new CustomEvent("BackupUI:FindBackupsInWellKnownLocations", {
+          bubbles: true,
+          composed: true,
+          detail: { source: "preferences" },
+        })
+      );
       this.restoreFromBackupDialogEl.showModal();
       this.restoreFromBackupEl.resizeTextarea();
     }

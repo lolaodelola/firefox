@@ -3,28 +3,33 @@
 
 "use strict";
 
-// Helper that creates an empty (but "valid-looking") backup file
-async function createStubBackupFile(dirPath, filename) {
-  const filePath = PathUtils.join(dirPath, filename);
-  await IOUtils.writeUTF8(filePath, "<!-- stub backup -->", {
-    tmpPath: filePath + ".tmp",
-  });
-  return filePath;
+const FAKE_DATE = "2024-12-01T12:00:00+00:00";
+const docsDirName = "Documents";
+const oneDriveDirName = "OneDrive";
+const backupDirName = "Restore Firefox";
+const backupFilename = "FirefoxBackup_.html";
+
+async function setupBackupDir(name) {
+  const root = await IOUtils.createUniqueDirectory(PathUtils.tempDir, name);
+  const dir = PathUtils.join(root, "Backups");
+  await IOUtils.makeDirectory(dir, { createAncestors: true });
+  return { root, dir };
+}
+
+async function touchBackupFile(dir, fileName) {
+  const p = PathUtils.join(dir, fileName);
+  await IOUtils.writeUTF8(p, "<!-- stub backup -->", { tmpPath: p + ".tmp" });
+  return p;
 }
 
 add_task(
   async function test_findBackupsInWellKnownLocations_and_multipleFiles() {
-    // make an isolated temp folder to act as the “default backup dir”
-    const TEST_ROOT = await IOUtils.createUniqueDirectory(
-      PathUtils.tempDir,
+    const { root: TEST_ROOT, dir: BACKUP_DIR } = await setupBackupDir(
       "test-findBackupsInWellKnownLocations"
     );
-    const BACKUP_DIR = PathUtils.join(TEST_ROOT, "Backups");
-    await IOUtils.makeDirectory(BACKUP_DIR, { createAncestors: true });
 
     Services.prefs.setStringPref("browser.backup.location", BACKUP_DIR);
 
-    // Create the service and force it to search our temp folder instead of the real default
     let bs = new BackupService();
     let sandbox = sinon.createSandbox();
 
@@ -32,7 +37,6 @@ add_task(
     // what happens when a valid backup file's validity is checked
     sandbox.stub(bs, "getBackupFileInfo").callsFake(async _filePath => {});
 
-    // Sanity: the directory exists and is empty
     Assert.ok(await IOUtils.exists(BACKUP_DIR), "Backup directory exists");
     Assert.equal(
       (await IOUtils.getChildren(BACKUP_DIR)).length,
@@ -42,7 +46,7 @@ add_task(
 
     // 1) Single valid file -> findBackupsInWellKnownLocations should find it
     const ONE = "FirefoxBackup_one_20241201-1200.html";
-    await createStubBackupFile(BACKUP_DIR, ONE);
+    await touchBackupFile(BACKUP_DIR, ONE);
 
     let result = await bs.findBackupsInWellKnownLocations();
     Assert.ok(result.found, "Found should be true with one candidate");
@@ -51,7 +55,6 @@ add_task(
       false,
       "multipleBackupsFound should be false"
     );
-    // The service stores whatever IOUtils.getChildren returns; assert path ends with our file
     Assert.ok(
       result.backupFileToRestore && result.backupFileToRestore.endsWith(ONE),
       "backupFileToRestore should point at the single html file"
@@ -59,7 +62,7 @@ add_task(
 
     // 2) Add a second matching file -> well-known search should refuse to pick (validateFile=false)
     const TWO = "FirefoxBackup_two_20241202-1300.html";
-    await createStubBackupFile(BACKUP_DIR, TWO);
+    await touchBackupFile(BACKUP_DIR, TWO);
 
     let result2 = await bs.findBackupsInWellKnownLocations();
     Assert.ok(
@@ -80,7 +83,7 @@ add_task(
     // 3) Call the lower-level API with multipleFiles=true (still no validation)
     let { multipleBackupsFound } = await bs.findIfABackupFileExists({
       validateFile: false,
-      multipleFiles: true, // allow choosing even if we see more than one
+      multipleFiles: true,
     });
     Assert.ok(!multipleBackupsFound, "Should not report multiple when allowed");
 
@@ -104,16 +107,10 @@ add_task(
       "Should select the newest file when validateFile=true"
     );
 
-    // Cleanup
     sandbox.restore();
     await IOUtils.remove(TEST_ROOT, { recursive: true });
   }
 );
-
-const docsDirName = "Documents";
-const oneDriveDirName = "OneDrive";
-const backupDirName = "Restore Firefox";
-const backupFilename = "FirefoxBackup_.html";
 
 add_task(async function test_findBackupInDocsAfterSignInToOneDrive() {
   const testRoot = await IOUtils.createUniqueDirectory(
@@ -124,7 +121,7 @@ add_task(async function test_findBackupInDocsAfterSignInToOneDrive() {
   const docsDir = PathUtils.join(testRoot, docsDirName);
   const backupDir = PathUtils.join(docsDir, backupDirName);
   await IOUtils.makeDirectory(backupDir, { createAncestors: true });
-  await createStubBackupFile(backupDir, backupFilename);
+  await touchBackupFile(backupDir, backupFilename);
 
   const oneDriveDir = PathUtils.join(testRoot, oneDriveDirName);
   await IOUtils.makeDirectory(oneDriveDir, { createAncestors: true });
@@ -160,7 +157,7 @@ add_task(async function test_findBackupInOneDriveDocsAfterSignInToOneDrive() {
   const oneDriveDocsDir = PathUtils.join(oneDriveDir, docsDirName);
   const backupDir = PathUtils.join(oneDriveDocsDir, backupDirName);
   await IOUtils.makeDirectory(backupDir, { createAncestors: true });
-  await createStubBackupFile(backupDir, backupFilename);
+  await touchBackupFile(backupDir, backupFilename);
 
   let backupService = new BackupService();
   let sandbox = sinon.createSandbox();
@@ -179,4 +176,108 @@ add_task(async function test_findBackupInOneDriveDocsAfterSignInToOneDrive() {
 
   sandbox.restore();
   await IOUtils.remove(testRoot, { recursive: true });
+});
+
+add_task(async function test_backupDetectionComplete_telemetry() {
+  // Use a single testResetFOG() call for all telemetry sub-tests, because
+  // the backup_detection_complete event is sent in the custom
+  // "profile-restore" ping and repeated testResetFOG() calls can lose
+  // custom-ping event stores.
+  Services.fog.testResetFOG();
+
+  // --- Sub-test 1: no source => no event recorded ---
+  {
+    const { root, dir } = await setupBackupDir("test-detectionNoSource");
+    Services.prefs.setStringPref("browser.backup.location", dir);
+
+    let bs = new BackupService();
+    let sandbox = sinon.createSandbox();
+    sandbox.stub(bs, "getBackupFileInfo").callsFake(async _filePath => {});
+
+    await touchBackupFile(dir, "FirefoxBackup_test_20241201-1200.html");
+    await bs.findBackupsInWellKnownLocations();
+
+    let events = Glean.browserBackup.backupDetectionComplete.testGetValue();
+    Assert.equal(events, undefined, "No event recorded without source.");
+
+    sandbox.restore();
+    await IOUtils.remove(root, { recursive: true });
+  }
+
+  // --- Sub-test 2: source provided, backup found => event with full data ---
+  {
+    const { root, dir } = await setupBackupDir("test-detectionTelemetry");
+    Services.prefs.setStringPref("browser.backup.location", dir);
+
+    let bs = new BackupService();
+    let sandbox = sinon.createSandbox();
+
+    sandbox.stub(bs, "sampleArchive").resolves({
+      archiveJSON: { meta: { date: FAKE_DATE } },
+      isEncrypted: false,
+    });
+    sandbox.stub(bs, "classifyLocationForTelemetry").returns("documents");
+
+    const FILE = "FirefoxBackup_test_20241201-1200.html";
+    await touchBackupFile(dir, FILE);
+
+    await bs.findBackupsInWellKnownLocations({
+      validateFile: true,
+      source: "onboarding",
+    });
+
+    let events = Glean.browserBackup.backupDetectionComplete.testGetValue();
+    Assert.equal(events.length, 1, "One detection event was recorded.");
+
+    let extra = events[0].extra;
+    Assert.equal(extra.count, "1", "Count is 1.");
+    Assert.equal(extra.source, "onboarding", "Source is onboarding.");
+    Assert.equal(extra.location, "documents", "Location matches.");
+    Assert.ok(extra.restore_id, "Restore ID is present.");
+    Assert.equal(
+      extra.backup_timestamp,
+      String(new Date(FAKE_DATE).getTime()),
+      "Backup timestamp matches the date from backupFileInfo."
+    );
+
+    sandbox.restore();
+    await IOUtils.remove(root, { recursive: true });
+  }
+
+  // --- Sub-test 3: source provided, no backups => event with zeroed data ---
+  {
+    const { root, dir } = await setupBackupDir("test-detectionEmpty");
+    Services.prefs.setStringPref("browser.backup.location", dir);
+
+    let bs = new BackupService();
+    await bs.findBackupsInWellKnownLocations({
+      validateFile: true,
+      source: "preferences",
+    });
+
+    // Event from sub-test 2 is still present (index 0); this is index 1.
+    let events = Glean.browserBackup.backupDetectionComplete.testGetValue();
+    Assert.equal(events.length, 2, "Two detection events total.");
+
+    let extra = events[1].extra;
+    Assert.equal(extra.count, "0", "Count is 0 when no backups exist.");
+    Assert.equal(extra.source, "preferences", "Source is preferences.");
+    Assert.equal(
+      extra.backup_timestamp,
+      "0",
+      "Backup timestamp is 0 when nothing found."
+    );
+    Assert.equal(
+      extra.location,
+      "none",
+      "Location is none when nothing found."
+    );
+    Assert.equal(
+      extra.restore_id,
+      "",
+      "Restore ID is empty when nothing found."
+    );
+
+    await IOUtils.remove(root, { recursive: true });
+  }
 });

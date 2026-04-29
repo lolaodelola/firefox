@@ -867,6 +867,52 @@ browser.backup:
         type: string
         description: The identifier for the potential profile restore event.
 
+  backup_detection_complete:
+    type: event
+    description: >
+      Dispatched when Firefox finishes looking for backup files in known locations.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2028360
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=2028360
+    data_sensitivity:
+      - technical
+    send_in_pings:
+      - profile-restore
+    notification_emails:
+      - hsohaney@mozilla.com
+    expires: never
+    extra_keys:
+      count:
+        type: quantity
+        description: >
+          The number of backups detected. This will be zero if there are no
+          backups detected.
+      backup_timestamp:
+        type: quantity
+        description: >
+          If one or more backups are detected, the most recent backup timestamp
+          from among the detected backups, recorded as the number of
+          milliseconds between the epoch and the creation of the backup.
+      location:
+        type: string
+        description: >
+          If one or more backups are detected, the location of the backup with
+          the most recent timestamp. This can be either "onedrive",
+          "documents", or "other". "other" will be sent if the file's parent
+          directory doesn't match the default "documents" or "onedrive" save
+          paths.
+      source:
+        type: string
+        description: >
+          Which part of Firefox ran the backup detection. Currently this can be
+          "onboarding" or "preferences".
+      restore_id:
+        type: string
+        description: >
+          A unique identifier which is then reused in subsequent
+          profile-restore events and the one post-profile-restore event.
+
   restored_profile_launched:
     type: event
     description: >

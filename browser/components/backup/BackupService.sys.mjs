@@ -1868,9 +1868,10 @@ export class BackupService extends EventTarget {
 
     let location;
     try {
-      // By default, the backup will go into a folder called 'Restore Firefox',
-      // so we actually want the parent directory.
-      location = lazy.nsLocalFile(path).parent;
+      // Backup files live inside a subfolder (e.g. "Restore Firefox") under
+      // the actual save location (Documents, OneDrive, etc.), so we need the
+      // grandparent of the file.
+      location = lazy.nsLocalFile(path).parent?.parent;
     } catch (e) {
       // initWithPath (at least on Windows) is _really_ picky; e.g.
       // "C:/Windows/system32" will fail. Bail out if something went wrong so
@@ -5012,6 +5013,7 @@ export class BackupService extends EventTarget {
    *
    * @returns {Promise<object>} A result object with the following properties:
    * - {boolean} multipleBackupsFound — True if more than one backup candidate was found and `multipleFiles` is false.
+   * - {number} count — The number of backup candidate files found matching the expected filename pattern.
    */
   async findIfABackupFileExists({
     validateFile = true,
@@ -5023,6 +5025,7 @@ export class BackupService extends EventTarget {
       return {
         found: true,
         multipleBackupsFound: false,
+        count: 1,
       };
     }
 
@@ -5061,6 +5064,7 @@ export class BackupService extends EventTarget {
       if (speedUpHeuristic && files && files.length > 1000) {
         return {
           multipleBackupsFound: false,
+          count: 0,
         };
       }
 
@@ -5077,7 +5081,7 @@ export class BackupService extends EventTarget {
       // if we aren't validating files, and there's more than 1 html file, we decide
       // that there's no valid backup file found
       if (!multipleFiles && maybeBackupFiles.length > 1 && !validateFile) {
-        return { multipleBackupsFound: true };
+        return { multipleBackupsFound: true, count: maybeBackupFiles.length };
       }
 
       // Sort the files by the timestamp at the end of the filename,
@@ -5129,13 +5133,16 @@ export class BackupService extends EventTarget {
         // but we also validated files to set the newest backup file as the file to restore,
         // we still want to return that multiple backups were found.
         if (multipleFiles && maybeBackupFiles.length > 1 && validateFile) {
-          return { multipleBackupsFound: true };
+          return {
+            multipleBackupsFound: true,
+            count: maybeBackupFiles.length,
+          };
         }
 
         // TODO: support multiple valid backups for different profiles.
         // Currently, we break out of the loop and select the first profile that works.
         // We want to eventually support showing multiple valid profiles to the user.
-        return { multipleBackupsFound: false };
+        return { multipleBackupsFound: false, count: maybeBackupFiles.length };
       }
     } catch (e) {
       lazy.logConsole.error(
@@ -5144,7 +5151,7 @@ export class BackupService extends EventTarget {
       );
     }
 
-    return { multipleBackupsFound: false };
+    return { multipleBackupsFound: false, count: 0 };
   }
 
   /**
@@ -5164,6 +5171,9 @@ export class BackupService extends EventTarget {
    *   before selecting it.
    * @param {boolean} [options.multipleFiles=false] - Whether to allow selecting a file
    *   when multiple files are found
+   * @param {string} [options.source] - If provided, records a
+   *   backup_detection_complete telemetry event with this value as the source
+   *   (e.g. "onboarding", "preferences"). If omitted, no event is recorded.
    *
    * @returns {Promise<object>} A result object with the following properties:
    * - {boolean} found — Whether a backup file was found.
@@ -5173,16 +5183,32 @@ export class BackupService extends EventTarget {
   async findBackupsInWellKnownLocations({
     validateFile = false,
     multipleFiles = false,
+    source = null,
   } = {}) {
     this.#_state.backupFileToRestore = null;
 
-    let { multipleBackupsFound } = await this.findIfABackupFileExists({
+    let { multipleBackupsFound, count } = await this.findIfABackupFileExists({
       validateFile,
       multipleFiles,
     });
 
-    // if a valid backup file was found, backupFileToRestore should be set
-    if (this.#_state.backupFileToRestore) {
+    let found = !!this.#_state.backupFileToRestore;
+
+    if (source) {
+      let backupDate = found ? this.#_state.backupFileInfo?.date : null;
+      let extra = {
+        count,
+        source,
+        backup_timestamp: backupDate ? new Date(backupDate).getTime() : 0,
+        location: found
+          ? this.#_state.backupFileCoarseLocation || "other"
+          : "none",
+        restore_id: found ? this.#_state.restoreID || "" : "",
+      };
+      Glean.browserBackup.backupDetectionComplete.record(extra);
+    }
+
+    if (found) {
       return {
         found: true,
         backupFileToRestore: this.#_state.backupFileToRestore,

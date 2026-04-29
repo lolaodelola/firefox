@@ -462,7 +462,10 @@ export const QueryCache = {
           } catch {
             bs = lazy.BackupService.init();
           }
-          return bs.findBackupsInWellKnownLocations();
+          return bs.findBackupsInWellKnownLocations({
+            validateFile: true,
+            source: "onboarding",
+          });
         },
       }
     ),
