@@ -93,6 +93,7 @@
 #include "nsListControlFrame.h"
 #include "nsNameSpaceManager.h"
 #include "nsNodeInfoManager.h"
+#include "nsPlaceholderFrame.h"
 #include "nsPresContext.h"
 #include "nsPresContextInlines.h"
 #include "nsRefreshDriver.h"
@@ -7622,6 +7623,8 @@ static void AppendScrollPositionsForSnap(
   }
 }
 
+enum class ContainingBlockContext { Direct, Nested };
+
 /**
  * Collect the scroll positions corresponding to snap positions of frames in the
  * subtree rooted at |aFrame|, relative to |aScrolledFrame|, into |aSnapInfo|.
@@ -7630,16 +7633,42 @@ static void CollectScrollPositionsForSnap(
     nsIFrame* aFrame, nsIFrame* aScrolledFrame, const nsRect& aScrolledRect,
     const nsMargin& aScrollPadding, const nsRect& aScrollRange,
     WritingMode aWritingModeOnScroller, ScrollSnapInfo& aSnapInfo,
-    ScrollContainerFrame::SnapTargetSet* aSnapTargets) {
+    ScrollContainerFrame::SnapTargetSet* aSnapTargets,
+    ContainingBlockContext aContext) {
+  ScrollContainerFrame* sf = do_QueryFrame(aFrame);
+  // Absolute containing block inside a sub-scroller,
+  // will not contain any OOF snap targets for the
+  // outer scroller.
+  if (aFrame->IsAbsPosContainingBlock() &&
+      aContext == ContainingBlockContext::Nested) {
+    return;
+  }
   // Snap positions only affect the nearest ancestor scroll container on the
   // element's containing block chain.
-  ScrollContainerFrame* sf = do_QueryFrame(aFrame);
   if (sf) {
+    // Note: this function is called initially with `mScrolledFrame` as
+    // `aFrame`, not the `ScrollContainerFrame` itself, so this branch is only
+    // reached for nested scroll containers.
+    // If the sub-scroll container is an abs-pos containing block, all its
+    // position:absolute descendants are contained by it, so there are no
+    // OOF snap targets to collect for the outer scroll container.
+    if (aFrame->IsAbsPosContainingBlock()) {
+      return;
+    }
+    // Sub-scroll container: don't collect its own snap targets, but traverse
+    // into it to find OOF placeholders for position:absolute elements whose
+    // containing block is an ancestor.
+    for (nsIFrame* f : aFrame->PrincipalChildList()) {
+      CollectScrollPositionsForSnap(
+          f, aScrolledFrame, aScrolledRect, aScrollPadding, aScrollRange,
+          aWritingModeOnScroller, aSnapInfo, aSnapTargets,
+          ContainingBlockContext::Nested);
+    }
     return;
   }
 
-  for (const auto& childList : aFrame->ChildLists()) {
-    for (nsIFrame* f : childList.mList) {
+  auto processFrame = [&](nsIFrame* f, ContainingBlockContext aCtx) {
+    if (aCtx == ContainingBlockContext::Direct) {
       const nsStyleDisplay* styleDisplay = f->StyleDisplay();
       if (styleDisplay->mScrollSnapAlign.inline_ !=
               StyleScrollSnapAlignKeyword::None ||
@@ -7649,10 +7678,23 @@ static void CollectScrollPositionsForSnap(
             f, aScrolledFrame, aScrolledRect, aScrollPadding, aScrollRange,
             aWritingModeOnScroller, aSnapInfo, aSnapTargets);
       }
-      CollectScrollPositionsForSnap(
-          f, aScrolledFrame, aScrolledRect, aScrollPadding, aScrollRange,
-          aWritingModeOnScroller, aSnapInfo, aSnapTargets);
     }
+    CollectScrollPositionsForSnap(
+        f, aScrolledFrame, aScrolledRect, aScrollPadding, aScrollRange,
+        aWritingModeOnScroller, aSnapInfo, aSnapTargets, aCtx);
+  };
+
+  for (nsIFrame* f : aFrame->PrincipalChildList()) {
+    if (f->IsPlaceholderFrame()) {
+      if (nsIFrame* oof =
+              static_cast<nsPlaceholderFrame*>(f)->GetOutOfFlowFrame()) {
+        if (nsLayoutUtils::IsProperAncestorFrame(aScrolledFrame, oof)) {
+          processFrame(oof, ContainingBlockContext::Direct);
+        }
+      }
+      continue;
+    }
+    processFrame(f, aContext);
   }
 }
 
@@ -7730,9 +7772,10 @@ ScrollSnapInfo ScrollContainerFrame::ComputeScrollSnapInfo() {
     return result;
   }
 
-  CollectScrollPositionsForSnap(
-      mScrolledFrame, mScrolledFrame, GetScrolledRect(), GetScrollPadding(),
-      GetLayoutScrollRange(), writingMode, result, &mSnapTargets);
+  CollectScrollPositionsForSnap(mScrolledFrame, mScrolledFrame,
+                                GetScrolledRect(), GetScrollPadding(),
+                                GetLayoutScrollRange(), writingMode, result,
+                                &mSnapTargets, ContainingBlockContext::Direct);
   return result;
 }
 
