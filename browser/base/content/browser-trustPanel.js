@@ -972,32 +972,34 @@ class TrustPanel {
     let owner = "";
 
     // Fill in the CA name if we have a valid TLS certificate.
-    if (this.#isSecureConnection || this.#isCertUserOverridden) {
-      verifier = this.#tooltipText();
+    if (this.#isSecureConnection) {
+      verifier = this.#getIdentityData().caOrg;
     }
 
     // Fill in organization information if we have a valid EV certificate or
     // QWAC.
     if (this.#isEV || this.#qwac) {
-      let iData = this.#getIdentityData(this.#qwac || this.#secInfo.serverCert);
-      owner = iData.subjectOrg;
-      verifier = this.#tooltipText();
+      let identityData = this.#getIdentityData(
+        this.#qwac || this.#secInfo.serverCert
+      );
+      owner = identityData.subjectOrg;
+      verifier = identityData.caOrg;
 
       // Build an appropriate supplemental block out of whatever location data we have
-      if (iData.city) {
-        supplemental += iData.city + "\n";
+      if (identityData.city) {
+        supplemental += identityData.city + "\n";
       }
-      if (iData.state && iData.country) {
+      if (identityData.state && identityData.country) {
         supplemental += gNavigatorBundle.getFormattedString(
           "identity.identified.state_and_country",
-          [iData.state, iData.country]
+          [identityData.state, identityData.country]
         );
-      } else if (iData.state) {
+      } else if (identityData.state) {
         // State only
-        supplemental += iData.state;
-      } else if (iData.country) {
+        supplemental += identityData.state;
+      } else if (identityData.country) {
         // Country only
-        supplemental += iData.country;
+        supplemental += identityData.country;
       }
     }
     return { supplemental, verifier, owner };

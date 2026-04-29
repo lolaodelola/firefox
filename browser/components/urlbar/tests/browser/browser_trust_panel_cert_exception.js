@@ -75,5 +75,18 @@ add_task(async () => {
     ),
     "Don't show unencryped warning on self signed certs"
   );
+
+  await UrlbarTestUtils.openTrustPanelSubview(
+    window,
+    "trustpanel-securityInformationView"
+  );
+  Assert.ok(
+    BrowserTestUtils.isVisible(
+      document.getElementById(
+        "identity-popup-content-cert-exception-overridden"
+      )
+    ),
+    "Show user-added certificate error exception text"
+  );
   await UrlbarTestUtils.closeTrustPanel(window);
 });

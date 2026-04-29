@@ -36,9 +36,37 @@ add_task(async function test_https() {
 
   Assert.ok(
     BrowserTestUtils.isVisible(
+      document.getElementById("identity-popup-content-verifier-label")
+    ),
+    "'Verified by:' label visible"
+  );
+  let issuerOrganization = document.getElementById(
+    "identity-popup-content-verifier"
+  );
+  Assert.ok(
+    BrowserTestUtils.isVisible(issuerOrganization),
+    "issuer (verifier) organization text visible"
+  );
+  Assert.equal(
+    issuerOrganization.textContent,
+    "Mozilla Testing",
+    "issuer (verifier) text as expected"
+  );
+
+  Assert.ok(
+    BrowserTestUtils.isVisible(
       document.getElementById("identity-popup-content-verifier-unknown")
     ),
     "custom root warning in sub panel is visible"
+  );
+
+  Assert.ok(
+    BrowserTestUtils.isHidden(
+      document.getElementById(
+        "identity-popup-content-cert-exception-overridden"
+      )
+    ),
+    "user-added certificate error exception text is not visible"
   );
 
   await UrlbarTestUtils.closeTrustPanel(window);
@@ -146,6 +174,25 @@ add_task(async function test_2_qwac() {
 
   // Wait for the QWAC status to be determined.
   await gTrustPanelHandler.qwacStatusPromise;
+
+  Assert.ok(
+    BrowserTestUtils.isVisible(
+      document.getElementById("identity-popup-content-verifier-label")
+    ),
+    "'Verified by:' label visible"
+  );
+  let issuerOrganization = document.getElementById(
+    "identity-popup-content-verifier"
+  );
+  Assert.ok(
+    BrowserTestUtils.isVisible(issuerOrganization),
+    "issuer (verifier) organization text visible"
+  );
+  Assert.equal(
+    issuerOrganization.textContent,
+    "Test CA",
+    "issuer (verifier) text as expected"
+  );
 
   Assert.ok(
     BrowserTestUtils.isVisible(
