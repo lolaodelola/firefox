@@ -23,10 +23,18 @@ XPCOMUtils.defineLazyPreferenceGetter(
   ""
 );
 
+ChromeUtils.defineLazyGetter(lazy, "contentSharingL10n", () => {
+  return new Localization(["browser/contentSharing.ftl"]);
+});
+
 const MAX_ITEM_COUNT = 30;
 // Delay for server retries. Lower in testing so the test doesn't time out.
 const BASE_DELAY = Cu.isInAutomation ? 100 : 1000;
 const MAX_REQUEST_ATTEMPTS = 5;
+
+const CONTENT_SHARING_MODAL_URL =
+  "chrome://browser/content/contentsharing/contentSharingModal.xhtml";
+
 const SCHEMA_MAP = new Map();
 async function loadContentSharingSchema() {
   if (SCHEMA_MAP.has("CONTENT_SHARING_SCHEMA")) {
@@ -82,9 +90,8 @@ class ContentSharingUtilsClass {
    * folder and the rest will be nested inside it.
    *
    * @param {Array<string>} bookmarkFolderGuids An array of bookmark folder guids
-   * @param {Window} window The browser window to open the modal in
    */
-  async createShareableLinkFromBookmarkFolders(bookmarkFolderGuids, window) {
+  async createShareableLinkFromBookmarkFolders(bookmarkFolderGuids) {
     let share;
     try {
       share = await this.buildShareFromBookmarkFolders(bookmarkFolderGuids);
@@ -92,7 +99,7 @@ class ContentSharingUtilsClass {
       console.error("ContentSharingUtils: failed to share bookmarks", e);
     }
     if (share) {
-      await this.#createLinkAndOpenModal(share, window, "bookmarks");
+      await this.#createLinkAndOpenModal(share, "bookmarks");
     }
   }
 
@@ -105,16 +112,24 @@ class ContentSharingUtilsClass {
     if (!tabs.length) {
       return;
     }
+
+    const title = await lazy.contentSharingL10n.formatValue(
+      "content-sharing-tabs-title",
+      {
+        count: tabs.length,
+      }
+    );
+
     const shareObject = {
       type: "tabs",
-      title: `${tabs.length} tabs`,
+      title,
       children: tabs.map(t => ({
         uri: t.linkedBrowser.currentURI.spec,
         title: t.label,
       })),
     };
     const share = this.buildShare(shareObject);
-    await this.#createLinkAndOpenModal(share, tabs[0].ownerGlobal, "tabs");
+    await this.#createLinkAndOpenModal(share, "tabs");
   }
 
   /**
@@ -141,11 +156,7 @@ class ContentSharingUtilsClass {
       }),
     };
     const share = this.buildShare(shareObject);
-    await this.#createLinkAndOpenModal(
-      share,
-      tabGroup.ownerGlobal,
-      "tab group"
-    );
+    await this.#createLinkAndOpenModal(share, "tab group");
   }
 
   /**
@@ -281,32 +292,22 @@ class ContentSharingUtilsClass {
   }
 
   /**
-   * @param {object} share
-   * @param {Window} window
+   * Validate the share object, attempt to create a shareable link by sending
+   * the share to the server.
+   *
+   * @param {object} share The share object
    * @param {string} context Used in error logging (e.g. "tabs", "tab group")
    */
-  async #createLinkAndOpenModal(share, window, context) {
-    let url;
+  async #createLinkAndOpenModal(share, context) {
+    let result = {};
     try {
-      url = await this.createShareableLink(share);
+      result = await this.createShareableLink(share);
     } catch (e) {
       console.error(`ContentSharingUtils: failed to share ${context}`, e);
     }
-    await this.openShareModal(window, { share, url });
-  }
 
-  /**
-   * Opens the content sharing modal in the given window.
-   *
-   * @param {Window} window The browser window to open the modal in
-   * @param {object} args
-   * @param {object} args.share The share object to preview in the modal
-   * @param {string} [args.url] The shareable URL, if successfully created
-   */
-  async openShareModal(window, args) {
-    const url =
-      "chrome://browser/content/contentsharing/contentSharingModal.xhtml";
-    await window.gDialogBox?.open(url, args);
+    const window = Services.wm.getMostRecentBrowserWindow();
+    window.gDialogBox.open(CONTENT_SHARING_MODAL_URL, { share, ...result });
   }
 
   /**
@@ -389,9 +390,7 @@ class ContentSharingUtilsClass {
   async createShareableLink(share) {
     await this.validateSchema(share);
 
-    const result = await this.#doRequest(share);
-
-    return result.url;
+    return this.#doRequest(share);
   }
 
   countItems(share) {

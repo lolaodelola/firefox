@@ -14,15 +14,7 @@ add_task(async function test_handleShareTabs() {
       "https://example.com/1"
     );
 
-    let modalArgs;
-    const origOpen = window.gDialogBox.open;
-    window.gDialogBox.open = (_url, args) => {
-      modalArgs = args;
-    };
-
     await ContentSharingUtils.handleShareTabs([tab1, tab2]);
-    // restore function after stubbing
-    window.gDialogBox.open = origOpen;
 
     Assert.equal(
       server.requests.length,
@@ -31,6 +23,12 @@ add_task(async function test_handleShareTabs() {
     );
 
     const body = server.requests[0].body;
+
+    await assertContentSharingModal(window, {
+      share: body,
+      url: server.mockResponse.url,
+    });
+
     Assert.equal(body.type, "tabs", "Share type is 'tabs'");
     Assert.equal(
       body.title,
@@ -48,13 +46,7 @@ add_task(async function test_handleShareTabs() {
       tab2.linkedBrowser.currentURI.displaySpec,
       "Second link URL matches tab 2"
     );
-    Assert.equal(
-      modalArgs?.url,
-      server.mockResponse.url,
-      "Modal was opened with the share URL"
-    );
 
-    BrowserTestUtils.removeTab(tab1);
-    BrowserTestUtils.removeTab(tab2);
+    gBrowser.removeTabs([tab1, tab2]);
   });
 });

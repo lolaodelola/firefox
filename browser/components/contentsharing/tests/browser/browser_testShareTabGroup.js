@@ -17,23 +17,19 @@ add_task(async function test_handleShareTabGroup() {
       label: "My tab group",
     });
 
-    let modalArgs;
-    const origOpen = window.gDialogBox.open;
-    window.gDialogBox.open = (_url, args) => {
-      modalArgs = args;
-    };
-
     await ContentSharingUtils.handleShareTabGroup(tabGroup);
-    // restore function after stubbing
-    window.gDialogBox.open = origOpen;
-
     Assert.equal(
       server.requests.length,
       1,
       "Server received exactly one request"
     );
-
     const body = server.requests[0].body;
+
+    await assertContentSharingModal(window, {
+      share: body,
+      url: server.mockResponse.url,
+    });
+
     Assert.equal(body.type, "tab_group", "Share type is 'tab_group'");
     Assert.equal(body.links.length, 2, "Share contains 2 links");
     Assert.equal(
@@ -45,11 +41,6 @@ add_task(async function test_handleShareTabGroup() {
       body.links[1].url,
       tab2.linkedBrowser.currentURI.displaySpec,
       "Second link URL matches tab 2"
-    );
-    Assert.equal(
-      modalArgs?.url,
-      server.mockResponse.url,
-      "Modal was opened with the share URL"
     );
 
     await gBrowser.removeTabGroup(tabGroup);
