@@ -424,7 +424,6 @@ system_headers = [
     "libutil.h",
     "limits.h",
     "link.h",
-    "linux/ioprio.h",
     "linux/kernel.h",
     "linux/limits.h",
     "linux/rtc.h",
