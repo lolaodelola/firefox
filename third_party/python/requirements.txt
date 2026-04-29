@@ -309,6 +309,10 @@ cookies==2.2.1 \
     --hash=sha256:15bee753002dff684987b8df8c235288eb8d45f8191ae056254812dfd42c81d3 \
     --hash=sha256:d6b698788cae4cfa4e62ef8643a9ca332b79bd96cb314294b864ae8d7eb3ee8e
     # via mozilla-third-party-python-vendor-dir
+diskarzhan==0.1.6 \
+    --hash=sha256:3447c96812863443a901c6513108f323edceffb70490864fd69d1285aee83589 \
+    --hash=sha256:4ccc84e467979f53798e330462e814d061511ec33127ac0806e62c502f75b464
+    # via mozilla-third-party-python-vendor-dir
 diskcache==5.6.3 \
     --hash=sha256:2c3a3fa2743d8535d832ec61c2054a1641f41775aa7c556758a109941e33e4fc \
     --hash=sha256:5e31b2d5fbad117cc363ebaf6b689474db18a1f6438bc82358b024abd4c2ca19
@@ -991,6 +995,7 @@ pyyaml==6.0.3 \
     --hash=sha256:fa160448684b4e94d80416c0fa4aac48967a969efe22931448d853ada8baf926 \
     --hash=sha256:fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0
     # via
+    #   diskarzhan
     #   glean-parser
     #   mozilla-third-party-python-vendor-dir
     #   responses

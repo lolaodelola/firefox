@@ -405,6 +405,18 @@ wheels = [
 ]
 
 [[package]]
+name = "diskarzhan"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f2/9d/cdba4636277393e04f7a12a26df63f8ca068807c0bfb357d2f50f95430fa/diskarzhan-0.1.6.tar.gz", hash = "sha256:4ccc84e467979f53798e330462e814d061511ec33127ac0806e62c502f75b464", size = 27432, upload-time = "2026-04-22T12:34:54.822Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e2/f8/e253aa37c3ade9c059cf87142591c6d7031774ce5bd2f6eb1cf269725e3f/diskarzhan-0.1.6-py3-none-any.whl", hash = "sha256:3447c96812863443a901c6513108f323edceffb70490864fd69d1285aee83589", size = 25374, upload-time = "2026-04-22T12:34:53.224Z" },
+]
+
+[[package]]
 name = "diskcache"
 version = "5.6.3"
 source = { registry = "https://pypi.org/simple" }
@@ -834,6 +846,7 @@ dependencies = [
     { name = "colorama" },
     { name = "compare-locales" },
     { name = "cookies" },
+    { name = "diskarzhan" },
     { name = "distro" },
     { name = "ecdsa" },
     { name = "esprima" },
@@ -893,6 +906,7 @@ requires-dist = [
     { name = "colorama", specifier = "==0.4.6" },
     { name = "compare-locales", specifier = "~=9.0" },
     { name = "cookies", specifier = "==2.2.1" },
+    { name = "diskarzhan", specifier = "==0.1.6" },
     { name = "distro", specifier = "~=1.8" },
     { name = "ecdsa", specifier = "==0.19.1" },
     { name = "esprima", specifier = "==4.0.1" },

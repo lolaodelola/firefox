@@ -35,6 +35,7 @@ vendored:third_party/python/aiohttp
 vendored:third_party/python/aiosignal
 vendored:third_party/python/compare_locales
 vendored:third_party/python/cookies
+vendored:third_party/python/diskarzhan
 vendored:third_party/python/dlmanager
 vendored:third_party/python/ecdsa
 vendored:third_party/python/esprima

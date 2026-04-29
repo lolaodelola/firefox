@@ -66,4 +66,5 @@ dependencies = [
     # 0.45.1 is the last version of wheel to support Python 3.8 - Needed by Ubuntu1804 in CI
     "wheel==0.45.1",
     "yamllint~=1.23",
+    "diskarzhan==0.1.6",
 ]

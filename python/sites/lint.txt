@@ -26,6 +26,7 @@ vendored:third_party/python/aiohappyeyeballs
 vendored:third_party/python/aiohttp
 vendored:third_party/python/aiosignal
 vendored:third_party/python/compare_locales
+vendored:third_party/python/diskarzhan
 vendored:third_party/python/esprima
 vendored:third_party/python/fluent.syntax
 vendored:third_party/python/frozenlist
