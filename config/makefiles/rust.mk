@@ -535,7 +535,7 @@ endef
 
 ifdef RUST_LIBRARY_FILE
 
-rust_features_flag := --features $(addsuffix $(COMMA),$(RUST_LIBRARY_FEATURES))mozilla-central-workspace-hack
+rust_features_flag := --features '$(addsuffix $(COMMA),$(RUST_LIBRARY_FEATURES))mozilla-central-workspace-hack'
 
 ifeq (WASI,$(OS_ARCH))
 # The rust wasi target defaults to statically link the wasi crt, but when we
@@ -592,7 +592,7 @@ ifdef RUST_TESTS
 
 rust_test_options := $(foreach test,$(RUST_TESTS),-p $(test))
 
-rust_test_features_flag := --features $(addsuffix $(COMMA),$(RUST_TEST_FEATURES))mozilla-central-workspace-hack
+rust_test_features_flag := --features '$(addsuffix $(COMMA),$(RUST_TEST_FEATURES))mozilla-central-workspace-hack'
 
 # Don't stop at the first failure. We want to list all failures together.
 rust_test_flag := --no-fail-fast
@@ -604,7 +604,7 @@ endif # RUST_TESTS
 
 ifdef HOST_RUST_LIBRARY_FILE
 
-host_rust_features_flag := --features $(addsuffix $(COMMA),$(HOST_RUST_LIBRARY_FEATURES))mozilla-central-workspace-hack
+host_rust_features_flag := --features '$(addsuffix $(COMMA),$(HOST_RUST_LIBRARY_FEATURES))mozilla-central-workspace-hack'
 
 force-cargo-host-library-build:
 	$(call BUILDSTATUS,START_Rust $(notdir $(HOST_RUST_LIBRARY_FILE)))
@@ -628,7 +628,7 @@ endif # HOST_RUST_LIBRARY_FILE
 
 ifdef RUST_PROGRAMS
 
-program_features_flag := --features $(addsuffix $(COMMA),$(RUST_PROGRAM_FEATURES))mozilla-central-workspace-hack
+program_features_flag := --features '$(addsuffix $(COMMA),$(RUST_PROGRAM_FEATURES))mozilla-central-workspace-hack'
 
 force-cargo-program-build: $(call resfile,module)
 	$(call BUILDSTATUS,START_Rust $(RUST_CARGO_PROGRAMS))
@@ -651,7 +651,7 @@ force-cargo-program-%:
 endif # RUST_PROGRAMS
 ifdef HOST_RUST_PROGRAMS
 
-host_program_features_flag := --features $(addsuffix $(COMMA),$(HOST_RUST_PROGRAM_FEATURES))mozilla-central-workspace-hack
+host_program_features_flag := --features '$(addsuffix $(COMMA),$(HOST_RUST_PROGRAM_FEATURES))mozilla-central-workspace-hack'
 
 force-cargo-host-program-build:
 	$(call BUILDSTATUS,START_Rust $(HOST_RUST_CARGO_PROGRAMS))

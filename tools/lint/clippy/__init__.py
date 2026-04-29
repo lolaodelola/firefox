@@ -196,11 +196,19 @@ def lint_gkrust(path_group, config, log, fix, root, lint_results):
     ]
     if fix:
         clippy_args.extend(CLIPPY_FIX_ARGS)
-    clippy_args.extend(["--", "--message-format=json"])
+    # --keep-going lets cargo check independent crates even after one fails,
+    # so a single broken crate doesn't hide warnings in everything downstream.
+    clippy_args.extend(["--", "--keep-going", "--message-format=json"])
     driver_flags = get_clippy_driver_flags(config)
+    # MOZ_RUST_DEFAULT_FLAGS sets `-Dwarnings` (warnings-as-errors), which
+    # promotes any clippy warning to a hard error and stops cargo at the first
+    # offending crate. For linting we want to surface every warning across
+    # every included crate, so demote it back to warn-level (last `-W/-D` wins
+    # for the same lint group, and extra_rustflags is appended after the
+    # defaults).
+    flags = ["-W", "warnings"] + driver_flags
     env = os.environ.copy()
-    if driver_flags:
-        env["extra_rustflags"] = " ".join(driver_flags)
+    env["extra_rustflags"] = " ".join(flags)
     log.debug("Run clippy with = {}".format(" ".join(clippy_args)))
     completed_proc = subprocess.run(
         clippy_args,
