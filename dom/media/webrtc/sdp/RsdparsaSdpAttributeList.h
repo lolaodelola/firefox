@@ -76,6 +76,9 @@ class RsdparsaSdpAttributeList : public SdpAttributeList {
   virtual ~RsdparsaSdpAttributeList();
 
  private:
+  using RustAttributeList = const sdp::ffi::Vec<sdp::ffi::SdpAttribute>;
+  using RustMediaSection = sdp::ffi::SdpMedia;
+
   explicit RsdparsaSdpAttributeList(RsdparsaSessionHandle session)
       : mSession(std::move(session)),
         mSessionAttributes(nullptr),
@@ -92,7 +95,7 @@ class RsdparsaSdpAttributeList : public SdpAttributeList {
         mSessionAttributes(sessionAttributes),
         mAttributes() {
     mIsVideo =
-        sdp_rust_get_media_type(msection) == RustSdpMediaValue::kRustVideo;
+        sdp_rust_get_media_type(msection) == sdp::ffi::RustSdpMediaValue::Video;
     RustAttributeList* attributes = sdp_get_media_attribute_list(msection);
     LoadAll(attributes);
   }
