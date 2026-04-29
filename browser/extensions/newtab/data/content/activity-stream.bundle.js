@@ -16055,13 +16055,13 @@ function Widgets() {
  * @param {object} props.props - Properties to assign to the component, where
  *   each key is the property name, and the value is the property value.
  */
+// eslint-disable-next-line no-unsanitized/method
+const defaultImportModule = url => import(/* webpackIgnore: true */url);
 function ExternalComponentWrapper({
   type,
   className,
-  // importFunction is declared as an arrow function here purely so that we can
-  // override it for testing.
-  // eslint-disable-next-line no-unsanitized/method
-  importModule = url => import(/* webpackIgnore: true */url),
+  // importModule can be overridden for testing.
+  importModule = defaultImportModule,
   ...props
 }) {
   const containerRef = external_React_default().useRef(null);
