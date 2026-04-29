@@ -2,9 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "mozilla/PerfStats.h"
+#include "PerfStats.h"
 #include "nsAppRunner.h"
-#include "nsTArray.h"
 #include <string_view>
 #include "mozilla/dom/BrowserParent.h"
 #include "mozilla/dom/CanonicalBrowsingContext.h"
@@ -26,8 +25,13 @@ static const char* const sMetricNames[] = {
 #undef METRIC_NAME
         "Invalid"};
 
+Atomic<PerfStats::MetricMask, MemoryOrdering::Relaxed>
+    PerfStats::sCollectionMask{0};
+StaticMutex PerfStats::sMutex;
+StaticAutoPtr<PerfStats> PerfStats::sSingleton;
+
 void PerfStats::SetCollectionMask(MetricMask aMask) {
-  detail::sPerfStatsCollectionMask = aMask;
+  sCollectionMask = aMask;
   GetSingleton()->ResetCollection();
 
   if (!XRE_IsParentProcess()) {
@@ -52,22 +56,7 @@ void PerfStats::SetCollectionMask(MetricMask aMask) {
   }
 }
 
-PerfStats::MetricMask PerfStats::GetCollectionMask() {
-  return detail::sPerfStatsCollectionMask;
-}
-
-RefPtr<PerfStats::PerfStatsPromise> PerfStats::CollectPerfStatsJSON() {
-  return GetSingleton()->CollectPerfStatsJSONInternal();
-}
-
-nsCString PerfStats::CollectLocalPerfStatsJSON() {
-  return GetSingleton()->CollectLocalPerfStatsJSONInternal();
-}
-
-void PerfStats::StorePerfStats(dom::ContentParent* aParent,
-                               const nsACString& aPerfStats) {
-  GetSingleton()->StorePerfStatsInternal(aParent, aPerfStats);
-}
+PerfStats::MetricMask PerfStats::GetCollectionMask() { return sCollectionMask; }
 
 PerfStats::MetricMask PerfStats::GetFeatureMask(const char* aMetricName) {
   for (int i = 0; i < static_cast<int>(Metric::Max); i++) {
@@ -77,6 +66,55 @@ PerfStats::MetricMask PerfStats::GetFeatureMask(const char* aMetricName) {
   }
 
   return 0;
+}
+
+PerfStats* PerfStats::GetSingleton() {
+  if (!sSingleton) {
+    sSingleton = new PerfStats;
+  }
+
+  return sSingleton.get();
+}
+
+void PerfStats::RecordMeasurementStartInternal(Metric aMetric) {
+  StaticMutexAutoLock lock(sMutex);
+
+  GetSingleton()->mRecordedStarts[static_cast<size_t>(aMetric)] =
+      TimeStamp::Now();
+}
+
+void PerfStats::RecordMeasurementEndInternal(Metric aMetric) {
+  StaticMutexAutoLock lock(sMutex);
+
+  MOZ_ASSERT(sSingleton);
+
+  sSingleton->mRecordedTimes[static_cast<size_t>(aMetric)] +=
+      (TimeStamp::Now() -
+       sSingleton->mRecordedStarts[static_cast<MetricMask>(aMetric)])
+          .ToMilliseconds();
+  sSingleton->mRecordedCounts[static_cast<MetricMask>(aMetric)]++;
+}
+
+void PerfStats::RecordMeasurementInternal(Metric aMetric,
+                                          TimeDuration aDuration) {
+  StaticMutexAutoLock lock(sMutex);
+
+  PerfStats* singleton = GetSingleton();
+
+  singleton->mRecordedTimes[static_cast<MetricMask>(aMetric)] +=
+      aDuration.ToMilliseconds();
+  singleton->mRecordedCounts[static_cast<MetricMask>(aMetric)]++;
+}
+
+void PerfStats::RecordMeasurementCounterInternal(
+    Metric aMetric, MetricCounter aIncrementAmount) {
+  StaticMutexAutoLock lock(sMutex);
+
+  PerfStats* singleton = GetSingleton();
+
+  singleton->mRecordedTimes[static_cast<MetricMask>(aMetric)] +=
+      double(aIncrementAmount);
+  singleton->mRecordedCounts[static_cast<MetricMask>(aMetric)]++;
 }
 
 void AppendJSONStringAsProperty(nsCString& aDest, const char* aPropertyName,
@@ -157,17 +195,15 @@ struct PerfStatsCollector {
 
 void PerfStats::ResetCollection() {
   for (MetricMask i = 0; i < static_cast<MetricMask>(Metric::Max); i++) {
-    if (!(detail::sPerfStatsCollectionMask & MetricMask(1) << i)) {
+    if (!(sCollectionMask & 1 << i)) {
       continue;
     }
 
-    mRecordedTimes[i] = 0.0;
+    mRecordedTimes[i] = 0;
     mRecordedCounts[i] = 0;
   }
 
-  if (mStoredPerfStats) {
-    mStoredPerfStats->Clear();
-  }
+  mStoredPerfStats.Clear();
 }
 
 void PerfStats::StorePerfStatsInternal(dom::ContentParent* aParent,
@@ -180,15 +216,11 @@ void PerfStats::StorePerfStatsInternal(dom::ContentParent* aParent,
   // this to use Single Line mode, sadly.
   WriteContentParent(jsonString, w, aPerfStats, aParent);
 
-  if (!mStoredPerfStats) {
-    mStoredPerfStats = new nsTArray<nsCString>();
-    mDeallocateArray = [array = mStoredPerfStats]() { delete array; };
-  }
-  mStoredPerfStats->AppendElement(jsonString);
+  mStoredPerfStats.AppendElement(jsonString);
 }
 
 auto PerfStats::CollectPerfStatsJSONInternal() -> RefPtr<PerfStatsPromise> {
-  if (!detail::sPerfStatsCollectionMask) {
+  if (!PerfStats::sCollectionMask) {
     return PerfStatsPromise::CreateAndReject(false, __func__);
   }
 
@@ -215,14 +247,12 @@ auto PerfStats::CollectPerfStatsJSONInternal() -> RefPtr<PerfStatsPromise> {
       w.EndObject();
 
       // Append any processes that closed earlier.
-      if (mStoredPerfStats) {
-        for (nsCString& string : *mStoredPerfStats) {
-          w.StartObjectElement();
-          // This trick makes indentation even more messed up than it already
-          // was. However it produces technically correct JSON.
-          collector->string.Append(string);
-          w.EndObject();
-        }
+      for (nsCString& string : mStoredPerfStats) {
+        w.StartObjectElement();
+        // This trick makes indentation even more messed up than it already
+        // was. However it produces technically correct JSON.
+        collector->string.Append(string);
+        w.EndObject();
       }
       // We do not clear this, we only clear stored perfstats when the mask is
       // reset.
@@ -262,6 +292,8 @@ auto PerfStats::CollectPerfStatsJSONInternal() -> RefPtr<PerfStatsPromise> {
 }
 
 nsCString PerfStats::CollectLocalPerfStatsJSONInternal() {
+  StaticMutexAutoLock lock(PerfStats::sMutex);
+
   nsCString jsonString;
 
   JSONStringRefWriteFunc jw(jsonString);
@@ -271,7 +303,7 @@ nsCString PerfStats::CollectLocalPerfStatsJSONInternal() {
     w.StartArrayProperty("metrics");
     {
       for (MetricMask i = 0; i < static_cast<MetricMask>(Metric::Max); i++) {
-        if (!(detail::sPerfStatsCollectionMask & (MetricMask(1) << i))) {
+        if (!(sCollectionMask & (1 << i))) {
           continue;
         }
 
