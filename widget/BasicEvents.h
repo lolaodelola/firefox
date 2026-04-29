@@ -478,6 +478,19 @@ class WidgetEventTime {
       aClassType, aEventClassID, aBaseEventClassID)
 #endif
 
+/**
+ * Each subclass of WidgetEvent has to override AsFooEvent() which returns
+ * the pointer of the subclass.
+ * NOTE: The const version is implicitly hidden by overring AsFooEvent(). Thus,
+ * each subclass needs to expose it with `using`.
+ *
+ * @param aPrefix Widget or Internal
+ * @param aName The name of the class excluding aPrefix
+ */
+#define NS_DEFINE_AS_EVENT_OVERRIDE(aPrefix, aName)  \
+  aPrefix##aName* As##aName() final { return this; } \
+  using WidgetEvent::As##aName;  // expose the const version
+
 class WidgetEvent : public WidgetEventTime {
  private:
   void SetDefaultCancelableAndBubbles() {
@@ -1128,7 +1141,7 @@ class WidgetGUIEvent : public WidgetEvent {
   WidgetGUIEvent() = default;
 
  public:
-  virtual WidgetGUIEvent* AsGUIEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Widget, GUIEvent);
 
   WidgetGUIEvent(bool aIsTrusted, EventMessage aMessage, nsIWidget* aWidget,
                  const WidgetEventTime* aTime = nullptr)
@@ -1288,7 +1301,7 @@ class WidgetInputEvent : public WidgetGUIEvent {
   WidgetInputEvent() : mModifiers(0) {}
 
  public:
-  virtual WidgetInputEvent* AsInputEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Widget, InputEvent);
 
   WidgetInputEvent(bool aIsTrusted, EventMessage aMessage, nsIWidget* aWidget,
                    const WidgetEventTime* aTime = nullptr)
@@ -1417,7 +1430,7 @@ class InternalUIEvent : public WidgetGUIEvent {
         mCausedByUntrustedEvent(false) {}
 
  public:
-  virtual InternalUIEvent* AsUIEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, UIEvent);
 
   /**
    * If the UIEvent is caused by another event (e.g., click event),

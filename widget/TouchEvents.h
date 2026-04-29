@@ -28,9 +28,7 @@ namespace mozilla {
 
 class WidgetGestureNotifyEvent final : public WidgetGUIEvent {
  public:
-  virtual WidgetGestureNotifyEvent* AsGestureNotifyEvent() override {
-    return this;
-  }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Widget, GestureNotifyEvent);
 
   WidgetGestureNotifyEvent(bool aIsTrusted, EventMessage aMessage,
                            nsIWidget* aWidget,
@@ -86,9 +84,7 @@ class WidgetGestureNotifyEvent final : public WidgetGUIEvent {
 
 class WidgetSimpleGestureEvent final : public WidgetMouseEventBase {
  public:
-  virtual WidgetSimpleGestureEvent* AsSimpleGestureEvent() override {
-    return this;
-  }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Widget, SimpleGestureEvent);
 
   WidgetSimpleGestureEvent(bool aIsTrusted, EventMessage aMessage,
                            nsIWidget* aWidget,
@@ -154,7 +150,7 @@ class WidgetTouchEvent final : public WidgetInputEvent {
   typedef AutoTArray<RefPtr<mozilla::dom::Touch>, 10> AutoTouchArray;
   typedef AutoTouchArray::base_type TouchArrayBase;
 
-  WidgetTouchEvent* AsTouchEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Widget, TouchEvent);
 
   MOZ_COUNTED_DEFAULT_CTOR(WidgetTouchEvent)
 

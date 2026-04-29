@@ -24,7 +24,7 @@ namespace mozilla {
 
 class InternalScrollPortEvent final : public WidgetGUIEvent {
  public:
-  virtual InternalScrollPortEvent* AsScrollPortEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, ScrollPortEvent);
 
   enum OrientType { eVertical, eHorizontal, eBoth };
 
@@ -66,7 +66,7 @@ class InternalScrollPortEvent final : public WidgetGUIEvent {
 
 class InternalScrollAreaEvent final : public WidgetGUIEvent {
  public:
-  virtual InternalScrollAreaEvent* AsScrollAreaEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, ScrollAreaEvent);
 
   InternalScrollAreaEvent(bool aIsTrusted, EventMessage aMessage,
                           nsIWidget* aWidget,
@@ -108,7 +108,7 @@ class InternalScrollAreaEvent final : public WidgetGUIEvent {
 
 class InternalFormEvent final : public WidgetEvent {
  public:
-  virtual InternalFormEvent* AsFormEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, FormEvent);
 
   InternalFormEvent(bool aIsTrusted, EventMessage aMessage,
                     const WidgetEventTime* aTime = nullptr)
@@ -143,7 +143,7 @@ class InternalFormEvent final : public WidgetEvent {
 
 class InternalClipboardEvent final : public WidgetEvent {
  public:
-  virtual InternalClipboardEvent* AsClipboardEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, ClipboardEvent);
 
   InternalClipboardEvent(bool aIsTrusted, EventMessage aMessage,
                          const WidgetEventTime* aTime = nullptr)
@@ -179,7 +179,7 @@ class InternalClipboardEvent final : public WidgetEvent {
 
 class InternalFocusEvent final : public InternalUIEvent {
  public:
-  virtual InternalFocusEvent* AsFocusEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, FocusEvent);
 
   InternalFocusEvent(bool aIsTrusted, EventMessage aMessage,
                      const WidgetEventTime* aTime = nullptr)
@@ -218,7 +218,7 @@ class InternalFocusEvent final : public InternalUIEvent {
 
 class InternalTransitionEvent final : public WidgetEvent {
  public:
-  virtual InternalTransitionEvent* AsTransitionEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, TransitionEvent);
 
   InternalTransitionEvent(bool aIsTrusted, EventMessage aMessage,
                           const WidgetEventTime* aTime = nullptr)
@@ -268,7 +268,7 @@ class InternalTransitionEvent final : public WidgetEvent {
 
 class InternalAnimationEvent final : public WidgetEvent {
  public:
-  virtual InternalAnimationEvent* AsAnimationEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, AnimationEvent);
 
   InternalAnimationEvent(bool aIsTrusted, EventMessage aMessage,
                          const WidgetEventTime* aTime = nullptr)
@@ -317,7 +317,7 @@ class InternalAnimationEvent final : public WidgetEvent {
 
 class InternalSMILTimeEvent final : public InternalUIEvent {
  public:
-  virtual InternalSMILTimeEvent* AsSMILTimeEvent() override { return this; }
+  NS_DEFINE_AS_EVENT_OVERRIDE(Internal, SMILTimeEvent);
 
   InternalSMILTimeEvent(bool aIsTrusted, EventMessage aMessage,
                         const WidgetEventTime* aTime = nullptr)
