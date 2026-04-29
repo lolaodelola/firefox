@@ -83,6 +83,10 @@ class WorkletModuleLoader : public JS::loader::ModuleLoaderBase {
                              ModuleLoadRequest* aRequest,
                              JS::MutableHandle<JSObject*> aModuleScript);
 
+  nsresult CreateTextModule(JSContext* aCx, JS::CompileOptions& aOptions,
+                            ModuleLoadRequest* aRequest,
+                            JS::MutableHandle<JSObject*> aModuleScript);
+
   void OnModuleLoadComplete(JS::loader::ModuleLoadRequest* aRequest) override;
 
   nsresult GetResolveFailureMessage(JS::loader::ResolveError aError,
