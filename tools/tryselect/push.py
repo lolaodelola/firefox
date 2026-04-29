@@ -261,6 +261,8 @@ def push_to_try(
                 metrics,
                 force_old_lando=force_old_lando,
             )
+            if not push_data:
+                sys.exit(1)
             lando_instance = push_data["lando_instance"]
             job_id = push_data["lando_job_id"]
             if lando_instance and job_id:
