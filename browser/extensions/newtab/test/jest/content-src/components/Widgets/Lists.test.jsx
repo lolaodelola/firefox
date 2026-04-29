@@ -39,7 +39,7 @@ describe("<Lists>", () => {
       );
       expect(
         container.querySelector(
-          "span[data-l10n-id='newtab-widget-menu-change-size']"
+          "panel-item[data-l10n-id='newtab-widget-menu-change-size']"
         )
       ).not.toBeInTheDocument();
     });
@@ -65,7 +65,7 @@ describe("<Lists>", () => {
       );
       expect(
         container.querySelector(
-          "span[data-l10n-id='newtab-widget-menu-change-size']"
+          "panel-item[data-l10n-id='newtab-widget-menu-change-size']"
         )
       ).toBeInTheDocument();
     });

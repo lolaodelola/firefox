@@ -655,11 +655,13 @@ newtab-widget-lists-name-label-checklist =
     .label = Checklist
 newtab-widget-lists-name-placeholder-default =
     .placeholder = Task list
-newtab-widget-lists-name-placeholder-checklist =
+newtab-widget-lists-name-placeholder-checklist2 =
     .placeholder = Checklist
+    .aria-label = Edit list name
 # The placeholder value of the name field for a newly created list
-newtab-widget-lists-name-placeholder-new =
+newtab-widget-lists-name-placeholder-new2 =
     .placeholder = New list
+    .aria-label = Edit list name
 
 # "Add one" means adding a new task to the list (e.g., "Walk the dog")
 newtab-widget-lists-empty-cta = The possibilities are endless. Add one.
@@ -672,20 +674,28 @@ newtab-widget-lists-label-beta =
 # Variables:
 #   $number (number) - Amount of list items marked complete
 newtab-widget-lists-completed-list = Completed ({ $number })
+newtab-widget-lists-celebration-headline = Good work
+newtab-widget-lists-celebration-subhead = All clear
 newtab-widget-task-list-menu-copy = Copy
 newtab-widget-lists-menu-edit = Edit list name
+newtab-widget-lists-menu-edit2 =
+    .aria-label = Edit list name
 newtab-widget-lists-menu-create = Create a new list
 newtab-widget-lists-menu-delete = Delete this list
 newtab-widget-lists-menu-copy = Copy list to clipboard
 newtab-widget-lists-menu-learn-more = Learn more
-newtab-widget-lists-input-add-an-item =
+newtab-widget-lists-button-add-item = Add an item
+newtab-widget-lists-input-add-an-item2 =
     .placeholder = Add an item
+    .aria-label = Add an item
 newtab-widget-lists-input-error = Please include text to add an item.
 newtab-widget-lists-input-menu-open-link = Open link
 newtab-widget-lists-input-menu-move-up = Move up
 newtab-widget-lists-input-menu-move-down = Move down
 newtab-widget-lists-input-menu-delete = Delete
 newtab-widget-lists-input-menu-edit = Edit
+newtab-widget-lists-input-menu-edit2 =
+    .aria-label = Edit item
 
 # the + symbol emphasises the functionality of adding a new list
 newtab-widget-lists-dropdown-create =

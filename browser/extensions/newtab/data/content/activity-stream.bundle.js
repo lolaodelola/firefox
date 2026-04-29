@@ -12177,11 +12177,187 @@ function getHideAllTargets(prefs, widgetEnabledMap) {
   }));
 }
 
+;// CONCATENATED MODULE: ./content-src/components/Widgets/WidgetCelebration.jsx
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+
+const WidgetCelebration = ({
+  classNamePrefix = "widget-celebration",
+  celebrationFrame,
+  celebrationId,
+  headlineL10nId,
+  illustrationSrc,
+  onComplete,
+  subheadL10nId
+}) => {
+  const className = suffix => suffix ? `${classNamePrefix}-${suffix}` : classNamePrefix;
+  const resolvedIllustrationSrc = illustrationSrc.endsWith(".svg") ? `${illustrationSrc}?run=${celebrationId}` : illustrationSrc;
+  const strokeSize = celebrationFrame.strokeInset * 2;
+  const strokeWidth = celebrationFrame.width - strokeSize;
+  const strokeHeight = celebrationFrame.height - strokeSize;
+  return /*#__PURE__*/external_React_default().createElement("div", {
+    className: className(),
+    key: celebrationId,
+    role: "status",
+    "aria-live": "polite",
+    onAnimationEnd: event => {
+      if (event.target === event.currentTarget && event.animationName === "widget-celebration-lifecycle") {
+        onComplete?.();
+      }
+    }
+  }, /*#__PURE__*/external_React_default().createElement("div", {
+    className: className("effects"),
+    "aria-hidden": "true"
+  }, /*#__PURE__*/external_React_default().createElement("svg", {
+    viewBox: `0 0 ${celebrationFrame.width} ${celebrationFrame.height}`,
+    preserveAspectRatio: "none"
+  }, /*#__PURE__*/external_React_default().createElement("defs", null, /*#__PURE__*/external_React_default().createElement("linearGradient", {
+    id: `${classNamePrefix}-gradient-${celebrationId}`,
+    x1: "0%",
+    y1: "0%",
+    x2: "100%",
+    y2: "100%"
+  }, /*#__PURE__*/external_React_default().createElement("stop", {
+    offset: "0%",
+    stopColor: "var(--color-orange-20)"
+  }), /*#__PURE__*/external_React_default().createElement("stop", {
+    offset: "28%",
+    stopColor: "var(--color-orange-30)"
+  }), /*#__PURE__*/external_React_default().createElement("stop", {
+    offset: "64%",
+    stopColor: "var(--color-pink-30)"
+  }), /*#__PURE__*/external_React_default().createElement("stop", {
+    offset: "100%",
+    stopColor: "var(--color-pink-40)"
+  }))), /*#__PURE__*/external_React_default().createElement("rect", {
+    className: className("stroke-track"),
+    x: celebrationFrame.strokeInset,
+    y: celebrationFrame.strokeInset,
+    width: strokeWidth,
+    height: strokeHeight,
+    rx: celebrationFrame.radius,
+    ry: celebrationFrame.radius,
+    pathLength: "100"
+  }), /*#__PURE__*/external_React_default().createElement("rect", {
+    className: className("stroke"),
+    x: celebrationFrame.strokeInset,
+    y: celebrationFrame.strokeInset,
+    width: strokeWidth,
+    height: strokeHeight,
+    rx: celebrationFrame.radius,
+    ry: celebrationFrame.radius,
+    pathLength: "100",
+    stroke: `url(#${classNamePrefix}-gradient-${celebrationId})`
+  }), /*#__PURE__*/external_React_default().createElement("rect", {
+    className: className("stroke-orbit"),
+    x: celebrationFrame.strokeInset,
+    y: celebrationFrame.strokeInset,
+    width: strokeWidth,
+    height: strokeHeight,
+    rx: celebrationFrame.radius,
+    ry: celebrationFrame.radius,
+    pathLength: "100"
+  }))), /*#__PURE__*/external_React_default().createElement("div", {
+    className: className("copy")
+  }, /*#__PURE__*/external_React_default().createElement("span", {
+    className: className("headline"),
+    "data-l10n-id": headlineL10nId
+  }), /*#__PURE__*/external_React_default().createElement("span", {
+    className: className("subhead"),
+    "data-l10n-id": subheadL10nId
+  })), /*#__PURE__*/external_React_default().createElement("img", {
+    alt: "",
+    "aria-hidden": "true",
+    className: className("illustration"),
+    src: resolvedIllustrationSrc
+  }));
+};
+;// CONCATENATED MODULE: ./content-src/components/Widgets/useWidgetCelebration.jsx
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+
+
+/**
+ * Shared widget-celebration lifecycle hook.
+ *
+ * Usage:
+ * 1. Create a ref for the widget root element and pass it to this hook.
+ * 2. Render <WidgetCelebration /> only when both `isCelebrating` and
+ *    `celebrationFrame` are truthy, and pass `completeCelebration` to the
+ *    component's `onComplete` prop.
+ * 3. Call `triggerCelebration()` when the widget reaches its completion state.
+ *
+ * Example:
+ * const widgetRef = useRef(null);
+ * const {
+ *   celebrationFrame,
+ *   celebrationId,
+ *   completeCelebration,
+ *   isCelebrating,
+ *   triggerCelebration,
+ * } = useWidgetCelebration(widgetRef);
+ *
+ * <article ref={widgetRef}>
+ *   {isCelebrating && celebrationFrame ? (
+ *     <WidgetCelebration
+ *       celebrationFrame={celebrationFrame}
+ *       celebrationId={celebrationId}
+ *       onComplete={completeCelebration}
+ *       ...
+ *     />
+ *   ) : null}
+ * </article>
+ */
+const useWidgetCelebration = widgetRef => {
+  const [celebrationId, setCelebrationId] = (0,external_React_namespaceObject.useState)(0);
+  const [isCelebrating, setIsCelebrating] = (0,external_React_namespaceObject.useState)(false);
+  const [celebrationFrame, setCelebrationFrame] = (0,external_React_namespaceObject.useState)(null);
+  const triggerCelebration = (0,external_React_namespaceObject.useCallback)(() => {
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const widget = widgetRef.current;
+    if (!widget) {
+      return;
+    }
+    const {
+      width,
+      height
+    } = widget.getBoundingClientRect();
+    const strokeInset = 1.5;
+    const borderRadius = parseFloat(getComputedStyle(widget).borderTopLeftRadius) || 0;
+    const frame = {
+      height,
+      radius: Math.max(0, borderRadius - strokeInset),
+      strokeInset,
+      width
+    };
+    setCelebrationFrame(frame);
+    setCelebrationId(currentValue => currentValue + 1);
+    setIsCelebrating(true);
+  }, [widgetRef]);
+  const completeCelebration = (0,external_React_namespaceObject.useCallback)(() => {
+    setIsCelebrating(false);
+  }, []);
+  return {
+    celebrationFrame,
+    celebrationId,
+    completeCelebration,
+    isCelebrating,
+    triggerCelebration
+  };
+};
 ;// CONCATENATED MODULE: ./content-src/components/Widgets/Lists/Lists.jsx
 function Lists_extends() { return Lists_extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, Lists_extends.apply(null, arguments); }
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+
 
 
 
@@ -12196,21 +12372,92 @@ const USER_ACTION_TYPES = {
   CHANGE_SIZE: "change_size",
   LIST_COPY: "list_copy",
   LIST_CREATE: "list_create",
-  LIST_DELETE: "list_delete",
   LIST_EDIT: "list_edit",
-  TASK_COMPLETE: "task_complete",
+  LIST_DELETE: "list_delete",
   TASK_CREATE: "task_create",
+  TASK_EDIT: "task_edit",
   TASK_DELETE: "task_delete",
-  TASK_EDIT: "task_edit"
+  TASK_COMPLETE: "task_complete"
 };
 const PREF_WIDGETS_LISTS_MAX_LISTS = "widgets.lists.maxLists";
 const PREF_WIDGETS_LISTS_MAX_LISTITEMS = "widgets.lists.maxListItems";
 const PREF_WIDGETS_LISTS_BADGE_ENABLED = "widgets.lists.badge.enabled";
 const PREF_WIDGETS_LISTS_BADGE_LABEL = "widgets.lists.badge.label";
+const PREF_WIDGETS_LISTS_SIZE = "widgets.lists.size";
 const Lists_PREF_NOVA_ENABLED = "nova.enabled";
-const Lists_PREF_LISTS_SIZE = "widgets.lists.size";
+const LISTS_EMPTY_STATE_ILLUSTRATION = "chrome://newtab/content/data/content/assets/firefox-pictorgram-pencil-rgb.svg";
+const LISTS_CELEBRATION = {
+  headlineL10nId: "newtab-widget-lists-celebration-headline",
+  illustrationSrc: "chrome://newtab/content/data/content/assets/firefox-motion-head-pop-up-no-bg.svg",
+  subheadL10nId: "newtab-widget-lists-celebration-subhead"
+};
+const ENABLE_COMPACT_COMPLETED_PREVIEW = false;
+const getCompactPreviewState = ({
+  enableCompactCompletedPreview,
+  isCompactMediumSize,
+  selectedList,
+  showCompactCompleted
+}) => {
+  const hasIncompleteTasks = selectedList?.tasks.length >= 1;
+  const hasCompletedTasks = selectedList?.completed.length >= 1;
+  const hasAnyTasks = hasIncompleteTasks || hasCompletedTasks;
+  const isShowingCompactCompleted = enableCompactCompletedPreview && isCompactMediumSize && hasCompletedTasks && (showCompactCompleted || !hasIncompleteTasks);
+  let hasVisibleTasks = hasAnyTasks;
+  if (isCompactMediumSize) {
+    hasVisibleTasks = isShowingCompactCompleted ? hasCompletedTasks : hasIncompleteTasks;
+  }
+  return {
+    hasIncompleteTasks,
+    hasCompletedTasks,
+    hasAnyTasks,
+    hasVisibleTasks,
+    isShowingCompactCompleted,
+    compactPreviewTasks: isShowingCompactCompleted ? selectedList?.completed : selectedList?.tasks,
+    compactPreviewTaskType: isShowingCompactCompleted ? TASK_TYPE.COMPLETED : TASK_TYPE.IN_PROGRESS
+  };
+};
+const renderListSwitcherOrTitle = ({
+  currentListsCount,
+  lists,
+  onSelect,
+  selected,
+  defaultListLabelL10nId
+}) => {
+  const selectedLabel = lists[selected]?.label;
+  if (currentListsCount > 1) {
+    return /*#__PURE__*/external_React_default().createElement("div", {
+      className: "lists-switcher"
+    }, /*#__PURE__*/external_React_default().createElement("span", Lists_extends({
+      className: "lists-title",
+      id: "lists-switcher-label"
+    }, selectedLabel ? {} : {
+      "data-l10n-id": defaultListLabelL10nId
+    }), selectedLabel || null), /*#__PURE__*/external_React_default().createElement("moz-button", {
+      "aria-haspopup": "true",
+      "aria-labelledby": "lists-switcher-label",
+      className: "lists-switcher-button",
+      iconSrc: "chrome://global/skin/icons/arrow-down-12.svg",
+      menuId: "lists-switcher-panel",
+      type: "ghost"
+    }), /*#__PURE__*/external_React_default().createElement("panel-list", {
+      id: "lists-switcher-panel"
+    }, Object.entries(lists).map(([key, list]) => /*#__PURE__*/external_React_default().createElement("panel-item", Lists_extends({
+      key: key,
+      checked: key === selected,
+      onClick: () => onSelect(key),
+      type: "checkbox"
+    }, list.label ? {} : {
+      "data-l10n-id": defaultListLabelL10nId
+    }), list.label || null))));
+  }
+  return /*#__PURE__*/external_React_default().createElement("span", Lists_extends({
+    className: "lists-title"
+  }, selectedLabel ? {} : {
+    "data-l10n-id": defaultListLabelL10nId
+  }), selectedLabel || null);
+};
 
-// eslint-disable-next-line max-statements
+// eslint-disable-next-line complexity, max-statements
 function Lists({
   dispatch,
   handleUserInteraction,
@@ -12223,28 +12470,55 @@ function Lists({
     lists
   } = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.ListsWidget);
   const [newTask, setNewTask] = (0,external_React_namespaceObject.useState)("");
+  const [isAddingTask, setIsAddingTask] = (0,external_React_namespaceObject.useState)(false);
   const [isEditing, setIsEditing] = (0,external_React_namespaceObject.useState)(false);
   const [pendingNewList, setPendingNewList] = (0,external_React_namespaceObject.useState)(null);
+  const [showCompactCompleted, setShowCompactCompleted] = (0,external_React_namespaceObject.useState)(false);
   const selectedList = (0,external_React_namespaceObject.useMemo)(() => lists[selected], [lists, selected]);
-
-  // @nova-cleanup(remove-pref): Remove novaEnabled and this check; always use resolveWidgetSize directly and always apply col-4 class after Nova ships
   const novaEnabled = prefs[Lists_PREF_NOVA_ENABLED];
-  // Nova path: only "medium" or "large" are selectable; "small" is disabled in the submenu
-  const isSmallSize = novaEnabled ? false : !isMaximized && widgetsMayBeMaximized;
   const listsWidget = WIDGET_REGISTRY.find(w => w.id === "lists");
-  let widgetSize;
-  if (novaEnabled) {
-    widgetSize = resolveWidgetSize(listsWidget, prefs);
-  } else {
-    widgetSize = isSmallSize ? "small" : "medium";
-  }
+  const getListsWidgetSize = () => {
+    if (novaEnabled) {
+      const resolvedSize = resolveWidgetSize(listsWidget, prefs);
+      return resolvedSize === "small" ? "medium" : resolvedSize;
+    }
+    const requestedSize = prefs[PREF_WIDGETS_LISTS_SIZE];
+    if (requestedSize === "large" || requestedSize === "medium") {
+      return requestedSize;
+    }
+    if (requestedSize === "small") {
+      return "medium";
+    }
+    if (!widgetsMayBeMaximized) {
+      return "large";
+    }
+    return isMaximized ? "large" : "medium";
+  };
+  const widgetSize = getListsWidgetSize();
+  const isMediumSize = widgetSize === "medium";
   const prevCompletedCount = (0,external_React_namespaceObject.useRef)(selectedList?.completed?.length || 0);
   const inputRef = (0,external_React_namespaceObject.useRef)(null);
-  const selectRef = (0,external_React_namespaceObject.useRef)(null);
   const reorderListRef = (0,external_React_namespaceObject.useRef)(null);
-  const [canvasRef, fireConfetti] = useConfetti();
+  const sizeSubmenuRef = (0,external_React_namespaceObject.useRef)(null);
+  const widgetRef = (0,external_React_namespaceObject.useRef)(null);
   const impressionFired = (0,external_React_namespaceObject.useRef)(false);
+  const {
+    celebrationFrame,
+    celebrationId,
+    completeCelebration,
+    isCelebrating,
+    triggerCelebration
+  } = useWidgetCelebration(widgetRef);
   const handleListInteraction = (0,external_React_namespaceObject.useCallback)(() => handleUserInteraction("lists"), [handleUserInteraction]);
+  const handleSelectList = (0,external_React_namespaceObject.useCallback)(listId => {
+    setIsEditing(false);
+    setPendingNewList(null);
+    dispatch(actionCreators.AlsoToMain({
+      type: actionTypes.WIDGETS_LISTS_CHANGE_SELECTED,
+      data: listId
+    }));
+    handleListInteraction();
+  }, [dispatch, handleListInteraction]);
 
   // store selectedList with useMemo so it isnt re-calculated on every re-render
   const isValidUrl = (0,external_React_namespaceObject.useCallback)(str => URL.canParse(str), []);
@@ -12259,14 +12533,14 @@ function Lists({
       }));
       const telemetryData = {
         widget_name: "lists",
-        widget_size: widgetSize
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
       };
       dispatch(actionCreators.AlsoToMain({
         type: actionTypes.WIDGETS_IMPRESSION,
         data: telemetryData
       }));
     });
-  }, [dispatch, widgetSize]);
+  }, [dispatch, widgetsMayBeMaximized, widgetSize]);
   const listsRef = useIntersectionObserver(handleIntersection);
   const reorderLists = (0,external_React_namespaceObject.useCallback)((draggedElement, targetElement, before = false) => {
     const draggedIndex = selectedList.tasks.findIndex(({
@@ -12316,18 +12590,7 @@ function Lists({
     }
   }, [selectedList, reorderLists]);
   (0,external_React_namespaceObject.useEffect)(() => {
-    const selectNode = selectRef.current;
     const reorderNode = reorderListRef.current;
-    if (!selectNode || !reorderNode) {
-      return undefined;
-    }
-    function handleSelectChange(e) {
-      dispatch(actionCreators.AlsoToMain({
-        type: actionTypes.WIDGETS_LISTS_CHANGE_SELECTED,
-        data: e.target.value
-      }));
-      handleListInteraction();
-    }
     function handleReorder(e) {
       const {
         draggedElement,
@@ -12336,13 +12599,11 @@ function Lists({
       } = e.detail;
       reorderLists(draggedElement, targetElement, position === -1);
     }
-    reorderNode.addEventListener("reorder", handleReorder);
-    selectNode.addEventListener("change", handleSelectChange);
+    reorderNode?.addEventListener("reorder", handleReorder);
     return () => {
-      selectNode.removeEventListener("change", handleSelectChange);
-      reorderNode.removeEventListener("reorder", handleReorder);
+      reorderNode?.removeEventListener("reorder", handleReorder);
     };
-  }, [dispatch, isEditing, reorderLists, handleListInteraction]);
+  }, [reorderLists]);
 
   // effect that enables editing new list name only after store has been hydrated
   (0,external_React_namespaceObject.useEffect)(() => {
@@ -12351,6 +12612,19 @@ function Lists({
       setPendingNewList(null);
     }
   }, [selected, pendingNewList]);
+  (0,external_React_namespaceObject.useEffect)(() => {
+    if (isAddingTask) {
+      inputRef.current?.focus();
+    }
+  }, [isAddingTask]);
+  (0,external_React_namespaceObject.useEffect)(() => {
+    setShowCompactCompleted(false);
+  }, [selected]);
+  (0,external_React_namespaceObject.useEffect)(() => {
+    if (!selectedList?.completed?.length) {
+      setShowCompactCompleted(false);
+    }
+  }, [selectedList]);
   function saveTask() {
     const trimmedTask = newTask.trimEnd();
     // only add new task if it has a length, to avoid creating empty tasks
@@ -12386,7 +12660,7 @@ function Lists({
           widget_name: "lists",
           widget_source: "widget",
           user_action: USER_ACTION_TYPES.TASK_CREATE,
-          widget_size: widgetSize
+          widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
         };
         dispatch(actionCreators.OnlyToMain({
           type: actionTypes.WIDGETS_USER_EVENT,
@@ -12394,8 +12668,9 @@ function Lists({
         }));
       });
       setNewTask("");
-      handleListInteraction();
     }
+    setIsAddingTask(false);
+    handleListInteraction();
   }
   function updateTask(updatedTask, type) {
     const isCompletedType = type === TASK_TYPE.COMPLETED;
@@ -12456,7 +12731,7 @@ function Lists({
           widget_name: "lists",
           widget_source: "widget",
           user_action: userAction,
-          widget_size: widgetSize
+          widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
         };
         dispatch(actionCreators.AlsoToMain({
           type: actionTypes.WIDGETS_USER_EVENT,
@@ -12495,7 +12770,7 @@ function Lists({
         widget_name: "lists",
         widget_source: "widget",
         user_action: USER_ACTION_TYPES.TASK_DELETE,
-        widget_size: widgetSize
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
       };
       dispatch(actionCreators.OnlyToMain({
         type: actionTypes.WIDGETS_USER_EVENT,
@@ -12510,7 +12785,12 @@ function Lists({
     } else if (e.key === "Escape" && document.activeElement === inputRef.current) {
       // Clear out the input when esc is pressed
       setNewTask("");
+      setIsAddingTask(false);
     }
+  }
+  function handleShowTaskInput() {
+    setIsAddingTask(true);
+    handleListInteraction();
   }
   function handleListNameSave(newLabel) {
     const trimmedLabel = newLabel.trimEnd();
@@ -12539,7 +12819,7 @@ function Lists({
           widget_name: "lists",
           widget_source: "widget",
           user_action: USER_ACTION_TYPES.LIST_EDIT,
-          widget_size: widgetSize
+          widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
         };
         dispatch(actionCreators.OnlyToMain({
           type: actionTypes.WIDGETS_USER_EVENT,
@@ -12581,7 +12861,7 @@ function Lists({
         widget_name: "lists",
         widget_source: "widget",
         user_action: USER_ACTION_TYPES.LIST_CREATE,
-        widget_size: widgetSize
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
       };
       dispatch(actionCreators.OnlyToMain({
         type: actionTypes.WIDGETS_USER_EVENT,
@@ -12621,7 +12901,7 @@ function Lists({
           widget_name: "lists",
           widget_source: "widget",
           user_action: USER_ACTION_TYPES.LIST_DELETE,
-          widget_size: widgetSize
+          widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
         };
         dispatch(actionCreators.OnlyToMain({
           type: actionTypes.WIDGETS_USER_EVENT,
@@ -12671,7 +12951,7 @@ function Lists({
           widget_name: "lists",
           widget_source: "widget",
           user_action: USER_ACTION_TYPES.LIST_DELETE,
-          widget_size: widgetSize
+          widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
         };
         dispatch(actionCreators.OnlyToMain({
           type: actionTypes.WIDGETS_USER_EVENT,
@@ -12694,7 +12974,7 @@ function Lists({
         widget_name: "lists",
         widget_source: "context_menu",
         enabled: false,
-        widget_size: widgetSize
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
       };
       dispatch(actionCreators.OnlyToMain({
         type: actionTypes.WIDGETS_ENABLED,
@@ -12734,7 +13014,7 @@ function Lists({
         widget_name: "lists",
         widget_source: "widget",
         user_action: USER_ACTION_TYPES.LIST_COPY,
-        widget_size: widgetSize
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium"
       };
       dispatch(actionCreators.OnlyToMain({
         type: actionTypes.WIDGETS_USER_EVENT,
@@ -12747,35 +13027,18 @@ function Lists({
     dispatch(actionCreators.OnlyToMain({
       type: actionTypes.OPEN_LINK,
       data: {
-        url: "https://support.mozilla.org/kb/firefox-new-tab-widgets"
+        url: "https://support.mozilla.org/kb/firefox-new-tab-widgets",
+        where: "tab"
       }
     }));
     handleListInteraction();
   }
-
-  // Reset baseline only when switching lists
-  (0,external_React_namespaceObject.useEffect)(() => {
-    prevCompletedCount.current = selectedList?.completed?.length || 0;
-    // intentionally leaving out selectedList from dependency array
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected]);
-  (0,external_React_namespaceObject.useEffect)(() => {
-    if (selectedList) {
-      const doneCount = selectedList.completed?.length || 0;
-      const previous = Math.floor(prevCompletedCount.current / 5);
-      const current = Math.floor(doneCount / 5);
-      if (current > previous) {
-        fireConfetti();
-      }
-      prevCompletedCount.current = doneCount;
-    }
-  }, [selectedList, fireConfetti, selected]);
   const handleChangeSize = (0,external_React_namespaceObject.useCallback)(size => {
     (0,external_ReactRedux_namespaceObject.batch)(() => {
       dispatch(actionCreators.OnlyToMain({
         type: actionTypes.SET_PREF,
         data: {
-          name: Lists_PREF_LISTS_SIZE,
+          name: PREF_WIDGETS_LISTS_SIZE,
           value: size
         }
       }));
@@ -12791,16 +13054,11 @@ function Lists({
       }));
     });
   }, [dispatch]);
-  const sizeSubmenuRef = (0,external_React_namespaceObject.useRef)(null);
   (0,external_React_namespaceObject.useEffect)(() => {
     const el = sizeSubmenuRef.current;
     if (!el) {
       return undefined;
     }
-    // The size submenu panel-list is moved into the panel-item's shadow DOM by
-    // the panel-list custom element, so React's synthetic onClick doesn't reach
-    // inner items. We use composedPath() to find the clicked item across the
-    // shadow boundary via its data-size attribute.
     const listener = e => {
       const item = e.composedPath().find(node => node.dataset?.size);
       if (item) {
@@ -12810,6 +13068,25 @@ function Lists({
     el.addEventListener("click", listener);
     return () => el.removeEventListener("click", listener);
   }, [handleChangeSize]);
+
+  // Reset baseline only when switching lists
+  (0,external_React_namespaceObject.useEffect)(() => {
+    prevCompletedCount.current = selectedList?.completed?.length || 0;
+    setIsAddingTask(false);
+    // intentionally leaving out selectedList from dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+  (0,external_React_namespaceObject.useEffect)(() => {
+    if (selectedList) {
+      const doneCount = selectedList.completed?.length || 0;
+      const previous = Math.floor(prevCompletedCount.current / 5);
+      const current = Math.floor(doneCount / 5);
+      if (current > previous) {
+        triggerCelebration();
+      }
+      prevCompletedCount.current = doneCount;
+    }
+  }, [selectedList, triggerCelebration, selected]);
   if (!lists) {
     return null;
   }
@@ -12833,21 +13110,61 @@ function Lists({
   // Fallback to 0 if the selected id isn’t found.
   const listKeys = Object.keys(lists);
   const selectedIndex = Math.max(0, listKeys.indexOf(selected));
-  const listNamePlaceholder = currentListsCount > 1 && selectedIndex !== 0 ? "newtab-widget-lists-name-placeholder-new" : "newtab-widget-lists-name-placeholder-default";
+  const listNamePlaceholder = currentListsCount > 1 && selectedIndex !== 0 ? "newtab-widget-lists-name-placeholder-new2" : "newtab-widget-lists-name-placeholder-checklist2";
   const nimbusBadgeEnabled = prefs.widgetsConfig?.listsBadgeEnabled;
   const nimbusBadgeLabel = prefs.widgetsConfig?.listsBadgeLabel;
   const nimbusBadgeTrainhopEnabled = prefs.trainhopConfig?.widgets?.listsBadgeEnabled;
   const nimbusBadgeTrainhopLabel = prefs.trainhopConfig?.widgets?.listsBadgeLabel;
   const badgeEnabled = (nimbusBadgeEnabled || nimbusBadgeTrainhopEnabled) ?? prefs[PREF_WIDGETS_LISTS_BADGE_ENABLED] ?? false;
   const badgeLabel = (nimbusBadgeLabel || nimbusBadgeTrainhopLabel) ?? prefs[PREF_WIDGETS_LISTS_BADGE_LABEL] ?? "";
+  const {
+    hasIncompleteTasks,
+    hasCompletedTasks,
+    hasAnyTasks,
+    hasVisibleTasks,
+    isShowingCompactCompleted
+  } = getCompactPreviewState({
+    enableCompactCompletedPreview: ENABLE_COMPACT_COMPLETED_PREVIEW,
+    isCompactMediumSize: isMediumSize,
+    selectedList,
+    showCompactCompleted
+  });
+  const showCompactPopulatedState = isMediumSize && hasAnyTasks;
+  const showCompletedTasks = !isMediumSize && hasCompletedTasks;
+  const showInlineAddButton = !showCompactPopulatedState;
+  const showHeaderAddButton = showCompactPopulatedState;
+  const showEmptyState = !hasAnyTasks && !isAddingTask;
+  const defaultListLabelL10nId = "newtab-widget-lists-name-default";
+  const listsSizeClass = widgetSize === "large" ? "large-widget" : "medium-widget compact-widget";
+  function renderAddTaskButton(iconOnly = false) {
+    return /*#__PURE__*/external_React_default().createElement("button", {
+      className: `lists-add-button${iconOnly ? " icon-only" : ""}`,
+      disabled: isAtMaxListItemsLimit,
+      onClick: handleShowTaskInput,
+      type: "button"
+    }, /*#__PURE__*/external_React_default().createElement("span", {
+      className: "icon icon-add"
+    }), /*#__PURE__*/external_React_default().createElement("span", {
+      className: iconOnly ? "sr-only" : "button-label",
+      "data-l10n-id": "newtab-widget-lists-button-add-item"
+    }));
+  }
   return /*#__PURE__*/external_React_default().createElement("article", {
-    // @nova-cleanup(remove-conditional): Remove novaEnabled check; always apply col-4 and size class after Nova ships
-    className: `lists widget ${novaEnabled ? `col-4 ${widgetSize}-widget` : ""} ${isSmallSize ? "is-small" : ""} ${isMaximized ? "is-maximized" : ""}`,
+    className: `lists widget ${novaEnabled ? "col-4" : ""} ${listsSizeClass} ${isMaximized ? "is-maximized" : ""}${showEmptyState ? " is-empty" : ""}${hasVisibleTasks ? " has-visible-tasks" : ""}${isAddingTask ? " is-adding-task" : ""}${isCelebrating ? " is-celebrating" : ""}`,
     ref: el => {
+      widgetRef.current = el;
       listsRef.current = [el];
     }
-  }, /*#__PURE__*/external_React_default().createElement("div", {
-    className: "select-wrapper"
+  }, isCelebrating && celebrationFrame ? /*#__PURE__*/external_React_default().createElement(WidgetCelebration, {
+    classNamePrefix: "lists-celebration",
+    celebrationFrame: celebrationFrame,
+    celebrationId: celebrationId,
+    headlineL10nId: LISTS_CELEBRATION.headlineL10nId,
+    illustrationSrc: LISTS_CELEBRATION.illustrationSrc,
+    onComplete: completeCelebration,
+    subheadL10nId: LISTS_CELEBRATION.subheadL10nId
+  }) : null, /*#__PURE__*/external_React_default().createElement("div", {
+    className: "lists-header"
   }, /*#__PURE__*/external_React_default().createElement(EditableText, {
     value: lists[selected]?.label || "",
     onSave: handleListNameSave,
@@ -12856,19 +13173,15 @@ function Lists({
     onCancel: handleCancelNewList,
     type: "list",
     maxLength: 30,
+    ariaLabelL10nId: "newtab-widget-lists-menu-edit2",
     dataL10nId: listNamePlaceholder
-  }, /*#__PURE__*/external_React_default().createElement("moz-select", {
-    ref: selectRef,
-    value: selected
-  }, Object.entries(lists).map(([key, list]) => /*#__PURE__*/external_React_default().createElement("moz-option", Lists_extends({
-    key: key,
-    value: key
-    // On the first/initial list, use default name
-  }, list.label ? {
-    label: list.label
-  } : {
-    "data-l10n-id": "newtab-widget-lists-name-label-default"
-  }))))), !isEditing && badgeEnabled && badgeLabel && /*#__PURE__*/external_React_default().createElement("moz-badge", {
+  }, renderListSwitcherOrTitle({
+    currentListsCount,
+    lists,
+    onSelect: handleSelectList,
+    selected,
+    defaultListLabelL10nId
+  })), !isEditing && badgeEnabled && badgeLabel && !isMediumSize && /*#__PURE__*/external_React_default().createElement("moz-badge", {
     "data-l10n-id": (() => {
       if (badgeLabel === "New") {
         return "newtab-widget-lists-label-new";
@@ -12878,8 +13191,23 @@ function Lists({
       }
       return "";
     })()
-  }), /*#__PURE__*/external_React_default().createElement("moz-button", {
+  }), showHeaderAddButton && renderAddTaskButton(true), ENABLE_COMPACT_COMPLETED_PREVIEW && isMediumSize && hasCompletedTasks && /*#__PURE__*/external_React_default().createElement("button", {
+    "aria-pressed": isShowingCompactCompleted,
+    className: `lists-completed-button${isShowingCompactCompleted ? " is-active" : ""}`,
+    onClick: () => hasIncompleteTasks && setShowCompactCompleted(currentValue => !currentValue),
+    type: "button"
+  }, /*#__PURE__*/external_React_default().createElement("span", {
+    "aria-hidden": "true",
+    className: "lists-completed-button-label"
+  }, "C"), /*#__PURE__*/external_React_default().createElement("span", {
+    className: "sr-only",
+    "data-l10n-id": "newtab-widget-lists-completed-list",
+    "data-l10n-args": JSON.stringify({
+      number: selectedList?.completed.length
+    })
+  })), /*#__PURE__*/external_React_default().createElement("moz-button", {
     className: "lists-panel-button",
+    "data-l10n-id": "newtab-menu-section-tooltip",
     iconSrc: "chrome://global/skin/icons/more.svg",
     menuId: "lists-panel",
     type: "ghost"
@@ -12900,32 +13228,29 @@ function Lists({
   }), /*#__PURE__*/external_React_default().createElement("hr", null), /*#__PURE__*/external_React_default().createElement("panel-item", {
     "data-l10n-id": "newtab-widget-lists-menu-copy",
     onClick: () => handleCopyListToClipboard()
-  }),
-  // @nova-cleanup(remove-conditional): Remove the `novaEnabled &&` check; keep widgetsMayBeMaximized
-  novaEnabled && widgetsMayBeMaximized && /*#__PURE__*/external_React_default().createElement("panel-item", {
-    submenu: "lists-size-submenu"
-  }, /*#__PURE__*/external_React_default().createElement("span", {
+  }), novaEnabled && widgetsMayBeMaximized && /*#__PURE__*/external_React_default().createElement("panel-item", {
+    submenu: "lists-size-submenu",
     "data-l10n-id": "newtab-widget-menu-change-size"
-  }), /*#__PURE__*/external_React_default().createElement("panel-list", {
+  }, /*#__PURE__*/external_React_default().createElement("panel-list", {
     ref: sizeSubmenuRef,
     slot: "submenu",
     id: "lists-size-submenu"
-  }, ["small", "medium", "large"].map(size => /*#__PURE__*/external_React_default().createElement("panel-item", Lists_extends({
+  }, ["medium", "large"].map(size => /*#__PURE__*/external_React_default().createElement("panel-item", {
     key: size,
     type: "checkbox",
     checked: widgetSize === size || undefined,
     "data-size": size,
     "data-l10n-id": `newtab-widget-size-${size}`
-  }, size === "small" ? {
-    disabled: true
-  } : {}))))), /*#__PURE__*/external_React_default().createElement("panel-item", {
+  })))), /*#__PURE__*/external_React_default().createElement("panel-item", {
     "data-l10n-id": "newtab-widget-menu-hide",
     onClick: () => handleHideLists()
   }), /*#__PURE__*/external_React_default().createElement("panel-item", {
     className: "learn-more",
     "data-l10n-id": "newtab-widget-lists-menu-learn-more",
     onClick: handleLearnMore
-  }))), /*#__PURE__*/external_React_default().createElement("div", {
+  }))), (showInlineAddButton || isAddingTask) && /*#__PURE__*/external_React_default().createElement("div", {
+    className: "lists-add-action"
+  }, showInlineAddButton && renderAddTaskButton(), /*#__PURE__*/external_React_default().createElement("div", {
     className: "add-task-container"
   }, /*#__PURE__*/external_React_default().createElement("span", {
     className: `icon icon-add ${isAtMaxListItemsLimit ? "icon-disabled" : ""}`
@@ -12934,19 +13259,28 @@ function Lists({
     onBlur: () => saveTask(),
     onChange: e => setNewTask(e.target.value),
     value: newTask,
-    "data-l10n-id": "newtab-widget-lists-input-add-an-item",
+    "data-l10n-id": "newtab-widget-lists-input-add-an-item2",
+    "data-l10n-attrs": "placeholder,aria-label",
     className: "add-task-input",
     onKeyDown: handleKeyDown,
     type: "text",
     maxLength: 100,
     disabled: isAtMaxListItemsLimit
-  })), /*#__PURE__*/external_React_default().createElement("div", {
+  }))), /*#__PURE__*/external_React_default().createElement("div", {
     className: "task-list-wrapper"
-  }, /*#__PURE__*/external_React_default().createElement("moz-reorderable-list", {
+  }, showEmptyState ? /*#__PURE__*/external_React_default().createElement("div", {
+    className: "empty-list"
+  }, /*#__PURE__*/external_React_default().createElement("img", {
+    className: "empty-list-illustration",
+    src: LISTS_EMPTY_STATE_ILLUSTRATION,
+    width: "68",
+    height: "68",
+    alt: ""
+  })) : /*#__PURE__*/external_React_default().createElement("moz-reorderable-list", {
     ref: reorderListRef,
     itemSelector: "fieldset .task-type-tasks",
     dragSelector: ".checkbox-wrapper:has(.task-label)"
-  }, /*#__PURE__*/external_React_default().createElement("fieldset", null, selectedList?.tasks.length >= 1 && selectedList.tasks.map((task, index) => /*#__PURE__*/external_React_default().createElement(ListItem, {
+  }, /*#__PURE__*/external_React_default().createElement("fieldset", null, isMediumSize ? hasIncompleteTasks && selectedList.tasks.map((task, index) => /*#__PURE__*/external_React_default().createElement(ListItem, {
     type: TASK_TYPE.IN_PROGRESS,
     task: task,
     key: task.id,
@@ -12956,7 +13290,17 @@ function Lists({
     isValidUrl: isValidUrl,
     isFirst: index === 0,
     isLast: index === selectedList.tasks.length - 1
-  })), selectedList?.completed.length >= 1 && /*#__PURE__*/external_React_default().createElement("details", {
+  })) : hasIncompleteTasks && selectedList.tasks.map((task, index) => /*#__PURE__*/external_React_default().createElement(ListItem, {
+    type: TASK_TYPE.IN_PROGRESS,
+    task: task,
+    key: task.id,
+    updateTask: updateTask,
+    deleteTask: deleteTask,
+    moveTask: moveTask,
+    isValidUrl: isValidUrl,
+    isFirst: index === 0,
+    isLast: index === selectedList.tasks.length - 1
+  })), showCompletedTasks && /*#__PURE__*/external_React_default().createElement("details", {
     className: "completed-task-wrapper",
     open: selectedList?.tasks.length < 1
   }, /*#__PURE__*/external_React_default().createElement("summary", null, /*#__PURE__*/external_React_default().createElement("span", {
@@ -12965,31 +13309,13 @@ function Lists({
       number: lists[selected]?.completed.length
     }),
     className: "completed-title"
-  })), selectedList?.completed.map(completedTask => /*#__PURE__*/external_React_default().createElement(ListItem, {
+  })), selectedList.completed.map(completedTask => /*#__PURE__*/external_React_default().createElement(ListItem, {
     key: completedTask.id,
     type: TASK_TYPE.COMPLETED,
     task: completedTask,
     deleteTask: deleteTask,
     updateTask: updateTask
-  }))))), selectedList?.tasks.length < 1 && selectedList?.completed.length < 1 && /*#__PURE__*/external_React_default().createElement("div", {
-    className: "empty-list"
-  }, /*#__PURE__*/external_React_default().createElement("picture", null, /*#__PURE__*/external_React_default().createElement("source", {
-    srcSet: "chrome://newtab/content/data/content/assets/lists-empty-state-dark.svg",
-    media: "(prefers-color-scheme: dark)"
-  }), /*#__PURE__*/external_React_default().createElement("source", {
-    srcSet: "chrome://newtab/content/data/content/assets/lists-empty-state-light.svg",
-    media: "(prefers-color-scheme: light)"
-  }), /*#__PURE__*/external_React_default().createElement("img", {
-    width: "100",
-    height: "100",
-    alt: ""
-  })), /*#__PURE__*/external_React_default().createElement("p", {
-    className: "empty-list-text",
-    "data-l10n-id": "newtab-widget-lists-empty-cta"
-  }))), /*#__PURE__*/external_React_default().createElement("canvas", {
-    className: "confetti-canvas",
-    ref: canvasRef
-  }));
+  })))))));
 }
 function ListItem({
   task,
@@ -13075,8 +13401,10 @@ function ListItem({
     setIsEditing: setIsEditing,
     value: task.value,
     onSave: handleSave,
-    type: "task"
+    type: "task",
+    ariaLabelL10nId: "newtab-widget-lists-input-menu-edit2"
   }, taskLabel)), /*#__PURE__*/external_React_default().createElement("moz-button", {
+    "data-l10n-id": "newtab-menu-section-tooltip",
     iconSrc: "chrome://global/skin/icons/more.svg",
     menuId: `panel-task-${task.id}`,
     type: "ghost"
@@ -13114,6 +13442,7 @@ function EditableText({
   children,
   type,
   dataL10nId = null,
+  ariaLabelL10nId = null,
   maxLength = 100
 }) {
   const [tempValue, setTempValue] = (0,external_React_namespaceObject.useState)(value);
@@ -13121,6 +13450,8 @@ function EditableText({
 
   // True if tempValue is empty, null/undefined, or only whitespace
   const showPlaceholder = (tempValue ?? "").trim() === "";
+  const inputL10nId = showPlaceholder && dataL10nId ? dataL10nId : ariaLabelL10nId;
+  const inputL10nAttrs = showPlaceholder && dataL10nId ? "placeholder,aria-label" : "aria-label";
   (0,external_React_namespaceObject.useEffect)(() => {
     if (isEditing) {
       inputRef.current?.focus();
@@ -13151,9 +13482,10 @@ function EditableText({
     onChange: event => setTempValue(event.target.value),
     onBlur: handleOnBlur,
     onKeyDown: handleKeyDown
-    // Note that if a user has a custom name set, it will override the placeholder
-  }, showPlaceholder && dataL10nId ? {
-    "data-l10n-id": dataL10nId
+  }, inputL10nId ? {
+    "data-l10n-id": inputL10nId
+  } : {}, inputL10nId ? {
+    "data-l10n-attrs": inputL10nAttrs
   } : {})) : [children];
 }
 
