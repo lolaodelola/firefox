@@ -718,16 +718,9 @@ package org.mozilla.geckoview {
     method @NonNull public ContentBlocking.Settings.Builder queryParameterStrippingPrivateBrowsingEnabled(boolean);
     method @NonNull public ContentBlocking.Settings.Builder queryParameterStrippingStripList(@NonNull String...);
     method @NonNull public ContentBlocking.Settings.Builder safeBrowsing(int);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingGlobalCacheEnabled(boolean);
     method @NonNull public ContentBlocking.Settings.Builder safeBrowsingMalwareTable(@NonNull String[]);
     method @NonNull public ContentBlocking.Settings.Builder safeBrowsingPhishingTable(@NonNull String[]);
     method @NonNull public ContentBlocking.Settings.Builder safeBrowsingProviders(@NonNull ContentBlocking.SafeBrowsingProvider...);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingRealTimeEnabled(boolean);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingRealTimeSimulationCacheTTLSec(int);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingRealTimeSimulationEnabled(boolean);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingRealTimeSimulationHitProbability(int);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingRealTimeSimulationNegativeCacheEnabled(boolean);
-    method @NonNull public ContentBlocking.Settings.Builder safeBrowsingRealTimeSimulationNegativeCacheTTLSec(int);
     method @NonNull public ContentBlocking.Settings.Builder strictSocialTrackingProtection(boolean);
     method @NonNull protected ContentBlocking.Settings newSettings(@Nullable ContentBlocking.Settings);
   }

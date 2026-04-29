@@ -15,10 +15,8 @@ exclude: true
 
 ## v152
 - Added [`WebExtensionController.INSTALLATION_METHOD_RTAMO`][152.1], which should be used when a `WebExtension` is installed for the RTAMO feature. ([bug 2029607]({{bugzilla}}2029607))
-- Added `safeBrowsingGlobalCacheEnabled`, `safeBrowsingRealTimeEnabled`, `safeBrowsingRealTimeSimulationEnabled`, `safeBrowsingRealTimeSimulationHitProbability`, `safeBrowsingRealTimeSimulationCacheTTLSec`, `safeBrowsingRealTimeSimulationNegativeCacheEnabled`, `safeBrowsingRealTimeSimulationNegativeCacheTTLSec` to [`ContentBlocking.Settings.Builder`][152.2] to enable configuring SafeBrowsing V5 Real-Time mode simulation.
 
 [152.1]: {{javadoc_uri}}/WebExtensionController.html#INSTALLATION_METHOD_RTAMO
-[152.2]: {{javadoc_uri}}/ContentBlocking.Settings.Builder.html
 
 ## v151
 - Added `isBlocked` to `AIFeature` on [`AIFeaturesController`][150.3].
@@ -1960,4 +1958,4 @@ to allow adding gecko profiler markers.
 [65.24]: {{javadoc_uri}}/CrashReporter.html#sendCrashReport(android.content.Context,android.os.Bundle,java.lang.String)
 [65.25]: {{javadoc_uri}}/GeckoResult.html
 
-[api-version]: e78f26d0e0cf68f216c8aafa3c0665c5ec8ee99e
+[api-version]: 03295331dea5330011e40695ad057eee2d9e6001
