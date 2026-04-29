@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Localized } from "./MSLocalized";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 
 export const MarketplaceButtons = props => {
   return (
@@ -48,7 +48,7 @@ export const MobileDownloads = props => {
           className="qr-code-image"
           alt={typeof QRCode.alt_text === "string" ? QRCode.alt_text : ""}
           src={QRCode.image_url}
-          loading={AboutWelcomeUtils.getLoadingStrategyFor(QRCode.image_url)}
+          loading={MultiStageUtils.getLoadingStrategyFor(QRCode.image_url)}
         />
       ) : null}
       {showEmailLink ? (

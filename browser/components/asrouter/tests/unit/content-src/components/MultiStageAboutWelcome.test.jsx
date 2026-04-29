@@ -1,4 +1,4 @@
-import { GlobalOverrider } from "asrouter/tests/unit/utils";
+import { GlobalOverrider } from "tests/unit/utils";
 import {
   MultiStageAboutWelcome,
   SecondaryCTA,
@@ -10,7 +10,7 @@ import { SingleSelect } from "content-src/components/SingleSelect";
 import React from "react";
 import { shallow, mount } from "enzyme";
 import { AboutWelcomeDefaults } from "modules/AboutWelcomeDefaults.sys.mjs";
-import { AboutWelcomeUtils } from "content-src/lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "content-src/lib/multistage-utils.mjs";
 
 const spinEventLoop = async () => {
   // Spin the event loop to allow the useEffect hooks to execute,
@@ -111,7 +111,7 @@ describe("MultiStageAboutWelcome module", () => {
         startScreen: 0,
       };
 
-      const stub = sinon.stub(AboutWelcomeUtils, "sendActionTelemetry");
+      const stub = sinon.stub(MultiStageUtils, "sendActionTelemetry");
       let wrapper = mount(<MultiStageAboutWelcome {...PRIMARY_ACTION_PROPS} />);
       wrapper.update();
 
@@ -154,10 +154,7 @@ describe("MultiStageAboutWelcome module", () => {
       const wrapper = mount(<MultiStageAboutWelcome {...AUTO_ADVANCE_PROPS} />);
       wrapper.update();
       const finishStub = sandbox.stub(global, "AWFinish");
-      const telemetryStub = sinon.stub(
-        AboutWelcomeUtils,
-        "sendActionTelemetry"
-      );
+      const telemetryStub = sinon.stub(MultiStageUtils, "sendActionTelemetry");
 
       assert.notCalled(finishStub);
       clock.tick(20001);
@@ -199,10 +196,7 @@ describe("MultiStageAboutWelcome module", () => {
       const wrapper = mount(<MultiStageAboutWelcome {...AUTO_ADVANCE_PROPS} />);
       wrapper.update();
       const finishStub = sandbox.stub(global, "AWFinish");
-      const telemetryStub = sinon.stub(
-        AboutWelcomeUtils,
-        "sendActionTelemetry"
-      );
+      const telemetryStub = sinon.stub(MultiStageUtils, "sendActionTelemetry");
 
       assert.notCalled(finishStub);
       clock.tick(5001);
@@ -242,7 +236,7 @@ describe("MultiStageAboutWelcome module", () => {
         message_id: "DEFAULT_ABOUTWELCOME",
         startScreen: 0,
       };
-      const stub = sinon.stub(AboutWelcomeUtils, "sendActionTelemetry");
+      const stub = sinon.stub(MultiStageUtils, "sendActionTelemetry");
       let wrapper = mount(<MultiStageAboutWelcome {...EASY_SETUP_PROPS} />);
       wrapper.update();
 
@@ -289,7 +283,7 @@ describe("MultiStageAboutWelcome module", () => {
         message_id: "DEFAULT_ABOUTWELCOME",
         startScreen: 0,
       };
-      const stub = sinon.stub(AboutWelcomeUtils, "sendActionTelemetry");
+      const stub = sinon.stub(MultiStageUtils, "sendActionTelemetry");
       let wrapper = mount(<MultiStageAboutWelcome {...COMPONENT_PROPS} />);
       wrapper.update();
 
@@ -389,7 +383,7 @@ describe("MultiStageAboutWelcome module", () => {
         message_id: "DEFAULT_ABOUTWELCOME",
         startScreen: 0,
       };
-      const stub = sinon.stub(AboutWelcomeUtils, "sendActionTelemetry");
+      const stub = sinon.stub(MultiStageUtils, "sendActionTelemetry");
       let wrapper = mount(<MultiStageAboutWelcome {...COMPONENT_PROPS} />);
       wrapper.update();
 
@@ -769,7 +763,7 @@ describe("MultiStageAboutWelcome module", () => {
           setActiveMultiSelect: sandbox.stub(),
           setScreenMultiSelects: sandbox.stub(),
         };
-        sandbox.stub(AboutWelcomeUtils, "handleUserAction").resolves();
+        sandbox.stub(MultiStageUtils, "handleUserAction").resolves();
       });
       it("should select the configured default value if present", async () => {
         const wrapper = mount(
@@ -802,7 +796,7 @@ describe("MultiStageAboutWelcome module", () => {
           ".tiles-single-select-section .select-item input[value='test1']"
         );
         selectOption.simulate("click");
-        assert.calledOnce(AboutWelcomeUtils.handleUserAction);
+        assert.calledOnce(MultiStageUtils.handleUserAction);
       });
       it("should handle item key down selection", () => {
         const wrapper = mount(
@@ -812,7 +806,7 @@ describe("MultiStageAboutWelcome module", () => {
           ".tiles-single-select-section .select-item input[value='test1']"
         );
         selectOption.simulate("keydown", { key: "Enter" });
-        assert.calledOnce(AboutWelcomeUtils.handleUserAction);
+        assert.calledOnce(MultiStageUtils.handleUserAction);
       });
       it("should render flair", () => {
         const wrapper = mount(
@@ -825,7 +819,7 @@ describe("MultiStageAboutWelcome module", () => {
       it("should automatically trigger the selected tile's action for an approved action", () => {
         SINGLE_SELECT_SCREEN_PROPS.content.tiles.autoTrigger = true;
         mount(<WelcomeScreen {...SINGLE_SELECT_SCREEN_PROPS} />);
-        assert.calledOnce(AboutWelcomeUtils.handleUserAction);
+        assert.calledOnce(MultiStageUtils.handleUserAction);
       });
       it("should not trigger the selected tile's action for an unapproved action", () => {
         SINGLE_SELECT_SCREEN_PROPS.content.tiles.autoTrigger = true;
@@ -833,7 +827,7 @@ describe("MultiStageAboutWelcome module", () => {
 
         mount(<WelcomeScreen {...SINGLE_SELECT_SCREEN_PROPS} />);
 
-        assert.notCalled(AboutWelcomeUtils.handleUserAction);
+        assert.notCalled(MultiStageUtils.handleUserAction);
       });
       it("should not trigger the selected tile's action for an unapproved pref with SET_PREF action", () => {
         SINGLE_SELECT_SCREEN_PROPS.content.tiles.autoTrigger = true;
@@ -842,7 +836,7 @@ describe("MultiStageAboutWelcome module", () => {
 
         mount(<WelcomeScreen {...SINGLE_SELECT_SCREEN_PROPS} />);
 
-        assert.notCalled(AboutWelcomeUtils.handleUserAction);
+        assert.notCalled(MultiStageUtils.handleUserAction);
       });
       it("should trigger all of the selected tile's actions if MULTI_ACTION is used with SET_PREF and allowed prefs", () => {
         SINGLE_SELECT_SCREEN_PROPS.content.tiles.autoTrigger = true;
@@ -870,7 +864,7 @@ describe("MultiStageAboutWelcome module", () => {
           },
         };
         mount(<WelcomeScreen {...SINGLE_SELECT_SCREEN_PROPS} />);
-        assert.calledOnce(AboutWelcomeUtils.handleUserAction);
+        assert.calledOnce(MultiStageUtils.handleUserAction);
       });
       it("should show subtitle text when tile is selected", () => {
         SINGLE_SELECT_SCREEN_PROPS.activeSingleSelectSelections = {
@@ -913,7 +907,7 @@ describe("MultiStageAboutWelcome module", () => {
           },
         };
         mount(<WelcomeScreen {...SINGLE_SELECT_SCREEN_PROPS} />);
-        assert.notCalled(AboutWelcomeUtils.handleUserAction);
+        assert.notCalled(MultiStageUtils.handleUserAction);
       });
     });
 
@@ -935,7 +929,7 @@ describe("MultiStageAboutWelcome module", () => {
           UTMTerm: "you_tee_emm",
         };
         TEST_ACTION = SCREEN_PROPS.content.primary_button.action;
-        sandbox.stub(AboutWelcomeUtils, "handleUserAction").resolves();
+        sandbox.stub(MultiStageUtils, "handleUserAction").resolves();
       });
       it("should handle navigate", () => {
         TEST_ACTION.navigate = true;
@@ -959,10 +953,7 @@ describe("MultiStageAboutWelcome module", () => {
         };
         const finishStub = sandbox.stub(global, "AWFinish");
         const wrapper = mount(<WelcomeScreen {...SCREEN_PROPS} />);
-        let telemetrySpy = sandbox.spy(
-          AboutWelcomeUtils,
-          "sendDismissTelemetry"
-        );
+        let telemetrySpy = sandbox.spy(MultiStageUtils, "sendDismissTelemetry");
         wrapper.find(".dismiss-button").simulate("click");
 
         assert.calledOnce(finishStub);
@@ -974,7 +965,7 @@ describe("MultiStageAboutWelcome module", () => {
 
         wrapper.find(".primary").simulate("click");
 
-        assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+        assert.calledWith(MultiStageUtils.handleUserAction, {
           data: {
             extraParams: {
               utm_campaign: "firstrun",
@@ -1006,7 +997,7 @@ describe("MultiStageAboutWelcome module", () => {
 
         wrapper.find(".primary").simulate("click");
 
-        let [handledAction] = AboutWelcomeUtils.handleUserAction.firstCall.args;
+        let [handledAction] = MultiStageUtils.handleUserAction.firstCall.args;
         assert.equal(handledAction.type, "OPEN_URL");
         let { searchParams } = new URL(handledAction.data.args);
         assert.equal(searchParams.get("utm_campaign"), "test-campaign");
@@ -1026,7 +1017,7 @@ describe("MultiStageAboutWelcome module", () => {
 
         wrapper.find(".primary").simulate("click");
 
-        assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+        assert.calledWith(MultiStageUtils.handleUserAction, {
           type: "SHOW_MIGRATION_WIZARD",
         });
       });
@@ -1066,7 +1057,7 @@ describe("MultiStageAboutWelcome module", () => {
         const wrapper = mount(<WelcomeScreen {...MULTI_ACTION_SCREEN_PROPS} />);
 
         wrapper.find(".primary").simulate("click");
-        assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+        assert.calledWith(MultiStageUtils.handleUserAction, {
           type: "MULTI_ACTION",
           navigate: true,
           data: {
@@ -1137,7 +1128,7 @@ describe("MultiStageAboutWelcome module", () => {
         const wrapper = mount(<WelcomeScreen {...MULTI_ACTION_SCREEN_PROPS} />);
 
         wrapper.find(".primary").simulate("click");
-        assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+        assert.calledWith(MultiStageUtils.handleUserAction, {
           type: "MULTI_ACTION",
           navigate: true,
           data: {
@@ -1261,7 +1252,7 @@ describe("MultiStageAboutWelcome module", () => {
             <WelcomeScreen {...PREF_SCREEN_PROPS} activeMultiSelect={[]} />
           );
           wrapper.find(".primary").simulate("click");
-          assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+          assert.calledWith(MultiStageUtils.handleUserAction, {
             type: "MULTI_ACTION",
             collectSelect: true,
             isDynamic: true,
@@ -1274,7 +1265,7 @@ describe("MultiStageAboutWelcome module", () => {
             },
           });
 
-          AboutWelcomeUtils.handleUserAction.resetHistory();
+          MultiStageUtils.handleUserAction.resetHistory();
         }
 
         // The first checkbox is checked. Only pref-a will be set and pref-c
@@ -1287,7 +1278,7 @@ describe("MultiStageAboutWelcome module", () => {
             />
           );
           wrapper.find(".primary").simulate("click");
-          assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+          assert.calledWith(MultiStageUtils.handleUserAction, {
             type: "MULTI_ACTION",
             collectSelect: true,
             isDynamic: true,
@@ -1308,7 +1299,7 @@ describe("MultiStageAboutWelcome module", () => {
             },
           });
 
-          AboutWelcomeUtils.handleUserAction.resetHistory();
+          MultiStageUtils.handleUserAction.resetHistory();
         }
 
         // The second checkbox is checked. Prefs pref-b and pref-c will be set.
@@ -1320,7 +1311,7 @@ describe("MultiStageAboutWelcome module", () => {
             />
           );
           wrapper.find(".primary").simulate("click");
-          assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+          assert.calledWith(MultiStageUtils.handleUserAction, {
             type: "MULTI_ACTION",
             collectSelect: true,
             isDynamic: true,
@@ -1347,7 +1338,7 @@ describe("MultiStageAboutWelcome module", () => {
             },
           });
 
-          AboutWelcomeUtils.handleUserAction.resetHistory();
+          MultiStageUtils.handleUserAction.resetHistory();
         }
 
         // // Both checkboxes are checked. All prefs will be set.
@@ -1359,7 +1350,7 @@ describe("MultiStageAboutWelcome module", () => {
             />
           );
           wrapper.find(".primary").simulate("click");
-          assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+          assert.calledWith(MultiStageUtils.handleUserAction, {
             type: "MULTI_ACTION",
             collectSelect: true,
             isDynamic: true,
@@ -1389,15 +1380,12 @@ describe("MultiStageAboutWelcome module", () => {
             },
           });
 
-          AboutWelcomeUtils.handleUserAction.resetHistory();
+          MultiStageUtils.handleUserAction.resetHistory();
         }
       });
       it("should handle a campaign action when applicable", async () => {
-        let actionSpy = sandbox.spy(AboutWelcomeUtils, "handleCampaignAction");
-        let telemetrySpy = sandbox.spy(
-          AboutWelcomeUtils,
-          "sendActionTelemetry"
-        );
+        let actionSpy = sandbox.spy(MultiStageUtils, "handleCampaignAction");
+        let telemetrySpy = sandbox.spy(MultiStageUtils, "sendActionTelemetry");
 
         globals.set("AWGetUnhandledCampaignAction", () =>
           Promise.resolve("SET_DEFAULT_BROWSER")
@@ -1426,11 +1414,8 @@ describe("MultiStageAboutWelcome module", () => {
         globals.restore();
       });
       it("should not handle a campaign action when the action has already been handled", async () => {
-        let actionSpy = sandbox.spy(AboutWelcomeUtils, "handleCampaignAction");
-        let telemetrySpy = sandbox.spy(
-          AboutWelcomeUtils,
-          "sendActionTelemetry"
-        );
+        let actionSpy = sandbox.spy(MultiStageUtils, "handleCampaignAction");
+        let telemetrySpy = sandbox.spy(MultiStageUtils, "sendActionTelemetry");
 
         globals.set("AWGetUnhandledCampaignAction", () =>
           Promise.resolve(false)
@@ -1455,11 +1440,8 @@ describe("MultiStageAboutWelcome module", () => {
         globals.restore();
       });
       it("should not send telemetrty when campaign action handling fails", async () => {
-        let actionSpy = sandbox.spy(AboutWelcomeUtils, "handleCampaignAction");
-        let telemetrySpy = sandbox.spy(
-          AboutWelcomeUtils,
-          "sendActionTelemetry"
-        );
+        let actionSpy = sandbox.spy(MultiStageUtils, "handleCampaignAction");
+        let telemetrySpy = sandbox.spy(MultiStageUtils, "sendActionTelemetry");
 
         globals.set("AWGetUnhandledCampaignAction", () =>
           Promise.resolve("SET_DEFAULT_BROWSER")
@@ -1512,7 +1494,7 @@ describe("MultiStageAboutWelcome module", () => {
           name: "test-click",
         });
 
-        const [calledArg] = AboutWelcomeUtils.handleUserAction.firstCall.args;
+        const [calledArg] = MultiStageUtils.handleUserAction.firstCall.args;
         const url = new URL(calledArg.data.args);
 
         assert.equal(calledArg.type, "OPEN_URL");
@@ -1538,10 +1520,7 @@ describe("MultiStageAboutWelcome module", () => {
         awSendToParentStub = sandbox.stub();
         globals.set("AWSendToParent", awSendToParentStub);
         finishStub = sandbox.stub(global, "AWFinish");
-        handleUserActionSpy = sandbox.spy(
-          AboutWelcomeUtils,
-          "handleUserAction"
-        );
+        handleUserActionSpy = sandbox.spy(MultiStageUtils, "handleUserAction");
 
         TEST_ACTION = SCREEN_PROPS.content.primary_button.action;
       });

@@ -3,7 +3,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import React from "react";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 import { Localized } from "./MSLocalized";
 
 export const TileList = props => {
@@ -37,7 +37,7 @@ export const TileList = props => {
           <div className="tile-list-icon-wrapper">
             <div
               className="tile-list-icon"
-              style={AboutWelcomeUtils.getValidStyle(icon, CONFIGURABLE_STYLES)}
+              style={MultiStageUtils.getValidStyle(icon, CONFIGURABLE_STYLES)}
             ></div>
           </div>
           <div className="tile-list-text">

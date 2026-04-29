@@ -1,6 +1,6 @@
 import React from "react";
 import { shallow, mount } from "enzyme";
-import { GlobalOverrider } from "asrouter/tests/unit/utils";
+import { GlobalOverrider } from "tests/unit/utils";
 import { MobileDownloads } from "content-src/components/MobileDownloads";
 
 describe("Multistage AboutWelcome MobileDownloads module", () => {

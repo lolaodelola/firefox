@@ -3,7 +3,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 import { Localized } from "./MSLocalized";
 
 export const EmbeddedBackupRestore = ({ handleAction, skipButton }) => {
@@ -20,7 +20,7 @@ export const EmbeddedBackupRestore = ({ handleAction, skipButton }) => {
     loadRestore();
     // Clear the pref used to target the restore screen so that users will not
     // automatically see it again the next time they visit about:welcome.
-    AboutWelcomeUtils.handleUserAction({
+    MultiStageUtils.handleUserAction({
       type: "SET_PREF",
       data: {
         pref: { name: "showRestoreFromBackup", value: false },

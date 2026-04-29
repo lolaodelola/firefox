@@ -1,6 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public * License, v. 2.0. If a copy of the MPL was not distributed with this file, * You can obtain one at http://mozilla.org/MPL/2.0/. */
 import React from "react";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 import { Localized } from "./MSLocalized";
 import { LinkParagraph } from "./LinkParagraph";
 
@@ -33,7 +33,7 @@ export const ConfirmationChecklist = props => {
     <div className={`confirmation-checklist-section`}>
       <div
         className={`confirmation-checklist-container`}
-        style={AboutWelcomeUtils.getValidStyle(
+        style={MultiStageUtils.getValidStyle(
           content.style,
           CONFIGURABLE_STYLES
         )}
@@ -43,10 +43,7 @@ export const ConfirmationChecklist = props => {
             <div className="confirmation-checklist-icon-wrapper">
               <div
                 className="confirmation-checklist-icon"
-                style={AboutWelcomeUtils.getValidStyle(
-                  icon,
-                  CONFIGURABLE_STYLES
-                )}
+                style={MultiStageUtils.getValidStyle(icon, CONFIGURABLE_STYLES)}
               ></div>
               <div className="confirmation-checklist-text">
                 <Localized text={text}>

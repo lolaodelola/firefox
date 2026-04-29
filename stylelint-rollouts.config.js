@@ -41,6 +41,7 @@ module.exports = [
       "browser/components/aiwindow/ui/components/ai-window/ai-window.css",
       "browser/components/asrouter/content-src/components/ASRouterAdmin/ASRouterAdmin.scss",
       "browser/components/asrouter/content-src/styles/_feature-callout.scss",
+      "browser/components/asrouter/content-src/styles/_multistage.scss",
       "browser/components/backup/content/backup-settings.css",
       "browser/components/backup/content/password-rules-tooltip.css",
       "browser/components/backup/content/password-validation-inputs.css",

@@ -14,7 +14,7 @@ import { EmbeddedFxBackupOptIn } from "./EmbeddedFxBackupOptIn";
 import { ActionChecklist } from "./ActionChecklist";
 import { EmbeddedBrowser } from "./EmbeddedBrowser";
 import { ConfirmationChecklist } from "./ConfirmationChecklist";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 import { EmbeddedBackupRestore } from "./EmbeddedBackupRestore";
 
 const HEADER_STYLES = [
@@ -186,7 +186,7 @@ export const ContentTiles = props => {
 
   const toggleTile = (index, tile) => {
     const tileId = `${tile.type}${tile.id ? "_" : ""}${tile.id ?? ""}_header`;
-    AboutWelcomeUtils.sendActionTelemetry(
+    MultiStageUtils.sendActionTelemetry(
       props.messageId,
       tileId,
       "CLICK_BUTTON",
@@ -208,7 +208,7 @@ export const ContentTiles = props => {
 
   const toggleTiles = () => {
     setTilesHeaderExpanded(prev => !prev);
-    AboutWelcomeUtils.sendActionTelemetry(
+    MultiStageUtils.sendActionTelemetry(
       props.messageId,
       "content_tiles_header",
       "CLICK_BUTTON",
@@ -240,14 +240,14 @@ export const ContentTiles = props => {
       <div
         key={index}
         className={`content-tile ${header ? "has-header" : ""}`}
-        style={AboutWelcomeUtils.getTileStyle(tile, TILE_STYLES)}
+        style={MultiStageUtils.getTileStyle(tile, TILE_STYLES)}
       >
         {header?.title && (
           <button
             className="tile-header secondary"
             onClick={() => toggleTile(index, tile)}
             {...tileHeaderProps}
-            style={AboutWelcomeUtils.getValidStyle(header.style, HEADER_STYLES)}
+            style={MultiStageUtils.getValidStyle(header.style, HEADER_STYLES)}
           >
             <div className="header-text-container">
               <Localized text={header.title}>
@@ -398,7 +398,7 @@ export const ContentTiles = props => {
       return (
         <div
           id="content-tiles-container"
-          style={AboutWelcomeUtils.getValidStyle(
+          style={MultiStageUtils.getValidStyle(
             containerStyle,
             CONTAINER_STYLES
           )}

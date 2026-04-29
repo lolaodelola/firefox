@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Localized } from "./MSLocalized";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 
 /**
  * The language switcher implements a hook that should be placed at a higher level
@@ -270,7 +270,7 @@ export function LanguageSwitcher(props) {
             className="primary"
             value="primary_button"
             onClick={() => {
-              AboutWelcomeUtils.sendActionTelemetry(
+              MultiStageUtils.sendActionTelemetry(
                 messageId,
                 "download_langpack",
                 "CLICK_BUTTON",

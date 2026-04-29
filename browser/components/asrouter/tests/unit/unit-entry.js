@@ -140,6 +140,9 @@ const TEST_GLOBAL = {
     sendToDeviceEmailsSupported() {
       return true;
     },
+    isChinaRepack() {
+      return false;
+    },
   },
   UpdateUtils: { getUpdateChannel() {} },
   BasePromiseWorker: class {
@@ -565,6 +568,12 @@ const TEST_GLOBAL = {
   },
   Logger: FakeLogger,
   getFxAccountsSingleton() {},
+  AWEnsureAddonInstalled() {
+    return Promise.resolve("complete");
+  },
+  AWWaitForNimbus() {
+    return Promise.resolve("ready");
+  },
   AboutNewTab: {},
   Glean: {
     messagingExperiments: {

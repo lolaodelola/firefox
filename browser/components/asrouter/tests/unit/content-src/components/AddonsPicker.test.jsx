@@ -1,7 +1,7 @@
 import React from "react";
 import { mount } from "enzyme";
 import { AddonsPicker } from "content-src/components/AddonsPicker";
-import { AboutWelcomeUtils } from "content-src/lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "content-src/lib/multistage-utils.mjs";
 
 describe("AddonsPicker component", () => {
   let sandbox;
@@ -32,8 +32,8 @@ describe("AddonsPicker component", () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
-    sandbox.stub(AboutWelcomeUtils, "handleUserAction");
-    sandbox.stub(AboutWelcomeUtils, "sendActionTelemetry");
+    sandbox.stub(MultiStageUtils, "handleUserAction");
+    sandbox.stub(MultiStageUtils, "sendActionTelemetry");
   });
 
   afterEach(() => {
@@ -113,8 +113,8 @@ describe("AddonsPicker component", () => {
       const authorLink = wrapper.find(".author-link");
       authorLink.simulate("click", { stopPropagation: sandbox.stub() });
 
-      assert.calledOnce(AboutWelcomeUtils.handleUserAction);
-      assert.calledWith(AboutWelcomeUtils.handleUserAction, {
+      assert.calledOnce(MultiStageUtils.handleUserAction);
+      assert.calledWith(MultiStageUtils.handleUserAction, {
         type: "OPEN_URL",
         data: {
           args: `https://addons.mozilla.org/firefox/user/${ADDON_DATA.author.id}/`,

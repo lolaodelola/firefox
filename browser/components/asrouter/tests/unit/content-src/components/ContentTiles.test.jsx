@@ -5,8 +5,8 @@ import { ActionChecklist } from "content-src/components/ActionChecklist";
 import { MobileDownloads } from "content-src/components/MobileDownloads";
 import { EmbeddedBackupRestore } from "content-src/components/EmbeddedBackupRestore";
 import { EmbeddedMigrationWizard } from "content-src/components/EmbeddedMigrationWizard";
-import { AboutWelcomeUtils } from "content-src/lib/aboutwelcome-utils.mjs";
-import { GlobalOverrider } from "asrouter/tests/unit/utils";
+import { MultiStageUtils } from "content-src/lib/multistage-utils.mjs";
+import { GlobalOverrider } from "tests/unit/utils";
 
 describe("ContentTiles component", () => {
   let sandbox;
@@ -129,7 +129,7 @@ describe("ContentTiles component", () => {
   });
 
   it("should toggle a tile and send telemetry when its header is clicked", () => {
-    let telemetrySpy = sandbox.spy(AboutWelcomeUtils, "sendActionTelemetry");
+    let telemetrySpy = sandbox.spy(MultiStageUtils, "sendActionTelemetry");
     const [firstTile] = TEST_CONTENT.tiles;
     const tileId = `${firstTile.type}${firstTile.id ? "_" : ""}${
       firstTile.id ?? ""
@@ -175,7 +175,7 @@ describe("ContentTiles component", () => {
       />
     );
 
-    let telemetrySpy = sandbox.spy(AboutWelcomeUtils, "sendActionTelemetry");
+    let telemetrySpy = sandbox.spy(MultiStageUtils, "sendActionTelemetry");
     const tilesHeaderButton = wrapper.find(".content-tiles-header");
 
     assert.ok(tilesHeaderButton.exists(), "Tiles header button should exist");
@@ -1202,7 +1202,7 @@ describe("ContentTiles component", () => {
       },
     };
 
-    let telemetrySpy = sandbox.spy(AboutWelcomeUtils, "sendActionTelemetry");
+    let telemetrySpy = sandbox.spy(MultiStageUtils, "sendActionTelemetry");
     const linkWrapper = mount(
       <ContentTiles
         content={{ tiles: [LINK_TILE] }}

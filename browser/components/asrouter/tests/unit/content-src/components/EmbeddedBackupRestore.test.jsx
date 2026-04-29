@@ -1,7 +1,7 @@
 import React from "react";
 import { mount } from "enzyme";
 import { EmbeddedBackupRestore } from "content-src/components/EmbeddedBackupRestore";
-import { GlobalOverrider } from "asrouter/tests/unit/utils";
+import { GlobalOverrider } from "tests/unit/utils";
 
 describe("EmbeddedBackupRestore component", () => {
   let wrapper;

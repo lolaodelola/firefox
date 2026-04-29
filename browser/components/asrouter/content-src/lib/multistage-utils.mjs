@@ -10,7 +10,7 @@ const page =
     "#multi-stage-message-root.onboardingContainer[data-page]"
   )?.dataset.page || document.location.href;
 
-export const AboutWelcomeUtils = {
+export const MultiStageUtils = {
   handleUserAction(action) {
     return window.AWSendToParent("SPECIAL_ACTION", action);
   },

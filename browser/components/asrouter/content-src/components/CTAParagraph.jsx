@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Localized, CONFIGURABLE_STYLES } from "./MSLocalized";
-import { AboutWelcomeUtils } from "../lib/aboutwelcome-utils.mjs";
+import { MultiStageUtils } from "../lib/multistage-utils.mjs";
 
 export const CTAParagraph = props => {
   const { content, handleAction } = props;
@@ -25,14 +25,14 @@ export const CTAParagraph = props => {
     <h2
       className={`cta-paragraph ${content?.info_tile ? "info-tile" : ""}`}
       style={{
-        ...AboutWelcomeUtils.getValidStyle(content?.style, CONFIGURABLE_STYLES),
+        ...MultiStageUtils.getValidStyle(content?.style, CONFIGURABLE_STYLES),
       }}
     >
       <div className="cta-paragraph-icon-wrapper">
         <img
           className="cta-paragraph-icon"
           src={content?.icon?.iconURL}
-          style={AboutWelcomeUtils.getValidStyle(
+          style={MultiStageUtils.getValidStyle(
             content?.icon,
             CONFIGURABLE_STYLES
           )}
