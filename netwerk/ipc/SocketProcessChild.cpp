@@ -773,13 +773,7 @@ mozilla::ipc::IPCResult SocketProcessChild::RecvLoadSSLTokensCache(
 
 mozilla::ipc::IPCResult SocketProcessChild::RecvFlushSSLTokensCache(
     FlushSSLTokensCacheResolver&& aResolver) {
-  // Serialize on a background thread to avoid blocking the main thread,
-  // then call the resolver with the result (IPDL resolvers are thread-safe).
-  NS_DispatchBackgroundTask(NS_NewRunnableFunction(
-      "SSLTokensCache::FlushSSLTokensCache",
-      [resolver = std::move(aResolver)]() mutable {
-        resolver(mozilla::ipc::ByteBufFrom(SSLTokensCache::SerializeForIPC()));
-      }));
+  aResolver(mozilla::ipc::ByteBufFrom(SSLTokensCache::SerializeForIPC()));
   return IPC_OK();
 }
 
