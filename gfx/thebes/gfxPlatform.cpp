@@ -4077,8 +4077,8 @@ bool gfxPlatform::FallbackFromAcceleration(FeatureStatus aStatus,
     gfxCriticalNoteOnce << "Fallback SW-WR, disable remote canvas";
     DisableAllCanvasForFallback(
         FeatureStatus::UnavailableNoGpuProcess,
-        "Disabled by fallback to GPU Process disabled",
-        "FEATURE_FAILURE_DISABLED_BY_FALLBACK_GPU_PROCESS_DISABLED"_ns);
+        "Disabled by GPU process instability",
+        "FEATURE_FAILURE_DISABLED_BY_GPU_PROCESS_INSTABILITY"_ns);
     return true;
   }
 
