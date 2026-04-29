@@ -38,6 +38,7 @@ support-files = [
   "320x240.webm",
   "VID_0001.ogg",
   "VID_0001.ogg^headers^",
+  "adts-cbr.aac",
   "allowed.sjs",
   "ambisonics.mp4",
   "ambisonics.mp4^headers^",
@@ -874,6 +875,8 @@ skip-if = [
 skip-if = [
   "os == 'mac' && os_version == '10.15' && arch == 'x86_64' && mda_gpu", # Bug 1942396
 ]
+
+["test_adts_dataurl_duration.html"]
 
 ["test_mp3_broadcast.html"]
 
