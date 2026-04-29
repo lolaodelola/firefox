@@ -9349,7 +9349,7 @@
   type: bool
   value: false
   mirror: always
-  set_spidermonkey_pref: startup
+  set_spidermonkey_pref: always
 
   # Experimental support for Promise.allKeyed in JavaScript.
 - name: javascript.options.experimental.promise_allkeyed
