@@ -635,20 +635,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "breach-alerts"
-version = "0.1.0"
-dependencies = [
- "error-support",
- "interrupt-support",
- "parking_lot",
- "rusqlite 0.37.0",
- "sql-support",
- "thiserror 2.0.12",
- "uniffi",
- "url",
-]
-
-[[package]]
 name = "breakpad-symbols"
 version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2799,7 +2785,6 @@ dependencies = [
 name = "gkrust-uniffi-components"
 version = "0.1.0"
 dependencies = [
- "breach-alerts",
  "context_id",
  "error-support",
  "filter_adult",

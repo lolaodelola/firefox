@@ -224,11 +224,3 @@ lower = "{}.getTime() / 1000"
 "create_login_store_with_static_key_manager" = "Sync"
 "create_managed_encdec" = "Sync"
 "create_static_key_manager" = "Sync"
-
-[breach_alerts.async_wrappers]
-"BreachAlertsStore.new_store" = "AsyncWrapped"
-"BreachAlertsStore.clear_all_breach_alert_dismissals" = "AsyncWrapped"
-"BreachAlertsStore.clear_breach_alert_dismissals" = "AsyncWrapped"
-"BreachAlertsStore.close" = "AsyncWrapped"
-"BreachAlertsStore.get_breach_alert_dismissals" = "AsyncWrapped"
-"BreachAlertsStore.set_breach_alert_dismissals" = "AsyncWrapped"
