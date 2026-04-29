@@ -50,6 +50,12 @@ SERVER_CERT_FINGERPRINT = (
 )
 
 
+class InvalidLastFrame(Exception):
+    """If thrown, the difference in images is too high, we suspect a faulty run"""
+
+    pass
+
+
 class ImageAnalzer:
     def __init__(self, browser, test, test_url, profilers):
         self.video = None
@@ -366,9 +372,14 @@ class ImageAnalzer:
             diff = self.error(self.get_image(frame_to_check), cropped_image)
             print(f"Error we found in images: {diff}")
             if diff > 0.5:
-                raise Exception(
+                raise InvalidLastFrame(
                     "Difference in Images is too high, suspected faulty run"
                 )
+
+    def run_test(self, iteration):
+        self.app_setup()
+        self.get_video(iteration)
+        return self.get_page_loaded_time(iteration)
 
 
 def get_profiler_combinations():
@@ -413,10 +424,13 @@ if __name__ == "__main__":
 
         ImageObject = ImageAnalzer(browser, test, test_url, profilers)
         for iteration in range(iterations):
-            ImageObject.app_setup()
-            ImageObject.get_video(iteration)
-            nav_done_frame = ImageObject.get_page_loaded_time(iteration)
-            ImageObject.validate_end_frame(nav_done_frame)
+            nav_done_frame = ImageObject.run_test(iteration)
+            try:
+                ImageObject.validate_end_frame(nav_done_frame)
+            except InvalidLastFrame:
+                print("Something went wrong, retrying image validation")
+                nav_done_frame = ImageObject.run_test(iteration)
+                ImageObject.validate_end_frame(nav_done_frame)
             start_video_timestamp += [
                 ImageObject.get_time_from_frame_num(nav_done_frame)
             ]
