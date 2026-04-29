@@ -917,6 +917,18 @@ bool RTCRtpReceiver::HasTrack(const dom::MediaStreamTrack* aTrack) const {
 }
 
 void RTCRtpReceiver::SyncFromJsep(const JsepTransceiver& aJsepTransceiver) {
+  // Spec says we set [[Receptive]] to true on sLD(sendrecv/recvonly), and to
+  // false on sRD(recvonly/inactive), sLD(sendonly/inactive), or when stop()
+  // is called.
+  // Update mReceptive and disconnect before the mPipeline guard: if mPipeline
+  // was cleared by an async Shutdown(), UpdateStreams and
+  // SetTrackMuteFromRemoteSdp must still see a consistent mReceptive state.
+  bool wasReceptive = mReceptive;
+  mReceptive = aJsepTransceiver.mRecvTrack.GetReceptive();
+  if (wasReceptive && !mReceptive) {
+    mUnmuteListener.DisconnectIfExists();
+  }
+
   if (!mPipeline) {
     return;
   }
@@ -949,16 +961,9 @@ void RTCRtpReceiver::SyncFromJsep(const JsepTransceiver& aJsepTransceiver) {
     }
   }
 
-  // Spec says we set [[Receptive]] to true on sLD(sendrecv/recvonly), and to
-  // false on sRD(recvonly/inactive), sLD(sendonly/inactive), or when stop()
-  // is called.
-  bool wasReceptive = mReceptive;
-  mReceptive = aJsepTransceiver.mRecvTrack.GetReceptive();
   if (!wasReceptive && mReceptive) {
     mUnmuteListener = mPipeline->mConduit->RtpPacketEvent().Connect(
         GetMainThreadSerialEventTarget(), this, &RTCRtpReceiver::OnRtpPacket);
-  } else if (wasReceptive && !mReceptive) {
-    mUnmuteListener.DisconnectIfExists();
   }
 }
 
@@ -1041,6 +1046,11 @@ void RTCRtpReceiver::SetTrackMuteFromRemoteSdp() {
   MOZ_ASSERT(!mReceptive,
              "PeerConnectionImpl should have blocked unmute events prior to "
              "firing mute");
+  if (!mTrack || mTrack->Ended()) {
+    // Track has already ended (e.g. transceiver was stopped before this
+    // renegotiation), so there is nothing to mute.
+    return;
+  }
   mReceiveTrackMute = true;
   // Set the mute state (and fire the mute event) synchronously. Unmute is
   // handled asynchronously after receiving RTP packets.
