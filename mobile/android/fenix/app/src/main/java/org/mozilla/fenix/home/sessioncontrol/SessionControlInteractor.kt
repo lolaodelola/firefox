@@ -447,6 +447,10 @@ class SessionControlInteractor(
         sportsController.handleViewScheduleClicked()
     }
 
+    override fun onCountdownWidgetDismissed() {
+        sportsController.handleCountdownWidgetDismissed()
+    }
+
     override fun onPrivacyReportTapped() {
         Homepage.privacyReportTapped.record(NoExtras())
     }
