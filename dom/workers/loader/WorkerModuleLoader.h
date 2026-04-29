@@ -94,7 +94,8 @@ class WorkerModuleLoader : public JS::loader::ModuleLoaderBase {
     // If moduleType is "css" and the CSSStyleSheet interface is not exposed in
     // settings's realm, then return false.
     return aModuleType == JS::ModuleType::JavaScript ||
-           aModuleType == JS::ModuleType::JSON;
+           aModuleType == JS::ModuleType::JSON ||
+           aModuleType == JS::ModuleType::Text;
   }
 
   virtual bool IsForServiceWorker() const override;
