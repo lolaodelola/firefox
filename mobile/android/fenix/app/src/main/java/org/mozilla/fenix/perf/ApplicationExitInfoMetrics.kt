@@ -45,6 +45,26 @@ object ApplicationExitInfoMetrics {
     internal const val PREFERENCE_NAME = "app_exit_info"
 
     /**
+     * Returns all historical process exits mapped to [ProcessExitRecord] for display purposes.
+     * Unlike [recordProcessExits], this does not apply timestamp deduplication and returns the
+     * full contents of the ring buffer.
+     *
+     * @param context Application [Context]
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun getProcessExitsForDisplay(context: Context): List<ProcessExitRecord> =
+        getHistoricalProcessExits(context).map { exit ->
+            ProcessExitRecord(
+                date = exit.timestamp.toDateTimeFormat(),
+                reason = exit.reason.toProcessExitReason() ?: "unknown",
+                processType = exit.processName.toProcessType(),
+                importance = exit.importance.toProcessImportance() ?: "unknown",
+                pssInMb = exit.pss.toValueInMB(),
+                rssInMb = exit.rss.toValueInMB(),
+            )
+        }
+
+    /**
      * Records process exits.
      *
      * @param context Application [Context]
@@ -199,6 +219,11 @@ object ApplicationExitInfoMetrics {
     private fun Long.toSimpleDateFormat(): String {
         val date = Date(this)
         return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
+    }
+
+    private fun Long.toDateTimeFormat(): String {
+        val date = Date(this)
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date)
     }
 
     private fun preferences(context: Context): SharedPreferences =
