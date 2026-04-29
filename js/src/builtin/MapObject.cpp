@@ -36,7 +36,7 @@ using mozilla::NumberEqualsInt32;
 
 /*** HashableValue **********************************************************/
 
-static PreBarriered<Value> NormalizeDoubleValue(double d) {
+static Value NormalizeDoubleValue(double d) {
   int32_t i;
   if (NumberEqualsInt32(d, &i)) {
     // Normalize int32_t-valued doubles to int32_t for faster hashing and
