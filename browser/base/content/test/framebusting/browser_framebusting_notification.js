@@ -24,7 +24,7 @@ add_task(async function () {
     "about:blank"
   );
 
-  await triggerFramebustingIntervention(tab);
+  await triggerFramebusting(tab);
   await openSettingsPopup();
 
   info("Checking notification l10n...");
@@ -152,7 +152,7 @@ async function checkToolbarAllowSite(tab) {
   );
 
   info("Triggering framebusting intervention...");
-  await triggerFramebustingIntervention(tab);
+  await triggerFramebusting(tab);
 
   // uh oh - busted!
   await BrowserTestUtils.browserLoaded(
@@ -165,7 +165,7 @@ async function checkToolbarAllowSite(tab) {
   PermissionTestUtils.remove(FRAMEBUSTING_PARENT_URL, "popup");
 
   info("Resetting to initial state...");
-  await triggerFramebustingIntervention(tab);
+  await triggerFramebusting(tab);
   await openSettingsPopup();
 }
 
@@ -202,7 +202,7 @@ async function checkToolbarDontShow(tab) {
   Services.prefs.setBoolPref("privacy.popups.showBrowserMessage", true);
 
   info("Resetting to initial state...");
-  await triggerFramebustingIntervention(tab);
+  await triggerFramebusting(tab);
   await openSettingsPopup();
 }
 
@@ -221,6 +221,6 @@ async function checkToolbarRedirect(tab) {
   );
 
   info("Resetting to initial state...");
-  await triggerFramebustingIntervention(tab);
+  await triggerFramebusting(tab);
   await openSettingsPopup();
 }

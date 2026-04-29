@@ -2188,10 +2188,6 @@ nsresult BrowsingContext::CheckFramebusting(nsDocShellLoadState* aLoadState) {
     return NS_OK;
   }
 
-  if (XRE_IsParentProcess()) {
-    return NS_OK;
-  }
-
   // Only applies to top-level navigations.
   if (!IsTop()) {
     return NS_OK;
@@ -2201,14 +2197,32 @@ nsresult BrowsingContext::CheckFramebusting(nsDocShellLoadState* aLoadState) {
     return NS_OK;
   }
 
+  if (aLoadState->LoadIsFromSessionHistory()) {
+    return NS_OK;
+  }
+
   const auto& sourceBC = aLoadState->SourceBrowsingContext();
   if (sourceBC.IsNull()) {
     return NS_OK;
   }
 
   if (BrowsingContext* bc = sourceBC.GetMaybeDiscarded()) {
-    if (bc->IsFramebustingAllowed(this)) {
+    // If the source lives in a different top-level browser, it is a
+    // cross-tab navigation (e.g. via window.opener) and allowed.
+    if (bc->BrowserId() != BrowserId()) {
       return NS_OK;
+    }
+
+    if (bc->GetCurrentWindowContext() &&
+        bc->GetCurrentWindowContext()->GetIsFramebustingAllowed()) {
+      return NS_OK;
+    }
+
+    for (auto* context = bc->GetCurrentWindowContext(); context;
+         context = context->GetParentWindowContext()) {
+      if (context->CanFramebust()) {
+        return NS_OK;
+      }
     }
 
     if (bc->GetDOMWindow()) {
@@ -2233,43 +2247,25 @@ nsresult BrowsingContext::CheckFramebusting(nsDocShellLoadState* aLoadState) {
   return NS_ERROR_DOM_SECURITY_ERR;
 }
 
-bool BrowsingContext::IsFramebustingAllowed(BrowsingContext* aTarget) {
-  MOZ_ASSERT(aTarget->IsTop());
+bool BrowsingContext::ComputeIsFramebustingAllowed() {
+  MOZ_ASSERT(IsInProcess());
 
-  if (aTarget->BrowserId() == BrowserId()) {
-    for (auto* context = GetCurrentWindowContext(); context;
-         context = context->GetParentWindowContext()) {
-      if (context->CanFramebust()) {
-        return true;
-      }
-    }
-
-    return IsFramebustingAllowedInner();
-  }
-
-  // We should be able to safely assume that the SOP has our back here
-  // already. How else would this BrowsingContext have a reference?
-  return true;
-}
-
-bool BrowsingContext::IsFramebustingAllowedInner() {
-  if (IsInProcess() && SameOriginWithTop()) {
+  if (IsTop()) {
     return true;
   }
 
-  // We get the sandbox flags from the load info since the CSP header
-  // hasn't yet been processed at that time. The CSP sandbox directive makes
-  // it possible for a document to grant itself "allow-top-navigation"
-  // permissions by sending the appropiate header and we don't like that.
-  Document* doc;
-  nsIChannel* channel;
-  if ((doc = GetExtantDocument()) && (channel = doc->GetChannel())) {
-    nsCOMPtr<nsILoadInfo> loadInfo = channel->LoadInfo();
-    uint32_t sandboxFlags = loadInfo->GetSandboxFlags();
-    if (sandboxFlags && !(sandboxFlags & SANDBOXED_TOPLEVEL_NAVIGATION)) {
-      BrowsingContext* parent = GetParent();
-      return !parent || parent->IsFramebustingAllowedInner();
-    }
+  if (SameOriginWithTop()) {
+    return true;
+  }
+
+  // The browsing context's sandbox flags are the iframe "sandbox" attribute
+  // OR'ed with the parent's flags (CSP "sandbox" only applies to the
+  // document). Check the parent too, otherwise a page could grant itself
+  // "allow-top-navigation".
+  uint32_t sandboxFlags = GetSandboxFlags();
+  if (sandboxFlags && !(sandboxFlags & SANDBOXED_TOPLEVEL_NAVIGATION)) {
+    return GetParentWindowContext() &&
+           GetParentWindowContext()->GetIsFramebustingAllowed();
   }
 
   return false;
