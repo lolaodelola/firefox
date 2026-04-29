@@ -284,6 +284,8 @@ run-if = [
 
 ["test_MediaSource_mp4.html"]
 
+["test_AppendMultipleInitOpusAudio.html"]
+
 ["test_MultipleInitSegments.html"]
 
 ["test_MultipleInitSegments_mp4.html"]
