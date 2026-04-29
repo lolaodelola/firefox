@@ -67,9 +67,13 @@ filtered out during loading.
 - Cache written: asynchronously on `application-background` (e.g. when the
   user switches away from Firefox on Android, before any OOM kill); on
   `idle-daily`; and via an `nsIAsyncShutdownBlocker` on `ProfileBeforeChange`
-  (off the main thread). `SSLTokensCache::Shutdown()` (called by
-  `nsIOService`) provides a synchronous fallback for test environments where
-  the async shutdown service is unavailable.
+  (off the main thread). The blocker is registered on `profile-after-change`
+  (sent by `nsXREDirProvider::DoStartup()` once the profile is loaded)
+  because the AsyncShutdown service is not yet registered when
+  `SSLTokensCache::Init()` runs. `SSLTokensCache::Shutdown()` (called by
+  `nsIOService` on `profile-change-net-teardown`) provides a synchronous
+  fallback for test environments where the async shutdown service is
+  unavailable.
 - Cache written atomically: data → `ssl_tokens_cache.tmp` → rename to
   `ssl_tokens_cache.bin`.
 - Cache deleted: when `SSLTokensCache::Clear()` is called (e.g. "Clear All
