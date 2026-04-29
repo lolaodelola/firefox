@@ -11,39 +11,26 @@ VERSIONS:
 
 ==== Updating and Patching Cairo ====
 
-To change Cairo in Mozilla Central, do not simply commit changes to
-`gfx/cairo/cairo`, or they will be overwritten the next time Cairo is
-revendored. First, commit your changes to the `firefox` branch at
-`github.com/FirefoxGraphics/cairo`. Then, run this command at the top of the
-Firefox source tree:
+To change Cairo in Mozilla Central:
 
-    mach vendor gfx/cairo/moz.yaml -r firefox
+- Make your changes to `gfx/cairo/cairo`, and test as necessary.
 
-That checks out the `firefox` branch, makes our standard adjustments, and then
-updates `gfx/cairo/cairo` accordingly. See `gfx/cairo/moz.yaml` for details.
+- Add an appropriate patch to `gfx/cairo/patches`, and edit the
+  `patches` list in `gfx/cairo/moz.yaml` to apply it at the
+  appropriate point in the list --- typically the end.
 
-To vendor in a new release of Cairo:
+- Test that UpdateBot can actually reconstruct the vendored Cairo
+  sources with the following command:
 
-- Push appropriate branches and tags from the upstream Cairo repo to
-  `github.com/FirefoxGraphics/cairo`.
+      mach vendor gfx/cairo/moz.yaml -r $REVISION --patch-mode check --force
 
-- Rebase the `firefox` branch on the Cairo release you'd like to use
-  as the base for Firefox.
+  where `$REVISION` is the `revision` currently listed in `moz.yaml`.
+  UpdateBot should say that the "upstream hasn't modified files
+  locally", and `git status` should be clean.
 
-- At the top of the Firefox source tree, run:
-
-      mach vendor gfx/cairo/moz.yaml -r firefox
-
-  This should change the vendored Cairo sources in `gfx/cairo/cairo` to match
-  what you have committed to the `firefox` branch.
-
-Note: Do not try to simply push all upstream tags and branches to
-`github.com/FirefoxGraphics/cairo`. Some prior releases of Cairo seem to have
-malformed commit blobs, and you'll get errors like this:
-
-    missingSpaceBeforeDate: invalid author/committer line - missing space before date
-
-Instead, just push the tags/branches you actually need.
+- Submit a patch for review that includes both the changes to
+  `gfx/cairo/cairo` as well as the changes to `moz.yaml` and the new
+  patch file in `gfx/cairo/patches`.
 
 ==== pixman patches ====
 
