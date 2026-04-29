@@ -44,8 +44,8 @@ import mozilla.components.compose.base.badge.CheckmarkBadge
 import mozilla.components.compose.base.theme.surfaceDimVariant
 import org.mozilla.fenix.R
 import org.mozilla.fenix.compose.BottomSheetHandle
+import org.mozilla.fenix.home.sports.Country
 import org.mozilla.fenix.home.sports.Region
-import org.mozilla.fenix.home.sports.Team
 import org.mozilla.fenix.home.sports.regionGrouping
 import org.mozilla.fenix.theme.FirefoxTheme
 
@@ -155,11 +155,11 @@ private fun RegionSection(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            region.teams.forEach { team ->
+            region.countries.forEach { country ->
                 CountryFlagItem(
-                    team = team,
-                    isSelected = team.key == selectedCountryCode,
-                    onClick = { onCountrySelected(team.key) },
+                    country = country,
+                    isSelected = country.countryCode == selectedCountryCode,
+                    onClick = { onCountrySelected(country.countryCode) },
                 )
             }
         }
@@ -168,7 +168,7 @@ private fun RegionSection(
 
 @Composable
 private fun CountryFlagItem(
-    team: Team,
+    country: Country,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -181,7 +181,7 @@ private fun CountryFlagItem(
             modifier = Modifier.size(width = 60.dp, height = 40.dp),
         ) {
             Image(
-                painter = painterResource(team.flagResId),
+                painter = painterResource(country.flagResId),
                 contentDescription = null,
                 modifier = Modifier
                     .matchParentSize()
@@ -201,7 +201,7 @@ private fun CountryFlagItem(
         Spacer(modifier = Modifier.height(FirefoxTheme.layout.space.static50))
 
         Text(
-            text = team.key,
+            text = country.countryCode,
             style = FirefoxTheme.typography.caption.copy(
                 fontWeight = FontWeight.W700,
             ),
