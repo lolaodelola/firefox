@@ -49,8 +49,11 @@ KNOWN_NON_MOZ_BUILD_FILES = {
 } | UPSTREAM_SOURCES_NOT_BUILT | C_FILES_INCLUDED_BY_OTHERS
 
 
-def parse_cmake_var(text, var_name, resolved):
-    """Return the expanded list of tokens from the first CMake set() call for var_name."""
+def parse_cmake_var(text, var_name):
+    """Return the list of literal tokens from the first CMake set() call for var_name.
+
+    Tokens that are cmake variable references (${VAR}) are skipped.
+    """
     m = re.search(
         rf"set\(\s*{re.escape(var_name)}\s+(.*?)\)",
         text,
@@ -58,14 +61,7 @@ def parse_cmake_var(text, var_name, resolved):
     )
     if not m:
         return []
-    result = []
-    for tok in m.group(1).split():
-        ref = re.fullmatch(r"\$\{(\w+)\}", tok)
-        if ref:
-            result.extend(resolved.get(ref.group(1), []))
-        else:
-            result.append(tok)
-    return result
+    return [tok for tok in m.group(1).split() if not re.fullmatch(r"\$\{(\w+)\}", tok)]
 
 
 def _collect_list_vars(text):
@@ -105,7 +101,7 @@ def parse_moz_build_sources(path, exclude_prefix=None):
     for item in _iter_sources_items(text, list_vars):
         if exclude_prefix and item.startswith(exclude_prefix):
             continue
-        sources.add(os.path.basename(item))
+        sources.add(Path(item).name)
     return sources
 
 
@@ -138,11 +134,10 @@ def check_source_lists():
         return True
 
     text = cmake_path.read_text()
-    resolved = {}
     # Use only the first set() call for JPEG_SOURCES; subsequent ones add arithmetic
     # files conditionally. Filter those via UPSTREAM_SOURCES_NOT_BUILT as well.
-    base_jpeg = parse_cmake_var(text, "JPEG_SOURCES", resolved)
-    jpeg_sources = [f for f in base_jpeg if os.path.basename(f) not in UPSTREAM_SOURCES_NOT_BUILT]
+    base_jpeg = parse_cmake_var(text, "JPEG_SOURCES")
+    jpeg_sources = [f for f in base_jpeg if Path(f).name not in UPSTREAM_SOURCES_NOT_BUILT]
 
     # Split into direct src/*.c files and wrapper files.
     # Wrapper files live under src/wrapper/ and have -8/-12/-16 suffixes.
@@ -150,11 +145,11 @@ def check_source_lists():
     cmake_wrapper = set()  # basenames of src/wrapper/*.c files
 
     for f in jpeg_sources:
-        base = os.path.basename(f)
+        name = Path(f).name
         if "wrapper" in f:
-            cmake_wrapper.add(base)
+            cmake_wrapper.add(name)
         else:
-            cmake_direct.add(base)
+            cmake_direct.add(name)
 
     moz_main = parse_moz_build_sources(VENDOR_DIR / "moz.build", exclude_prefix="simd/")
     moz_wrapper = parse_moz_build_sources(VENDOR_DIR / "src" / "wrapper" / "moz.build")
@@ -191,19 +186,28 @@ def find_vcs():
 
 
 def _has_vcs_changes(vcs, root, path):
-    """Return True if path has any VCS status change (modified, added, deleted, unknown)."""
+    """Return True if path changed in the tip/HEAD commit or has uncommitted changes."""
     rel = str(path.relative_to(root))
     if vcs == "hg":
-        result = subprocess.run(
+        tip = subprocess.run(
+            ["hg", "status", "--change", ".", rel],
+            capture_output=True, text=True, cwd=str(root),
+        )
+        wdir = subprocess.run(
             ["hg", "status", rel],
             capture_output=True, text=True, cwd=str(root),
         )
+        return bool(tip.stdout.strip() or wdir.stdout.strip())
     else:
-        result = subprocess.run(
+        tip = subprocess.run(
+            ["git", "diff-tree", "--no-commit-id", "-r", "--name-only", "HEAD", "--", rel],
+            capture_output=True, text=True, cwd=str(root),
+        )
+        wdir = subprocess.run(
             ["git", "status", "--porcelain", rel],
             capture_output=True, text=True, cwd=str(root),
         )
-    return bool(result.stdout.strip())
+        return bool(tip.stdout.strip() or wdir.stdout.strip())
 
 
 def update_version_strings():
@@ -290,11 +294,11 @@ def update_version_strings():
         print("ERROR: moz.yaml not found.")
         return False
     moz_yaml = moz_yaml_path.read_text()
-    m = re.search(r'revision:\s*"([^"]*)"', moz_yaml)
-    if not m:
+    yaml_m = re.search(r'revision:\s*"([^"]*)"', moz_yaml)
+    if not yaml_m:
         print("ERROR: Could not find revision field in moz.yaml.")
         ok = False
-    elif m.group(1) != version:
+    elif yaml_m.group(1) != version:
         moz_yaml, n5 = re.subn(
             r'(revision:\s*)"[^"]*"',
             rf'\g<1>"{version}"',
@@ -310,7 +314,7 @@ def update_version_strings():
     if ok:
         jconfig_path.write_text(jconfig)
         jconfigint_path.write_text(jconfigint)
-        if m and m.group(1) != version:
+        if yaml_m and yaml_m.group(1) != version:
             moz_yaml_path.write_text(moz_yaml)
 
     return ok
@@ -341,50 +345,19 @@ def check_jconfig_changes():
     return False
 
 
-def _get_tip_changes(vcs, root, rel_vendor):
-    """Return (new_files, removed_files) from the tip/HEAD commit for rel_vendor.
+def _get_vcs_changes(vcs, root, rel_vendor, *, committed):
+    """Return (new_files, removed_files) for rel_vendor.
 
-    Paths are relative to the repo root.
+    If committed is True, inspects the tip/HEAD commit; otherwise inspects the
+    working directory. Paths are relative to the repo root.
     """
     if vcs == "hg":
-        # hg status --change . shows files changed in the working directory's parent
-        # revision (the most recently committed revision), not working directory status.
+        # hg status --change . shows files changed in the working directory's
+        # parent revision (the most recently committed revision).
+        flags = ["--change", ".", "--added", "--removed"] if committed else \
+                ["--added", "--removed", "--deleted", "--unknown"]
         result = subprocess.run(
-            ["hg", "status", "--change", ".", "--added", "--removed", rel_vendor],
-            capture_output=True, text=True, cwd=str(root),
-        )
-        new_files, removed_files = [], []
-        for line in result.stdout.splitlines():
-            status, path = line[0], line[2:]
-            if status == "A":
-                new_files.append(path)
-            elif status == "R":
-                removed_files.append(path)
-    else:
-        result = subprocess.run(
-            ["git", "diff-tree", "--no-commit-id", "-r", "--name-status",
-             "--diff-filter=AD", "HEAD", "--", rel_vendor],
-            capture_output=True, text=True, cwd=str(root),
-        )
-        new_files, removed_files = [], []
-        for line in result.stdout.splitlines():
-            status, path = line[0], line.split("\t", 1)[1]
-            if status == "A":
-                new_files.append(path)
-            elif status == "D":
-                removed_files.append(path)
-    return new_files, removed_files
-
-
-def _get_uncommitted_changes(vcs, root, rel_vendor):
-    """Return (new_files, removed_files) from the working directory for rel_vendor.
-
-    Paths are relative to the repo root.
-    """
-    if vcs == "hg":
-        result = subprocess.run(
-            ["hg", "status", "--added", "--removed", "--deleted", "--unknown",
-             rel_vendor],
+            ["hg", "status"] + flags + [rel_vendor],
             capture_output=True, text=True, cwd=str(root),
         )
         new_files, removed_files = [], []
@@ -395,18 +368,40 @@ def _get_uncommitted_changes(vcs, root, rel_vendor):
             elif status in ("R", "!"):
                 removed_files.append(path)
     else:
-        result = subprocess.run(
-            ["git", "status", "--porcelain", rel_vendor],
-            capture_output=True, text=True, cwd=str(root),
-        )
-        new_files, removed_files = [], []
-        for line in result.stdout.splitlines():
-            xy, path = line[:2], line[3:]
-            if "?" in xy or xy[0] == "A":
-                new_files.append(path)
-            elif "D" in xy:
-                removed_files.append(path)
+        if committed:
+            result = subprocess.run(
+                ["git", "diff-tree", "--no-commit-id", "-r", "--name-status",
+                 "--diff-filter=AD", "HEAD", "--", rel_vendor],
+                capture_output=True, text=True, cwd=str(root),
+            )
+            new_files, removed_files = [], []
+            for line in result.stdout.splitlines():
+                status, path = line[0], line.split("\t", 1)[1]
+                if status == "A":
+                    new_files.append(path)
+                elif status == "D":
+                    removed_files.append(path)
+        else:
+            result = subprocess.run(
+                ["git", "status", "--porcelain", rel_vendor],
+                capture_output=True, text=True, cwd=str(root),
+            )
+            new_files, removed_files = [], []
+            for line in result.stdout.splitlines():
+                xy, path = line[:2], line[3:]
+                if "?" in xy or xy[0] == "A":
+                    new_files.append(path)
+                elif "D" in xy:
+                    removed_files.append(path)
     return new_files, removed_files
+
+
+def _get_tip_changes(vcs, root, rel_vendor):
+    return _get_vcs_changes(vcs, root, rel_vendor, committed=True)
+
+
+def _get_uncommitted_changes(vcs, root, rel_vendor):
+    return _get_vcs_changes(vcs, root, rel_vendor, committed=False)
 
 
 def check_vcs_changes():
@@ -441,8 +436,7 @@ def check_vcs_changes():
         for f in tip_new:
             rel_path = Path(f).relative_to(rel_vendor_path).as_posix()
             name = Path(rel_path).name
-            suffixes = "".join(Path(name).suffixes)
-            if suffixes in (".h", ".h.in", ".inc", ".inc.h"):
+            if name.endswith((".h", ".h.in", ".inc", ".inc.h")):
                 continue
             if rel_path in all_moz_build_sources:
                 continue
