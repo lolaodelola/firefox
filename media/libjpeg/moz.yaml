@@ -35,8 +35,11 @@ vendoring:
     - src/jconfig.txt
     - src/libjpeg.map.in
     # Test files (in src/; test/ directory is excluded below)
+    - src/bmpsizetest.c
     - src/jcstest.c
     - src/strtest.c
+    # SIMD coverage test tool (not needed by Firefox)
+    - simd/simdcoverage.c
     # Standalone utility programs and TurboJPEG API (not used by Firefox)
     - src/cdjpeg.c
     - src/cdjpeg.h

@@ -225,7 +225,7 @@ def update_version_strings():
     version = m.group(1)
 
     parts = version.split(".")
-    if len(parts) != 3 or not all(p.isdigit() for p in parts):
+    if len(parts) < 3 or not all(p.isdigit() for p in parts):
         print(f"ERROR: Unexpected VERSION format: {version!r}")
         return False
     major, minor, revision = int(parts[0]), int(parts[1]), int(parts[2])
