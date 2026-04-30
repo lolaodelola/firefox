@@ -21,6 +21,8 @@ support-files = [
   "test_website_chip.mjs",
   "test_website_select_page.html",
   "test_website_select.mjs",
+  "test_website_confirmation_page.html",
+  "test_website_confirmation.mjs",
   "test_context_url_page.html",
   "test_context_url_page2.html"
 ]
@@ -108,6 +110,8 @@ skip-if = [
 ["browser_aiwindow_urlbar_chat.js"]
 
 ["browser_aiwindow_website_chip.js"]
+
+["browser_aiwindow_website_confirmation.js"]
 
 ["browser_aiwindow_website_select.js"]
 

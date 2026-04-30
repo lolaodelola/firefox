@@ -207,3 +207,27 @@ item-history-downloads-and-chat =
     .accesskey = B
 
 item-history-downloads-and-chat-description = Clears site, download, and chat history
+
+## Natural Language Interactions
+
+smart-window-confirm-select-all =
+    .aria-label = Select all
+    .label = Select all
+
+smart-window-confirm-deselect-all =
+    .aria-label = Deselect all
+    .label = Deselect all
+
+smart-window-close-confirm =
+    .tooltiptext = Close confirm
+    .aria-label = Close confirm
+
+smart-window-confirm-close-tab = Close
+
+# Variables
+#   $count (number) - Number of tabs to close
+smart-window-confirm-close-tabs =
+    { $count ->
+        [one] Close { $count } tab
+       *[other] Close { $count } tabs
+    }

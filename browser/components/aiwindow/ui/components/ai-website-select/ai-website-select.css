@@ -19,6 +19,8 @@
   background-color: var(--select-background-color);
   transition: background-color 0.2s ease;
   white-space: nowrap;
+  /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
+  scroll-margin-block: 35px 45px;
 }
 
 .website-select-checkbox:hover {
